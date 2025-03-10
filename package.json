@@ -1,0 +1,32 @@
+{
+  "name": "ocr-web",
+  "version": "0.1.0",
+  "private": true,
+  "prettier": "@carbonplan/prettier",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@carbonplan/components": "13.1.1",
+    "@carbonplan/prettier": "^1.2.0",
+    "@carbonplan/theme": "^8.1.0",
+    "next": "15.2.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "theme-ui": "^0.17.2"
+  },
+  "devDependencies": {
+    "@carbonplan/prettier": "^1.2.0",
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5"
+  }
+}
