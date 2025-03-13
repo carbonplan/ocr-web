@@ -6,6 +6,8 @@ const Index = () => {
       description='Open Climate Risk'
       title='Open Climate Risk'
       footer={false}
+      dimmer={'top'}
+      metadata={false}
     ></Layout>
   )
 }
