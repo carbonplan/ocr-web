@@ -2,39 +2,12 @@ import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
-import { layers, namedFlavor } from '@protomaps/basemaps'
-
-const flavorName = 'black'
-const carbonPlanDark = {
-  ...namedFlavor(flavorName),
-  buildings: '#00000000',
-  background: '#1b1e23',
-  earth: '#1b1e23',
-  park_a: '#1b1e23',
-  park_b: '#1b1e23',
-  golf_course: '#1b1e23',
-  aerodrome: '#1b1e23',
-  industrial: '#1b1e23',
-  university: '#1b1e23',
-  school: '#1b1e23',
-  zoo: '#1b1e23',
-  farmland: '#1b1e23',
-  wood_a: '#1b1e23',
-  wood_b: '#1b1e23',
-  residential: '#1b1e23',
-  protected_area: '#1b1e23',
-  scrub_a: '#1b1e23',
-  scrub_b: '#1b1e23',
-
-  regular: 'Relative Pro Book',
-  bold: 'Relative Pro Book',
-  italic: 'Relative Pro Book',
-}
-const language = 'en'
+import { useMapTheme } from '../utils/styles'
 
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
+  const { mapLayers, sprite } = useMapTheme()
 
   useEffect(() => {
     if (map.current) return
@@ -42,7 +15,6 @@ const Map = () => {
     if (mapContainer.current) {
       let protocol = new Protocol()
       maplibregl.addProtocol('pmtiles', protocol.tile)
-      const mapLayers = layers('protomaps', carbonPlanDark, { lang: language })
 
       map.current = new maplibregl.Map({
         container: mapContainer.current,
@@ -50,7 +22,7 @@ const Map = () => {
           version: 8,
           glyphs:
             'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
-          sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/${flavorName}`,
+          // sprite,
           sources: {
             protomaps: {
               type: 'vector',
@@ -59,7 +31,7 @@ const Map = () => {
                 '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
             },
           },
-          layers: mapLayers,
+          layers: [], // Empty to start so we don't flash the wrong theme
         },
         center: [-94, 45],
         zoom: 8,
@@ -72,6 +44,25 @@ const Map = () => {
       map.current = null
     }
   }, [])
+
+  useEffect(() => {
+    if (!map.current) return
+    const applyStyle = () => {
+      if (!map.current) return
+      const existingStyle = map.current.getStyle()
+      const newStyle = {
+        ...existingStyle,
+        layers: mapLayers,
+        sprite,
+      }
+      map.current.setStyle(newStyle)
+    }
+    if (map.current.isStyleLoaded()) {
+      applyStyle()
+    } else {
+      map.current.once('style.load', applyStyle)
+    }
+  }, [mapLayers, sprite])
 
   return (
     <div

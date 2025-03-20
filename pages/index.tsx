@@ -1,5 +1,5 @@
 import { Box, Container } from 'theme-ui'
-import { Badge, Button, Header } from '@carbonplan/components'
+import { Badge, Button, Header, Dimmer } from '@carbonplan/components'
 import { Sidebar } from '@carbonplan/layouts'
 import { RotatingArrow } from '@carbonplan/icons'
 import Map from '../components/map'
@@ -25,6 +25,7 @@ const Index = () => {
           <Button prefix={<RotatingArrow />} suffix={<RotatingArrow />}>
             test
           </Button>
+          <Dimmer />
         </Sidebar>
         <Map />
       </Box>
