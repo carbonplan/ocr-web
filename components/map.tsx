@@ -2,12 +2,14 @@ import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
-import { useMapTheme } from '../utils/styles'
+import { useMapTheme } from '../hooks/useMapTheme'
+import { useLocationStore } from '../store/location'
 
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const { mapLayers, sprite } = useMapTheme()
+  const selectedLocation = useLocationStore((state) => state.selectedLocation)
 
   useEffect(() => {
     if (map.current) return
@@ -22,7 +24,6 @@ const Map = () => {
           version: 8,
           glyphs:
             'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
-          // sprite,
           sources: {
             protomaps: {
               type: 'vector',
@@ -63,6 +64,19 @@ const Map = () => {
       map.current.once('style.load', applyStyle)
     }
   }, [mapLayers, sprite])
+
+  useEffect(() => {
+    if (!map.current || !selectedLocation) return
+    const addressLocation = new maplibregl.LngLat(
+      selectedLocation.position.lng,
+      selectedLocation.position.lat,
+    )
+    map.current.flyTo({
+      center: addressLocation,
+      zoom: 17,
+      offset: [250, 0], // TODO: make dynamic w/ sidebar width
+    })
+  }, [selectedLocation])
 
   return (
     <div

@@ -1,8 +1,9 @@
 import { Box, Container } from 'theme-ui'
-import { Badge, Button, Header, Dimmer } from '@carbonplan/components'
+//@ts-ignore
+import { Header, Dimmer } from '@carbonplan/components'
+//@ts-ignore
 import { Sidebar } from '@carbonplan/layouts'
-import { RotatingArrow } from '@carbonplan/icons'
-import Map from '../components/map'
+import { Map, Geocode } from '../components'
 
 const Index = () => {
   return (
@@ -21,10 +22,7 @@ const Index = () => {
         }}
       >
         <Sidebar expanded={true} side='left' width={4}>
-          <Badge sx={{ color: 'green' }}>Open Climate Risk</Badge>
-          <Button prefix={<RotatingArrow />} suffix={<RotatingArrow />}>
-            test
-          </Button>
+          <Geocode />
           <Dimmer />
         </Sidebar>
         <Map />
