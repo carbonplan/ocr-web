@@ -10,6 +10,7 @@ const Map = () => {
   const map = useRef<maplibregl.Map | null>(null)
   const { mapLayers, sprite } = useMapTheme()
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
+  const satellite = useLocationStore((state) => state.satellite)
 
   useEffect(() => {
     if (map.current) return
@@ -31,6 +32,11 @@ const Map = () => {
               attribution:
                 '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
             },
+            here: {
+              type: 'raster',
+              tiles: [`/api/map/tiles/{z}/{x}/{y}`],
+              tileSize: 256,
+            },
           },
           layers: [], // Empty to start so we don't flash the wrong theme
         },
@@ -51,19 +57,30 @@ const Map = () => {
     const applyStyle = () => {
       if (!map.current) return
       const existingStyle = map.current.getStyle()
+
+      const satelliteLayer = {
+        id: 'here',
+        type: 'raster' as const,
+        source: 'here',
+        paint: {
+          'raster-saturation': -0.8,
+        },
+      }
+
       const newStyle = {
         ...existingStyle,
-        layers: mapLayers,
+        layers: [...(satellite ? [satelliteLayer] : []), ...mapLayers],
         sprite,
       }
       map.current.setStyle(newStyle)
     }
+
     if (map.current.isStyleLoaded()) {
       applyStyle()
     } else {
       map.current.once('style.load', applyStyle)
     }
-  }, [mapLayers, sprite])
+  }, [mapLayers, sprite, satellite])
 
   useEffect(() => {
     if (!map.current || !selectedLocation) return
