@@ -7,6 +7,7 @@ import { Address, Location, Suggestion } from '../types/location'
 import { useDebounce } from '../hooks/useDebounce'
 //@ts-ignore
 import { RotatingArrow } from '@carbonplan/icons'
+
 const formatAddress = (address: Address) => {
   return `${address.houseNumber} ${address.street}, ${address.city}, ${address.state}`
 }
