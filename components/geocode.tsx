@@ -45,9 +45,7 @@ const Geocode = () => {
 
     try {
       const response = await fetch(
-        `https://autocomplete.search.hereapi.com/v1/autocomplete?q=${encodeURIComponent(
-          searchQuery,
-        )}&in=countryCode:USA&limit=3&apiKey=${process.env.NEXT_PUBLIC_HERE_API_KEY}`,
+        `/api/geocode/autocomplete?q=${encodeURIComponent(searchQuery)}`,
       )
       const data = await response.json()
       const filteredSuggestions = data.items.filter((item: Suggestion) => {
@@ -69,9 +67,7 @@ const Geocode = () => {
     locationId: string,
   ): Promise<Location | null> => {
     try {
-      const response = await fetch(
-        `https://lookup.search.hereapi.com/v1/lookup?apiKey=${process.env.NEXT_PUBLIC_HERE_API_KEY}&id=${locationId}`,
-      )
+      const response = await fetch(`/api/geocode/lookup?id=${locationId}`)
       const data = await response.json()
       return data
     } catch (error) {
