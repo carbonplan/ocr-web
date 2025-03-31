@@ -1,3 +1,15 @@
+export type Coordinates = {
+  lat: number
+  lng: number
+}
+
+export type BoundingBox = {
+  west: number
+  south: number
+  east: number
+  north: number
+}
+
 export type Address = {
   label: string
   countryCode: string
@@ -15,39 +27,14 @@ export type Address = {
 export type Location = {
   title: string
   id: string
-  language: string
-  resultType: string
-  houseNumberType: string
   address: Address
-  position: {
-    lat: number
-    lng: number
-  }
-  access: Array<{
-    lat: number
-    lng: number
-  }>
-  mapView: {
-    west: number
-    south: number
-    east: number
-    north: number
-  }
+  position: Coordinates
+  access?: Coordinates[]
+  mapView?: BoundingBox
 }
 
 export type Suggestion = {
   title: string
   id: string
-  language: string
-  resultType: string
-  houseNumberType: string
   address: Address
-  highlights: {
-    title: Array<{ start: number; end: number }>
-    address: {
-      label: Array<{ start: number; end: number }>
-      street: Array<{ start: number; end: number }>
-      houseNumber: Array<{ start: number; end: number }>
-    }
-  }
 }
