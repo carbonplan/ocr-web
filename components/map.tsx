@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react'
-import maplibregl from 'maplibre-gl'
+import maplibregl, {
+  FillLayerSpecification,
+  RasterLayerSpecification,
+  StyleSpecification,
+} from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useMapTheme } from '../hooks/useMapTheme'
@@ -64,27 +68,27 @@ const Map = () => {
       if (!map.current) return
       const existingStyle = map.current.getStyle()
 
-      const satelliteLayer = {
+      const satelliteLayer: RasterLayerSpecification = {
         id: 'here',
-        type: 'raster' as const,
+        type: 'raster',
         source: 'here',
         paint: {
           'raster-saturation': -0.8,
         },
       }
 
-      const buildingsLayer = {
+      const buildingsLayer: FillLayerSpecification = {
         id: 'custom-buildings',
-        type: 'fill' as const,
+        type: 'fill',
         source: 'buildings',
         'source-layer': 'LA_regionfgb',
         paint: {
-          'fill-color': theme?.rawColors?.blue,
+          'fill-color': '#85a2f7',
           'fill-opacity': 0.5,
         },
       }
 
-      const newStyle = {
+      const newStyle: StyleSpecification = {
         ...existingStyle,
         layers: [
           ...(satellite ? [satelliteLayer] : []),
