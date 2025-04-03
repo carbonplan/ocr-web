@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
+import { useThemeUI } from 'theme-ui'
 import maplibregl, {
   FillLayerSpecification,
+  LineLayerSpecification,
   RasterLayerSpecification,
   StyleSpecification,
 } from 'maplibre-gl'
@@ -8,7 +10,6 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
-import { useThemeUI } from 'theme-ui'
 
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -17,6 +18,33 @@ const Map = () => {
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
   const satellite = useLocationStore((state) => state.satellite)
   const { theme } = useThemeUI()
+
+  const highlightBuildingAtLocation = (lng: number, lat: number) => {
+    if (
+      !map.current?.getSource('buildings') ||
+      !map.current?.getLayer('custom-buildings-fill')
+    ) {
+      return
+    }
+    const point = map.current.project([lng, lat])
+    const features = map.current.queryRenderedFeatures(point, {
+      layers: ['custom-buildings-fill'],
+    })
+
+    if (features.length > 0) {
+      const buildingFeature = features[0]
+      if (buildingFeature.id) {
+        map.current.setFeatureState(
+          {
+            source: 'buildings',
+            id: buildingFeature.id,
+            sourceLayer: 'LA_regionfgb',
+          },
+          { highlighted: true },
+        )
+      }
+    }
+  }
 
   useEffect(() => {
     if (map.current) return
@@ -77,8 +105,8 @@ const Map = () => {
         },
       }
 
-      const buildingsLayer: FillLayerSpecification = {
-        id: 'custom-buildings',
+      const buildingsFillLayer: FillLayerSpecification = {
+        id: 'custom-buildings-fill',
         type: 'fill',
         source: 'buildings',
         'source-layer': 'LA_regionfgb',
@@ -88,11 +116,28 @@ const Map = () => {
         },
       }
 
+      const buildingsLineLayer: LineLayerSpecification = {
+        id: 'custom-buildings-line',
+        type: 'line',
+        source: 'buildings',
+        'source-layer': 'LA_regionfgb',
+        paint: {
+          'line-color': [
+            'case',
+            ['boolean', ['feature-state', 'highlighted'], false],
+            theme?.rawColors?.primary as string,
+            'transparent',
+          ],
+          'line-width': 3,
+        },
+      }
+
       const newStyle: StyleSpecification = {
         ...existingStyle,
         layers: [
           ...(satellite ? [satelliteLayer] : []),
-          buildingsLayer,
+          buildingsFillLayer,
+          buildingsLineLayer,
           ...mapLayers,
         ],
         sprite,
@@ -108,7 +153,13 @@ const Map = () => {
   }, [mapLayers, sprite, satellite])
 
   useEffect(() => {
-    if (!map.current || !selectedLocation) return
+    if (!map.current || !selectedLocation || !map.current.isStyleLoaded())
+      return
+    map.current.removeFeatureState({
+      source: 'buildings',
+      sourceLayer: 'LA_regionfgb',
+    })
+
     const addressLocation = new maplibregl.LngLat(
       selectedLocation.position.lng,
       selectedLocation.position.lat,
@@ -118,6 +169,20 @@ const Map = () => {
       zoom: 17,
       offset: [250, 0], // TODO: make dynamic w/ sidebar width
     })
+
+    const handleMoveEnd = () => {
+      highlightBuildingAtLocation(
+        selectedLocation.position.lng,
+        selectedLocation.position.lat,
+      )
+    }
+
+    map.current.once('moveend', handleMoveEnd)
+    return () => {
+      if (map.current) {
+        map.current.off('moveend', handleMoveEnd)
+      }
+    }
   }, [selectedLocation])
 
   return (
