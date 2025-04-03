@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
+import { useThemeUI } from 'theme-ui'
 
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -11,6 +12,7 @@ const Map = () => {
   const { mapLayers, sprite } = useMapTheme()
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
   const satellite = useLocationStore((state) => state.satellite)
+  const { theme } = useThemeUI()
 
   useEffect(() => {
     if (map.current) return
@@ -28,7 +30,7 @@ const Map = () => {
           sources: {
             protomaps: {
               type: 'vector',
-              url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/mn.pmtiles',
+              url: 'pmtiles://https://data.source.coop/protomaps/openstreetmap/v4.pmtiles', // TODO replace with carbonplan bucket
               attribution:
                 '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
             },
@@ -37,11 +39,15 @@ const Map = () => {
               tiles: [`/api/map/tiles/{z}/{x}/{y}`],
               tileSize: 256,
             },
+            buildings: {
+              type: 'vector',
+              url: 'pmtiles://https://carbonplan-scratch.s3.us-west-2.amazonaws.com/OCR/LA_region_coiled.pmtiles',
+            },
           },
           layers: [], // Empty to start so we don't flash the wrong theme
         },
-        center: [-94, 45],
-        zoom: 8,
+        center: [-118.2437, 34.0522],
+        zoom: 9,
       })
     }
 
@@ -67,9 +73,24 @@ const Map = () => {
         },
       }
 
+      const buildingsLayer = {
+        id: 'custom-buildings',
+        type: 'fill' as const,
+        source: 'buildings',
+        'source-layer': 'LA_regionfgb',
+        paint: {
+          'fill-color': theme?.rawColors?.blue,
+          'fill-opacity': 0.5,
+        },
+      }
+
       const newStyle = {
         ...existingStyle,
-        layers: [...(satellite ? [satelliteLayer] : []), ...mapLayers],
+        layers: [
+          ...(satellite ? [satelliteLayer] : []),
+          buildingsLayer,
+          ...mapLayers,
+        ],
         sprite,
       }
       map.current.setStyle(newStyle)

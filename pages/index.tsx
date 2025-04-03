@@ -28,11 +28,14 @@ const Index = () => {
             label='Satellite'
             value={satellite}
             onClick={() => setSatellite(!satellite)}
+            sx={{
+              mt: 3,
+            }}
           >
             Satellite
           </Tag>
 
-          <Dimmer sx={{ position: 'absolute', bottom: 2, left: 2 }} />
+          <Dimmer sx={{ position: 'absolute', bottom: 4, left: 4 }} />
         </Sidebar>
         <Map />
       </Box>
