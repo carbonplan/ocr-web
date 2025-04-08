@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 //@ts-ignore
 import { Button, Input } from '@carbonplan/components'
 import { useLocationStore } from '../store/location'
@@ -9,7 +9,14 @@ import { useDebounce } from '../hooks/useDebounce'
 import { RotatingArrow } from '@carbonplan/icons'
 
 const formatAddress = (address: Address) => {
-  return `${address.houseNumber} ${address.street}, ${address.city}, ${address.state}`
+  const parts = []
+  if (address.houseNumber) parts.push(address.houseNumber)
+  if (address.street) parts.push(address.street)
+  const cityState = []
+  if (address.city) cityState.push(address.city)
+  if (address.state) cityState.push(address.state)
+  if (cityState.length > 0) parts.push(cityState.join(', '))
+  return parts.join(' ')
 }
 
 const Geocode = () => {
@@ -49,15 +56,7 @@ const Geocode = () => {
         `/api/geocode/autocomplete?q=${encodeURIComponent(searchQuery)}`,
       )
       const data = await response.json()
-      const filteredSuggestions = data.items.filter((item: Suggestion) => {
-        return (
-          item.address.houseNumber &&
-          item.address.street &&
-          item.address.city &&
-          item.address.state
-        )
-      })
-      setSuggestions(filteredSuggestions)
+      setSuggestions(data.items)
       setSelectedIndex(-1)
     } catch (error) {
       console.error('Autocomplete error:', error)
@@ -127,12 +126,12 @@ const Geocode = () => {
 
   return (
     <Box ref={wrapperRef} sx={{ position: 'relative', width: '100%' }}>
-      <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+      <Flex sx={{ gap: 2 }}>
         <Input
           value={searchQuery}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder={'Search for an address'}
+          placeholder={'Search for a place'}
           sx={{
             flex: 1,
           }}
@@ -140,7 +139,7 @@ const Geocode = () => {
         <Button size='sm' suffix={<RotatingArrow />}>
           Search
         </Button>
-      </Box>
+      </Flex>
       {suggestions.length > 0 && (
         <Box
           sx={{
@@ -151,28 +150,27 @@ const Geocode = () => {
             border: '1px solid',
             borderColor: 'muted',
             mt: 1,
+            zIndex: 1,
           }}
         >
           {suggestions.map((suggestion, index) => {
             const { address } = suggestion
-            if (address && address.houseNumber) {
-              return (
-                <Box
-                  key={suggestion.id}
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  sx={{
-                    p: 2,
-                    cursor: 'pointer',
-                    bg: index === selectedIndex ? 'muted' : 'transparent',
-                    '&:hover': {
-                      bg: 'muted',
-                    },
-                  }}
-                >
-                  {formatAddress(address)}
-                </Box>
-              )
-            }
+            return (
+              <Box
+                key={suggestion.id}
+                onClick={() => handleSuggestionClick(suggestion)}
+                sx={{
+                  p: 2,
+                  cursor: 'pointer',
+                  bg: index === selectedIndex ? 'muted' : 'transparent',
+                  '&:hover': {
+                    bg: 'muted',
+                  },
+                }}
+              >
+                {formatAddress(address)}
+              </Box>
+            )
           })}
         </Box>
       )}
