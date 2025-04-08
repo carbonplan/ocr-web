@@ -8,7 +8,7 @@ import { useDebounce } from '../hooks/useDebounce'
 //@ts-ignore
 import { RotatingArrow } from '@carbonplan/icons'
 
-const formatAddress = (address: Address) => {
+export const formatAddress = (address: Address) => {
   const parts = []
   if (address.houseNumber) parts.push(address.houseNumber)
   if (address.street) parts.push(address.street)

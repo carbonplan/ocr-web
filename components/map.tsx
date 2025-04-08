@@ -11,13 +11,36 @@ import { Protocol } from 'pmtiles'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
 
+const buildingSource =
+  'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/CA_12_risk_scores.pmtiles'
+const buildingsLayer = 'CA_12_risk_scoresfgb'
+
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<maplibregl.Map | null>(null)
   const { mapLayers, sprite } = useMapTheme()
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
+  const setSelectedLocation = useLocationStore(
+    (state) => state.setSelectedLocation,
+  )
   const satellite = useLocationStore((state) => state.satellite)
+  const setSelectedBuilding = useLocationStore(
+    (state) => state.setSelectedBuilding,
+  )
   const { theme } = useThemeUI()
+  const isUserClick = useRef(false)
+
+  const setPointerCursor = () => {
+    if (map.current) {
+      map.current.getCanvas().style.cursor = 'pointer'
+    }
+  }
+
+  const resetCursor = () => {
+    if (map.current) {
+      map.current.getCanvas().style.cursor = ''
+    }
+  }
 
   const highlightBuildingAtLocation = (lng: number, lat: number) => {
     if (
@@ -26,6 +49,12 @@ const Map = () => {
     ) {
       return
     }
+
+    map.current.removeFeatureState({
+      source: 'buildings',
+      sourceLayer: buildingsLayer,
+    })
+
     const point = map.current.project([lng, lat])
     const features = map.current.queryRenderedFeatures(point, {
       layers: ['custom-buildings-fill'],
@@ -38,10 +67,52 @@ const Map = () => {
           {
             source: 'buildings',
             id: buildingFeature.id,
-            sourceLayer: 'LA_regionfgb',
+            sourceLayer: buildingsLayer,
           },
           { highlighted: true },
         )
+      }
+    }
+  }
+
+  const handleBuildingClick = async (e: maplibregl.MapMouseEvent) => {
+    if (!map.current) return
+
+    const features = map.current.queryRenderedFeatures(e.point, {
+      layers: ['custom-buildings-fill'],
+    })
+
+    if (features.length > 0) {
+      setSelectedBuilding(features[0].properties)
+      const feature = features[0]
+      const { lng, lat } = e.lngLat
+      isUserClick.current = true
+      if (feature.id) {
+        map.current.removeFeatureState({
+          source: 'buildings',
+          sourceLayer: buildingsLayer,
+        })
+
+        map.current.setFeatureState(
+          {
+            source: 'buildings',
+            id: feature.id,
+            sourceLayer: buildingsLayer,
+          },
+          { highlighted: true },
+        )
+
+        try {
+          const response = await fetch(
+            `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
+          )
+          if (response.ok) {
+            const location = await response.json()
+            setSelectedLocation(location)
+          }
+        } catch (error) {
+          console.error('Error fetching location details:', error)
+        }
       }
     }
   }
@@ -62,7 +133,7 @@ const Map = () => {
           sources: {
             protomaps: {
               type: 'vector',
-              url: 'pmtiles://https://data.source.coop/protomaps/openstreetmap/v4.pmtiles', // TODO replace with carbonplan bucket
+              url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
               attribution:
                 '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
             },
@@ -73,7 +144,7 @@ const Map = () => {
             },
             buildings: {
               type: 'vector',
-              url: 'pmtiles://https://carbonplan-scratch.s3.us-west-2.amazonaws.com/OCR/LA_region_coiled.pmtiles',
+              url: `pmtiles://${buildingSource}`,
             },
           },
           layers: [], // Empty to start so we don't flash the wrong theme
@@ -81,9 +152,19 @@ const Map = () => {
         center: [-118.2437, 34.0522],
         zoom: 9,
       })
+
+      map.current.on('click', 'custom-buildings-fill', handleBuildingClick)
+
+      map.current.on('mouseenter', 'custom-buildings-fill', setPointerCursor)
+      map.current.on('mouseleave', 'custom-buildings-fill', resetCursor)
     }
 
     return () => {
+      if (map.current) {
+        map.current.off('click', 'custom-buildings-fill', handleBuildingClick)
+        map.current.off('mouseenter', 'custom-buildings-fill', setPointerCursor)
+        map.current.off('mouseleave', 'custom-buildings-fill', resetCursor)
+      }
       maplibregl.removeProtocol('pmtiles')
       map.current?.remove()
       map.current = null
@@ -109,7 +190,8 @@ const Map = () => {
         id: 'custom-buildings-fill',
         type: 'fill',
         source: 'buildings',
-        'source-layer': 'LA_regionfgb',
+        'source-layer': buildingsLayer,
+        minzoom: 15,
         paint: {
           'fill-color': '#85a2f7',
           'fill-opacity': 0.5,
@@ -120,7 +202,8 @@ const Map = () => {
         id: 'custom-buildings-line',
         type: 'line',
         source: 'buildings',
-        'source-layer': 'LA_regionfgb',
+        'source-layer': buildingsLayer,
+        minzoom: 15,
         paint: {
           'line-color': [
             'case',
@@ -155,34 +238,34 @@ const Map = () => {
   useEffect(() => {
     if (!map.current || !selectedLocation || !map.current.isStyleLoaded())
       return
-    map.current.removeFeatureState({
-      source: 'buildings',
-      sourceLayer: 'LA_regionfgb',
-    })
 
-    const addressLocation = new maplibregl.LngLat(
-      selectedLocation.position.lng,
-      selectedLocation.position.lat,
-    )
-    map.current.flyTo({
-      center: addressLocation,
-      zoom: 17,
-      offset: [250, 0], // TODO: make dynamic w/ sidebar width
-    })
-
-    const handleMoveEnd = () => {
-      highlightBuildingAtLocation(
+    if (!isUserClick.current) {
+      const addressLocation = new maplibregl.LngLat(
         selectedLocation.position.lng,
         selectedLocation.position.lat,
       )
-    }
+      map.current.flyTo({
+        center: addressLocation,
+        zoom: selectedLocation.address.houseNumber ? 17 : 12,
+        offset: [250, 0], // TODO: make dynamic w/ sidebar width
+      })
 
-    map.current.once('moveend', handleMoveEnd)
-    return () => {
-      if (map.current) {
-        map.current.off('moveend', handleMoveEnd)
+      const handleMoveEnd = () => {
+        highlightBuildingAtLocation(
+          selectedLocation.position.lng,
+          selectedLocation.position.lat,
+        )
+      }
+
+      map.current.once('moveend', handleMoveEnd)
+      return () => {
+        if (map.current) {
+          map.current.off('moveend', handleMoveEnd)
+        }
       }
     }
+
+    isUserClick.current = false
   }, [selectedLocation])
 
   return (

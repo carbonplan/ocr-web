@@ -12,16 +12,16 @@ export type BoundingBox = {
 
 export type Address = {
   label: string
-  countryCode: string
-  countryName: string
-  stateCode: string
-  state: string
-  county: string
-  city: string
-  district: string
-  street: string
-  postalCode: string
-  houseNumber: string
+  countryCode?: string
+  countryName?: string
+  stateCode?: string
+  state?: string
+  county?: string
+  city?: string
+  district?: string
+  street?: string
+  postalCode?: string
+  houseNumber?: string
 }
 
 export type Location = {
@@ -31,6 +31,10 @@ export type Location = {
   position: Coordinates
   access?: Coordinates[]
   mapView?: BoundingBox
+}
+
+export type Building = {
+  [key: string]: number
 }
 
 export type Suggestion = {
