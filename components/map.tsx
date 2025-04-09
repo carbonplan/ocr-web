@@ -62,6 +62,7 @@ const Map = () => {
 
     if (features.length > 0) {
       const buildingFeature = features[0]
+      setSelectedBuilding(buildingFeature.properties)
       if (buildingFeature.id) {
         map.current.setFeatureState(
           {
