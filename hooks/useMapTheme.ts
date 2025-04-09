@@ -43,7 +43,7 @@ export const useMapTheme = () => {
     bold: 'Relative Pro Book',
     italic: 'Relative Pro Book',
   }
-  const mapLayers = layers('protomaps', mapTheme, { lang: language })
+  const mapLayers = layers('basemap', mapTheme, { lang: language })
   return {
     mapLayers,
     sprite,

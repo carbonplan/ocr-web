@@ -1,273 +1,113 @@
 import { useEffect, useRef } from 'react'
-import { useThemeUI } from 'theme-ui'
-import maplibregl, {
-  FillLayerSpecification,
-  LineLayerSpecification,
-  RasterLayerSpecification,
+import {
   StyleSpecification,
+  Map,
+  addProtocol,
+  removeProtocol,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
+import Buildings from './buildings'
 
-const buildingSource =
-  'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/CA_12_risk_scores.pmtiles'
-const buildingsLayer = 'CA_12_risk_scoresfgb'
-
-const Map = () => {
+const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
-  const map = useRef<maplibregl.Map | null>(null)
-  const { mapLayers, sprite } = useMapTheme()
-  const selectedLocation = useLocationStore((state) => state.selectedLocation)
-  const setSelectedLocation = useLocationStore(
-    (state) => state.setSelectedLocation,
-  )
+  const mapRef = useRef<Map | null>(null) // ref for cleanup
+  const map = useLocationStore((state) => state.map)
+  const setMap = useLocationStore((state) => state.setMap)
   const satellite = useLocationStore((state) => state.satellite)
-  const setSelectedBuilding = useLocationStore(
-    (state) => state.setSelectedBuilding,
-  )
-  const { theme } = useThemeUI()
-  const isUserClick = useRef(false)
-
-  const setPointerCursor = () => {
-    if (map.current) {
-      map.current.getCanvas().style.cursor = 'pointer'
-    }
-  }
-
-  const resetCursor = () => {
-    if (map.current) {
-      map.current.getCanvas().style.cursor = ''
-    }
-  }
-
-  const highlightBuildingAtLocation = (lng: number, lat: number) => {
-    if (
-      !map.current?.getSource('buildings') ||
-      !map.current?.getLayer('custom-buildings-fill')
-    ) {
-      return
-    }
-
-    map.current.removeFeatureState({
-      source: 'buildings',
-      sourceLayer: buildingsLayer,
-    })
-
-    const point = map.current.project([lng, lat])
-    const features = map.current.queryRenderedFeatures(point, {
-      layers: ['custom-buildings-fill'],
-    })
-
-    if (features.length > 0) {
-      const buildingFeature = features[0]
-      setSelectedBuilding(buildingFeature.properties)
-      if (buildingFeature.id) {
-        map.current.setFeatureState(
-          {
-            source: 'buildings',
-            id: buildingFeature.id,
-            sourceLayer: buildingsLayer,
-          },
-          { highlighted: true },
-        )
-      }
-    }
-  }
-
-  const handleBuildingClick = async (e: maplibregl.MapMouseEvent) => {
-    if (!map.current) return
-
-    const features = map.current.queryRenderedFeatures(e.point, {
-      layers: ['custom-buildings-fill'],
-    })
-
-    if (features.length > 0) {
-      setSelectedBuilding(features[0].properties)
-      const feature = features[0]
-      const { lng, lat } = e.lngLat
-      isUserClick.current = true
-      if (feature.id) {
-        map.current.removeFeatureState({
-          source: 'buildings',
-          sourceLayer: buildingsLayer,
-        })
-
-        map.current.setFeatureState(
-          {
-            source: 'buildings',
-            id: feature.id,
-            sourceLayer: buildingsLayer,
-          },
-          { highlighted: true },
-        )
-
-        try {
-          const response = await fetch(
-            `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
-          )
-          if (response.ok) {
-            const location = await response.json()
-            setSelectedLocation(location)
-          }
-        } catch (error) {
-          console.error('Error fetching location details:', error)
-        }
-      }
-    }
-  }
+  const { mapLayers, sprite } = useMapTheme()
 
   useEffect(() => {
-    if (map.current) return
-
     if (mapContainer.current) {
       let protocol = new Protocol()
-      maplibregl.addProtocol('pmtiles', protocol.tile)
+      addProtocol('pmtiles', protocol.tile)
 
-      map.current = new maplibregl.Map({
+      const newMap = new Map({
         container: mapContainer.current,
         style: {
           version: 8,
           glyphs:
             'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
           sources: {
-            protomaps: {
+            basemap: {
               type: 'vector',
               url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
               attribution:
                 '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
             },
-            here: {
+            satellite: {
               type: 'raster',
               tiles: [`/api/map/tiles/{z}/{x}/{y}`],
               tileSize: 256,
             },
-            buildings: {
-              type: 'vector',
-              url: `pmtiles://${buildingSource}`,
-            },
           },
-          layers: [], // Empty to start so we don't flash the wrong theme
+          layers: [
+            {
+              id: 'satellite',
+              type: 'raster',
+              source: 'satellite',
+              paint: {
+                'raster-saturation': -0.8,
+                'raster-opacity': 0.5,
+              },
+              layout: {
+                visibility: 'none',
+              },
+            },
+          ],
         },
         center: [-118.2437, 34.0522],
         zoom: 9,
       })
-
-      map.current.on('click', 'custom-buildings-fill', handleBuildingClick)
-
-      map.current.on('mouseenter', 'custom-buildings-fill', setPointerCursor)
-      map.current.on('mouseleave', 'custom-buildings-fill', resetCursor)
+      setMap(newMap)
+      mapRef.current = newMap
     }
 
     return () => {
-      if (map.current) {
-        map.current.off('click', 'custom-buildings-fill', handleBuildingClick)
-        map.current.off('mouseenter', 'custom-buildings-fill', setPointerCursor)
-        map.current.off('mouseleave', 'custom-buildings-fill', resetCursor)
-      }
-      maplibregl.removeProtocol('pmtiles')
-      map.current?.remove()
-      map.current = null
+      removeProtocol('pmtiles')
+      mapRef.current?.remove()
+      setMap(null)
     }
   }, [])
 
   useEffect(() => {
-    if (!map.current) return
     const applyStyle = () => {
-      if (!map.current) return
-      const existingStyle = map.current.getStyle()
+      if (!map) return
+      const existingStyle = map.getStyle()
 
-      const satelliteLayer: RasterLayerSpecification = {
-        id: 'here',
-        type: 'raster',
-        source: 'here',
-        paint: {
-          'raster-saturation': -0.8,
-        },
-      }
-
-      const buildingsFillLayer: FillLayerSpecification = {
-        id: 'custom-buildings-fill',
-        type: 'fill',
-        source: 'buildings',
-        'source-layer': buildingsLayer,
-        minzoom: 15,
-        paint: {
-          'fill-color': '#85a2f7',
-          'fill-opacity': 0.5,
-        },
-      }
-
-      const buildingsLineLayer: LineLayerSpecification = {
-        id: 'custom-buildings-line',
-        type: 'line',
-        source: 'buildings',
-        'source-layer': buildingsLayer,
-        minzoom: 15,
-        paint: {
-          'line-color': [
-            'case',
-            ['boolean', ['feature-state', 'highlighted'], false],
-            theme?.rawColors?.primary as string,
-            'transparent',
-          ],
-          'line-width': 3,
-        },
-      }
-
+      const newLayers = [
+        ...existingStyle.layers.filter((layer) => layer.id === 'satellite'),
+        ...mapLayers.filter((layer) => layer.id !== 'satellite'),
+        ...existingStyle.layers.filter(
+          (layer) =>
+            layer.id !== 'satellite' &&
+            !mapLayers.some((mapLayer) => mapLayer.id === layer.id),
+        ),
+      ]
       const newStyle: StyleSpecification = {
         ...existingStyle,
-        layers: [
-          ...(satellite ? [satelliteLayer] : []),
-          buildingsFillLayer,
-          buildingsLineLayer,
-          ...mapLayers,
-        ],
+        layers: newLayers,
         sprite,
       }
-      map.current.setStyle(newStyle)
+      map.setStyle(newStyle)
     }
-
-    if (map.current.isStyleLoaded()) {
-      applyStyle()
+    if (!map || !map.getStyle()) {
+      map?.once('style.load', applyStyle)
     } else {
-      map.current.once('style.load', applyStyle)
+      applyStyle()
     }
-  }, [mapLayers, sprite, satellite])
+  }, [mapLayers, sprite, map])
 
   useEffect(() => {
-    if (!map.current || !selectedLocation || !map.current.isStyleLoaded())
-      return
-
-    if (!isUserClick.current) {
-      const addressLocation = new maplibregl.LngLat(
-        selectedLocation.position.lng,
-        selectedLocation.position.lat,
-      )
-      map.current.flyTo({
-        center: addressLocation,
-        zoom: selectedLocation.address.houseNumber ? 17 : 12,
-        offset: [250, 0], // TODO: make dynamic w/ sidebar width
-      })
-
-      const handleMoveEnd = () => {
-        highlightBuildingAtLocation(
-          selectedLocation.position.lng,
-          selectedLocation.position.lat,
-        )
-      }
-
-      map.current.once('moveend', handleMoveEnd)
-      return () => {
-        if (map.current) {
-          map.current.off('moveend', handleMoveEnd)
-        }
-      }
-    }
-
-    isUserClick.current = false
-  }, [selectedLocation])
+    if (!map || !map.isStyleLoaded()) return
+    map.setLayoutProperty(
+      'satellite',
+      'visibility',
+      satellite ? 'visible' : 'none',
+    )
+  }, [satellite, map])
 
   return (
     <div
@@ -276,8 +116,10 @@ const Map = () => {
         width: '100vw',
         height: '100vh',
       }}
-    />
+    >
+      <Buildings />
+    </div>
   )
 }
 
-export default Map
+export default MapComponent

@@ -1,7 +1,10 @@
 import { create } from 'zustand'
+import { Map } from 'maplibre-gl'
 import { Location, Building } from '../types/location'
 
 type LocationStore = {
+  map: Map | null
+  setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location | null) => void
   satellite: boolean
@@ -11,6 +14,8 @@ type LocationStore = {
 }
 
 export const useLocationStore = create<LocationStore>((set) => ({
+  map: null,
+  setMap: (map) => set({ map }),
   selectedLocation: null,
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
