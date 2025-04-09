@@ -9,14 +9,11 @@ export const useMapTheme = () => {
   const isDark = colorMode === 'dark'
   const flavorName = isDark ? 'black' : 'white'
   const transparent = 'transparent'
-  const primary = theme?.rawColors?.primary as string
   const secondary = theme?.rawColors?.secondary as string
   const muted = theme?.rawColors?.muted as string
-  const hinted = theme?.rawColors?.hinted as string
   const background = theme?.rawColors?.background as string
 
   const sprite = `https://protomaps.github.io/basemaps-assets/sprites/v4/${flavorName}`
-
   const mapTheme: Flavor = {
     ...namedFlavor(flavorName),
     buildings: transparent,
@@ -29,11 +26,8 @@ export const useMapTheme = () => {
     industrial: transparent,
     school: transparent,
     zoo: transparent,
-    farmland: transparent,
     wood_a: transparent,
     wood_b: transparent,
-    residential: transparent,
-    protected_area: transparent,
     scrub_a: transparent,
     scrub_b: transparent,
 
