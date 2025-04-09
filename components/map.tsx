@@ -76,16 +76,12 @@ const MapComponent = () => {
     const applyStyle = () => {
       if (!map) return
       const existingStyle = map.getStyle()
+      const specialLayers = existingStyle.layers.filter(
+        (layer) =>
+          layer.id === 'satellite' || layer.id.startsWith('buildings-'),
+      )
+      const newLayers = [...specialLayers, ...mapLayers]
 
-      const newLayers = [
-        ...existingStyle.layers.filter((layer) => layer.id === 'satellite'),
-        ...mapLayers.filter((layer) => layer.id !== 'satellite'),
-        ...existingStyle.layers.filter(
-          (layer) =>
-            layer.id !== 'satellite' &&
-            !mapLayers.some((mapLayer) => mapLayer.id === layer.id),
-        ),
-      ]
       const newStyle: StyleSpecification = {
         ...existingStyle,
         layers: newLayers,
@@ -117,7 +113,7 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      <Buildings />
+      {map && <Buildings />}
     </div>
   )
 }

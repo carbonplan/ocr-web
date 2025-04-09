@@ -27,31 +27,37 @@ const Buildings = () => {
         type: 'vector',
         url: `pmtiles://${buildingSource}`,
       })
-      map.addLayer({
-        id: 'buildings-fill',
-        type: 'fill',
-        source: 'buildings',
-        'source-layer': buildingsLayer,
-        paint: {
-          'fill-color': '#85a2f7',
-          'fill-opacity': 0.5,
+      map.addLayer(
+        {
+          id: 'buildings-fill',
+          type: 'fill',
+          source: 'buildings',
+          'source-layer': buildingsLayer,
+          paint: {
+            'fill-color': '#85a2f7',
+            'fill-opacity': 0.5,
+          },
         },
-      })
-      map.addLayer({
-        id: 'buildings-line',
-        type: 'line',
-        source: 'buildings',
-        'source-layer': buildingsLayer,
-        paint: {
-          'line-color': [
-            'case',
-            ['boolean', ['feature-state', 'highlighted'], false],
-            theme?.rawColors?.primary as string,
-            'transparent',
-          ],
-          'line-width': 3,
+        'background',
+      )
+      map.addLayer(
+        {
+          id: 'buildings-line',
+          type: 'line',
+          source: 'buildings',
+          'source-layer': buildingsLayer,
+          paint: {
+            'line-color': [
+              'case',
+              ['boolean', ['feature-state', 'highlighted'], false],
+              theme?.rawColors?.primary as string,
+              'transparent',
+            ],
+            'line-width': 3,
+          },
         },
-      })
+        'background',
+      )
     })
     map.on('click', 'buildings-fill', handleBuildingClick)
     map.on('mouseenter', 'buildings-fill', setPointerCursor)
