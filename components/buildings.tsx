@@ -10,6 +10,7 @@ const buildingsLayer = 'CA_12_risk_scoresfgb'
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useLocationStore((state) => state.map)
+  const selectedBuilding = useLocationStore((state) => state.selectedBuilding) // todo clear state
   const setSelectedBuilding = useLocationStore(
     (state) => state.setSelectedBuilding,
   )
@@ -18,6 +19,15 @@ const Buildings = () => {
   )
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
   const isUserClick = useRef(false)
+
+  useEffect(() => {
+    if (!selectedBuilding && map?.isStyleLoaded()) {
+      map.removeFeatureState({
+        source: 'buildings',
+        sourceLayer: buildingsLayer,
+      })
+    }
+  }, [selectedBuilding])
 
   useEffect(() => {
     if (!map) return

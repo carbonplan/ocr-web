@@ -12,11 +12,15 @@ const SelectedLocation = () => {
     (state) => state.setSelectedLocation,
   )
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
+  const setSelectedBuilding = useLocationStore(
+    (state) => state.setSelectedBuilding,
+  )
 
   if (!selectedLocation) return null
 
   const handleDeselect = () => {
     setSelectedLocation(null)
+    setSelectedBuilding(null)
   }
 
   return (
