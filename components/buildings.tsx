@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { useThemeUI } from 'theme-ui'
+import { get, useThemeUI } from 'theme-ui'
 import { LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
 
@@ -44,7 +44,7 @@ const Buildings = () => {
           source: 'buildings',
           'source-layer': buildingsLayer,
           paint: {
-            'fill-color': '#85a2f7',
+            'fill-color': get(theme, 'rawColors.primary'),
             'fill-opacity': 0.5,
           },
         },
@@ -60,7 +60,7 @@ const Buildings = () => {
             'line-color': [
               'case',
               ['boolean', ['feature-state', 'highlighted'], false],
-              theme?.rawColors?.primary as string,
+              get(theme, 'rawColors.primary'),
               'transparent',
             ],
             'line-width': 3,
@@ -126,7 +126,7 @@ const Buildings = () => {
     map.setPaintProperty('buildings-line', 'line-color', [
       'case',
       ['boolean', ['feature-state', 'highlighted'], false],
-      theme?.rawColors?.primary as string,
+      get(theme, 'rawColors.primary'),
       'transparent',
     ])
   }, [map, theme])
