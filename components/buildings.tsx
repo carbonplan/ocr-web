@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useRef } from 'react'
-import { useThemeUI } from 'theme-ui'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useThemeUI, get } from 'theme-ui'
 import { LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
+import { useThemedColormap } from '@carbonplan/colormaps'
 
 const buildingSource =
-  'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/CA_12_risk_scores.pmtiles'
-const buildingsLayer = 'CA_12_risk_scoresfgb'
+  'https://carbonplan-ocr.s3.amazonaws.com/intermediate/fire-risk/vector/two_variable_layer.pmtiles'
+const buildingsLayer = 'risk'
+const baseRiskLayer = 'USFS_risk'
+const windLayer = 'wind_risk'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -18,7 +21,104 @@ const Buildings = () => {
     (state) => state.setSelectedLocation,
   )
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
+  const wind = useLocationStore((state) => state.wind)
+
   const isUserClick = useRef(false)
+
+  const colormap = useThemedColormap('reds', { format: 'hex' })
+
+  const colorExpression = useMemo(() => {
+    if (!colormap || colormap.length === 0) {
+      return 'transparent'
+    }
+
+    const minRisk = 0
+    const maxRisk = 0.001
+    const stops: (string | number)[] = []
+
+    colormap.forEach((color: string, index: number) => {
+      const value =
+        minRisk + (index / (colormap.length - 1)) * (maxRisk - minRisk)
+      stops.push(value, color)
+    })
+
+    return [
+      'case',
+      ['!=', ['get', `${wind ? windLayer : baseRiskLayer}`], null],
+      [
+        'interpolate',
+        ['linear'],
+        ['to-number', ['get', `${wind ? windLayer : baseRiskLayer}`]],
+        ...stops,
+      ],
+      'transparent',
+    ]
+  }, [colormap, wind])
+
+  const setPointerCursor = useCallback(() => {
+    if (map) {
+      map.getCanvas().style.cursor = 'pointer'
+    }
+  }, [map])
+
+  const resetCursor = useCallback(() => {
+    if (map) {
+      map.getCanvas().style.cursor = ''
+    }
+  }, [map])
+
+  const handleMapClick = useCallback(
+    async (e: MapMouseEvent) => {
+      if (!map) return
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['buildings-fill'],
+      })
+
+      if (features.length > 0) {
+        setSelectedBuilding(features[0].properties)
+        const feature = features[0]
+        const { lng, lat } = e.lngLat
+        isUserClick.current = true
+
+        if (feature.id) {
+          map.removeFeatureState({
+            source: 'buildings',
+            sourceLayer: buildingsLayer,
+          })
+
+          map.setFeatureState(
+            {
+              source: 'buildings',
+              id: feature.id,
+              sourceLayer: buildingsLayer,
+            },
+            { highlighted: true },
+          )
+
+          try {
+            const response = await fetch(
+              `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
+            )
+            if (response.ok) {
+              const location = await response.json()
+              setSelectedLocation(location)
+            }
+          } catch (error) {
+            console.error('Error fetching location details:', error)
+          }
+        }
+      } else {
+        setSelectedBuilding(null)
+        setSelectedLocation(null)
+        map.removeFeatureState({
+          source: 'buildings',
+          sourceLayer: buildingsLayer,
+        })
+      }
+    },
+    [map, setSelectedBuilding, setSelectedLocation],
+  )
 
   useEffect(() => {
     if (!selectedBuilding && map?.isStyleLoaded()) {
@@ -27,7 +127,7 @@ const Buildings = () => {
         sourceLayer: buildingsLayer,
       })
     }
-  }, [selectedBuilding])
+  }, [selectedBuilding, map])
 
   useEffect(() => {
     if (!map) return
@@ -44,8 +144,8 @@ const Buildings = () => {
           source: 'buildings',
           'source-layer': buildingsLayer,
           paint: {
-            'fill-color': '#85a2f7',
-            'fill-opacity': 0.5,
+            'fill-color': colorExpression,
+            // 'fill-opacity': 0.5,
           },
         },
         'background',
@@ -60,16 +160,21 @@ const Buildings = () => {
             'line-color': [
               'case',
               ['boolean', ['feature-state', 'highlighted'], false],
-              theme?.rawColors?.primary as string,
-              'transparent',
+              get(theme, 'rawColors.primary'),
+              get(theme, 'rawColors.muted'),
             ],
-            'line-width': 3,
+            'line-width': [
+              'case',
+              ['boolean', ['feature-state', 'highlighted'], false],
+              3,
+              0.5,
+            ],
           },
         },
         'background',
       )
     })
-    map.on('click', 'buildings-fill', handleBuildingClick)
+    map.on('click', handleMapClick)
     map.on('mouseenter', 'buildings-fill', setPointerCursor)
     map.on('mouseleave', 'buildings-fill', resetCursor)
 
@@ -79,14 +184,21 @@ const Buildings = () => {
         map.removeLayer('buildings-fill')
         map.removeLayer('buildings-line')
         map.removeSource('buildings')
-        map.off('click', 'buildings-fill', handleBuildingClick)
+        map.off('click', handleMapClick)
         map.off('mouseenter', 'buildings-fill', setPointerCursor)
         map.off('mouseleave', 'buildings-fill', resetCursor)
       } catch (error) {
         console.error('Error removing buildings layers:', error)
       }
     }
-  }, [map])
+  }, [
+    map,
+    handleMapClick,
+    setPointerCursor,
+    resetCursor,
+    colorExpression,
+    theme,
+  ])
 
   useEffect(() => {
     if (!map || !selectedLocation || !map.isStyleLoaded()) return
@@ -126,22 +238,16 @@ const Buildings = () => {
     map.setPaintProperty('buildings-line', 'line-color', [
       'case',
       ['boolean', ['feature-state', 'highlighted'], false],
-      theme?.rawColors?.primary as string,
+      get(theme, 'rawColors.primary'),
       'transparent',
     ])
   }, [map, theme])
 
-  const setPointerCursor = useCallback(() => {
-    if (map) {
-      map.getCanvas().style.cursor = 'pointer'
-    }
-  }, [map])
+  useEffect(() => {
+    if (!map || !map.isStyleLoaded() || !map.getLayer('buildings-fill')) return
 
-  const resetCursor = useCallback(() => {
-    if (map) {
-      map.getCanvas().style.cursor = ''
-    }
-  }, [map])
+    map.setPaintProperty('buildings-fill', 'fill-color', colorExpression)
+  }, [map, colorExpression])
 
   const highlightBuildingAtLocation = useCallback(
     (lng: number, lat: number) => {
@@ -175,51 +281,6 @@ const Buildings = () => {
       }
     },
     [map, setSelectedBuilding],
-  )
-
-  const handleBuildingClick = useCallback(
-    async (e: MapMouseEvent) => {
-      if (!map) return
-
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: ['buildings-fill'],
-      })
-
-      if (features.length > 0) {
-        setSelectedBuilding(features[0].properties)
-        const feature = features[0]
-        const { lng, lat } = e.lngLat
-        isUserClick.current = true
-        if (feature.id) {
-          map.removeFeatureState({
-            source: 'buildings',
-            sourceLayer: buildingsLayer,
-          })
-
-          map.setFeatureState(
-            {
-              source: 'buildings',
-              id: feature.id,
-              sourceLayer: buildingsLayer,
-            },
-            { highlighted: true },
-          )
-
-          try {
-            const response = await fetch(
-              `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
-            )
-            if (response.ok) {
-              const location = await response.json()
-              setSelectedLocation(location)
-            }
-          } catch (error) {
-            console.error('Error fetching location details:', error)
-          }
-        }
-      }
-    },
-    [map, setSelectedBuilding, setSelectedLocation],
   )
 
   return null
