@@ -1,4 +1,4 @@
-import { useColorMode, useThemeUI } from 'theme-ui'
+import { useColorMode, useThemeUI, get } from 'theme-ui'
 import { Flavor, layers, namedFlavor } from '@protomaps/basemaps'
 
 const language = 'en'
@@ -9,9 +9,10 @@ export const useMapTheme = () => {
   const isDark = colorMode === 'dark'
   const flavorName = isDark ? 'black' : 'white'
   const transparent = 'transparent'
-  const secondary = theme?.rawColors?.secondary as string
-  const muted = theme?.rawColors?.muted as string
-  const background = theme?.rawColors?.background as string
+  const hinted = get(theme, 'rawColors.hinted')
+  const secondary = get(theme, 'rawColors.secondary')
+  const muted = get(theme, 'rawColors.muted')
+  const background = get(theme, 'rawColors.background')
 
   const sprite = `https://protomaps.github.io/basemaps-assets/sprites/v4/${flavorName}`
   const mapTheme: Flavor = {
@@ -47,7 +48,7 @@ export const useMapTheme = () => {
       urban_area: transparent,
     },
 
-    water: muted,
+    water: hinted,
 
     bridges_other_casing: background,
     bridges_minor_casing: background,
