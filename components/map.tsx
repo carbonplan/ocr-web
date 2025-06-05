@@ -58,8 +58,8 @@ const MapComponent = () => {
             },
           ],
         },
-        center: [-118.2437, 34.0522],
-        zoom: 9,
+        center: [-121.3, 47.70818],
+        zoom: 8,
       })
       setMap(newMap)
       mapRef.current = newMap
@@ -113,7 +113,7 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      {map && <Buildings />}
+      <Buildings />
     </div>
   )
 }

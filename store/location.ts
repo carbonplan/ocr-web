@@ -9,6 +9,8 @@ type LocationStore = {
   setSelectedLocation: (location: Location | null) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
+  wind: boolean
+  setWind: (wind: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building | null) => void
 }
@@ -20,6 +22,8 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
+  wind: false,
+  setWind: (wind) => set({ wind }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
 }))

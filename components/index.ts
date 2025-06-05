@@ -1,3 +1,6 @@
 export { default as Geocode } from './geocode'
 export { default as Map } from './map'
 export { default as SelectedLocation } from './selected-location'
+export { default as Sidebar } from './sidebar'
+export { default as Results } from './results'
+export { default as Display } from './display'

@@ -1,12 +1,10 @@
-import { Box, Container, Flex } from 'theme-ui'
+import { Box, Container } from 'theme-ui'
 //@ts-ignore
-import { Header, Dimmer, Tag } from '@carbonplan/components'
+import { Header } from '@carbonplan/components'
 //@ts-ignore
-import { Sidebar } from '@carbonplan/layouts'
-import { Map, Geocode, SelectedLocation } from '../components'
-import { useLocationStore } from '../store/location'
+import { Map, Sidebar } from '../components'
+
 const Index = () => {
-  const { satellite, setSatellite } = useLocationStore()
   return (
     <>
       <Container>
@@ -22,30 +20,7 @@ const Index = () => {
           zIndex: -1,
         }}
       >
-        <Sidebar expanded={true} side='left' width={4}>
-          <Flex
-            sx={{
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%',
-            }}
-          >
-            <Box>
-              <Geocode />
-              <SelectedLocation />
-            </Box>
-            <Flex sx={{ justifyContent: 'space-between' }}>
-              <Dimmer />
-              <Tag
-                label='Satellite'
-                value={satellite}
-                onClick={() => setSatellite(!satellite)}
-              >
-                Satellite
-              </Tag>
-            </Flex>
-          </Flex>
-        </Sidebar>
+        <Sidebar />
         <Map />
       </Box>
     </>
