@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { LngLat, MapMouseEvent } from 'maplibre-gl'
+import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
 import { useThemedColormap } from '@carbonplan/colormaps'
 
@@ -9,6 +9,9 @@ const buildingSource =
 const buildingsLayer = 'risk'
 const baseRiskLayer = 'USFS_risk'
 const windLayer = 'wind_risk'
+const minRisk = 0
+const maxRisk = 0.001
+const midRisk = (maxRisk - minRisk) / 2 + minRisk
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -27,15 +30,12 @@ const Buildings = () => {
 
   const colormap = useThemedColormap('reds', { format: 'hex' })
 
-  const colorExpression = useMemo(() => {
+  const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap || colormap.length === 0) {
-      return 'transparent'
+      return ['literal', 'transparent']
     }
 
-    const minRisk = 0
-    const maxRisk = 0.001
     const stops: (string | number)[] = []
-
     colormap.forEach((color: string, index: number) => {
       const value =
         minRisk + (index / (colormap.length - 1)) * (maxRisk - minRisk)
@@ -43,15 +43,10 @@ const Buildings = () => {
     })
 
     return [
-      'case',
-      ['!=', ['get', `${wind ? windLayer : baseRiskLayer}`], null],
-      [
-        'interpolate',
-        ['linear'],
-        ['to-number', ['get', `${wind ? windLayer : baseRiskLayer}`]],
-        ...stops,
-      ],
-      'transparent',
+      'interpolate',
+      ['linear'],
+      ['to-number', ['get', `${wind ? windLayer : baseRiskLayer}`]],
+      ...stops,
     ]
   }, [colormap, wind])
 
@@ -120,135 +115,6 @@ const Buildings = () => {
     [map, setSelectedBuilding, setSelectedLocation],
   )
 
-  useEffect(() => {
-    if (!selectedBuilding && map?.isStyleLoaded()) {
-      map.removeFeatureState({
-        source: 'buildings',
-        sourceLayer: buildingsLayer,
-      })
-    }
-  }, [selectedBuilding, map])
-
-  useEffect(() => {
-    if (!map) return
-
-    map.on('load', () => {
-      map.addSource('buildings', {
-        type: 'vector',
-        url: `pmtiles://${buildingSource}`,
-      })
-      map.addLayer(
-        {
-          id: 'buildings-fill',
-          type: 'fill',
-          source: 'buildings',
-          'source-layer': buildingsLayer,
-          paint: {
-            'fill-color': colorExpression,
-            // 'fill-opacity': 0.5,
-          },
-        },
-        'background',
-      )
-      map.addLayer(
-        {
-          id: 'buildings-line',
-          type: 'line',
-          source: 'buildings',
-          'source-layer': buildingsLayer,
-          paint: {
-            'line-color': [
-              'case',
-              ['boolean', ['feature-state', 'highlighted'], false],
-              get(theme, 'rawColors.primary'),
-              get(theme, 'rawColors.muted'),
-            ],
-            'line-width': [
-              'case',
-              ['boolean', ['feature-state', 'highlighted'], false],
-              3,
-              0.5,
-            ],
-          },
-        },
-        'background',
-      )
-    })
-    map.on('click', handleMapClick)
-    map.on('mouseenter', 'buildings-fill', setPointerCursor)
-    map.on('mouseleave', 'buildings-fill', resetCursor)
-
-    return () => {
-      try {
-        if (!map) return
-        map.removeLayer('buildings-fill')
-        map.removeLayer('buildings-line')
-        map.removeSource('buildings')
-        map.off('click', handleMapClick)
-        map.off('mouseenter', 'buildings-fill', setPointerCursor)
-        map.off('mouseleave', 'buildings-fill', resetCursor)
-      } catch (error) {
-        console.error('Error removing buildings layers:', error)
-      }
-    }
-  }, [
-    map,
-    handleMapClick,
-    setPointerCursor,
-    resetCursor,
-    colorExpression,
-    theme,
-  ])
-
-  useEffect(() => {
-    if (!map || !selectedLocation || !map.isStyleLoaded()) return
-
-    if (!isUserClick.current) {
-      const addressLocation = new LngLat(
-        selectedLocation.position.lng,
-        selectedLocation.position.lat,
-      )
-      map.flyTo({
-        center: addressLocation,
-        zoom: selectedLocation.address.houseNumber ? 17 : 12,
-        offset: [250, 0], // TODO: make dynamic w/ sidebar width
-      })
-
-      const handleMoveEnd = () => {
-        highlightBuildingAtLocation(
-          selectedLocation.position.lng,
-          selectedLocation.position.lat,
-        )
-      }
-
-      map.once('moveend', handleMoveEnd)
-      return () => {
-        if (map) {
-          map.off('moveend', handleMoveEnd)
-        }
-      }
-    }
-
-    isUserClick.current = false
-  }, [selectedLocation])
-
-  useEffect(() => {
-    if (!map || !map.isStyleLoaded()) return
-
-    map.setPaintProperty('buildings-line', 'line-color', [
-      'case',
-      ['boolean', ['feature-state', 'highlighted'], false],
-      get(theme, 'rawColors.primary'),
-      'transparent',
-    ])
-  }, [map, theme])
-
-  useEffect(() => {
-    if (!map || !map.isStyleLoaded() || !map.getLayer('buildings-fill')) return
-
-    map.setPaintProperty('buildings-fill', 'fill-color', colorExpression)
-  }, [map, colorExpression])
-
   const highlightBuildingAtLocation = useCallback(
     (lng: number, lat: number) => {
       if (!map?.getSource('buildings') || !map?.getLayer('buildings-fill')) {
@@ -282,6 +148,130 @@ const Buildings = () => {
     },
     [map, setSelectedBuilding],
   )
+
+  useEffect(() => {
+    // remove highlight when building is deselected outside of map context
+    if (!selectedBuilding && map?.isStyleLoaded()) {
+      map.removeFeatureState({
+        source: 'buildings',
+        sourceLayer: buildingsLayer,
+      })
+    }
+  }, [selectedBuilding, map])
+
+  useEffect(() => {
+    // initialize layers and listeners
+    if (!map) return
+
+    map.on('load', () => {
+      map.addSource('buildings', {
+        type: 'vector',
+        url: `pmtiles://${buildingSource}`,
+      })
+      map.addLayer(
+        {
+          id: 'buildings-fill',
+          type: 'fill',
+          source: 'buildings',
+          'source-layer': buildingsLayer,
+          paint: {
+            'fill-color': colorExpression,
+            // 'fill-opacity': 0.5,
+          },
+        },
+        'background',
+      )
+      map.addLayer(
+        {
+          id: 'buildings-line',
+          type: 'line',
+          source: 'buildings',
+          'source-layer': buildingsLayer,
+          paint: {
+            'line-color': [
+              'case',
+              ['boolean', ['feature-state', 'highlighted'], false],
+              get(theme, 'rawColors.primary'),
+              [
+                'case',
+                [
+                  '>',
+                  ['to-number', ['get', `${wind ? windLayer : baseRiskLayer}`]],
+                  midRisk,
+                ],
+                colorExpression,
+                get(theme, 'rawColors.muted'),
+              ],
+            ],
+            'line-width': [
+              'case',
+              ['boolean', ['feature-state', 'highlighted'], false],
+              2,
+              0.5,
+            ],
+          },
+        },
+        'background',
+      )
+    })
+    map.on('click', handleMapClick)
+    map.on('mouseenter', 'buildings-fill', setPointerCursor)
+    map.on('mouseleave', 'buildings-fill', resetCursor)
+
+    return () => {
+      try {
+        if (!map) return
+        map.removeLayer('buildings-fill')
+        map.removeLayer('buildings-line')
+        map.removeSource('buildings')
+        map.off('click', handleMapClick)
+        map.off('mouseenter', 'buildings-fill', setPointerCursor)
+        map.off('mouseleave', 'buildings-fill', resetCursor)
+      } catch (error) {
+        console.error('Error removing buildings layers:', error)
+      }
+    }
+  }, [map])
+
+  useEffect(() => {
+    // fly to selected location and highlight building
+    if (!map || !selectedLocation || !map.isStyleLoaded()) return
+
+    if (!isUserClick.current) {
+      const addressLocation = new LngLat(
+        selectedLocation.position.lng,
+        selectedLocation.position.lat,
+      )
+      map.flyTo({
+        center: addressLocation,
+        zoom: selectedLocation.address.houseNumber ? 17 : 12,
+        offset: [250, 0], // TODO: make dynamic w/ sidebar width
+      })
+
+      const handleMoveEnd = () => {
+        highlightBuildingAtLocation(
+          selectedLocation.position.lng,
+          selectedLocation.position.lat,
+        )
+      }
+
+      map.once('moveend', handleMoveEnd)
+      return () => {
+        if (map) {
+          map.off('moveend', handleMoveEnd)
+        }
+      }
+    }
+
+    isUserClick.current = false
+  }, [selectedLocation, highlightBuildingAtLocation, map])
+
+  useEffect(() => {
+    // update color expression when variable selection changes
+    if (!map || !map.isStyleLoaded()) return
+    map.setPaintProperty('buildings-fill', 'fill-color', colorExpression)
+    map.setPaintProperty('buildings-line', 'line-color', colorExpression)
+  }, [map, colorExpression])
 
   return null
 }
