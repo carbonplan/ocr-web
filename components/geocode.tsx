@@ -105,15 +105,28 @@ const Geocode = () => {
         e.preventDefault()
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
         break
+      case 'Tab':
+        e.preventDefault()
+        if (e.shiftKey) {
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
+        } else {
+          setSelectedIndex((prev) =>
+            prev < suggestions.length - 1 ? prev + 1 : prev,
+          )
+        }
+        break
       case 'Enter':
         e.preventDefault()
         if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
           handleSuggestionClick(suggestions[selectedIndex])
+        } else if (selectedIndex === -1) {
+          handleSuggestionClick(suggestions[0])
         }
         break
       case 'Escape':
         e.preventDefault()
         setSelectedIndex(-1)
+        setSuggestions([])
         break
     }
   }
@@ -121,11 +134,9 @@ const Geocode = () => {
   const handleSuggestionClick = async (suggestion: Suggestion) => {
     setSuggestions([])
     setSelectedIndex(-1)
-    setSearchQuery(formatAddress(suggestion.address))
     const location = await fetchLocationDetails(suggestion.id)
     if (location) {
       setSelectedLocation(location)
-      setSuggestions([])
     }
   }
 
@@ -188,7 +199,7 @@ const Geocode = () => {
                   sx={{
                     width: [15, 15, 15, 20],
                     height: [15, 15, 15, 20],
-                    mb: ['-4px', '-4px', '-4px', '-4px'],
+                    mb: ['-4px', '-4px', '-4px', '-2px'],
                   }}
                 />
               </Button>
@@ -217,7 +228,6 @@ const Geocode = () => {
                 fontFamily: 'mono',
                 color: 'secondary',
                 bg: 'hinted',
-                maxHeight: '300px',
                 overflowY: 'auto',
               }}
             >
