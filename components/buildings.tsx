@@ -272,8 +272,25 @@ const Buildings = () => {
     // update color expression when variable selection changes
     if (!map || !map.isStyleLoaded()) return
     map.setPaintProperty('buildings-fill', 'fill-color', colorExpression)
-    map.setPaintProperty('buildings-line', 'line-color', colorExpression)
-  }, [map, colorExpression])
+
+    const lineColorExpression: ExpressionSpecification = [
+      'case',
+      ['boolean', ['feature-state', 'highlighted'], false],
+      get(theme, 'rawColors.primary'),
+      [
+        'case',
+        [
+          '>',
+          ['to-number', ['get', `${wind ? windLayer : baseRiskLayer}`]],
+          midRisk,
+        ],
+        colorExpression,
+        get(theme, 'rawColors.muted'),
+      ],
+    ]
+
+    map.setPaintProperty('buildings-line', 'line-color', lineColorExpression)
+  }, [map, colorExpression, wind, theme])
 
   return null
 }
