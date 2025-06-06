@@ -25,6 +25,7 @@ const Buildings = () => {
   )
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
   const wind = useLocationStore((state) => state.wind)
+  const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
 
   const isUserClick = useRef(false)
 
@@ -242,10 +243,11 @@ const Buildings = () => {
         selectedLocation.position.lng,
         selectedLocation.position.lat,
       )
+      console.log('sidebarWidth', sidebarWidth)
       map.flyTo({
         center: addressLocation,
         zoom: selectedLocation.address.houseNumber ? 17 : 12,
-        offset: [250, 0], // TODO: make dynamic w/ sidebar width
+        offset: [sidebarWidth / 2, 0], // Dynamic offset based on actual sidebar width
       })
 
       const handleMoveEnd = () => {

@@ -13,6 +13,8 @@ type LocationStore = {
   setWind: (wind: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building | null) => void
+  sidebarWidth: number
+  setSidebarWidth: (width: number) => void
 }
 
 export const useLocationStore = create<LocationStore>((set) => ({
@@ -26,4 +28,6 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setWind: (wind) => set({ wind }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
+  sidebarWidth: 0,
+  setSidebarWidth: (width) => set({ sidebarWidth: width }),
 }))
