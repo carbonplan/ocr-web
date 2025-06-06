@@ -139,13 +139,13 @@ const Geocode = () => {
 
   return (
     <Box ref={wrapperRef} sx={{ position: 'relative', width: '100%' }}>
-      <SidebarDivider />
+      <SidebarDivider sx={{ mb: 3 }} />
       <Row columns={4}>
         <Column start={1} width={1}>
           <Box variant='label'>Address</Box>
         </Column>
         <Column start={2} width={3}>
-          <Flex>
+          <Flex sx={{ gap: 1 }}>
             {selectedLocation ? (
               <Box
                 variant='field'
@@ -197,7 +197,7 @@ const Geocode = () => {
         </Column>
       </Row>
 
-      <SidebarDivider />
+      <SidebarDivider sx={{ mt: 3 }} />
 
       {suggestions.length > 0 && (
         <Row
