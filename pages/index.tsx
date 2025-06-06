@@ -1,7 +1,6 @@
 import { Box, Container } from 'theme-ui'
-//@ts-ignore
+//@ts-expect-error - carbonplan components types not available
 import { Dimmer, Header, Meta } from '@carbonplan/components'
-//@ts-ignore
 import { Map, Sidebar } from '../components'
 
 const Index = () => {

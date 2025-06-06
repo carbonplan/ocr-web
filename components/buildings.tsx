@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
+//@ts-expect-error - carbonplan components types not available
 import { useThemedColormap } from '@carbonplan/colormaps'
 
 const buildingSource =

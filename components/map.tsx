@@ -21,7 +21,7 @@ const MapComponent = () => {
 
   useEffect(() => {
     if (mapContainer.current) {
-      let protocol = new Protocol()
+      const protocol = new Protocol()
       addProtocol('pmtiles', protocol.tile)
 
       const newMap = new Map({
