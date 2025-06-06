@@ -3,9 +3,14 @@ import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Row, Column, Badge } from '@carbonplan/components'
 import { useLocationStore } from '@/store/location'
+import { RISK_ATTRIBUTES } from '@/lib/config'
 
 const Results = () => {
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
+  const wind = useLocationStore((state) => state.wind)
+  const riskAttribute = wind
+    ? RISK_ATTRIBUTES.windRisk
+    : RISK_ATTRIBUTES.baseRisk
 
   return (
     <>
@@ -23,9 +28,9 @@ const Results = () => {
             Risk Score
           </Column>
           <Column start={2} width={3} sx={{ height: 25 }}>
-            {selectedBuilding ? (
+            {selectedBuilding && selectedBuilding[riskAttribute] ? (
               <Badge sx={{ color: 'red' }}>
-                {Number(selectedBuilding.USFS_risk).toFixed(3)}
+                {Number(selectedBuilding[riskAttribute]).toFixed(3)}
               </Badge>
             ) : (
               <Box variant='field' sx={{ fontSize: 1, color: 'muted' }}>
