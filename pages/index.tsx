@@ -1,14 +1,24 @@
 import { Box, Container } from 'theme-ui'
 //@ts-ignore
-import { Header } from '@carbonplan/components'
+import { Dimmer, Header, Meta } from '@carbonplan/components'
 //@ts-ignore
 import { Map, Sidebar } from '../components'
 
 const Index = () => {
   return (
     <>
+      <Meta
+        // card TK
+        description={'Explore climate risks'}
+        title={'Open Climate Risks – CarbonPlan'}
+      />
       <Container>
-        <Header sx={{ zIndex: 10 }} />
+        <Header
+          sx={{ zIndex: 10 }}
+          menuItems={[
+            <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
+          ]}
+        />
       </Container>
       <Box
         sx={{
