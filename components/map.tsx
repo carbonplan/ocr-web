@@ -9,7 +9,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
-import Buildings from './buildings'
+import { Buildings } from './'
 
 const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
