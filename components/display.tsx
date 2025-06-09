@@ -24,7 +24,7 @@ const Display = () => {
       </Row>
       <Row columns={4} sx={{ my: 2 }}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
-          Wind
+          Wind Risk
         </Column>
         <Column start={2} width={3}>
           <Toggle value={wind} onClick={() => setWind(!wind)} />

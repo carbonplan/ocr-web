@@ -1,6 +1,6 @@
 export const DATA_SOURCES = {
   buildings:
-    'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/wind_layer.pmtiles',
+    'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/wind_layer_and_RPS.pmtiles',
 } as const
 
 export const LAYER_NAMES = {
@@ -8,7 +8,7 @@ export const LAYER_NAMES = {
 } as const
 
 export const RISK_ATTRIBUTES = {
-  baseRisk: 'USFS_BP',
+  baseRisk: 'USFS_RPS',
   windRisk: 'wind_risk',
 } as const
 
