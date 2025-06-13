@@ -14,7 +14,7 @@ const Display = () => {
       <Box variant='sectionHeading' sx={{ mt: 5, mb: 3 }}>
         Display
       </Box>
-      <Row columns={4} sx={{ my: 2 }}>
+      <Row variant='labelFieldContainer' columns={4}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Satellite
         </Column>
@@ -22,7 +22,7 @@ const Display = () => {
           <Toggle value={satellite} onClick={() => setSatellite(!satellite)} />
         </Column>
       </Row>
-      <Row columns={4} sx={{ my: 2 }}>
+      <Row variant='labelFieldContainer' columns={4}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Wind Risk
         </Column>
