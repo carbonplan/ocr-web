@@ -13,6 +13,8 @@ type LocationStore = {
   setWind: (wind: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building | null) => void
+  timeHorizon: 1 | 15 | 30
+  setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
 }
@@ -24,10 +26,12 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
-  wind: false,
+  wind: true,
   setWind: (wind) => set({ wind }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
+  timeHorizon: 15,
+  setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
 }))
