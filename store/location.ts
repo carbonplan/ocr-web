@@ -11,6 +11,8 @@ type LocationStore = {
   setSatellite: (satellite: boolean) => void
   wind: boolean
   setWind: (wind: boolean) => void
+  riskRaster: boolean
+  setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building | null) => void
   timeHorizon: 1 | 15 | 30
@@ -28,9 +30,11 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSatellite: (satellite) => set({ satellite }),
   wind: true,
   setWind: (wind) => set({ wind }),
+  riskRaster: false,
+  setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
-  timeHorizon: 15,
+  timeHorizon: 30,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),

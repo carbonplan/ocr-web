@@ -4,14 +4,7 @@ import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
 //@ts-expect-error - carbonplan components types not available
 import { useThemedColormap } from '@carbonplan/colormaps'
-import {
-  DATA_SOURCES,
-  LAYER_NAMES,
-  RISK_ATTRIBUTES,
-  RISK_BOUNDS,
-  MAP_LAYER_IDS,
-  MAP_SOURCE_IDS,
-} from '@/lib/config'
+import { LAYERS, RISKS } from '@/lib/config'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -29,7 +22,7 @@ const Buildings = () => {
 
   const isUserClick = useRef(false)
 
-  const colormap = useThemedColormap('reds', { format: 'hex' })
+  const colormap = useThemedColormap(RISKS.fire.colormap, { format: 'hex' })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap || colormap.length === 0) {
@@ -39,8 +32,9 @@ const Buildings = () => {
     const stops: (string | number)[] = []
     colormap.forEach((color: string, index: number) => {
       const value =
-        RISK_BOUNDS.min +
-        (index / (colormap.length - 1)) * (RISK_BOUNDS.max - RISK_BOUNDS.min)
+        RISKS.fire.bounds.min +
+        (index / (colormap.length - 1)) *
+          (RISKS.fire.bounds.max - RISKS.fire.bounds.min)
       stops.push(value, color)
     })
 
@@ -51,7 +45,7 @@ const Buildings = () => {
         'to-number',
         [
           'get',
-          `${wind ? RISK_ATTRIBUTES.windRisk : RISK_ATTRIBUTES.baseRisk}`,
+          `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
         ],
       ],
       ...stops,
@@ -75,7 +69,7 @@ const Buildings = () => {
       if (!map) return
 
       const features = map.queryRenderedFeatures(e.point, {
-        layers: [MAP_LAYER_IDS.buildingsFill],
+        layers: [LAYERS.buildings.layerIds.fill],
       })
 
       if (features.length > 0) {
@@ -86,15 +80,15 @@ const Buildings = () => {
 
         if (feature.id) {
           map.removeFeatureState({
-            source: MAP_SOURCE_IDS.buildings,
-            sourceLayer: LAYER_NAMES.buildings,
+            source: LAYERS.buildings.sourceId,
+            sourceLayer: LAYERS.buildings.layerName,
           })
 
           map.setFeatureState(
             {
-              source: MAP_SOURCE_IDS.buildings,
+              source: LAYERS.buildings.sourceId,
               id: feature.id,
-              sourceLayer: LAYER_NAMES.buildings,
+              sourceLayer: LAYERS.buildings.layerName,
             },
             { highlighted: true },
           )
@@ -115,8 +109,8 @@ const Buildings = () => {
         setSelectedBuilding(null)
         setSelectedLocation(null)
         map.removeFeatureState({
-          source: MAP_SOURCE_IDS.buildings,
-          sourceLayer: LAYER_NAMES.buildings,
+          source: LAYERS.buildings.sourceId,
+          sourceLayer: LAYERS.buildings.layerName,
         })
       }
     },
@@ -126,20 +120,20 @@ const Buildings = () => {
   const highlightBuildingAtLocation = useCallback(
     (lng: number, lat: number) => {
       if (
-        !map?.getSource(MAP_SOURCE_IDS.buildings) ||
-        !map?.getLayer(MAP_LAYER_IDS.buildingsFill)
+        !map?.getSource(LAYERS.buildings.sourceId) ||
+        !map?.getLayer(LAYERS.buildings.layerIds.fill)
       ) {
         return
       }
 
       map.removeFeatureState({
-        source: MAP_SOURCE_IDS.buildings,
-        sourceLayer: LAYER_NAMES.buildings,
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
       })
 
       const point = map.project([lng, lat])
       const features = map.queryRenderedFeatures(point, {
-        layers: [MAP_LAYER_IDS.buildingsFill],
+        layers: [LAYERS.buildings.layerIds.fill],
       })
 
       if (features.length > 0) {
@@ -148,9 +142,9 @@ const Buildings = () => {
         if (buildingFeature.id) {
           map.setFeatureState(
             {
-              source: MAP_SOURCE_IDS.buildings,
+              source: LAYERS.buildings.sourceId,
               id: buildingFeature.id,
-              sourceLayer: LAYER_NAMES.buildings,
+              sourceLayer: LAYERS.buildings.layerName,
             },
             { highlighted: true },
           )
@@ -164,8 +158,8 @@ const Buildings = () => {
     // remove highlight when building is deselected outside of map context
     if (!selectedBuilding && map?.isStyleLoaded()) {
       map.removeFeatureState({
-        source: MAP_SOURCE_IDS.buildings,
-        sourceLayer: LAYER_NAMES.buildings,
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
       })
     }
   }, [selectedBuilding, map])
@@ -175,16 +169,16 @@ const Buildings = () => {
     if (!map) return
 
     map.on('load', () => {
-      map.addSource(MAP_SOURCE_IDS.buildings, {
+      map.addSource(LAYERS.buildings.sourceId, {
         type: 'vector',
-        url: `pmtiles://${DATA_SOURCES.buildings}`,
+        url: `pmtiles://${LAYERS.buildings.dataSource}`,
       })
       map.addLayer(
         {
-          id: MAP_LAYER_IDS.buildingsFill,
+          id: LAYERS.buildings.layerIds.fill,
           type: 'fill',
-          source: MAP_SOURCE_IDS.buildings,
-          'source-layer': LAYER_NAMES.buildings,
+          source: LAYERS.buildings.sourceId,
+          'source-layer': LAYERS.buildings.layerName,
           paint: {
             'fill-color': colorExpression,
             // 'fill-opacity': 0.5,
@@ -194,10 +188,10 @@ const Buildings = () => {
       )
       map.addLayer(
         {
-          id: MAP_LAYER_IDS.buildingsLine,
+          id: LAYERS.buildings.layerIds.line,
           type: 'line',
-          source: MAP_SOURCE_IDS.buildings,
-          'source-layer': LAYER_NAMES.buildings,
+          source: LAYERS.buildings.sourceId,
+          'source-layer': LAYERS.buildings.layerName,
           paint: {
             'line-color': [
               'case',
@@ -211,10 +205,10 @@ const Buildings = () => {
                     'to-number',
                     [
                       'get',
-                      `${wind ? RISK_ATTRIBUTES.windRisk : RISK_ATTRIBUTES.baseRisk}`,
+                      `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
                     ],
                   ],
-                  RISK_BOUNDS.mid,
+                  RISKS.fire.bounds.mid,
                 ],
                 colorExpression,
                 get(theme, 'rawColors.muted'),
@@ -232,18 +226,18 @@ const Buildings = () => {
       )
     })
     map.on('click', handleMapClick)
-    map.on('mouseenter', MAP_LAYER_IDS.buildingsFill, setPointerCursor)
-    map.on('mouseleave', MAP_LAYER_IDS.buildingsFill, resetCursor)
+    map.on('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
+    map.on('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
 
     return () => {
       try {
         if (!map) return
-        map.removeLayer(MAP_LAYER_IDS.buildingsFill)
-        map.removeLayer(MAP_LAYER_IDS.buildingsLine)
-        map.removeSource(MAP_SOURCE_IDS.buildings)
+        map.removeLayer(LAYERS.buildings.layerIds.fill)
+        map.removeLayer(LAYERS.buildings.layerIds.line)
+        map.removeSource(LAYERS.buildings.sourceId)
         map.off('click', handleMapClick)
-        map.off('mouseenter', MAP_LAYER_IDS.buildingsFill, setPointerCursor)
-        map.off('mouseleave', MAP_LAYER_IDS.buildingsFill, resetCursor)
+        map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
+        map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
       } catch (error) {
         console.error('Error removing buildings layers:', error)
       }
@@ -287,7 +281,7 @@ const Buildings = () => {
     // update color expression when variable selection changes
     if (!map || !map.isStyleLoaded()) return
     map.setPaintProperty(
-      MAP_LAYER_IDS.buildingsFill,
+      LAYERS.buildings.layerIds.fill,
       'fill-color',
       colorExpression,
     )
@@ -304,10 +298,10 @@ const Buildings = () => {
             'to-number',
             [
               'get',
-              `${wind ? RISK_ATTRIBUTES.windRisk : RISK_ATTRIBUTES.baseRisk}`,
+              `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
             ],
           ],
-          RISK_BOUNDS.mid,
+          RISKS.fire.bounds.mid,
         ],
         colorExpression,
         get(theme, 'rawColors.muted'),
@@ -315,7 +309,7 @@ const Buildings = () => {
     ]
 
     map.setPaintProperty(
-      MAP_LAYER_IDS.buildingsLine,
+      LAYERS.buildings.layerIds.line,
       'line-color',
       lineColorExpression,
     )
