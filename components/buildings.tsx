@@ -19,6 +19,7 @@ const Buildings = () => {
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
   const wind = useLocationStore((state) => state.wind)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
+  const timeHorizon = useLocationStore((state) => state.timeHorizon)
 
   const isUserClick = useRef(false)
 
@@ -31,26 +32,48 @@ const Buildings = () => {
 
     const stops: (string | number)[] = []
     colormap.forEach((color: string, index: number) => {
-      const value =
+      const rawValue =
         RISKS.fire.bounds.min +
         (index / (colormap.length - 1)) *
           (RISKS.fire.bounds.max - RISKS.fire.bounds.min)
-      stops.push(value, color)
+
+      const valuePercent =
+        ((rawValue - RISKS.fire.bounds.min) /
+          (RISKS.fire.bounds.max - RISKS.fire.bounds.min)) *
+        100
+
+      stops.push(valuePercent, color)
     })
+
+    const riskAttribute = wind
+      ? RISKS.fire.attributes.windRisk
+      : RISKS.fire.attributes.baseRisk
+
+    // convert to percentage and calculate horizon risk
+    const riskPercentExpression =
+      timeHorizon === 1
+        ? ['*', ['to-number', ['get', riskAttribute]], 100]
+        : [
+            '*',
+            [
+              '-',
+              1,
+              [
+                '^',
+                ['-', 1, ['to-number', ['get', riskAttribute]]],
+                timeHorizon,
+              ],
+            ],
+            100,
+          ]
 
     return [
       'interpolate',
       ['linear'],
-      [
-        'to-number',
-        [
-          'get',
-          `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
-        ],
-      ],
+      riskPercentExpression,
       ...stops,
-    ]
-  }, [colormap, wind])
+    ] as ExpressionSpecification
+  }, [colormap, wind, timeHorizon])
 
   const setPointerCursor = useCallback(() => {
     if (map) {
@@ -232,12 +255,12 @@ const Buildings = () => {
     return () => {
       try {
         if (!map) return
-        map.removeLayer(LAYERS.buildings.layerIds.fill)
-        map.removeLayer(LAYERS.buildings.layerIds.line)
-        map.removeSource(LAYERS.buildings.sourceId)
-        map.off('click', handleMapClick)
-        map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
-        map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
+        // map.removeLayer(LAYERS.buildings.layerIds.fill)
+        // map.removeLayer(LAYERS.buildings.layerIds.line)
+        // map.removeSource(LAYERS.buildings.sourceId)
+        // map.off('click', handleMapClick)
+        // map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
+        // map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
       } catch (error) {
         console.error('Error removing buildings layers:', error)
       }
@@ -313,7 +336,7 @@ const Buildings = () => {
       'line-color',
       lineColorExpression,
     )
-  }, [map, colorExpression, wind, theme])
+  }, [map, colorExpression, wind, theme, timeHorizon])
 
   return null
 }
