@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@carbonplan/auth": "^1.0.0",
     "@carbonplan/colormaps": "^4.0.0",
     "@carbonplan/components": "13.1.1",
     "@carbonplan/icons": "^2.0.0",

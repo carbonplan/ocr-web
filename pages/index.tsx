@@ -2,6 +2,8 @@ import { Box, Container } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Header, Meta } from '@carbonplan/components'
 import { Map, Sidebar } from '../components'
+// @ts-expect-error - carbonplan auth types not available
+import { withAuth } from '@carbonplan/auth'
 
 const Index = () => {
   return (
@@ -36,4 +38,4 @@ const Index = () => {
   )
 }
 
-export default Index
+export default withAuth(Index, ['user'])
