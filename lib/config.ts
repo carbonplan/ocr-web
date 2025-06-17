@@ -20,7 +20,7 @@ export const RISKS = {
     colormap: 'fire',
     bounds: {
       min: 0,
-      max: 100,
+      max: 5,
       get mid() {
         return (this.max - this.min) / 2 + this.min
       },

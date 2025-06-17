@@ -20,30 +20,21 @@ const Buildings = () => {
   const wind = useLocationStore((state) => state.wind)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
+  const currentColorLimits = useLocationStore(
+    (state) => state.currentColorLimits,
+  )
 
   const isUserClick = useRef(false)
 
-  const colormap = useThemedColormap(RISKS.fire.colormap, { format: 'hex' })
+  const colormap = useThemedColormap(RISKS.fire.colormap, {
+    format: 'hex',
+    count: currentColorLimits.type === 'discrete' ? 5 : 256,
+  })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap || colormap.length === 0) {
       return ['literal', 'transparent']
     }
-
-    const stops: (string | number)[] = []
-    colormap.forEach((color: string, index: number) => {
-      const rawValue =
-        RISKS.fire.bounds.min +
-        (index / (colormap.length - 1)) *
-          (RISKS.fire.bounds.max - RISKS.fire.bounds.min)
-
-      const valuePercent =
-        ((rawValue - RISKS.fire.bounds.min) /
-          (RISKS.fire.bounds.max - RISKS.fire.bounds.min)) *
-        100
-
-      stops.push(valuePercent, color)
-    })
 
     const riskAttribute = wind
       ? RISKS.fire.attributes.windRisk
@@ -67,13 +58,49 @@ const Buildings = () => {
             100,
           ]
 
-    return [
-      'interpolate',
-      ['linear'],
-      riskPercentExpression,
-      ...stops,
-    ] as ExpressionSpecification
-  }, [colormap, wind, timeHorizon])
+    if (currentColorLimits.type === 'discrete') {
+      const steps: (string | number)[] = []
+
+      colormap.forEach((color: string, index: number) => {
+        if (index < colormap.length - 1) {
+          const rawValue =
+            currentColorLimits.bounds[0] +
+            ((index + 1) / colormap.length) *
+              (currentColorLimits.bounds[1] - currentColorLimits.bounds[0])
+          steps.push(rawValue, color)
+        }
+      })
+
+      return [
+        'step',
+        riskPercentExpression,
+        colormap[0],
+        ...steps,
+      ] as ExpressionSpecification
+    } else {
+      const stops: (string | number)[] = []
+      colormap.forEach((color: string, index: number) => {
+        const rawValue =
+          currentColorLimits.bounds[0] +
+          (index / (colormap.length - 1)) *
+            (currentColorLimits.bounds[1] - currentColorLimits.bounds[0])
+        stops.push(rawValue, color)
+      })
+
+      return [
+        'interpolate',
+        ['linear'],
+        riskPercentExpression,
+        ...stops,
+      ] as ExpressionSpecification
+    }
+  }, [
+    colormap,
+    wind,
+    timeHorizon,
+    currentColorLimits.type,
+    currentColorLimits.bounds,
+  ])
 
   const setPointerCursor = useCallback(() => {
     if (map) {
