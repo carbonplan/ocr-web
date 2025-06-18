@@ -2,11 +2,16 @@
 import { api } from '@carbonplan/auth'
 
 const secret = process.env.JWT_SECRET
+const userPassword = process.env.USER_PASSWORD
 
 const users = [
   {
     username: 'user',
-    password: process.env.USER_PASSWORD,
+    password: userPassword,
+  },
+  {
+    username: 'admin',
+    password: userPassword,
   },
 ]
 
