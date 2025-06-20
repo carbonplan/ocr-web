@@ -106,7 +106,7 @@ const Results = () => {
         </Column>
         <Column start={2} width={3} sx={{ height: 25 }}>
           <Badge sx={{ color: 'red' }}>
-            {mainRiskScore ? `${mainRiskScore.toFixed(2)}%` : '---'}
+            {mainRiskScore !== null ? `${mainRiskScore.toFixed(2)}%` : '---'}
           </Badge>
         </Column>
       </Row>
