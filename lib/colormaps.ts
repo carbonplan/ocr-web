@@ -2,51 +2,12 @@ import chroma from 'chroma-js'
 import { useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
 
-const DEFAULT_BIN_RATIOS = [0.1, 0.2, 0.5, 1] as const
-
-export function calculateBinBoundaries(
-  bounds: [number, number],
-  ratios: readonly number[] = DEFAULT_BIN_RATIOS,
-): number[] {
-  const [min, max] = bounds
+export const calculateBinBoundaries = (
+  [min, max]: [number, number],
+  ratios: readonly number[] = [0.1, 0.2, 0.5, 1],
+): number[] => {
   const range = max - min
-  const boundaries = [min]
-  for (let i = 0; i < ratios.length - 1; i++) {
-    boundaries.push(min + ratios[i] * range)
-  }
-  boundaries.push(max)
-  return boundaries
-}
-
-export function getDiscreteStepValues(
-  bounds: [number, number],
-  ratios: readonly number[] = DEFAULT_BIN_RATIOS,
-): number[] {
-  const boundaries = calculateBinBoundaries(bounds, ratios)
-  return boundaries.slice(1, -1)
-}
-
-export function getMapLibreStepValues(
-  bounds: [number, number],
-  ratios: readonly number[] = DEFAULT_BIN_RATIOS,
-): number[] {
-  const boundaries = calculateBinBoundaries(bounds, ratios)
-  return boundaries.slice(1)
-}
-
-export function formatBinLabels(
-  bounds: [number, number],
-  ratios: readonly number[] = DEFAULT_BIN_RATIOS,
-  unit: string = '',
-): string[] {
-  const boundaries = calculateBinBoundaries(bounds, ratios)
-  const labels: string[] = []
-  for (let i = 0; i < boundaries.length - 1; i++) {
-    const lower = boundaries[i].toFixed(1)
-    const upper = boundaries[i + 1].toFixed(1)
-    labels.push(`${lower}-${upper}${unit}`)
-  }
-  return labels
+  return [min, ...ratios.slice(0, -1).map((r) => min + r * range), max]
 }
 
 export interface ColormapOptions {
@@ -102,17 +63,6 @@ export function generateFireRiskColormap(
   return scale.colors(count, 'hex')
 }
 
-export function useFireRiskColormap(
-  options: Omit<ColormapOptions, 'mode'> = {},
-): string[] {
-  const [colorMode] = useColorMode()
-  const mode = colorMode === 'dark' ? 'dark' : 'light'
-
-  return useMemo(() => {
-    return generateFireRiskColormap({ ...options, mode })
-  }, [colorMode, options.count, options.format])
-}
-
 export function generateColormap(
   name: string,
   options: ColormapOptions = {},
@@ -135,5 +85,5 @@ export function useColormap(
 
   return useMemo(() => {
     return generateColormap(name, { ...options, mode })
-  }, [name, colorMode, options])
+  }, [name, options, mode])
 }

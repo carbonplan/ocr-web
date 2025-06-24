@@ -9,8 +9,8 @@ const Display = () => {
   const setSatellite = useLocationStore((state) => state.setSatellite)
   const wind = useLocationStore((state) => state.wind)
   const setWind = useLocationStore((state) => state.setWind)
-  const riskRaster = useLocationStore((state) => state.riskRaster)
-  const setRiskRaster = useLocationStore((state) => state.setRiskRaster)
+  // const riskRaster = useLocationStore((state) => state.riskRaster)
+  // const setRiskRaster = useLocationStore((state) => state.setRiskRaster)
 
   return (
     <>

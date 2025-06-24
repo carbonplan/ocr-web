@@ -3,7 +3,7 @@ import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
 import { LAYERS, RISKS } from '@/lib/config'
-import { getMapLibreStepValues, useColormap } from '@/lib/colormaps'
+import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -61,10 +61,10 @@ const Buildings = () => {
     if (currentColorLimits.type === 'discrete') {
       const steps: (string | number)[] = []
 
-      const stepValues = getMapLibreStepValues(
+      const stepValues = calculateBinBoundaries(
         currentColorLimits.bounds,
         RISKS.fire.binRatios,
-      )
+      ).slice(1) // remove first value to shift to correct step
 
       stepValues.forEach((value: number, index: number) => {
         if (index < colormap.length - 1) {
