@@ -1,9 +1,10 @@
 //@ts-expect-error - carbonplan components types not available
-import { Colorbar } from '@carbonplan/components'
+import { Colorbar, Column, Row, Filter, Input } from '@carbonplan/components'
 //@ts-expect-error - carbonplan charts types not available
 import { Chart, TickLabels } from '@carbonplan/charts'
 import { useLocationStore } from '../store/location'
 import { calculateBinBoundaries, useColormap } from '../lib/colormaps'
+import { Flex } from 'theme-ui'
 
 const evenlySpacedTicks = [0, 1, 2, 3, 4]
 
@@ -11,6 +12,10 @@ const Legend = () => {
   const currentRiskConfig = useLocationStore((state) => state.currentRiskConfig)
   const currentColorLimits = useLocationStore(
     (state) => state.currentColorLimits,
+  )
+
+  const setCurrentColorLimits = useLocationStore(
+    (state) => state.setCurrentColorLimits,
   )
   const colormap = useColormap(currentRiskConfig.colormap, {
     count: currentColorLimits.type === 'discrete' ? 5 : 256,
@@ -43,6 +48,60 @@ const Legend = () => {
 
   return (
     <>
+      <Row variant='labelFieldContainer' columns={4}>
+        <Column start={1} width={1} variant='label'>
+          Legend
+        </Column>
+        <Column start={2} width={3}>
+          <Flex
+            sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}
+          >
+            <Filter
+              values={{
+                continuous: currentColorLimits.type === 'continuous',
+                discrete: currentColorLimits.type === 'discrete',
+              }}
+              setValues={(values: Record<string, boolean>) => {
+                const selectedType = Object.keys(values).find(
+                  (key) => values[key],
+                )
+                if (
+                  selectedType &&
+                  (selectedType === 'discrete' || selectedType === 'continuous')
+                ) {
+                  setCurrentColorLimits({
+                    type: selectedType as 'discrete' | 'continuous',
+                    bounds: currentColorLimits.bounds,
+                  })
+                }
+              }}
+            />
+            <Flex sx={{ alignItems: 'center', gap: 1 }}>
+              0 -
+              <Input
+                size='xs'
+                type='number'
+                min={1}
+                max={100}
+                step={10}
+                sx={{
+                  width: 45,
+                  '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
+                    { opacity: 1 },
+                }}
+                value={currentColorLimits.bounds[1]}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = parseFloat(e.target.value)
+                  setCurrentColorLimits({
+                    type: currentColorLimits.type,
+                    bounds: [0, value],
+                  })
+                }}
+              />
+            </Flex>
+          </Flex>
+        </Column>
+      </Row>
       <Colorbar
         colormap={colormap}
         discrete={currentColorLimits.type === 'discrete'}
