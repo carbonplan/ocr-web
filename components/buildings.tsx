@@ -401,7 +401,7 @@ const Buildings = () => {
               `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
             ],
           ],
-          RISKS.fire.bounds.mid,
+          0,
         ],
         colorExpression,
         get(theme, 'rawColors.muted'),

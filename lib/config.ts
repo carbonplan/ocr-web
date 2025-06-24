@@ -22,9 +22,6 @@ export const RISKS = {
     bounds: {
       min: 0,
       max: 20,
-      get mid() {
-        return (this.max - this.min) / 2 + this.min
-      },
     },
   },
 } as const
