@@ -19,16 +19,14 @@ const Buildings = () => {
   const wind = useLocationStore((state) => state.wind)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
-  const currentColorLimits = useLocationStore(
-    (state) => state.currentColorLimits,
-  )
-  const currentRiskConfig = useLocationStore((state) => state.currentRiskConfig)
+  const colorLimits = useLocationStore((state) => state.colorLimits)
+  const riskConfig = useLocationStore((state) => state.riskConfig)
 
   const isUserClick = useRef(false)
 
-  const colormap = useColormap(currentRiskConfig.colormap, {
+  const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',
-    count: currentColorLimits.type === 'discrete' ? 5 : 256,
+    count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
   const colorExpression = useMemo(() => {
@@ -58,11 +56,11 @@ const Buildings = () => {
             100,
           ]
 
-    if (currentColorLimits.type === 'discrete') {
+    if (colorLimits.type === 'discrete') {
       const steps: (string | number)[] = []
 
       const stepValues = calculateBinBoundaries(
-        currentColorLimits.bounds,
+        colorLimits.bounds,
         RISKS.fire.binRatios,
       ).slice(1) // remove first value to shift to correct step
 
@@ -89,9 +87,9 @@ const Buildings = () => {
       const stops: (string | number)[] = []
       colormap.forEach((color: string, index: number) => {
         const rawValue =
-          currentColorLimits.bounds[0] +
+          colorLimits.bounds[0] +
           (index / (colormap.length - 1)) *
-            (currentColorLimits.bounds[1] - currentColorLimits.bounds[0])
+            (colorLimits.bounds[1] - colorLimits.bounds[0])
         stops.push(rawValue, color)
       })
 
@@ -113,8 +111,8 @@ const Buildings = () => {
     colormap,
     wind,
     timeHorizon,
-    currentColorLimits.type,
-    currentColorLimits.bounds,
+    colorLimits.type,
+    colorLimits.bounds,
     theme,
   ]) as ExpressionSpecification
 

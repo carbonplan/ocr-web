@@ -5,6 +5,7 @@ import AnimateHeight from 'react-animate-height'
 import { Row, Column, Badge, Filter, Expander } from '@carbonplan/components'
 import { useLocationStore } from '@/store/location'
 import { RISKS } from '@/lib/config'
+import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
 const Results = () => {
   const [aboutExpanded, setAboutExpanded] = useState(false)
@@ -13,6 +14,12 @@ const Results = () => {
   const setTimeHorizon = useLocationStore((state) => state.setTimeHorizon)
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
   const wind = useLocationStore((state) => state.wind)
+  const colorLimits = useLocationStore((state) => state.colorLimits)
+  const riskConfig = useLocationStore((state) => state.riskConfig)
+
+  const colormap = useColormap(riskConfig.colormap, {
+    count: colorLimits.type === 'discrete' ? 5 : 256,
+  })
 
   const calculateRiskScores = (annualProbability: number) => {
     return {

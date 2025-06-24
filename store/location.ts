@@ -20,13 +20,13 @@ type LocationStore = {
   setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
-  currentRiskConfig: (typeof RISKS)[keyof typeof RISKS]
-  setCurrentRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
-  currentColorLimits: {
+  riskConfig: (typeof RISKS)[keyof typeof RISKS]
+  setRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
+  colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
   }
-  setCurrentColorLimits: (colorLimits: {
+  setColorLimits: (colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
   }) => void
@@ -49,12 +49,11 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
-  currentRiskConfig: RISKS.fire,
-  setCurrentRiskConfig: (riskConfig) => set({ currentRiskConfig: riskConfig }),
-  currentColorLimits: {
+  riskConfig: RISKS.fire,
+  setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
+  colorLimits: {
     type: 'continuous',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
   },
-  setCurrentColorLimits: (colorLimits) =>
-    set({ currentColorLimits: colorLimits }),
+  setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
 }))

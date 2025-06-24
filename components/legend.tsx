@@ -9,24 +9,17 @@ import { Flex } from 'theme-ui'
 const evenlySpacedTicks = [0, 1, 2, 3, 4]
 
 const Legend = () => {
-  const currentRiskConfig = useLocationStore((state) => state.currentRiskConfig)
-  const currentColorLimits = useLocationStore(
-    (state) => state.currentColorLimits,
-  )
+  const riskConfig = useLocationStore((state) => state.riskConfig)
+  const colorLimits = useLocationStore((state) => state.colorLimits)
 
-  const setCurrentColorLimits = useLocationStore(
-    (state) => state.setCurrentColorLimits,
-  )
-  const colormap = useColormap(currentRiskConfig.colormap, {
-    count: currentColorLimits.type === 'discrete' ? 5 : 256,
+  const setColorLimits = useLocationStore((state) => state.setColorLimits)
+  const colormap = useColormap(riskConfig.colormap, {
+    count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
   const discreteClim =
-    currentColorLimits.type === 'discrete'
-      ? calculateBinBoundaries(
-          currentColorLimits.bounds,
-          currentRiskConfig.binRatios,
-        )
+    colorLimits.type === 'discrete'
+      ? calculateBinBoundaries(colorLimits.bounds, riskConfig.binRatios)
       : null
 
   const formatTickValue = (d: number) => {
@@ -44,7 +37,7 @@ const Legend = () => {
   }
 
   const chartXRange =
-    currentColorLimits.type === 'discrete' ? [0, 5] : currentColorLimits.bounds
+    colorLimits.type === 'discrete' ? [0, 5] : colorLimits.bounds
 
   return (
     <>
@@ -58,8 +51,8 @@ const Legend = () => {
           >
             <Filter
               values={{
-                continuous: currentColorLimits.type === 'continuous',
-                discrete: currentColorLimits.type === 'discrete',
+                continuous: colorLimits.type === 'continuous',
+                discrete: colorLimits.type === 'discrete',
               }}
               setValues={(values: Record<string, boolean>) => {
                 const selectedType = Object.keys(values).find(
@@ -69,9 +62,9 @@ const Legend = () => {
                   selectedType &&
                   (selectedType === 'discrete' || selectedType === 'continuous')
                 ) {
-                  setCurrentColorLimits({
+                  setColorLimits({
                     type: selectedType as 'discrete' | 'continuous',
-                    bounds: currentColorLimits.bounds,
+                    bounds: colorLimits.bounds,
                   })
                 }
               }}
@@ -89,12 +82,12 @@ const Legend = () => {
                   '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
                     { opacity: 1 },
                 }}
-                value={currentColorLimits.bounds[1]}
+                value={colorLimits.bounds[1]}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = parseFloat(e.target.value)
                   if (value < 1 || value > 100) return
-                  setCurrentColorLimits({
-                    type: currentColorLimits.type,
+                  setColorLimits({
+                    type: colorLimits.type,
                     bounds: [0, value],
                   })
                 }}
@@ -105,18 +98,16 @@ const Legend = () => {
       </Row>
       <Colorbar
         colormap={colormap}
-        discrete={currentColorLimits.type === 'discrete'}
+        discrete={colorLimits.type === 'discrete'}
         horizontal
         width={'100%'}
       />
       <Chart x={chartXRange} y={[0, 0]} padding={{ left: 1, bottom: 8 }}>
         <TickLabels
           bottom
-          values={
-            currentColorLimits.type === 'discrete' ? evenlySpacedTicks : null
-          }
+          values={colorLimits.type === 'discrete' ? evenlySpacedTicks : null}
           format={
-            currentColorLimits.type === 'discrete'
+            colorLimits.type === 'discrete'
               ? formatDiscreteTickValue
               : formatTickValue
           }
