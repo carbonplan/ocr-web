@@ -17,7 +17,7 @@ const Display = () => {
       <Box variant='sectionHeading' sx={{ mt: 5, mb: 3 }}>
         Display
       </Box>
-      <Row variant='labelFieldContainer' columns={4}>
+      {/* <Row variant='labelFieldContainer' columns={4}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Raw data
         </Column>
@@ -27,7 +27,7 @@ const Display = () => {
             onClick={() => setRiskRaster(!riskRaster)}
           />
         </Column>
-      </Row>
+      </Row> */}
       <Row variant='labelFieldContainer' columns={4}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Satellite
