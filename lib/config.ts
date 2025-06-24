@@ -17,10 +17,11 @@ export const RISKS = {
       baseRisk: 'USFS_RPS',
       windRisk: 'wind_risk',
     },
-    colormap: 'fire',
+    colormap: 'fire-risk',
+    binRatios: [0.1, 0.2, 0.5, 1],
     bounds: {
       min: 0,
-      max: 5,
+      max: 20,
       get mid() {
         return (this.max - this.min) / 2 + this.min
       },

@@ -2,9 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
-//@ts-expect-error - carbonplan components types not available
-import { useThemedColormap } from '@carbonplan/colormaps'
 import { LAYERS, RISKS } from '@/lib/config'
+import { getMapLibreStepValues, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -23,15 +22,16 @@ const Buildings = () => {
   const currentColorLimits = useLocationStore(
     (state) => state.currentColorLimits,
   )
+  const currentRiskConfig = useLocationStore((state) => state.currentRiskConfig)
 
   const isUserClick = useRef(false)
 
-  const colormap = useThemedColormap(RISKS.fire.colormap, {
+  const colormap = useColormap(currentRiskConfig.colormap, {
     format: 'hex',
     count: currentColorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const colorExpression: ExpressionSpecification = useMemo(() => {
+  const colorExpression = useMemo(() => {
     if (!colormap || colormap.length === 0) {
       return ['literal', 'transparent']
     }
@@ -61,22 +61,30 @@ const Buildings = () => {
     if (currentColorLimits.type === 'discrete') {
       const steps: (string | number)[] = []
 
-      colormap.forEach((color: string, index: number) => {
+      const stepValues = getMapLibreStepValues(
+        currentColorLimits.bounds,
+        RISKS.fire.binRatios,
+      )
+
+      stepValues.forEach((value: number, index: number) => {
         if (index < colormap.length - 1) {
-          const rawValue =
-            currentColorLimits.bounds[0] +
-            ((index + 1) / colormap.length) *
-              (currentColorLimits.bounds[1] - currentColorLimits.bounds[0])
-          steps.push(rawValue, color)
+          steps.push(value, colormap[index + 1])
         }
       })
 
-      return [
+      const stepExpression = [
         'step',
         riskPercentExpression,
         colormap[0],
         ...steps,
-      ] as ExpressionSpecification
+      ]
+
+      return [
+        'case',
+        ['==', riskPercentExpression, 0],
+        get(theme, 'rawColors.background'),
+        stepExpression,
+      ]
     } else {
       const stops: (string | number)[] = []
       colormap.forEach((color: string, index: number) => {
@@ -87,12 +95,19 @@ const Buildings = () => {
         stops.push(rawValue, color)
       })
 
-      return [
+      const interpolateExpression = [
         'interpolate',
         ['linear'],
         riskPercentExpression,
         ...stops,
-      ] as ExpressionSpecification
+      ]
+
+      return [
+        'case',
+        ['==', riskPercentExpression, 0],
+        get(theme, 'rawColors.background'),
+        interpolateExpression,
+      ]
     }
   }, [
     colormap,
@@ -100,7 +115,8 @@ const Buildings = () => {
     timeHorizon,
     currentColorLimits.type,
     currentColorLimits.bounds,
-  ])
+    theme,
+  ]) as ExpressionSpecification
 
   const setPointerCursor = useCallback(() => {
     if (map) {
@@ -218,63 +234,76 @@ const Buildings = () => {
     // initialize layers and listeners
     if (!map) return
 
-    map.on('load', () => {
-      map.addSource(LAYERS.buildings.sourceId, {
-        type: 'vector',
-        url: `pmtiles://${LAYERS.buildings.dataSource}`,
-      })
-      map.addLayer(
-        {
-          id: LAYERS.buildings.layerIds.fill,
-          type: 'fill',
-          source: LAYERS.buildings.sourceId,
-          'source-layer': LAYERS.buildings.layerName,
-          paint: {
-            'fill-color': colorExpression,
-            // 'fill-opacity': 0.5,
+    const initializeLayers = () => {
+      if (!map.getSource(LAYERS.buildings.sourceId)) {
+        map.addSource(LAYERS.buildings.sourceId, {
+          type: 'vector',
+          url: `pmtiles://${LAYERS.buildings.dataSource}`,
+        })
+      }
+
+      if (!map.getLayer(LAYERS.buildings.layerIds.fill)) {
+        map.addLayer(
+          {
+            id: LAYERS.buildings.layerIds.fill,
+            type: 'fill',
+            source: LAYERS.buildings.sourceId,
+            'source-layer': LAYERS.buildings.layerName,
+            paint: {
+              'fill-color': colorExpression,
+            },
           },
-        },
-        'background',
-      )
-      map.addLayer(
-        {
-          id: LAYERS.buildings.layerIds.line,
-          type: 'line',
-          source: LAYERS.buildings.sourceId,
-          'source-layer': LAYERS.buildings.layerName,
-          paint: {
-            'line-color': [
-              'case',
-              ['boolean', ['feature-state', 'highlighted'], false],
-              get(theme, 'rawColors.primary'),
-              [
+          'background',
+        )
+      }
+
+      if (!map.getLayer(LAYERS.buildings.layerIds.line)) {
+        map.addLayer(
+          {
+            id: LAYERS.buildings.layerIds.line,
+            type: 'line',
+            source: LAYERS.buildings.sourceId,
+            'source-layer': LAYERS.buildings.layerName,
+            paint: {
+              'line-color': [
                 'case',
+                ['boolean', ['feature-state', 'highlighted'], false],
+                get(theme, 'rawColors.primary'),
                 [
-                  '>',
+                  'case',
                   [
-                    'to-number',
+                    '>',
                     [
-                      'get',
-                      `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
+                      'to-number',
+                      [
+                        'get',
+                        `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
+                      ],
                     ],
+                    RISKS.fire.bounds.mid,
                   ],
-                  RISKS.fire.bounds.mid,
+                  colorExpression,
+                  get(theme, 'rawColors.muted'),
                 ],
-                colorExpression,
-                get(theme, 'rawColors.muted'),
               ],
-            ],
-            'line-width': [
-              'case',
-              ['boolean', ['feature-state', 'highlighted'], false],
-              2,
-              0.5,
-            ],
+              'line-width': [
+                'case',
+                ['boolean', ['feature-state', 'highlighted'], false],
+                2,
+                0.5,
+              ],
+            },
           },
-        },
-        'background',
-      )
-    })
+          'background',
+        )
+      }
+    }
+
+    if (map.isStyleLoaded()) {
+      initializeLayers()
+    } else {
+      map.on('load', initializeLayers)
+    }
     map.on('click', handleMapClick)
     map.on('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
     map.on('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
@@ -282,12 +311,20 @@ const Buildings = () => {
     return () => {
       try {
         if (!map) return
-        // map.removeLayer(LAYERS.buildings.layerIds.fill)
-        // map.removeLayer(LAYERS.buildings.layerIds.line)
-        // map.removeSource(LAYERS.buildings.sourceId)
-        // map.off('click', handleMapClick)
-        // map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
-        // map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
+
+        map.off('click', handleMapClick)
+        map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
+        map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
+
+        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
+          map.removeLayer(LAYERS.buildings.layerIds.fill)
+        }
+        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
+          map.removeLayer(LAYERS.buildings.layerIds.line)
+        }
+        if (map.getSource(LAYERS.buildings.sourceId)) {
+          map.removeSource(LAYERS.buildings.sourceId)
+        }
       } catch (error) {
         console.error('Error removing buildings layers:', error)
       }
