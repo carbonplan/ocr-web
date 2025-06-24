@@ -10,6 +10,49 @@ export const calculateBinBoundaries = (
   return [min, ...ratios.slice(0, -1).map((r) => min + r * range), max]
 }
 
+export const getColorForRiskScore = (
+  score: number | null,
+  colormap: string[],
+  colorLimits: {
+    type: 'continuous' | 'discrete'
+    bounds: [number, number]
+  },
+  binRatios: readonly number[] = [0.1, 0.2, 0.5, 1],
+  fallbackColor: string = 'secondary',
+): string => {
+  if (score === null || !colormap || colormap.length === 0) {
+    return fallbackColor
+  }
+
+  const [min, max] = colorLimits.bounds
+
+  if (colorLimits.type === 'discrete') {
+    const boundaries = calculateBinBoundaries([min, max], binRatios)
+
+    let binIndex = 0
+    for (let i = 0; i < boundaries.length - 1; i++) {
+      if (score >= boundaries[i] && score < boundaries[i + 1]) {
+        binIndex = i
+        break
+      }
+      if (i === boundaries.length - 2 && score >= boundaries[i + 1]) {
+        binIndex = i + 1
+        break
+      }
+    }
+
+    binIndex = Math.min(binIndex, colormap.length - 1)
+    return colormap[binIndex]
+  } else {
+    const normalizedScore = Math.min(
+      Math.max((score - min) / (max - min), 0),
+      1,
+    )
+    const colormapIndex = Math.floor(normalizedScore * (colormap.length - 1))
+    return colormap[colormapIndex]
+  }
+}
+
 export interface ColormapOptions {
   count?: number
   format?: 'hex' | 'rgb'

@@ -46,6 +46,30 @@ const Results = () => {
   const baseRiskScore = getRiskScoreForHorizon('baseRisk')
   const windRiskScore = getRiskScoreForHorizon('windRisk')
 
+  const mainScoreColor = getColorForRiskScore(
+    mainRiskScore,
+    colormap,
+    colorLimits,
+    riskConfig.binRatios,
+    'red',
+  )
+
+  const baseScoreColor = getColorForRiskScore(
+    baseRiskScore,
+    colormap,
+    colorLimits,
+    riskConfig.binRatios,
+    'red',
+  )
+
+  const windScoreColor = getColorForRiskScore(
+    windRiskScore,
+    colormap,
+    colorLimits,
+    riskConfig.binRatios,
+    'red',
+  )
+
   return (
     <>
       <Row columns={4} sx={{ my: 3, alignItems: 'baseline' }}>
@@ -112,7 +136,7 @@ const Results = () => {
           score
         </Column>
         <Column start={2} width={3} sx={{ height: 25 }}>
-          <Badge sx={{ color: 'red' }}>
+          <Badge sx={{ color: mainScoreColor }}>
             {mainRiskScore !== null ? `${mainRiskScore.toFixed(2)}%` : '---'}
           </Badge>
         </Column>
@@ -145,14 +169,18 @@ const Results = () => {
                   The risk score for this address is derived using the annual
                   burn probability generated in the US Forest Service&apos;s
                   Wildfire Risk to Communities dataset (
-                  <Badge sx={{ color: 'red', fontSize: 1, height: 18 }}>
+                  <Badge
+                    sx={{ color: baseScoreColor, fontSize: 1, height: 18 }}
+                  >
                     {baseRiskScore.toFixed(2)}%
                   </Badge>
                   ). We then use historical wind data from fire weather days to
                   predict how wildfire could spread, which{' '}
                   {baseRiskScore > windRiskScore ? 'decreases' : 'increases'}{' '}
                   the burn probability to{' '}
-                  <Badge sx={{ color: 'red', fontSize: 1, height: 18 }}>
+                  <Badge
+                    sx={{ color: windScoreColor, fontSize: 1, height: 18 }}
+                  >
                     {windRiskScore!.toFixed(2)}%
                   </Badge>
                   .
