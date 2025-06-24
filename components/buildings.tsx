@@ -272,7 +272,7 @@ const Buildings = () => {
                 [
                   'case',
                   [
-                    '>',
+                    '==',
                     [
                       'to-number',
                       [
@@ -280,29 +280,29 @@ const Buildings = () => {
                         `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
                       ],
                     ],
-                    RISKS.fire.bounds.mid,
+                    0,
                   ],
-                  colorExpression,
                   get(theme, 'rawColors.muted'),
+                  colorExpression,
                 ],
               ],
               'line-width': [
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                11,
+                12,
                 [
                   'case',
                   ['boolean', ['feature-state', 'highlighted'], false],
                   2,
                   0,
                 ],
-                13,
+                14,
                 [
                   'case',
                   ['boolean', ['feature-state', 'highlighted'], false],
                   2,
-                  0.5,
+                  1,
                 ],
               ],
             },
@@ -393,7 +393,7 @@ const Buildings = () => {
       [
         'case',
         [
-          '>',
+          '==',
           [
             'to-number',
             [
@@ -403,8 +403,8 @@ const Buildings = () => {
           ],
           0,
         ],
-        colorExpression,
         get(theme, 'rawColors.muted'),
+        colorExpression,
       ],
     ]
 
