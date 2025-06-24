@@ -43,14 +43,6 @@ const MapComponent = () => {
               tiles: [`/api/map/tiles/{z}/{x}/{y}`],
               tileSize: 256,
             },
-            wms_risk: {
-              type: 'raster',
-              tiles: [
-                'http://localhost:9000/datasets/risk/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS&styles=raster/hot&colorscalerange=0,0.1&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}',
-              ],
-              minzoom: 12,
-              tileSize: 256,
-            },
           },
           layers: [
             {
@@ -60,17 +52,6 @@ const MapComponent = () => {
               paint: {
                 'raster-saturation': -0.8,
                 'raster-opacity': 0.5,
-              },
-              layout: {
-                visibility: 'none',
-              },
-            },
-            {
-              id: 'wms-risk',
-              type: 'raster',
-              source: 'wms_risk',
-              paint: {
-                'raster-opacity': 0.7,
               },
               layout: {
                 visibility: 'none',
@@ -98,9 +79,7 @@ const MapComponent = () => {
       const existingStyle = map.getStyle()
       const specialLayers = existingStyle.layers.filter(
         (layer) =>
-          layer.id === 'satellite' ||
-          layer.id === 'wms-risk' ||
-          layer.id.startsWith('buildings-'),
+          layer.id === 'satellite' || layer.id.startsWith('buildings-'),
       )
       const newLayers = [...specialLayers, ...mapLayers]
 
@@ -126,15 +105,6 @@ const MapComponent = () => {
       satellite ? 'visible' : 'none',
     )
   }, [satellite, map])
-
-  useEffect(() => {
-    if (!map || !map.isStyleLoaded()) return
-    map.setLayoutProperty(
-      'wms-risk',
-      'visibility',
-      riskRaster ? 'visible' : 'none',
-    )
-  }, [riskRaster, map])
 
   return (
     <div
