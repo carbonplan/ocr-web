@@ -164,7 +164,7 @@ const Results = () => {
             }
           >
             {selectedBuilding && baseRiskScore && windRiskScore && (
-              <Box sx={{ fontFamily: 'mono', fontSize: 1, pt: 2 }}>
+              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
                 <Box sx={{ mb: 2 }}>
                   The risk score for this address is derived using the annual
                   burn probability generated in the US Forest Service&apos;s
@@ -185,7 +185,7 @@ const Results = () => {
                   </Badge>
                   .
                 </Box>
-                <Box>Read our research methods for a detailed description</Box>
+                <Box>Read our <Link href='#TK'>research methods</Link> for a detailed description</Box>
               </Box>
             )}
           </AnimateHeight>
