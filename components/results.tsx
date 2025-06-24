@@ -150,7 +150,7 @@ const Results = () => {
                   </Badge>
                   .
                 </Box>
-                <Box>Read our research methods for a detailed description</Box>
+                <Box>Read our <Link href='#TK'>research methods</Link> for a detailed description</Box>
               </Box>
             )}
           </AnimateHeight>
