@@ -69,7 +69,14 @@ const Legend = () => {
                 }
               }}
             />
-            <Flex sx={{ alignItems: 'center', gap: 1 }}>
+            <Flex
+              sx={{
+                alignItems: 'baseline',
+                gap: 1,
+                fontSize: [1, 1, 1, 2],
+                whiteSpace: 'nowrap',
+              }}
+            >
               0 -
               <Input
                 size='xs'
@@ -78,7 +85,7 @@ const Legend = () => {
                 max={100}
                 step={10}
                 sx={{
-                  width: 45,
+                  fontSize: [1, 1, 1, 2],
                   '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
                     { opacity: 1 },
                 }}
