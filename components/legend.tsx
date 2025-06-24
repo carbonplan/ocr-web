@@ -81,7 +81,7 @@ const Legend = () => {
               <Input
                 size='xs'
                 type='number'
-                min={1}
+                min={0}
                 max={100}
                 step={10}
                 sx={{
@@ -92,6 +92,7 @@ const Legend = () => {
                 value={currentColorLimits.bounds[1]}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = parseFloat(e.target.value)
+                  if (value < 1 || value > 100) return
                   setCurrentColorLimits({
                     type: currentColorLimits.type,
                     bounds: [0, value],
