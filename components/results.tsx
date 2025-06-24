@@ -1,8 +1,15 @@
 import React, { useState } from 'react'
 import { Box } from 'theme-ui'
 import AnimateHeight from 'react-animate-height'
-//@ts-expect-error - carbonplan components types not available
-import { Row, Column, Badge, Filter, Expander } from '@carbonplan/components'
+import {
+  Row,
+  Column,
+  Badge,
+  Filter,
+  Expander,
+  Link,
+  //@ts-expect-error - carbonplan components types not available
+} from '@carbonplan/components'
 import { useLocationStore } from '@/store/location'
 import { RISKS } from '@/lib/config'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
@@ -185,7 +192,10 @@ const Results = () => {
                   </Badge>
                   .
                 </Box>
-                <Box>Read our <Link href='#TK'>research methods</Link> for a detailed description</Box>
+                <Box>
+                  Read our <Link href='#TK'>research methods</Link> for a
+                  detailed description
+                </Box>
               </Box>
             )}
           </AnimateHeight>
