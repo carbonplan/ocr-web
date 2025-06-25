@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
-import { LAYERS, RISKS } from '@/lib/config'
+import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
@@ -24,8 +24,8 @@ const Buildings = () => {
   const riskConfig = useLocationStore((state) => state.riskConfig)
 
   const riskAttribute = wind
-    ? RISKS.fire.attributes.windRisk[timePeriod]
-    : RISKS.fire.attributes.baseRisk
+    ? riskConfig.attributes.windRisk[timePeriod]
+    : riskConfig.attributes.baseRisk[timePeriod]
   const isUserClick = useRef(false)
 
   const colormap = useColormap(riskConfig.colormap, {
@@ -61,7 +61,7 @@ const Buildings = () => {
 
       const stepValues = calculateBinBoundaries(
         colorLimits.bounds,
-        RISKS.fire.binRatios,
+        riskConfig.binRatios,
       ).slice(1) // remove first value to shift to correct step
 
       stepValues.forEach((value: number, index: number) => {
@@ -114,6 +114,7 @@ const Buildings = () => {
     colorLimits.bounds,
     theme,
     riskAttribute,
+    riskConfig.binRatios,
   ]) as ExpressionSpecification
 
   const setPointerCursor = useCallback(() => {
