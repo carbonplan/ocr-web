@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import { Location, Building } from '../types/location'
+import { RISKS } from '../lib/config'
 
 type LocationStore = {
   map: Map | null
@@ -11,10 +12,24 @@ type LocationStore = {
   setSatellite: (satellite: boolean) => void
   wind: boolean
   setWind: (wind: boolean) => void
+  riskRaster: boolean
+  setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building | null) => void
+  timeHorizon: 1 | 15 | 30
+  setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
+  riskConfig: (typeof RISKS)[keyof typeof RISKS]
+  setRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
+  colorLimits: {
+    type: 'continuous' | 'discrete'
+    bounds: [number, number]
+  }
+  setColorLimits: (colorLimits: {
+    type: 'continuous' | 'discrete'
+    bounds: [number, number]
+  }) => void
 }
 
 export const useLocationStore = create<LocationStore>((set) => ({
@@ -24,10 +39,21 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
-  wind: false,
+  wind: true,
   setWind: (wind) => set({ wind }),
+  riskRaster: false,
+  setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
+  timeHorizon: 30,
+  setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
+  riskConfig: RISKS.fire,
+  setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
+  colorLimits: {
+    type: 'continuous',
+    bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
+  },
+  setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
 }))

@@ -2,7 +2,7 @@ import { merge } from 'theme-ui'
 // @ts-expect-error - CarbonPlan theme types not available
 import baseTheme from '@carbonplan/theme'
 
-const customTextVariants = {
+const customVariants = {
   sectionHeading: {
     fontFamily: 'heading',
     letterSpacing: 'smallcaps',
@@ -23,8 +23,12 @@ const customTextVariants = {
     fontSize: [2, 2, 2, 3],
     color: 'primary',
   },
+
+  labelFieldContainer: {
+    my: 3,
+  },
 }
 
-const theme = merge(baseTheme, customTextVariants as Partial<typeof baseTheme>)
+const theme = merge(baseTheme, customVariants as Partial<typeof baseTheme>)
 
 export default theme

@@ -2,16 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
-//@ts-expect-error - carbonplan components types not available
-import { useThemedColormap } from '@carbonplan/colormaps'
-import {
-  DATA_SOURCES,
-  LAYER_NAMES,
-  RISK_ATTRIBUTES,
-  RISK_BOUNDS,
-  MAP_LAYER_IDS,
-  MAP_SOURCE_IDS,
-} from '@/lib/config'
+import { LAYERS, RISKS } from '@/lib/config'
+import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -26,37 +18,103 @@ const Buildings = () => {
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
   const wind = useLocationStore((state) => state.wind)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
+  const timeHorizon = useLocationStore((state) => state.timeHorizon)
+  const colorLimits = useLocationStore((state) => state.colorLimits)
+  const riskConfig = useLocationStore((state) => state.riskConfig)
 
   const isUserClick = useRef(false)
 
-  const colormap = useThemedColormap('reds', { format: 'hex' })
+  const colormap = useColormap(riskConfig.colormap, {
+    format: 'hex',
+    count: colorLimits.type === 'discrete' ? 5 : 256,
+  })
 
-  const colorExpression: ExpressionSpecification = useMemo(() => {
+  const colorExpression = useMemo(() => {
     if (!colormap || colormap.length === 0) {
       return ['literal', 'transparent']
     }
 
-    const stops: (string | number)[] = []
-    colormap.forEach((color: string, index: number) => {
-      const value =
-        RISK_BOUNDS.min +
-        (index / (colormap.length - 1)) * (RISK_BOUNDS.max - RISK_BOUNDS.min)
-      stops.push(value, color)
-    })
+    const riskAttribute = wind
+      ? RISKS.fire.attributes.windRisk
+      : RISKS.fire.attributes.baseRisk
 
-    return [
-      'interpolate',
-      ['linear'],
-      [
-        'to-number',
-        [
-          'get',
-          `${wind ? RISK_ATTRIBUTES.windRisk : RISK_ATTRIBUTES.baseRisk}`,
-        ],
-      ],
-      ...stops,
-    ]
-  }, [colormap, wind])
+    // convert to percentage and calculate horizon risk
+    const riskPercentExpression =
+      timeHorizon === 1
+        ? ['*', ['to-number', ['get', riskAttribute]], 100]
+        : [
+            '*',
+            [
+              '-',
+              1,
+              [
+                '^',
+                ['-', 1, ['to-number', ['get', riskAttribute]]],
+                timeHorizon,
+              ],
+            ],
+            100,
+          ]
+
+    if (colorLimits.type === 'discrete') {
+      const steps: (string | number)[] = []
+
+      const stepValues = calculateBinBoundaries(
+        colorLimits.bounds,
+        RISKS.fire.binRatios,
+      ).slice(1) // remove first value to shift to correct step
+
+      stepValues.forEach((value: number, index: number) => {
+        if (index < colormap.length - 1) {
+          steps.push(value, colormap[index + 1])
+        }
+      })
+
+      const stepExpression = [
+        'step',
+        riskPercentExpression,
+        colormap[0],
+        ...steps,
+      ]
+
+      return [
+        'case',
+        ['==', riskPercentExpression, 0],
+        get(theme, 'rawColors.background'),
+        stepExpression,
+      ]
+    } else {
+      const stops: (string | number)[] = []
+      colormap.forEach((color: string, index: number) => {
+        const rawValue =
+          colorLimits.bounds[0] +
+          (index / (colormap.length - 1)) *
+            (colorLimits.bounds[1] - colorLimits.bounds[0])
+        stops.push(rawValue, color)
+      })
+
+      const interpolateExpression = [
+        'interpolate',
+        ['linear'],
+        riskPercentExpression,
+        ...stops,
+      ]
+
+      return [
+        'case',
+        ['==', riskPercentExpression, 0],
+        get(theme, 'rawColors.background'),
+        interpolateExpression,
+      ]
+    }
+  }, [
+    colormap,
+    wind,
+    timeHorizon,
+    colorLimits.type,
+    colorLimits.bounds,
+    theme,
+  ]) as ExpressionSpecification
 
   const setPointerCursor = useCallback(() => {
     if (map) {
@@ -75,7 +133,7 @@ const Buildings = () => {
       if (!map) return
 
       const features = map.queryRenderedFeatures(e.point, {
-        layers: [MAP_LAYER_IDS.buildingsFill],
+        layers: [LAYERS.buildings.layerIds.fill],
       })
 
       if (features.length > 0) {
@@ -86,15 +144,15 @@ const Buildings = () => {
 
         if (feature.id) {
           map.removeFeatureState({
-            source: MAP_SOURCE_IDS.buildings,
-            sourceLayer: LAYER_NAMES.buildings,
+            source: LAYERS.buildings.sourceId,
+            sourceLayer: LAYERS.buildings.layerName,
           })
 
           map.setFeatureState(
             {
-              source: MAP_SOURCE_IDS.buildings,
+              source: LAYERS.buildings.sourceId,
               id: feature.id,
-              sourceLayer: LAYER_NAMES.buildings,
+              sourceLayer: LAYERS.buildings.layerName,
             },
             { highlighted: true },
           )
@@ -115,8 +173,8 @@ const Buildings = () => {
         setSelectedBuilding(null)
         setSelectedLocation(null)
         map.removeFeatureState({
-          source: MAP_SOURCE_IDS.buildings,
-          sourceLayer: LAYER_NAMES.buildings,
+          source: LAYERS.buildings.sourceId,
+          sourceLayer: LAYERS.buildings.layerName,
         })
       }
     },
@@ -126,20 +184,20 @@ const Buildings = () => {
   const highlightBuildingAtLocation = useCallback(
     (lng: number, lat: number) => {
       if (
-        !map?.getSource(MAP_SOURCE_IDS.buildings) ||
-        !map?.getLayer(MAP_LAYER_IDS.buildingsFill)
+        !map?.getSource(LAYERS.buildings.sourceId) ||
+        !map?.getLayer(LAYERS.buildings.layerIds.fill)
       ) {
         return
       }
 
       map.removeFeatureState({
-        source: MAP_SOURCE_IDS.buildings,
-        sourceLayer: LAYER_NAMES.buildings,
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
       })
 
       const point = map.project([lng, lat])
       const features = map.queryRenderedFeatures(point, {
-        layers: [MAP_LAYER_IDS.buildingsFill],
+        layers: [LAYERS.buildings.layerIds.fill],
       })
 
       if (features.length > 0) {
@@ -148,9 +206,9 @@ const Buildings = () => {
         if (buildingFeature.id) {
           map.setFeatureState(
             {
-              source: MAP_SOURCE_IDS.buildings,
+              source: LAYERS.buildings.sourceId,
               id: buildingFeature.id,
-              sourceLayer: LAYER_NAMES.buildings,
+              sourceLayer: LAYERS.buildings.layerName,
             },
             { highlighted: true },
           )
@@ -164,8 +222,8 @@ const Buildings = () => {
     // remove highlight when building is deselected outside of map context
     if (!selectedBuilding && map?.isStyleLoaded()) {
       map.removeFeatureState({
-        source: MAP_SOURCE_IDS.buildings,
-        sourceLayer: LAYER_NAMES.buildings,
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
       })
     }
   }, [selectedBuilding, map])
@@ -174,76 +232,110 @@ const Buildings = () => {
     // initialize layers and listeners
     if (!map) return
 
-    map.on('load', () => {
-      map.addSource(MAP_SOURCE_IDS.buildings, {
-        type: 'vector',
-        url: `pmtiles://${DATA_SOURCES.buildings}`,
-      })
-      map.addLayer(
-        {
-          id: MAP_LAYER_IDS.buildingsFill,
-          type: 'fill',
-          source: MAP_SOURCE_IDS.buildings,
-          'source-layer': LAYER_NAMES.buildings,
-          paint: {
-            'fill-color': colorExpression,
-            // 'fill-opacity': 0.5,
+    const initializeLayers = () => {
+      if (!map.getSource(LAYERS.buildings.sourceId)) {
+        map.addSource(LAYERS.buildings.sourceId, {
+          type: 'vector',
+          url: `pmtiles://${LAYERS.buildings.dataSource}`,
+        })
+      }
+
+      if (!map.getLayer(LAYERS.buildings.layerIds.fill)) {
+        map.addLayer(
+          {
+            id: LAYERS.buildings.layerIds.fill,
+            type: 'fill',
+            source: LAYERS.buildings.sourceId,
+            'source-layer': LAYERS.buildings.layerName,
+            paint: {
+              'fill-color': colorExpression,
+            },
           },
-        },
-        'background',
-      )
-      map.addLayer(
-        {
-          id: MAP_LAYER_IDS.buildingsLine,
-          type: 'line',
-          source: MAP_SOURCE_IDS.buildings,
-          'source-layer': LAYER_NAMES.buildings,
-          paint: {
-            'line-color': [
-              'case',
-              ['boolean', ['feature-state', 'highlighted'], false],
-              get(theme, 'rawColors.primary'),
-              [
+          'background',
+        )
+      }
+
+      if (!map.getLayer(LAYERS.buildings.layerIds.line)) {
+        map.addLayer(
+          {
+            id: LAYERS.buildings.layerIds.line,
+            type: 'line',
+            source: LAYERS.buildings.sourceId,
+            'source-layer': LAYERS.buildings.layerName,
+            paint: {
+              'line-color': [
                 'case',
+                ['boolean', ['feature-state', 'highlighted'], false],
+                get(theme, 'rawColors.primary'),
                 [
-                  '>',
+                  'case',
                   [
-                    'to-number',
+                    '==',
                     [
-                      'get',
-                      `${wind ? RISK_ATTRIBUTES.windRisk : RISK_ATTRIBUTES.baseRisk}`,
+                      'to-number',
+                      [
+                        'get',
+                        `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
+                      ],
                     ],
+                    0,
                   ],
-                  RISK_BOUNDS.mid,
+                  get(theme, 'rawColors.muted'),
+                  colorExpression,
                 ],
-                colorExpression,
-                get(theme, 'rawColors.muted'),
               ],
-            ],
-            'line-width': [
-              'case',
-              ['boolean', ['feature-state', 'highlighted'], false],
-              2,
-              0.5,
-            ],
+              'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                12,
+                [
+                  'case',
+                  ['boolean', ['feature-state', 'highlighted'], false],
+                  2,
+                  0,
+                ],
+                14,
+                [
+                  'case',
+                  ['boolean', ['feature-state', 'highlighted'], false],
+                  2,
+                  1,
+                ],
+              ],
+            },
           },
-        },
-        'background',
-      )
-    })
+          'background',
+        )
+      }
+    }
+
+    if (map.isStyleLoaded()) {
+      initializeLayers()
+    } else {
+      map.on('load', initializeLayers)
+    }
     map.on('click', handleMapClick)
-    map.on('mouseenter', MAP_LAYER_IDS.buildingsFill, setPointerCursor)
-    map.on('mouseleave', MAP_LAYER_IDS.buildingsFill, resetCursor)
+    map.on('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
+    map.on('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
 
     return () => {
       try {
         if (!map) return
-        map.removeLayer(MAP_LAYER_IDS.buildingsFill)
-        map.removeLayer(MAP_LAYER_IDS.buildingsLine)
-        map.removeSource(MAP_SOURCE_IDS.buildings)
+
         map.off('click', handleMapClick)
-        map.off('mouseenter', MAP_LAYER_IDS.buildingsFill, setPointerCursor)
-        map.off('mouseleave', MAP_LAYER_IDS.buildingsFill, resetCursor)
+        map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
+        map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
+
+        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
+          map.removeLayer(LAYERS.buildings.layerIds.fill)
+        }
+        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
+          map.removeLayer(LAYERS.buildings.layerIds.line)
+        }
+        if (map.getSource(LAYERS.buildings.sourceId)) {
+          map.removeSource(LAYERS.buildings.sourceId)
+        }
       } catch (error) {
         console.error('Error removing buildings layers:', error)
       }
@@ -287,7 +379,7 @@ const Buildings = () => {
     // update color expression when variable selection changes
     if (!map || !map.isStyleLoaded()) return
     map.setPaintProperty(
-      MAP_LAYER_IDS.buildingsFill,
+      LAYERS.buildings.layerIds.fill,
       'fill-color',
       colorExpression,
     )
@@ -299,27 +391,27 @@ const Buildings = () => {
       [
         'case',
         [
-          '>',
+          '==',
           [
             'to-number',
             [
               'get',
-              `${wind ? RISK_ATTRIBUTES.windRisk : RISK_ATTRIBUTES.baseRisk}`,
+              `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
             ],
           ],
-          RISK_BOUNDS.mid,
+          0,
         ],
-        colorExpression,
         get(theme, 'rawColors.muted'),
+        colorExpression,
       ],
     ]
 
     map.setPaintProperty(
-      MAP_LAYER_IDS.buildingsLine,
+      LAYERS.buildings.layerIds.line,
       'line-color',
       lineColorExpression,
     )
-  }, [map, colorExpression, wind, theme])
+  }, [map, colorExpression, wind, theme, timeHorizon])
 
   return null
 }

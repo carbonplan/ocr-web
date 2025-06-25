@@ -9,7 +9,7 @@ import { AuthProvider } from '@carbonplan/auth'
 
 const App = ({ Component, pageProps }: AppProps) => {
   return (
-    <AuthProvider>
+    <AuthProvider config={{ useLocalStorage: true }}>
       <ThemeProvider theme={theme}>
         {process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' && (
           <Script

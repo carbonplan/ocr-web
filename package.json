@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@carbonplan/auth": "^1.0.0",
-    "@carbonplan/colormaps": "^4.0.0",
+    "@carbonplan/charts": "^3.1.1",
     "@carbonplan/components": "13.1.1",
     "@carbonplan/icons": "^2.0.0",
     "@carbonplan/layouts": "^5.1.0",
@@ -21,6 +21,8 @@
     "@emotion/react": "11.10.6",
     "@protomaps/basemaps": "^5.0.1",
     "@theme-ui/color": "^0.15.5",
+    "@types/chroma-js": "^3.1.1",
+    "chroma-js": "^3.1.2",
     "maplibre-gl": "^5.2.0",
     "next": "^14.2.24",
     "pmtiles": "^4.3.0",
