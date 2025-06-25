@@ -46,19 +46,16 @@ const Results = () => {
     return riskScores[timeHorizon]
   }
 
-  const mainRiskScore = wind
-    ? getRiskScoreForHorizon('windRisk')
-    : getRiskScoreForHorizon('baseRisk')
-
   const baseRiskScore = getRiskScoreForHorizon('baseRisk')
   const windRiskScore = getRiskScoreForHorizon('windRisk')
+  const mainRiskScore = wind ? windRiskScore : baseRiskScore
 
   const mainScoreColor = getColorForRiskScore(
     mainRiskScore,
     colormap,
     colorLimits,
     riskConfig.binRatios,
-    'red',
+    'primary',
   )
 
   const baseScoreColor = getColorForRiskScore(
@@ -66,7 +63,7 @@ const Results = () => {
     colormap,
     colorLimits,
     riskConfig.binRatios,
-    'red',
+    'primary',
   )
 
   const windScoreColor = getColorForRiskScore(
@@ -74,7 +71,7 @@ const Results = () => {
     colormap,
     colorLimits,
     riskConfig.binRatios,
-    'red',
+    'primary',
   )
 
   return (
