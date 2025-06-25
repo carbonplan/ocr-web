@@ -47,12 +47,10 @@ const Results = () => {
   const getRiskScoreForHorizon = (riskType: 'baseRisk' | 'windRisk') => {
     if (!selectedBuilding) return null
 
-    let riskAttribute: string
-    if (riskType === 'baseRisk') {
-      riskAttribute = RISKS.fire.attributes.baseRisk
-    } else {
-      riskAttribute = RISKS.fire.attributes.windRisk[timePeriod]
-    }
+    const riskAttribute =
+      riskType === 'baseRisk'
+        ? RISKS.fire.attributes.baseRisk
+        : RISKS.fire.attributes.windRisk[timePeriod]
 
     const riskValue = selectedBuilding[riskAttribute]
     if (!riskValue) return null
