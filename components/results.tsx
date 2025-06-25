@@ -13,6 +13,54 @@ import {
 import { useLocationStore } from '@/store/location'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
+const getRiskScoreDeltaWording = ({
+  baseRiskScore,
+  baseScoreColor,
+  windRiskScore,
+  windScoreColor,
+}: {
+  baseRiskScore: number
+  baseScoreColor: string
+  windRiskScore: number
+  windScoreColor: string
+}) => {
+  if (baseRiskScore > windRiskScore) {
+    return (
+      <>
+        decreases the burn probability to{' '}
+        <Badge
+          sx={{
+            color: baseScoreColor,
+            fontSize: [1, 1, 1, 2],
+            height: [18, 18, 18, 22],
+          }}
+        >
+          {baseRiskScore.toFixed(2)}%
+        </Badge>
+        .
+      </>
+    )
+  } else if (baseRiskScore < windRiskScore) {
+    return (
+      <>
+        increases the burn probability to{' '}
+        <Badge
+          sx={{
+            color: windScoreColor,
+            fontSize: [1, 1, 1, 2],
+            height: [18, 18, 18, 22],
+          }}
+        >
+          {windRiskScore.toFixed(2)}%
+        </Badge>
+        .
+      </>
+    )
+  } else {
+    return <>didn’t change the burn probability.</>
+  }
+}
+
 const Results = () => {
   const [aboutExpanded, setAboutExpanded] = useState(false)
 
@@ -49,6 +97,7 @@ const Results = () => {
     if (!riskValue) return null
 
     const riskScores = calculateRiskScores(Number(riskValue))
+    console.log(riskScores)
     return riskScores[timeHorizon]
   }
 
@@ -189,30 +238,35 @@ const Results = () => {
           <AnimateHeight
             duration={300}
             height={
-              aboutExpanded && (baseRiskScore || windRiskScore) ? 'auto' : 0
+              aboutExpanded &&
+              (baseRiskScore !== null || windRiskScore !== null)
+                ? 'auto'
+                : 0
             }
           >
-            {selectedBuilding && baseRiskScore && windRiskScore && (
+            {baseRiskScore !== null && windRiskScore !== null && (
               <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
                 <Box sx={{ mb: 2 }}>
                   The risk score for this address is derived using the annual
                   burn probability generated in the US Forest Service&apos;s
                   Wildfire Risk to Communities dataset (
                   <Badge
-                    sx={{ color: baseScoreColor, fontSize: 1, height: 18 }}
+                    sx={{
+                      color: baseScoreColor,
+                      fontSize: [1, 1, 1, 2],
+                      height: [18, 18, 18, 22],
+                    }}
                   >
                     {baseRiskScore.toFixed(2)}%
                   </Badge>
                   ). We then use historical wind data from fire weather days to
                   predict how wildfire could spread, which{' '}
-                  {baseRiskScore > windRiskScore ? 'decreases' : 'increases'}{' '}
-                  the burn probability to{' '}
-                  <Badge
-                    sx={{ color: windScoreColor, fontSize: 1, height: 18 }}
-                  >
-                    {windRiskScore!.toFixed(2)}%
-                  </Badge>
-                  .
+                  {getRiskScoreDeltaWording({
+                    baseRiskScore,
+                    baseScoreColor,
+                    windRiskScore,
+                    windScoreColor,
+                  })}
                 </Box>
                 <Box>
                   Read our <Link href='#TK'>research methods</Link> for a
