@@ -1,7 +1,7 @@
 export const LAYERS = {
   buildings: {
     dataSource:
-      'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/wind_layer_and_RPS_3_region.pmtiles',
+      'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/multi_year_wind.pmtiles',
     layerName: 'risk',
     sourceId: 'buildings',
     layerIds: {
@@ -15,7 +15,10 @@ export const RISKS = {
   fire: {
     attributes: {
       baseRisk: 'USFS_RPS',
-      windRisk: 'wind_risk',
+      windRisk: {
+        current: 'wind_risk_2011',
+        future: 'wind_risk_2047',
+      },
     },
     colormap: 'fire-risk',
     binRatios: [0.1, 0.2, 0.5, 1],

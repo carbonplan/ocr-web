@@ -19,9 +19,13 @@ const Buildings = () => {
   const wind = useLocationStore((state) => state.wind)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
+  const timePeriod = useLocationStore((state) => state.timePeriod)
   const colorLimits = useLocationStore((state) => state.colorLimits)
   const riskConfig = useLocationStore((state) => state.riskConfig)
 
+  const riskAttribute = wind
+    ? RISKS.fire.attributes.windRisk[timePeriod]
+    : RISKS.fire.attributes.baseRisk
   const isUserClick = useRef(false)
 
   const colormap = useColormap(riskConfig.colormap, {
@@ -33,10 +37,6 @@ const Buildings = () => {
     if (!colormap || colormap.length === 0) {
       return ['literal', 'transparent']
     }
-
-    const riskAttribute = wind
-      ? RISKS.fire.attributes.windRisk
-      : RISKS.fire.attributes.baseRisk
 
     // convert to percentage and calculate horizon risk
     const riskPercentExpression =
@@ -109,11 +109,11 @@ const Buildings = () => {
     }
   }, [
     colormap,
-    wind,
     timeHorizon,
     colorLimits.type,
     colorLimits.bounds,
     theme,
+    riskAttribute,
   ]) as ExpressionSpecification
 
   const setPointerCursor = useCallback(() => {
@@ -269,17 +269,7 @@ const Buildings = () => {
                 get(theme, 'rawColors.primary'),
                 [
                   'case',
-                  [
-                    '==',
-                    [
-                      'to-number',
-                      [
-                        'get',
-                        `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
-                      ],
-                    ],
-                    0,
-                  ],
+                  ['==', ['to-number', ['get', `${riskAttribute}`]], 0],
                   get(theme, 'rawColors.muted'),
                   colorExpression,
                 ],
@@ -390,17 +380,7 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       [
         'case',
-        [
-          '==',
-          [
-            'to-number',
-            [
-              'get',
-              `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
-            ],
-          ],
-          0,
-        ],
+        ['==', ['to-number', ['get', `${riskAttribute}`]], 0],
         get(theme, 'rawColors.muted'),
         colorExpression,
       ],
@@ -411,7 +391,7 @@ const Buildings = () => {
       'line-color',
       lineColorExpression,
     )
-  }, [map, colorExpression, wind, theme, timeHorizon])
+  }, [map, colorExpression, theme, timeHorizon, riskAttribute])
 
   return null
 }

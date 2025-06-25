@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box } from 'theme-ui'
 import AnimateHeight from 'react-animate-height'
 import {
@@ -19,10 +19,18 @@ const Results = () => {
 
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
   const setTimeHorizon = useLocationStore((state) => state.setTimeHorizon)
+  const timePeriod = useLocationStore((state) => state.timePeriod)
+  const setTimePeriod = useLocationStore((state) => state.setTimePeriod)
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
   const wind = useLocationStore((state) => state.wind)
   const colorLimits = useLocationStore((state) => state.colorLimits)
   const riskConfig = useLocationStore((state) => state.riskConfig)
+
+  useEffect(() => {
+    if (!wind && timePeriod === 'future') {
+      setTimePeriod('current')
+    }
+  }, [wind, timePeriod, setTimePeriod])
 
   const colormap = useColormap(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
@@ -39,7 +47,14 @@ const Results = () => {
   const getRiskScoreForHorizon = (riskType: 'baseRisk' | 'windRisk') => {
     if (!selectedBuilding) return null
 
-    const riskValue = selectedBuilding[RISKS.fire.attributes[riskType]]
+    let riskAttribute: string
+    if (riskType === 'baseRisk') {
+      riskAttribute = RISKS.fire.attributes.baseRisk
+    } else {
+      riskAttribute = RISKS.fire.attributes.windRisk[timePeriod]
+    }
+
+    const riskValue = selectedBuilding[riskAttribute]
     if (!riskValue) return null
 
     const riskScores = calculateRiskScores(Number(riskValue))
@@ -104,7 +119,35 @@ const Results = () => {
           Period
         </Column>
         <Column start={2} width={3}>
-          <Filter values={{ Current: true }} />
+          {wind ? (
+            <Filter
+              key='wind-enabled'
+              values={{
+                current: timePeriod === 'current',
+                future: timePeriod === 'future',
+              }}
+              labels={{
+                current: 'Current',
+                future: 'Future (2050)',
+              }}
+              setValues={(values: Record<string, boolean>) => {
+                const selectedPeriod = Object.keys(values).find(
+                  (key) => values[key],
+                )
+                if (selectedPeriod === 'current') {
+                  setTimePeriod('current')
+                } else if (selectedPeriod === 'future') {
+                  setTimePeriod('future')
+                }
+              }}
+            />
+          ) : (
+            <Filter
+              key='wind-disabled'
+              values={{ current: true }}
+              setValues={() => {}}
+            />
+          )}
         </Column>
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
