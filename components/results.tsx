@@ -151,8 +151,8 @@ const Results = () => {
               future: timePeriod === 'future',
             }}
             labels={{
-              current: 'Current',
-              future: 'Future (2050)',
+              current: 'Current (2011)',
+              future: 'Future (2047)',
             }}
             setValues={(values: Record<string, boolean>) => {
               const selectedPeriod = Object.keys(values).find(
