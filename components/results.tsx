@@ -13,53 +13,14 @@ import {
 import { useLocationStore } from '@/store/location'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
-const getRiskScoreDeltaWording = ({
-  baseRiskScore,
-  baseScoreColor,
-  windRiskScore,
-  windScoreColor,
-}: {
-  baseRiskScore: number
-  baseScoreColor: string
-  windRiskScore: number
-  windScoreColor: string
-}) => {
-  if (baseRiskScore > windRiskScore) {
-    return (
-      <>
-        decreases the burn probability to{' '}
-        <Badge
-          sx={{
-            color: baseScoreColor,
-            fontSize: [1, 1, 1, 2],
-            height: [18, 18, 18, 22],
-          }}
-        >
-          {baseRiskScore.toFixed(2)}%
-        </Badge>
-        .
-      </>
-    )
-  } else if (baseRiskScore < windRiskScore) {
-    return (
-      <>
-        increases the burn probability to{' '}
-        <Badge
-          sx={{
-            color: windScoreColor,
-            fontSize: [1, 1, 1, 2],
-            height: [18, 18, 18, 22],
-          }}
-        >
-          {windRiskScore.toFixed(2)}%
-        </Badge>
-        .
-      </>
-    )
-  } else {
-    return <>didn’t change the burn probability.</>
-  }
+const badgeSx = {
+  fontSize: [1, 1, 1, 2],
+  height: [18, 18, 18, 22],
 }
+
+const renderScoreBadge = (score: number, color: string) => (
+  <Badge sx={{ ...badgeSx, color }}>{score.toFixed(2)}%</Badge>
+)
 
 const Results = () => {
   const [aboutExpanded, setAboutExpanded] = useState(false)
@@ -128,6 +89,32 @@ const Results = () => {
     riskConfig.binRatios,
     'primary',
   )
+
+  const getRiskScoreDeltaWording = () => {
+    if (baseRiskScore === null || windRiskScore === null) {
+      return null
+    }
+
+    const scoreDifference = windRiskScore - baseRiskScore
+
+    if (scoreDifference > 0.01) {
+      return (
+        <>
+          increases the burn probability to{' '}
+          {renderScoreBadge(windRiskScore, windScoreColor)}.
+        </>
+      )
+    } else if (scoreDifference < -0.01) {
+      return (
+        <>
+          decreases the burn probability to{' '}
+          {renderScoreBadge(windRiskScore, windScoreColor)}.
+        </>
+      )
+    } else {
+      return <>does not significantly change the burn probability.</>
+    }
+  }
 
   return (
     <>
@@ -250,23 +237,10 @@ const Results = () => {
                   The risk score for this address is derived using the annual
                   burn probability generated in the US Forest Service&apos;s
                   Wildfire Risk to Communities dataset (
-                  <Badge
-                    sx={{
-                      color: baseScoreColor,
-                      fontSize: [1, 1, 1, 2],
-                      height: [18, 18, 18, 22],
-                    }}
-                  >
-                    {baseRiskScore.toFixed(2)}%
-                  </Badge>
+                  {renderScoreBadge(baseRiskScore, baseScoreColor)}
                   ). We then use historical wind data from fire weather days to
                   predict how wildfire could spread, which{' '}
-                  {getRiskScoreDeltaWording({
-                    baseRiskScore,
-                    baseScoreColor,
-                    windRiskScore,
-                    windScoreColor,
-                  })}
+                  {getRiskScoreDeltaWording()}
                 </Box>
                 <Box>
                   Read our <Link href='#TK'>research methods</Link> for a
