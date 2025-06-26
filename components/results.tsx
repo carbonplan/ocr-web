@@ -58,7 +58,6 @@ const Results = () => {
     if (!riskValue) return null
 
     const riskScores = calculateRiskScores(Number(riskValue))
-    console.log(riskScores)
     return riskScores[timeHorizon]
   }
 
