@@ -59,7 +59,7 @@ const Buildings = () => {
     const wrap = (expr: ExpressionSpecification) => [
       'case',
       ['<=', riskPercentExpression, riskConfig.bounds.min],
-      get(theme, 'rawColors.background'),
+      get(theme, 'rawColors.muted'),
       expr,
     ]
 
