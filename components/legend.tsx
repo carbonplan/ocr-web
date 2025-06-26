@@ -95,7 +95,7 @@ const Legend = () => {
                   if (value < 1 || value > 100) return
                   setColorLimits({
                     type: colorLimits.type,
-                    bounds: [0, value],
+                    bounds: [riskConfig.bounds.min, value],
                   })
                 }}
               />
