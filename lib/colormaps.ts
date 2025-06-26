@@ -20,7 +20,7 @@ export const getColorForRiskScore = (
   binRatios: readonly number[] = [0.1, 0.2, 0.5, 1],
   fallbackColor: string = 'secondary',
 ): string => {
-  if (score === null || !colormap || colormap.length === 0) {
+  if (score === null || score < colorLimits.bounds[0] || !colormap?.length) {
     return fallbackColor
   }
 
