@@ -33,13 +33,8 @@ const Buildings = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const colorExpression = useMemo(() => {
-    if (!colormap || colormap.length === 0) {
-      return ['literal', 'transparent']
-    }
-
-    // convert to percentage and calculate horizon risk
-    const riskPercentExpression =
+  const riskPercentExpression: ExpressionSpecification = useMemo(
+    () =>
       timeHorizon === 1
         ? ['*', ['to-number', ['get', riskAttribute]], 100]
         : [
@@ -54,9 +49,21 @@ const Buildings = () => {
               ],
             ],
             100,
-          ]
+          ],
+    [timeHorizon, riskAttribute],
+  )
 
-    if (colorLimits.type === 'discrete') {
+  const colorExpression: ExpressionSpecification = useMemo(() => {
+    if (!colormap?.length) return ['literal', 'transparent']
+
+    const wrap = (expr: ExpressionSpecification) => [
+      'case',
+      ['<=', riskPercentExpression, riskConfig.bounds.min],
+      get(theme, 'rawColors.background'),
+      expr,
+    ]
+
+    const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
       const stepValues = calculateBinBoundaries(
@@ -70,20 +77,15 @@ const Buildings = () => {
         }
       })
 
-      const stepExpression = [
+      return [
         'step',
         riskPercentExpression,
         colormap[0],
         ...steps,
-      ]
+      ] as ExpressionSpecification
+    }
 
-      return [
-        'case',
-        ['==', riskPercentExpression, 0],
-        get(theme, 'rawColors.background'),
-        stepExpression,
-      ]
-    } else {
+    const makeContinuous = (): ExpressionSpecification => {
       const stops: (string | number)[] = []
       colormap.forEach((color: string, index: number) => {
         const rawValue =
@@ -93,29 +95,26 @@ const Buildings = () => {
         stops.push(rawValue, color)
       })
 
-      const interpolateExpression = [
+      return [
         'interpolate',
         ['linear'],
         riskPercentExpression,
         ...stops,
-      ]
-
-      return [
-        'case',
-        ['==', riskPercentExpression, 0],
-        get(theme, 'rawColors.background'),
-        interpolateExpression,
-      ]
+      ] as ExpressionSpecification
     }
+
+    return wrap(
+      colorLimits.type === 'discrete' ? makeDiscrete() : makeContinuous(),
+    ) as ExpressionSpecification
   }, [
     colormap,
-    timeHorizon,
+    riskPercentExpression,
     colorLimits.type,
     colorLimits.bounds,
     theme,
-    riskAttribute,
     riskConfig.binRatios,
-  ]) as ExpressionSpecification
+    riskConfig.bounds.min,
+  ])
 
   const setPointerCursor = useCallback(() => {
     if (map) {
@@ -270,7 +269,7 @@ const Buildings = () => {
                 get(theme, 'rawColors.primary'),
                 [
                   'case',
-                  ['==', ['to-number', ['get', `${riskAttribute}`]], 0],
+                  ['<=', riskPercentExpression, riskConfig.bounds.min],
                   get(theme, 'rawColors.muted'),
                   colorExpression,
                 ],
@@ -364,7 +363,7 @@ const Buildings = () => {
     }
 
     isUserClick.current = false
-  }, [selectedLocation, highlightBuildingAtLocation, map])
+  }, [selectedLocation, highlightBuildingAtLocation, map, sidebarWidth])
 
   useEffect(() => {
     // update color expression when variable selection changes
@@ -381,7 +380,7 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       [
         'case',
-        ['==', ['to-number', ['get', `${riskAttribute}`]], 0],
+        ['<=', riskPercentExpression, riskConfig.bounds.min],
         get(theme, 'rawColors.muted'),
         colorExpression,
       ],
@@ -392,7 +391,13 @@ const Buildings = () => {
       'line-color',
       lineColorExpression,
     )
-  }, [map, colorExpression, theme, timeHorizon, riskAttribute])
+  }, [
+    map,
+    colorExpression,
+    riskPercentExpression,
+    theme,
+    riskConfig.bounds.min,
+  ])
 
   return null
 }
