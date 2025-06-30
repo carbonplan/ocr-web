@@ -58,7 +58,7 @@ const Buildings = () => {
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
-      ['<=', riskPercentExpression, riskConfig.bounds.min],
+      ['<', riskPercentExpression, riskConfig.bounds.min],
       get(theme, 'rawColors.muted'),
       expr,
     ]
@@ -269,7 +269,7 @@ const Buildings = () => {
                 get(theme, 'rawColors.primary'),
                 [
                   'case',
-                  ['<=', riskPercentExpression, riskConfig.bounds.min],
+                  ['<', riskPercentExpression, riskConfig.bounds.min],
                   get(theme, 'rawColors.muted'),
                   colorExpression,
                 ],
@@ -380,7 +380,7 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       [
         'case',
-        ['<=', riskPercentExpression, riskConfig.bounds.min],
+        ['<', riskPercentExpression, riskConfig.bounds.min],
         get(theme, 'rawColors.muted'),
         colorExpression,
       ],
