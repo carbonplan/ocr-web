@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import {
   StyleSpecification,
   Map,
   addProtocol,
   removeProtocol,
+  LayerSpecification,
+  SourceSpecification,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
@@ -18,12 +20,101 @@ const MapComponent = () => {
   const setMap = useLocationStore((state) => state.setMap)
   const satellite = useLocationStore((state) => state.satellite)
   const riskRaster = useLocationStore((state) => state.riskRaster)
+  const riskConfig = useLocationStore((state) => state.riskConfig)
+  const timePeriod = useLocationStore((state) => state.timePeriod)
+  const wind = useLocationStore((state) => state.wind)
+  const timeHorizon = useLocationStore((state) => state.timeHorizon)
+
   const { mapLayers, sprite } = useMapTheme()
+
+  const riskMatrix = useMemo(() => {
+    const riskAttributes = [
+      riskConfig.attributes.baseRisk.current,
+      riskConfig.attributes.baseRisk.future,
+      riskConfig.attributes.windRisk.current,
+      riskConfig.attributes.windRisk.future,
+    ]
+    const timeHorizons = [1, 15, 30]
+
+    const matrix = []
+    for (const attr of riskAttributes) {
+      for (const horizon of timeHorizons) {
+        const url = `https://riqciuucelosieuysvceek7tzm0aofof.lambda-url.us-west-2.on.aws/datasets/fire/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/hot&colorscalerange=0,100&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        matrix.push({
+          id: `wms_risk_${attr}_horizon_${horizon}`,
+          riskAttribute: attr,
+          timeHorizon: horizon,
+          url,
+        })
+      }
+    }
+    return matrix
+  }, [riskConfig])
+
+  const activeRiskLayerId = useMemo(() => {
+    const riskAttribute = wind
+      ? riskConfig.attributes.windRisk[timePeriod]
+      : riskConfig.attributes.baseRisk[timePeriod]
+
+    return `wms_risk_${riskAttribute}_horizon_${timeHorizon}`
+  }, [wind, riskConfig, timePeriod, timeHorizon])
 
   useEffect(() => {
     if (mapContainer.current) {
       const protocol = new Protocol()
       addProtocol('pmtiles', protocol.tile)
+
+      const sources: Record<string, SourceSpecification> = {
+        basemap: {
+          type: 'vector',
+          url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
+          attribution:
+            '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
+        },
+        satellite: {
+          type: 'raster',
+          tiles: [`/api/map/tiles/{z}/{x}/{y}`],
+          tileSize: 256,
+        },
+      }
+
+      riskMatrix.forEach((risk) => {
+        sources[risk.id] = {
+          type: 'raster',
+          tiles: [risk.url],
+          minzoom: 12,
+          tileSize: 256,
+        }
+      })
+
+      const layers: LayerSpecification[] = [
+        {
+          id: 'satellite',
+          type: 'raster',
+          source: 'satellite',
+          paint: {
+            'raster-saturation': -0.8,
+            'raster-opacity': 0.5,
+          },
+          layout: {
+            visibility: 'none',
+          },
+        },
+      ]
+
+      riskMatrix.forEach((risk) => {
+        layers.push({
+          id: risk.id,
+          type: 'raster',
+          source: risk.id,
+          paint: {
+            'raster-opacity': 0.7,
+          },
+          layout: {
+            visibility: 'none',
+          },
+        })
+      })
 
       const newMap = new Map({
         container: mapContainer.current,
@@ -31,52 +122,8 @@ const MapComponent = () => {
           version: 8,
           glyphs:
             'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
-          sources: {
-            basemap: {
-              type: 'vector',
-              url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
-              attribution:
-                '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
-            },
-            satellite: {
-              type: 'raster',
-              tiles: [`/api/map/tiles/{z}/{x}/{y}`],
-              tileSize: 256,
-            },
-            wms_risk: {
-              type: 'raster',
-              tiles: [
-                'http://localhost:9000/datasets/risk/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS&styles=raster/hot&colorscalerange=0,0.1&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}',
-              ],
-              minzoom: 12,
-              tileSize: 256,
-            },
-          },
-          layers: [
-            {
-              id: 'satellite',
-              type: 'raster',
-              source: 'satellite',
-              paint: {
-                'raster-saturation': -0.8,
-                'raster-opacity': 0.5,
-              },
-              layout: {
-                visibility: 'none',
-              },
-            },
-            {
-              id: 'wms-risk',
-              type: 'raster',
-              source: 'wms_risk',
-              paint: {
-                'raster-opacity': 0.7,
-              },
-              layout: {
-                visibility: 'none',
-              },
-            },
-          ],
+          sources,
+          layers,
         },
         center: [-121.3, 47.70818],
         zoom: 8,
@@ -90,7 +137,7 @@ const MapComponent = () => {
       mapRef.current?.remove()
       setMap(null)
     }
-  }, [])
+  }, [riskMatrix, setMap])
 
   useEffect(() => {
     const applyStyle = () => {
@@ -99,7 +146,7 @@ const MapComponent = () => {
       const specialLayers = existingStyle.layers.filter(
         (layer) =>
           layer.id === 'satellite' ||
-          layer.id === 'wms-risk' ||
+          layer.id.startsWith('wms_risk_') ||
           layer.id.startsWith('buildings-'),
       )
       const newLayers = [...specialLayers, ...mapLayers]
@@ -128,13 +175,16 @@ const MapComponent = () => {
   }, [satellite, map])
 
   useEffect(() => {
-    if (!map || !map.isStyleLoaded()) return
-    map.setLayoutProperty(
-      'wms-risk',
-      'visibility',
-      riskRaster ? 'visible' : 'none',
-    )
-  }, [riskRaster, map])
+    if (!map) return
+    riskMatrix.forEach((risk) => {
+      if (map.getLayer(risk.id)) {
+        map.setLayoutProperty(risk.id, 'visibility', 'none')
+      }
+    })
+    if (riskRaster && map.getLayer(activeRiskLayerId)) {
+      map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
+    }
+  }, [riskRaster, activeRiskLayerId, map, riskMatrix])
 
   return (
     <div
