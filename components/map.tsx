@@ -39,7 +39,7 @@ const MapComponent = () => {
     const matrix = []
     for (const attr of riskAttributes) {
       for (const horizon of timeHorizons) {
-        const url = `https://riqciuucelosieuysvceek7tzm0aofof.lambda-url.us-west-2.on.aws/datasets/fire/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/hot&colorscalerange=0,100&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        const url = `https://riqciuucelosieuysvceek7tzm0aofof.lambda-url.us-west-2.on.aws/datasets/prod/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/hot&colorscalerange=0,100&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
         matrix.push({
           id: `wms_risk_${attr}_horizon_${horizon}`,
           riskAttribute: attr,
