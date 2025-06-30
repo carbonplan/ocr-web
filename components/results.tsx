@@ -11,14 +11,24 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { useLocationStore } from '@/store/location'
-import { RISKS } from '@/lib/config'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+
+const badgeSx = {
+  fontSize: [1, 1, 1, 2],
+  height: [18, 18, 18, 22],
+}
+
+const renderScoreBadge = (score: number, color: string) => (
+  <Badge sx={{ ...badgeSx, color }}>{score.toFixed(2)}%</Badge>
+)
 
 const Results = () => {
   const [aboutExpanded, setAboutExpanded] = useState(false)
 
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
   const setTimeHorizon = useLocationStore((state) => state.setTimeHorizon)
+  const timePeriod = useLocationStore((state) => state.timePeriod)
+  const setTimePeriod = useLocationStore((state) => state.setTimePeriod)
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
   const wind = useLocationStore((state) => state.wind)
   const colorLimits = useLocationStore((state) => state.colorLimits)
@@ -39,26 +49,28 @@ const Results = () => {
   const getRiskScoreForHorizon = (riskType: 'baseRisk' | 'windRisk') => {
     if (!selectedBuilding) return null
 
-    const riskValue = selectedBuilding[RISKS.fire.attributes[riskType]]
+    const riskAttribute =
+      riskType === 'baseRisk'
+        ? riskConfig.attributes.baseRisk[timePeriod]
+        : riskConfig.attributes.windRisk[timePeriod]
+
+    const riskValue = selectedBuilding[riskAttribute]
     if (!riskValue) return null
 
     const riskScores = calculateRiskScores(Number(riskValue))
     return riskScores[timeHorizon]
   }
 
-  const mainRiskScore = wind
-    ? getRiskScoreForHorizon('windRisk')
-    : getRiskScoreForHorizon('baseRisk')
-
   const baseRiskScore = getRiskScoreForHorizon('baseRisk')
   const windRiskScore = getRiskScoreForHorizon('windRisk')
+  const mainRiskScore = wind ? windRiskScore : baseRiskScore
 
   const mainScoreColor = getColorForRiskScore(
     mainRiskScore,
     colormap,
     colorLimits,
     riskConfig.binRatios,
-    'red',
+    'primary',
   )
 
   const baseScoreColor = getColorForRiskScore(
@@ -66,7 +78,7 @@ const Results = () => {
     colormap,
     colorLimits,
     riskConfig.binRatios,
-    'red',
+    'primary',
   )
 
   const windScoreColor = getColorForRiskScore(
@@ -74,8 +86,34 @@ const Results = () => {
     colormap,
     colorLimits,
     riskConfig.binRatios,
-    'red',
+    'primary',
   )
+
+  const getRiskScoreDeltaWording = () => {
+    if (baseRiskScore === null || windRiskScore === null) {
+      return null
+    }
+
+    const scoreDifference = windRiskScore - baseRiskScore
+
+    if (scoreDifference > 0.01) {
+      return (
+        <>
+          increases the burn probability to{' '}
+          {renderScoreBadge(windRiskScore, windScoreColor)}.
+        </>
+      )
+    } else if (scoreDifference < -0.01) {
+      return (
+        <>
+          decreases the burn probability to{' '}
+          {renderScoreBadge(windRiskScore, windScoreColor)}.
+        </>
+      )
+    } else {
+      return <>does not significantly change the burn probability.</>
+    }
+  }
 
   return (
     <>
@@ -107,7 +145,26 @@ const Results = () => {
           Period
         </Column>
         <Column start={2} width={3}>
-          <Filter values={{ Current: true }} />
+          <Filter
+            values={{
+              current: timePeriod === 'current',
+              future: timePeriod === 'future',
+            }}
+            labels={{
+              current: 'Current (2011)',
+              future: 'Future (2047)',
+            }}
+            setValues={(values: Record<string, boolean>) => {
+              const selectedPeriod = Object.keys(values).find(
+                (key) => values[key],
+              )
+              if (selectedPeriod === 'current') {
+                setTimePeriod('current')
+              } else if (selectedPeriod === 'future') {
+                setTimePeriod('future')
+              }
+            }}
+          />
         </Column>
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
@@ -167,30 +224,22 @@ const Results = () => {
           <AnimateHeight
             duration={300}
             height={
-              aboutExpanded && (baseRiskScore || windRiskScore) ? 'auto' : 0
+              aboutExpanded &&
+              (baseRiskScore !== null || windRiskScore !== null)
+                ? 'auto'
+                : 0
             }
           >
-            {selectedBuilding && baseRiskScore && windRiskScore && (
+            {baseRiskScore !== null && windRiskScore !== null && (
               <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
                 <Box sx={{ mb: 2 }}>
                   The risk score for this address is derived using the annual
                   burn probability generated in the US Forest Service&apos;s
                   Wildfire Risk to Communities dataset (
-                  <Badge
-                    sx={{ color: baseScoreColor, fontSize: 1, height: 18 }}
-                  >
-                    {baseRiskScore.toFixed(2)}%
-                  </Badge>
+                  {renderScoreBadge(baseRiskScore, baseScoreColor)}
                   ). We then use historical wind data from fire weather days to
                   predict how wildfire could spread, which{' '}
-                  {baseRiskScore > windRiskScore ? 'decreases' : 'increases'}{' '}
-                  the burn probability to{' '}
-                  <Badge
-                    sx={{ color: windScoreColor, fontSize: 1, height: 18 }}
-                  >
-                    {windRiskScore!.toFixed(2)}%
-                  </Badge>
-                  .
+                  {getRiskScoreDeltaWording()}
                 </Box>
                 <Box>
                   Read our <Link href='#TK'>research methods</Link> for a

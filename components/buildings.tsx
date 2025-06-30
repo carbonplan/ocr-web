@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
 import { useLocationStore } from '@/store/location'
-import { LAYERS, RISKS } from '@/lib/config'
+import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
@@ -19,9 +19,13 @@ const Buildings = () => {
   const wind = useLocationStore((state) => state.wind)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
+  const timePeriod = useLocationStore((state) => state.timePeriod)
   const colorLimits = useLocationStore((state) => state.colorLimits)
   const riskConfig = useLocationStore((state) => state.riskConfig)
 
+  const riskAttribute = wind
+    ? riskConfig.attributes.windRisk[timePeriod]
+    : riskConfig.attributes.baseRisk[timePeriod]
   const isUserClick = useRef(false)
 
   const colormap = useColormap(riskConfig.colormap, {
@@ -29,17 +33,8 @@ const Buildings = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const colorExpression = useMemo(() => {
-    if (!colormap || colormap.length === 0) {
-      return ['literal', 'transparent']
-    }
-
-    const riskAttribute = wind
-      ? RISKS.fire.attributes.windRisk
-      : RISKS.fire.attributes.baseRisk
-
-    // convert to percentage and calculate horizon risk
-    const riskPercentExpression =
+  const riskPercentExpression: ExpressionSpecification = useMemo(
+    () =>
       timeHorizon === 1
         ? ['*', ['to-number', ['get', riskAttribute]], 100]
         : [
@@ -54,14 +49,26 @@ const Buildings = () => {
               ],
             ],
             100,
-          ]
+          ],
+    [timeHorizon, riskAttribute],
+  )
 
-    if (colorLimits.type === 'discrete') {
+  const colorExpression: ExpressionSpecification = useMemo(() => {
+    if (!colormap?.length) return ['literal', 'transparent']
+
+    const wrap = (expr: ExpressionSpecification) => [
+      'case',
+      ['<', riskPercentExpression, riskConfig.bounds.min],
+      get(theme, 'rawColors.muted'),
+      expr,
+    ]
+
+    const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
       const stepValues = calculateBinBoundaries(
         colorLimits.bounds,
-        RISKS.fire.binRatios,
+        riskConfig.binRatios,
       ).slice(1) // remove first value to shift to correct step
 
       stepValues.forEach((value: number, index: number) => {
@@ -70,20 +77,15 @@ const Buildings = () => {
         }
       })
 
-      const stepExpression = [
+      return [
         'step',
         riskPercentExpression,
         colormap[0],
         ...steps,
-      ]
+      ] as ExpressionSpecification
+    }
 
-      return [
-        'case',
-        ['==', riskPercentExpression, 0],
-        get(theme, 'rawColors.background'),
-        stepExpression,
-      ]
-    } else {
+    const makeContinuous = (): ExpressionSpecification => {
       const stops: (string | number)[] = []
       colormap.forEach((color: string, index: number) => {
         const rawValue =
@@ -93,28 +95,26 @@ const Buildings = () => {
         stops.push(rawValue, color)
       })
 
-      const interpolateExpression = [
+      return [
         'interpolate',
         ['linear'],
         riskPercentExpression,
         ...stops,
-      ]
-
-      return [
-        'case',
-        ['==', riskPercentExpression, 0],
-        get(theme, 'rawColors.background'),
-        interpolateExpression,
-      ]
+      ] as ExpressionSpecification
     }
+
+    return wrap(
+      colorLimits.type === 'discrete' ? makeDiscrete() : makeContinuous(),
+    ) as ExpressionSpecification
   }, [
     colormap,
-    wind,
-    timeHorizon,
+    riskPercentExpression,
     colorLimits.type,
     colorLimits.bounds,
     theme,
-  ]) as ExpressionSpecification
+    riskConfig.binRatios,
+    riskConfig.bounds.min,
+  ])
 
   const setPointerCursor = useCallback(() => {
     if (map) {
@@ -269,17 +269,7 @@ const Buildings = () => {
                 get(theme, 'rawColors.primary'),
                 [
                   'case',
-                  [
-                    '==',
-                    [
-                      'to-number',
-                      [
-                        'get',
-                        `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
-                      ],
-                    ],
-                    0,
-                  ],
+                  ['<', riskPercentExpression, riskConfig.bounds.min],
                   get(theme, 'rawColors.muted'),
                   colorExpression,
                 ],
@@ -373,7 +363,7 @@ const Buildings = () => {
     }
 
     isUserClick.current = false
-  }, [selectedLocation, highlightBuildingAtLocation, map])
+  }, [selectedLocation, highlightBuildingAtLocation, map, sidebarWidth])
 
   useEffect(() => {
     // update color expression when variable selection changes
@@ -390,17 +380,7 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       [
         'case',
-        [
-          '==',
-          [
-            'to-number',
-            [
-              'get',
-              `${wind ? RISKS.fire.attributes.windRisk : RISKS.fire.attributes.baseRisk}`,
-            ],
-          ],
-          0,
-        ],
+        ['<', riskPercentExpression, riskConfig.bounds.min],
         get(theme, 'rawColors.muted'),
         colorExpression,
       ],
@@ -411,7 +391,13 @@ const Buildings = () => {
       'line-color',
       lineColorExpression,
     )
-  }, [map, colorExpression, wind, theme, timeHorizon])
+  }, [
+    map,
+    colorExpression,
+    riskPercentExpression,
+    theme,
+    riskConfig.bounds.min,
+  ])
 
   return null
 }

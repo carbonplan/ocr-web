@@ -4,40 +4,38 @@ import { Colorbar, Column, Row, Filter, Input } from '@carbonplan/components'
 import { Chart, TickLabels } from '@carbonplan/charts'
 import { useLocationStore } from '../store/location'
 import { calculateBinBoundaries, useColormap } from '../lib/colormaps'
-import { Flex } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 
 const evenlySpacedTicks = [0, 1, 2, 3, 4]
 
 const Legend = () => {
   const riskConfig = useLocationStore((state) => state.riskConfig)
   const colorLimits = useLocationStore((state) => state.colorLimits)
-
   const setColorLimits = useLocationStore((state) => state.setColorLimits)
-  const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+  const isDiscrete = colorLimits.type === 'discrete'
+  const baseColormap = useColormap(riskConfig.colormap, {
+    count: isDiscrete ? 5 : 256,
   })
+  const discreteClim = isDiscrete
+    ? calculateBinBoundaries(colorLimits.bounds, riskConfig.binRatios)
+    : null
 
-  const discreteClim =
-    colorLimits.type === 'discrete'
-      ? calculateBinBoundaries(colorLimits.bounds, riskConfig.binRatios)
-      : null
+  const formatPercentage = (value: number, isMax: boolean) => {
+    return `${value.toFixed(0)}%${isMax ? '+' : ''}`
+  }
 
   const formatTickValue = (d: number) => {
-    return `${d.toFixed(0)}%`
-  }
-
-  const formatDiscreteTickValue = (d: number) => {
-    if (!discreteClim || d < 0 || d >= discreteClim.length) {
-      return d
+    if (isDiscrete) {
+      const value = discreteClim![d]
+      const isMax = value === discreteClim![discreteClim!.length - 1]
+      return formatPercentage(value, isMax)
+    } else {
+      const isMax = d === colorLimits.bounds[1]
+      return formatPercentage(d, isMax)
     }
-    const formattedValue = formatTickValue(discreteClim[d])
-    return d === evenlySpacedTicks?.[evenlySpacedTicks.length - 1]
-      ? `${formattedValue}+`
-      : `${formattedValue}`
   }
 
-  const chartXRange =
-    colorLimits.type === 'discrete' ? [0, 5] : colorLimits.bounds
+  const chartXRange = isDiscrete ? [0, 5] : [0, colorLimits.bounds[1]]
 
   return (
     <>
@@ -51,22 +49,15 @@ const Legend = () => {
           >
             <Filter
               values={{
-                continuous: colorLimits.type === 'continuous',
-                discrete: colorLimits.type === 'discrete',
+                continuous: !isDiscrete,
+                discrete: isDiscrete,
               }}
               setValues={(values: Record<string, boolean>) => {
-                const selectedType = Object.keys(values).find(
-                  (key) => values[key],
-                )
-                if (
-                  selectedType &&
-                  (selectedType === 'discrete' || selectedType === 'continuous')
-                ) {
-                  setColorLimits({
-                    type: selectedType as 'discrete' | 'continuous',
-                    bounds: colorLimits.bounds,
-                  })
-                }
+                const type = values.discrete ? 'discrete' : 'continuous'
+                setColorLimits({
+                  type,
+                  bounds: colorLimits.bounds,
+                })
               }}
             />
             <Flex
@@ -95,7 +86,7 @@ const Legend = () => {
                   if (value < 1 || value > 100) return
                   setColorLimits({
                     type: colorLimits.type,
-                    bounds: [0, value],
+                    bounds: [riskConfig.bounds.min, value],
                   })
                 }}
               />
@@ -103,24 +94,45 @@ const Legend = () => {
           </Flex>
         </Column>
       </Row>
-      <Colorbar
-        colormap={colormap}
-        discrete={colorLimits.type === 'discrete'}
-        horizontal
-        width={'100%'}
-      />
+      <Flex
+        sx={{
+          width: '100%',
+          height: '16px',
+        }}
+      >
+        <Box
+          sx={{
+            width: '2%',
+            height: '100%',
+            bg: 'muted',
+            mt: '1px',
+            border: '1px solid',
+            borderColor: 'hinted',
+            borderRight: 'none',
+          }}
+        />
+        <Box sx={{ width: '98%', height: '100%' }}>
+          <Colorbar
+            colormap={baseColormap}
+            discrete={isDiscrete}
+            horizontal
+            width={'100%'}
+          />
+        </Box>
+      </Flex>
       <Chart x={chartXRange} y={[0, 0]} padding={{ left: 1, bottom: 8 }}>
         <TickLabels
           bottom
-          values={colorLimits.type === 'discrete' ? evenlySpacedTicks : null}
-          format={
-            colorLimits.type === 'discrete'
-              ? formatDiscreteTickValue
-              : formatTickValue
-          }
+          values={isDiscrete ? evenlySpacedTicks : null}
+          format={formatTickValue}
           sx={{
-            ml: discreteClim ? 1 : 0,
+            ml: discreteClim ? 2 : 0,
             width: discreteClim ? 10 : 'auto',
+            ':first-of-type': {
+              // nudge zero over
+              ml: 1,
+              width: 10,
+            },
           }}
         />
       </Chart>

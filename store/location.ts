@@ -18,6 +18,8 @@ type LocationStore = {
   setSelectedBuilding: (building: Building | null) => void
   timeHorizon: 1 | 15 | 30
   setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
+  timePeriod: 'current' | 'future'
+  setTimePeriod: (timePeriod: 'current' | 'future') => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
   riskConfig: (typeof RISKS)[keyof typeof RISKS]
@@ -47,6 +49,8 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
   timeHorizon: 30,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
+  timePeriod: 'current',
+  setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS.fire,
