@@ -9,9 +9,11 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
+import { useColorMode } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
 import { Buildings } from './'
+import { generateColormap } from '@/lib/colormaps'
 
 const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -25,6 +27,29 @@ const MapComponent = () => {
   const wind = useLocationStore((state) => state.wind)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
 
+  const [colorMode] = useColorMode()
+
+  const baseLightColormap = useMemo(
+    () => generateColormap(riskConfig.colormap, { count: 30, mode: 'light' }),
+    [riskConfig.colormap],
+  )
+  const baseDarkColormap = useMemo(
+    () => generateColormap(riskConfig.colormap, { count: 30, mode: 'dark' }),
+    [riskConfig.colormap],
+  )
+
+  const lightBg = '#ffffff'
+  const darkBg = '#1b1e23'
+
+  const lightColormap = useMemo(
+    () => [lightBg, ...baseLightColormap],
+    [lightBg, baseLightColormap],
+  )
+  const darkColormap = useMemo(
+    () => [darkBg, ...baseDarkColormap],
+    [darkBg, baseDarkColormap],
+  )
+
   const { mapLayers, sprite } = useMapTheme()
 
   const riskMatrix = useMemo(() => {
@@ -35,29 +60,34 @@ const MapComponent = () => {
       riskConfig.attributes.windRisk.future,
     ]
     const timeHorizons = [1, 15, 30]
+    const themes = ['light', 'dark']
 
     const matrix = []
-    for (const attr of riskAttributes) {
-      for (const horizon of timeHorizons) {
-        const url = `${process.env.NEXT_PUBLIC_RISK_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/hot&colorscalerange=0,100&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
-        matrix.push({
-          id: `wms_risk_${attr}_horizon_${horizon}`,
-          riskAttribute: attr,
-          timeHorizon: horizon,
-          url,
-        })
+    for (const themeType of themes) {
+      const colormap = themeType === 'light' ? lightColormap : darkColormap
+      for (const attr of riskAttributes) {
+        for (const horizon of timeHorizons) {
+          const url = `${process.env.NEXT_PUBLIC_RISK_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=0,100&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+          matrix.push({
+            id: `wms_risk_${attr}_horizon_${horizon}_${themeType}`,
+            riskAttribute: attr,
+            timeHorizon: horizon,
+            theme: themeType,
+            url,
+          })
+        }
       }
     }
     return matrix
-  }, [riskConfig])
+  }, [riskConfig, lightColormap, darkColormap])
 
   const activeRiskLayerId = useMemo(() => {
     const riskAttribute = wind
       ? riskConfig.attributes.windRisk[timePeriod]
       : riskConfig.attributes.baseRisk[timePeriod]
-
-    return `wms_risk_${riskAttribute}_horizon_${timeHorizon}`
-  }, [wind, riskConfig, timePeriod, timeHorizon])
+    const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
+    return `wms_risk_${riskAttribute}_horizon_${timeHorizon}_${currentTheme}`
+  }, [wind, riskConfig, timePeriod, timeHorizon, colorMode])
 
   useEffect(() => {
     if (mapContainer.current) {
@@ -107,9 +137,6 @@ const MapComponent = () => {
           id: risk.id,
           type: 'raster',
           source: risk.id,
-          paint: {
-            'raster-opacity': 0.7,
-          },
           layout: {
             visibility: 'none',
           },
@@ -181,7 +208,7 @@ const MapComponent = () => {
         map.setLayoutProperty(risk.id, 'visibility', 'none')
       }
     })
-    if (riskRaster && map.getLayer(activeRiskLayerId)) {
+    if (riskRaster && activeRiskLayerId && map.getLayer(activeRiskLayerId)) {
       map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
     }
   }, [riskRaster, activeRiskLayerId, map, riskMatrix])
