@@ -1,7 +1,5 @@
 export const LAYERS = {
   buildings: {
-    dataSource:
-      'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/intermediate/fire-risk/vector/QA/aggregated.pmtiles',
     layerName: 'risk',
     sourceId: 'buildings',
     layerIds: {
