@@ -236,7 +236,7 @@ const Buildings = () => {
       if (!map.getSource(LAYERS.buildings.sourceId)) {
         map.addSource(LAYERS.buildings.sourceId, {
           type: 'vector',
-          url: `pmtiles://${LAYERS.buildings.dataSource}`,
+          url: `pmtiles://${process.env.NEXT_PUBLIC_BUILDING_URL}`,
         })
       }
 
