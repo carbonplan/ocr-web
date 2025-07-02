@@ -12,6 +12,9 @@ const Buildings = () => {
   const setSelectedBuilding = useLocationStore(
     (state) => state.setSelectedBuilding,
   )
+  const setHoveredBuilding = useLocationStore(
+    (state) => state.setHoveredBuilding,
+  )
   const setSelectedLocation = useLocationStore(
     (state) => state.setSelectedLocation,
   )
@@ -27,6 +30,7 @@ const Buildings = () => {
     ? riskConfig.attributes.windRisk[timePeriod]
     : riskConfig.attributes.baseRisk[timePeriod]
   const isUserClick = useRef(false)
+  const hoveredFeatureId = useRef<string | number | null>(null)
 
   const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',
@@ -116,17 +120,86 @@ const Buildings = () => {
     riskConfig.bounds.min,
   ])
 
-  const setPointerCursor = useCallback(() => {
+  const handleBuildingMouseMove = useCallback(
+    (e: MapMouseEvent) => {
+      if (!map) return
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [LAYERS.buildings.layerIds.fill],
+      })
+
+      if (features.length > 0) {
+        const feature = features[0]
+
+        if (feature.id !== hoveredFeatureId.current) {
+          if (hoveredFeatureId.current !== null) {
+            map.setFeatureState(
+              {
+                source: LAYERS.buildings.sourceId,
+                id: hoveredFeatureId.current,
+                sourceLayer: LAYERS.buildings.layerName,
+              },
+              { hovered: false },
+            )
+          }
+
+          if (feature.id && feature.properties) {
+            setHoveredBuilding(feature.properties)
+            hoveredFeatureId.current = feature.id
+
+            map.setFeatureState(
+              {
+                source: LAYERS.buildings.sourceId,
+                id: feature.id,
+                sourceLayer: LAYERS.buildings.layerName,
+              },
+              { hovered: true },
+            )
+          }
+        }
+      } else {
+        if (hoveredFeatureId.current !== null) {
+          map.setFeatureState(
+            {
+              source: LAYERS.buildings.sourceId,
+              id: hoveredFeatureId.current,
+              sourceLayer: LAYERS.buildings.layerName,
+            },
+            { hovered: false },
+          )
+          hoveredFeatureId.current = null
+          setHoveredBuilding(null)
+        }
+      }
+    },
+    [map, setHoveredBuilding],
+  )
+
+  const handleBuildingEnter = useCallback(() => {
     if (map) {
       map.getCanvas().style.cursor = 'pointer'
     }
   }, [map])
 
-  const resetCursor = useCallback(() => {
-    if (map) {
-      map.getCanvas().style.cursor = ''
+  const handleBuildingLeave = useCallback(() => {
+    if (!map) return
+
+    if (hoveredFeatureId.current !== null) {
+      map.setFeatureState(
+        {
+          source: LAYERS.buildings.sourceId,
+          id: hoveredFeatureId.current,
+          sourceLayer: LAYERS.buildings.layerName,
+        },
+        { hovered: false },
+      )
+      hoveredFeatureId.current = null
     }
-  }, [map])
+
+    setHoveredBuilding(null)
+
+    map.getCanvas().style.cursor = ''
+  }, [map, setHoveredBuilding])
 
   const handleMapClick = useCallback(
     async (e: MapMouseEvent) => {
@@ -138,6 +211,19 @@ const Buildings = () => {
 
       if (features.length > 0) {
         setSelectedBuilding(features[0].properties)
+        if (hoveredFeatureId.current !== null) {
+          map.setFeatureState(
+            {
+              source: LAYERS.buildings.sourceId,
+              id: hoveredFeatureId.current,
+              sourceLayer: LAYERS.buildings.layerName,
+            },
+            { hovered: false },
+          )
+          hoveredFeatureId.current = null
+        }
+        setHoveredBuilding(null)
+
         const feature = features[0]
         const { lng, lat } = e.lngLat
         isUserClick.current = true
@@ -154,7 +240,7 @@ const Buildings = () => {
               id: feature.id,
               sourceLayer: LAYERS.buildings.layerName,
             },
-            { highlighted: true },
+            { selected: true },
           )
 
           try {
@@ -178,7 +264,7 @@ const Buildings = () => {
         })
       }
     },
-    [map, setSelectedBuilding, setSelectedLocation],
+    [map, setSelectedBuilding, setSelectedLocation, setHoveredBuilding],
   )
 
   const highlightBuildingAtLocation = useCallback(
@@ -210,7 +296,7 @@ const Buildings = () => {
               id: buildingFeature.id,
               sourceLayer: LAYERS.buildings.layerName,
             },
-            { highlighted: true },
+            { selected: true },
           )
         }
       }
@@ -265,8 +351,10 @@ const Buildings = () => {
             paint: {
               'line-color': [
                 'case',
-                ['boolean', ['feature-state', 'highlighted'], false],
+                ['boolean', ['feature-state', 'selected'], false],
                 get(theme, 'rawColors.primary'),
+                ['boolean', ['feature-state', 'hovered'], false],
+                get(theme, 'rawColors.secondary'),
                 get(theme, 'rawColors.muted'),
               ],
               'line-width': [
@@ -276,15 +364,19 @@ const Buildings = () => {
                 12,
                 [
                   'case',
-                  ['boolean', ['feature-state', 'highlighted'], false],
+                  ['boolean', ['feature-state', 'selected'], false],
                   2,
+                  ['boolean', ['feature-state', 'hovered'], false],
+                  1.5,
                   0,
                 ],
                 14,
                 [
                   'case',
-                  ['boolean', ['feature-state', 'highlighted'], false],
+                  ['boolean', ['feature-state', 'selected'], false],
                   2,
+                  ['boolean', ['feature-state', 'hovered'], false],
+                  1.5,
                   1,
                 ],
               ],
@@ -300,17 +392,32 @@ const Buildings = () => {
     } else {
       map.on('load', initializeLayers)
     }
+
     map.on('click', handleMapClick)
-    map.on('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
-    map.on('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
+    map.on('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
+    map.on('mousemove', LAYERS.buildings.layerIds.fill, handleBuildingMouseMove)
+    map.on('mouseleave', LAYERS.buildings.layerIds.fill, handleBuildingLeave)
 
     return () => {
       try {
         if (!map) return
 
         map.off('click', handleMapClick)
-        map.off('mouseenter', LAYERS.buildings.layerIds.fill, setPointerCursor)
-        map.off('mouseleave', LAYERS.buildings.layerIds.fill, resetCursor)
+        map.off(
+          'mouseenter',
+          LAYERS.buildings.layerIds.fill,
+          handleBuildingEnter,
+        )
+        map.off(
+          'mousemove',
+          LAYERS.buildings.layerIds.fill,
+          handleBuildingMouseMove,
+        )
+        map.off(
+          'mouseleave',
+          LAYERS.buildings.layerIds.fill,
+          handleBuildingLeave,
+        )
 
         if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
           map.removeLayer(LAYERS.buildings.layerIds.fill)

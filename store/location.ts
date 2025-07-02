@@ -16,6 +16,8 @@ type LocationStore = {
   setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building | null) => void
+  hoveredBuilding: Building | null
+  setHoveredBuilding: (building: Building | null) => void
   timeHorizon: 1 | 15 | 30
   setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   timePeriod: 'current' | 'future'
@@ -47,6 +49,8 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
+  hoveredBuilding: null,
+  setHoveredBuilding: (building) => set({ hoveredBuilding: building }),
   timeHorizon: 30,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',
