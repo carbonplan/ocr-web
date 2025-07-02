@@ -112,7 +112,6 @@ const MapComponent = () => {
         sources[risk.id] = {
           type: 'raster',
           tiles: [risk.url],
-          minzoom: 12,
           tileSize: 256,
         }
       })
