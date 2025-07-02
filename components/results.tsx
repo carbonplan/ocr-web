@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Box } from 'theme-ui'
 import AnimateHeight from 'react-animate-height'
 import {
@@ -30,13 +30,22 @@ const Results = () => {
   const timePeriod = useLocationStore((state) => state.timePeriod)
   const setTimePeriod = useLocationStore((state) => state.setTimePeriod)
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
+  const hoveredBuilding = useLocationStore((state) => state.hoveredBuilding)
   const wind = useLocationStore((state) => state.wind)
   const colorLimits = useLocationStore((state) => state.colorLimits)
   const riskConfig = useLocationStore((state) => state.riskConfig)
 
+  const displayBuilding = selectedBuilding || hoveredBuilding
+
   const colormap = useColormap(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
+
+  useEffect(() => {
+    if (!selectedBuilding) {
+      setAboutExpanded(false)
+    }
+  }, [selectedBuilding])
 
   const calculateRiskScores = (annualProbability: number) => {
     return {
@@ -47,14 +56,14 @@ const Results = () => {
   }
 
   const getRiskScoreForHorizon = (riskType: 'baseRisk' | 'windRisk') => {
-    if (!selectedBuilding) return null
+    if (!displayBuilding) return null
 
     const riskAttribute =
       riskType === 'baseRisk'
         ? riskConfig.attributes.baseRisk[timePeriod]
         : riskConfig.attributes.windRisk[timePeriod]
 
-    const riskValue = selectedBuilding[riskAttribute]
+    const riskValue = displayBuilding[riskAttribute]
     if (!riskValue) return null
 
     const riskScores = calculateRiskScores(Number(riskValue))
@@ -122,7 +131,7 @@ const Results = () => {
           Results
         </Column>
         <Column start={2} width={3}>
-          {!baseRiskScore && !windRiskScore && (
+          {!selectedBuilding && (
             <Box
               variant='field'
               sx={{ fontSize: 1, color: 'secondary', textTransform: 'none' }}
