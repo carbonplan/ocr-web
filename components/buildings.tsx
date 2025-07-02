@@ -362,7 +362,7 @@ const Buildings = () => {
 
   useEffect(() => {
     // update color expression when variable selection changes
-    if (!map || !map.isStyleLoaded()) return
+    if (!map || !map.getLayer(LAYERS.buildings.layerIds.fill)) return
     map.setPaintProperty(
       LAYERS.buildings.layerIds.fill,
       'fill-color',
