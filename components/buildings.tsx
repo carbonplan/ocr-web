@@ -267,12 +267,7 @@ const Buildings = () => {
                 'case',
                 ['boolean', ['feature-state', 'highlighted'], false],
                 get(theme, 'rawColors.primary'),
-                [
-                  'case',
-                  ['<', riskPercentExpression, riskConfig.bounds.min],
-                  get(theme, 'rawColors.muted'),
-                  colorExpression,
-                ],
+                get(theme, 'rawColors.muted'),
               ],
               'line-width': [
                 'interpolate',
@@ -373,31 +368,7 @@ const Buildings = () => {
       'fill-color',
       colorExpression,
     )
-
-    const lineColorExpression: ExpressionSpecification = [
-      'case',
-      ['boolean', ['feature-state', 'highlighted'], false],
-      get(theme, 'rawColors.primary'),
-      [
-        'case',
-        ['<', riskPercentExpression, riskConfig.bounds.min],
-        get(theme, 'rawColors.muted'),
-        colorExpression,
-      ],
-    ]
-
-    map.setPaintProperty(
-      LAYERS.buildings.layerIds.line,
-      'line-color',
-      lineColorExpression,
-    )
-  }, [
-    map,
-    colorExpression,
-    riskPercentExpression,
-    theme,
-    riskConfig.bounds.min,
-  ])
+  }, [map, colorExpression])
 
   return null
 }
