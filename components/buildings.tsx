@@ -122,7 +122,7 @@ const Buildings = () => {
 
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
-      if (!map) return
+      if (!map || map.getZoom() <= 13) return
 
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
