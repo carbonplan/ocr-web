@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { useRouter } from 'next/router'
 import {
   StyleSpecification,
   Map,
@@ -14,8 +15,10 @@ import { useMapTheme } from '../hooks/useMapTheme'
 import { useLocationStore } from '../store/location'
 import { Buildings } from './'
 import { generateColormap } from '@/lib/colormaps'
+import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
 const MapComponent = () => {
+  const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<Map | null>(null) // ref for cleanup
   const map = useLocationStore((state) => state.map)
@@ -90,9 +93,15 @@ const MapComponent = () => {
   }, [wind, riskConfig, timePeriod, timeHorizon, colorMode])
 
   useEffect(() => {
-    if (mapContainer.current) {
+    if (mapContainer.current && router.isReady) {
       const protocol = new Protocol()
       addProtocol('pmtiles', protocol.tile)
+
+      const initialView = getMapViewFromQuery(router.query) || {
+        lat: 47.7,
+        lng: -121.3,
+        zoom: 8,
+      }
 
       const sources: Record<string, SourceSpecification> = {
         basemap: {
@@ -150,19 +159,38 @@ const MapComponent = () => {
           sources,
           layers,
         },
-        center: [-121.3, 47.70818],
-        zoom: 8,
+        center: [initialView.lng, initialView.lat],
+        zoom: initialView.zoom,
       })
+
+      const handleMoveEnd = () => {
+        const center = newMap.getCenter()
+        const zoom = newMap.getZoom()
+        updateMapViewUrl(router, {
+          lat: center.lat,
+          lng: center.lng,
+          zoom: zoom,
+        })
+      }
+
+      newMap.on('moveend', handleMoveEnd)
+
       setMap(newMap)
       mapRef.current = newMap
+
+      return () => {
+        if (newMap) {
+          newMap.off('moveend', handleMoveEnd)
+          newMap.remove()
+        }
+      }
     }
 
     return () => {
       removeProtocol('pmtiles')
-      mapRef.current?.remove()
       setMap(null)
     }
-  }, [riskMatrix, setMap])
+  }, [riskMatrix, setMap, router.isReady])
 
   useEffect(() => {
     const applyStyle = () => {
