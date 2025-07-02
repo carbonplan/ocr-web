@@ -117,20 +117,7 @@ const MapComponent = () => {
         }
       })
 
-      const layers: LayerSpecification[] = [
-        {
-          id: 'satellite',
-          type: 'raster',
-          source: 'satellite',
-          paint: {
-            'raster-saturation': -0.8,
-            'raster-opacity': 0.5,
-          },
-          layout: {
-            visibility: 'none',
-          },
-        },
-      ]
+      const layers: LayerSpecification[] = []
 
       riskMatrix.forEach((risk) => {
         layers.push({
@@ -141,6 +128,18 @@ const MapComponent = () => {
             visibility: 'none',
           },
         })
+      })
+      layers.push({
+        id: 'satellite',
+        type: 'raster',
+        source: 'satellite',
+        paint: {
+          'raster-saturation': -0.8,
+          'raster-opacity': 0.5,
+        },
+        layout: {
+          visibility: 'none',
+        },
       })
 
       const newMap = new Map({
@@ -193,12 +192,14 @@ const MapComponent = () => {
   }, [mapLayers, sprite, map])
 
   useEffect(() => {
-    if (!map || !map.isStyleLoaded()) return
-    map.setLayoutProperty(
-      'satellite',
-      'visibility',
-      satellite ? 'visible' : 'none',
-    )
+    if (!map) return
+    if (map.getLayer('satellite')) {
+      map.setLayoutProperty(
+        'satellite',
+        'visibility',
+        satellite ? 'visible' : 'none',
+      )
+    }
   }, [satellite, map])
 
   useEffect(() => {
