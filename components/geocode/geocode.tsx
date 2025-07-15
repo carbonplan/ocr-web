@@ -31,6 +31,7 @@ const Geocode = () => {
         wrapperRef.current &&
         !wrapperRef.current.contains(event.target as Node)
       ) {
+        setIsEditing(false)
         menuRef.current?.blur()
       }
     }
