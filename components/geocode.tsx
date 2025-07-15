@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
+import { mix } from '@theme-ui/color'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
@@ -149,111 +150,131 @@ const Geocode = () => {
   }
 
   return (
-    <Box ref={wrapperRef} sx={{ position: 'relative', width: '100%' }}>
-      <SidebarDivider sx={{ mb: 3 }} />
-      <Row columns={4}>
-        <Column start={1} width={1}>
-          <Box variant='label'>Address</Box>
-        </Column>
-        <Column start={2} width={3}>
-          <Flex sx={{ gap: 1 }}>
-            {selectedLocation ? (
-              <Box
-                variant='field'
-                title={formatAddress(selectedLocation.address)}
-                sx={{
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                }}
-              >
-                {formatAddress(selectedLocation.address)}
-              </Box>
-            ) : (
-              <Input
-                value={searchQuery}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                placeholder={'enter search term'}
-                sx={{
-                  mt: '2px',
-                  flexGrow: 1,
-                  fontFamily: 'mono',
-                  fontSize: [2, 2, 2, 3],
-                  color: 'primary',
-                  border: 'none',
-                  py: 0,
-                  '&::placeholder': {
-                    color: 'primary',
-                  },
-                  '&:focus::placeholder': {
-                    color: 'secondary',
-                  },
-                }}
-              />
-            )}
-            {(selectedLocation || searchQuery.length > 0) && (
-              <Button size='xs' onClick={handleDeselect} inverted>
-                <X
+    <Box sx={{ width: '100%', position: 'sticky', top: -25 }}>
+      <Box
+        ref={wrapperRef}
+        sx={{
+          background: 'background',
+          cursor: 'pointer',
+          transition: 'background-color 0.15s',
+          zIndex: 1,
+          px: [4, 5, 5, 6],
+          mx: [-4, -5, -5, -6],
+          '&:hover': {
+            background: mix('muted', 'background', 0.25),
+          },
+          '&:hover #close': {
+            color: 'primary',
+          },
+        }}
+      >
+        <SidebarDivider sx={{ mb: 3 }} />
+        <Row columns={4}>
+          <Column start={1} width={1}>
+            <Box variant='label'>Address</Box>
+          </Column>
+          <Column start={2} width={3}>
+            <Flex sx={{ gap: 1 }}>
+              {selectedLocation ? (
+                <Box
+                  variant='field'
+                  title={formatAddress(selectedLocation.address)}
                   sx={{
-                    width: [15, 15, 15, 20],
-                    height: [15, 15, 15, 20],
-                    mb: ['-4px', '-4px', '-4px', '-2px'],
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                  }}
+                >
+                  {formatAddress(selectedLocation.address)}
+                </Box>
+              ) : (
+                <Input
+                  value={searchQuery}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder={'enter search term'}
+                  sx={{
+                    mt: '2px',
+                    flexGrow: 1,
+                    fontFamily: 'mono',
+                    fontSize: [2, 2, 2, 3],
+                    color: 'primary',
+                    border: 'none',
+                    py: 0,
+                    '&::placeholder': {
+                      color: 'primary',
+                    },
                   }}
                 />
-              </Button>
-            )}
-          </Flex>
-        </Column>
-      </Row>
-
-      <SidebarDivider sx={{ mt: 3 }} />
-
-      {suggestions.length > 0 && (
-        <Row
-          columns={4}
-          sx={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            ml: '-12px',
-            zIndex: 1000,
-          }}
-        >
-          <Column start={2} width={3}>
-            <Box
-              sx={{
-                fontFamily: 'mono',
-                color: 'secondary',
-                bg: 'hinted',
-                overflowY: 'auto',
-              }}
-            >
-              {suggestions.map((suggestion, index) => {
-                const { address } = suggestion
-                return (
-                  <Box
-                    key={suggestion.id}
-                    onClick={() => handleSuggestionClick(suggestion)}
+              )}
+              {(selectedLocation || searchQuery.length > 0) && (
+                <Button size='xs' onClick={handleDeselect} inverted>
+                  <X
+                    id='close'
                     sx={{
-                      p: 2,
-                      cursor: 'pointer',
-                      bg: index === selectedIndex ? 'muted' : 'transparent',
-                      '&:hover': {
-                        bg: 'muted',
-                      },
+                      transition: 'color 0.2s',
+                      width: [15, 15, 15, 20],
+                      height: [15, 15, 15, 20],
+                      mb: ['-4px', '-4px', '-4px', '-2px'],
                     }}
-                  >
-                    {formatAddress(address)}
-                  </Box>
-                )
-              })}
-            </Box>
+                  />
+                </Button>
+              )}
+            </Flex>
           </Column>
         </Row>
-      )}
+
+        <SidebarDivider sx={{ mt: 3 }} />
+
+        {suggestions.length > 0 && (
+          <Row
+            columns={4}
+            sx={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              ml: '-12px',
+              zIndex: 1000,
+            }}
+          >
+            <Column start={2} width={3}>
+              <Box
+                sx={{
+                  fontFamily: 'mono',
+                  color: 'secondary',
+                  bg: 'hinted',
+                  overflowY: 'auto',
+                }}
+              >
+                {suggestions.map((suggestion, index) => {
+                  const { address } = suggestion
+                  return (
+                    <Box
+                      key={suggestion.id}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        bg: index === selectedIndex ? 'muted' : 'transparent',
+                        color:
+                          index === selectedIndex ? 'primary' : 'secondary',
+                        '&:hover': {
+                          bg: 'muted',
+                          color: 'primary',
+                        },
+                      }}
+                    >
+                      {formatAddress(address)}
+                    </Box>
+                  )
+                })}
+              </Box>
+            </Column>
+          </Row>
+        )}
+      </Box>
     </Box>
   )
 }
