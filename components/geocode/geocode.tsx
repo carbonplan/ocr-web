@@ -13,7 +13,9 @@ import Menu from './menu'
 
 const Geocode = () => {
   const [searchQuery, setSearchQuery] = useState('')
+  const [isEditing, setIsEditing] = useState<boolean>(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const setSelectedLocation = useLocationStore(
     (state) => state.setSelectedLocation,
@@ -36,6 +38,12 @@ const Geocode = () => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  useEffect(() => {
+    if (selectedLocation) {
+      setSearchQuery(formatAddress(selectedLocation.address))
+    }
+  }, [selectedLocation])
 
   const handleDeselect = () => {
     setSelectedLocation(null)
@@ -69,46 +77,38 @@ const Geocode = () => {
           </Column>
           <Column start={2} width={3}>
             <Flex sx={{ gap: 1 }}>
-              {selectedLocation ? (
-                <Box
-                  variant='field'
-                  title={formatAddress(selectedLocation.address)}
-                  sx={{
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    flex: 1,
-                  }}
-                >
-                  {formatAddress(selectedLocation.address)}
-                </Box>
-              ) : (
-                <Input
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setSearchQuery(e.target.value)
+              <Input
+                ref={inputRef}
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchQuery(e.target.value)
+                }
+                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault()
+                    menuRef.current?.focus()
                   }
-                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (e.key === 'ArrowDown') {
-                      e.preventDefault()
-                      menuRef.current?.focus()
-                    }
-                  }}
-                  placeholder={'enter search term'}
-                  sx={{
-                    mt: '2px',
-                    flexGrow: 1,
-                    fontFamily: 'mono',
-                    fontSize: [2, 2, 2, 3],
+                }}
+                onFocus={() => setIsEditing(true)}
+                placeholder={'enter search term'}
+                sx={{
+                  mt: '2px',
+                  flexGrow: 1,
+                  fontFamily: 'mono',
+                  fontSize: [2, 2, 2, 3],
+                  color: 'primary',
+                  border: 'none',
+                  py: 0,
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+
+                  '&::placeholder': {
                     color: 'primary',
-                    border: 'none',
-                    py: 0,
-                    '&::placeholder': {
-                      color: 'primary',
-                    },
-                  }}
-                />
-              )}
+                  },
+                }}
+              />
               {(selectedLocation || searchQuery.length > 0) && (
                 <Button size='xs' onClick={handleDeselect} inverted>
                   <X
@@ -128,7 +128,13 @@ const Geocode = () => {
 
         <SidebarDivider sx={{ mt: 3 }} />
 
-        <Menu query={searchQuery} ref={menuRef} />
+        <Menu
+          query={searchQuery}
+          focusInput={() => inputRef.current?.focus()}
+          ref={menuRef}
+          isEditing={isEditing}
+          setIsEditing={setIsEditing}
+        />
       </Box>
     </Box>
   )
