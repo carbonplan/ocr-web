@@ -76,6 +76,7 @@ const Geocode = () => {
     <Box sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}>
       <Box
         ref={wrapperRef}
+        onClick={() => inputRef.current?.focus()}
         sx={{
           background: 'background',
           cursor: 'pointer',
