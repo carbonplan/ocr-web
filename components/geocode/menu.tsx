@@ -28,14 +28,14 @@ const Menu = forwardRef<Ref, Props>(
     const debouncedQuery = useDebounce(query, 300)
 
     const fetchSuggestions = async (searchQuery: string) => {
+      setErrorMessage('')
+
       if (!searchQuery.trim()) {
         setSuggestions([])
-        setErrorMessage('')
         return
       }
 
       try {
-        setErrorMessage('')
         const response = await fetch(
           `/api/geocode/autocomplete?q=${encodeURIComponent(searchQuery)}`,
         )
@@ -65,8 +65,6 @@ const Menu = forwardRef<Ref, Props>(
     }, [query, closeMenu])
 
     useEffect(() => {
-      setSuggestions([])
-      setErrorMessage('')
       fetchSuggestions(debouncedQuery)
     }, [debouncedQuery])
 
