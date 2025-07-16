@@ -120,11 +120,7 @@ const Menu = forwardRef<Ref, Props>(
       }
     }
 
-    const handleSuggestionClick = async (
-      e: React.MouseEvent<HTMLDivElement>,
-      suggestion: Suggestion,
-    ) => {
-      e.stopPropagation()
+    const handleSuggestionClick = async (suggestion: Suggestion) => {
       closeMenu()
       setIsEditing(false)
       const location = await fetchLocationDetails(suggestion.id)
@@ -166,7 +162,10 @@ const Menu = forwardRef<Ref, Props>(
                   role='option'
                   aria-selected={index === selectedIndex}
                   aria-label={formatAddress(suggestion.address)}
-                  onClick={(e) => handleSuggestionClick(e, suggestion)}
+                  onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                    e.stopPropagation()
+                    handleSuggestionClick(suggestion)
+                  }}
                   sx={{
                     py: 3,
                     mx: [-4, -5, -5, -6],
