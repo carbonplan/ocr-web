@@ -2,6 +2,8 @@ import { forwardRef, useCallback, useEffect, useState } from 'react'
 import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Row, Column } from '@carbonplan/components'
+//@ts-expect-error - carbonplan layouts types not available
+import { SidebarDivider } from '@carbonplan/layouts'
 import { useLocationStore } from '../../store/location'
 import { Location, Suggestion } from '../../types/location'
 import { formatAddress } from '@/lib/address-utils'
@@ -142,43 +144,39 @@ const Menu = forwardRef<Ref, Props>(
             top: '100%',
             left: 0,
             right: 0,
-            ml: '-12px',
-            zIndex: 1000,
+            mx: [-4, -5, -5, -6],
+            px: [4, 5, 5, 6],
+            fontFamily: 'mono',
+            color: 'secondary',
+            background: 'hinted',
+            overflowY: 'auto',
           }}
         >
-          <Column start={2} width={3}>
-            <Box
-              sx={{
-                fontFamily: 'mono',
-                color: 'secondary',
-                bg: 'hinted',
-                overflowY: 'auto',
-              }}
-            >
-              {isEditing &&
-                suggestions.map((suggestion, index) => {
-                  const { address } = suggestion
-                  return (
-                    <Box
-                      key={suggestion.id}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      sx={{
-                        p: 2,
-                        cursor: 'pointer',
-                        bg: index === selectedIndex ? 'muted' : 'transparent',
-                        color:
-                          index === selectedIndex ? 'primary' : 'secondary',
-                        '&:hover': {
-                          bg: 'muted',
-                          color: 'primary',
-                        },
-                      }}
-                    >
-                      {formatAddress(address)}
-                    </Box>
-                  )
-                })}
-            </Box>
+          <Column start={1} width={4}>
+            {isEditing &&
+              suggestions.map((suggestion, index) => (
+                <Box
+                  key={suggestion.id}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  sx={{
+                    py: 3,
+                    mx: [-4, -5, -5, -6],
+                    px: [4, 5, 5, 6],
+                    cursor: 'pointer',
+                    bg: index === selectedIndex ? 'muted' : 'transparent',
+                    color: index === selectedIndex ? 'primary' : 'secondary',
+                    '&:hover': {
+                      bg: 'muted',
+                      color: 'primary',
+                    },
+                  }}
+                >
+                  {formatAddress(suggestion.address)}
+                </Box>
+              ))}
+            {isEditing && suggestions.length > 0 && (
+              <SidebarDivider sx={{ my: 0 }} />
+            )}
           </Column>
         </Row>
       </Box>
