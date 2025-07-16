@@ -89,6 +89,9 @@ const Geocode = () => {
           '&:hover #close': {
             color: 'primary',
           },
+          '&:hover input::placeholder': {
+            color: 'primary',
+          },
         }}
       >
         <SidebarDivider sx={{ mb: 3 }} />
@@ -119,9 +122,8 @@ const Geocode = () => {
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   flex: 1,
-
                   '&::placeholder': {
-                    color: 'primary',
+                    transition: 'color 0.15s',
                   },
                 }}
               />
