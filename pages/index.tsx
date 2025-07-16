@@ -1,6 +1,6 @@
 import { Box, Container } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Dimmer, Header, Meta } from '@carbonplan/components'
+import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 import { Map, Sidebar } from '../components'
 // @ts-expect-error - carbonplan auth types not available
 import { withAuth } from '@carbonplan/auth'
@@ -20,6 +20,7 @@ const Index = () => {
             <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
           ]}
         />
+        <Guide color='teal' />
       </Container>
       <Box
         sx={{
