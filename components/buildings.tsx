@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { ExpressionSpecification, LngLat, MapMouseEvent } from 'maplibre-gl'
+import {
+  ExpressionSpecification,
+  LngLat,
+  MapMouseEvent,
+  MapSourceDataEvent,
+} from 'maplibre-gl'
+import { centerOfMass, distance } from '@turf/turf'
 import { useLocationStore } from '@/store/location'
 import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
@@ -282,18 +288,37 @@ const Buildings = () => {
       })
 
       const point = map.project([lng, lat])
-      const features = map.queryRenderedFeatures(point, {
+      const tolerance = 100
+      const bbox: [[number, number], [number, number]] = [
+        [point.x - tolerance, point.y - tolerance],
+        [point.x + tolerance, point.y + tolerance],
+      ]
+
+      const features = map.queryRenderedFeatures(bbox, {
         layers: [LAYERS.buildings.layerIds.fill],
       })
 
       if (features.length > 0) {
-        const buildingFeature = features[0]
-        setSelectedBuilding(buildingFeature.properties)
-        if (buildingFeature.id) {
+        const featuresWithDistance = features
+          .map((feature) => {
+            const center = centerOfMass(feature)
+            const centroid = center.geometry.coordinates as [number, number]
+
+            const distanceValue = distance([lng, lat], centroid, {
+              units: 'meters',
+            })
+            return { feature, distance: distanceValue }
+          })
+          .sort((a, b) => a.distance - b.distance)
+
+        if (featuresWithDistance.length > 0) {
+          const closestBuilding = featuresWithDistance[0].feature
+          setSelectedBuilding(closestBuilding.properties)
+
           map.setFeatureState(
             {
               source: LAYERS.buildings.sourceId,
-              id: buildingFeature.id,
+              id: closestBuilding.id,
               sourceLayer: LAYERS.buildings.layerName,
             },
             { selected: true },
