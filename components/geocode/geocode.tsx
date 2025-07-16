@@ -126,7 +126,12 @@ const Geocode = () => {
                 }}
               />
               {(selectedLocation || searchQuery.length > 0) && (
-                <Button size='xs' onClick={handleDeselect} inverted>
+                <Button
+                  size='xs'
+                  onClick={handleDeselect}
+                  inverted
+                  aria-label='Clear address'
+                >
                   <X
                     id='close'
                     sx={{

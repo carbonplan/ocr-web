@@ -133,6 +133,8 @@ const Menu = forwardRef<Ref, Props>(
       <Box
         ref={ref}
         tabIndex={0}
+        role='listbox'
+        aria-label='Address results'
         onFocus={handleFocus}
         onBlur={closeMenu}
         onKeyDown={handleKeyDown}
@@ -157,6 +159,9 @@ const Menu = forwardRef<Ref, Props>(
               suggestions.map((suggestion, index) => (
                 <Box
                   key={suggestion.id}
+                  role='option'
+                  aria-selected={index === selectedIndex}
+                  aria-label={formatAddress(suggestion.address)}
                   onClick={() => handleSuggestionClick(suggestion)}
                   sx={{
                     py: 3,
