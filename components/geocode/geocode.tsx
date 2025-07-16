@@ -53,7 +53,7 @@ const Geocode = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', position: 'sticky', top: -25 }}>
+    <Box sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}>
       <Box
         ref={wrapperRef}
         sx={{
