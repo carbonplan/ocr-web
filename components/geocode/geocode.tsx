@@ -99,9 +99,11 @@ const Geocode = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}>
+    <Box
+      ref={wrapperRef}
+      sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}
+    >
       <Box
-        ref={wrapperRef}
         onClick={() => inputRef.current?.focus()}
         sx={{
           background: 'background',
@@ -177,15 +179,14 @@ const Geocode = () => {
         </Row>
 
         <SidebarDivider sx={{ mt: 3 }} />
-
-        <Menu
-          query={searchQuery}
-          focusInput={() => inputRef.current?.focus()}
-          ref={menuRef}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-        />
       </Box>
+      <Menu
+        query={searchQuery}
+        focusInput={() => inputRef.current?.focus()}
+        ref={menuRef}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+      />
     </Box>
   )
 }
