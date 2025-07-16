@@ -21,6 +21,7 @@ const Menu = forwardRef<Ref, Props>(
   ({ focusInput, isEditing, query, setIsEditing }, ref) => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
     const [selectedIndex, setSelectedIndex] = useState(-1)
+    const [errorMessage, setErrorMessage] = useState<string>('')
     const setSelectedLocation = useLocationStore(
       (state) => state.setSelectedLocation,
     )
@@ -29,23 +30,32 @@ const Menu = forwardRef<Ref, Props>(
     const fetchSuggestions = async (searchQuery: string) => {
       if (!searchQuery.trim()) {
         setSuggestions([])
+        setErrorMessage('')
         return
       }
 
       try {
+        setErrorMessage('')
         const response = await fetch(
           `/api/geocode/autocomplete?q=${encodeURIComponent(searchQuery)}`,
         )
         const data = await response.json()
         setSuggestions(data.items)
+
+        if (!data.items || data.items.length === 0) {
+          setErrorMessage('No results found')
+        }
       } catch (error) {
         console.error('Autocomplete error:', error)
+        setErrorMessage('Error searching for location')
+        setSuggestions([])
       }
     }
 
     const closeMenu = useCallback(() => {
       setSuggestions([])
       setSelectedIndex(-1)
+      setErrorMessage('')
     }, [])
 
     useEffect(() => {
@@ -56,6 +66,7 @@ const Menu = forwardRef<Ref, Props>(
 
     useEffect(() => {
       setSuggestions([])
+      setErrorMessage('')
       fetchSuggestions(debouncedQuery)
     }, [debouncedQuery])
 
@@ -129,6 +140,8 @@ const Menu = forwardRef<Ref, Props>(
       }
     }
 
+    const showMenu = isEditing && (suggestions.length > 0 || errorMessage)
+
     return (
       <Box
         ref={ref}
@@ -139,24 +152,24 @@ const Menu = forwardRef<Ref, Props>(
         onBlur={closeMenu}
         onKeyDown={handleKeyDown}
       >
-        <Row
-          columns={4}
-          sx={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            mx: [-4, -5, -5, -6],
-            px: [4, 5, 5, 6],
-            fontFamily: 'mono',
-            color: 'secondary',
-            background: 'hinted',
-            overflowY: 'auto',
-          }}
-        >
-          <Column start={1} width={4}>
-            {isEditing &&
-              suggestions.map((suggestion, index) => (
+        {showMenu && (
+          <Row
+            columns={4}
+            sx={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              mx: [-4, -5, -5, -6],
+              px: [4, 5, 5, 6],
+              fontFamily: 'mono',
+              color: 'secondary',
+              background: 'hinted',
+              overflowY: 'auto',
+            }}
+          >
+            <Column start={1} width={4}>
+              {suggestions.map((suggestion, index) => (
                 <Box
                   key={suggestion.id}
                   role='option'
@@ -182,11 +195,28 @@ const Menu = forwardRef<Ref, Props>(
                   {formatAddress(suggestion.address)}
                 </Box>
               ))}
-            {isEditing && suggestions.length > 0 && (
-              <SidebarDivider sx={{ my: 0 }} />
-            )}
-          </Column>
-        </Row>
+
+              {errorMessage && (
+                <Box
+                  sx={{
+                    py: 3,
+                    mx: [-4, -5, -5, -6],
+                    px: [4, 5, 5, 6],
+                    color: 'secondary',
+                    cursor: 'default',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {errorMessage}
+                </Box>
+              )}
+
+              {(suggestions.length > 0 || errorMessage) && (
+                <SidebarDivider sx={{ my: 0 }} />
+              )}
+            </Column>
+          </Row>
+        )}
       </Box>
     )
   },
