@@ -17,7 +17,7 @@ const renderScoreBadge = (score: number, color: string) => (
   <Badge sx={{ ...badgeSx, color }}>{score.toFixed(2)}%</Badge>
 )
 
-const Results = () => {
+const ScoreDetails = () => {
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
   const timePeriod = useLocationStore((state) => state.timePeriod)
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
@@ -118,4 +118,4 @@ const Results = () => {
   )
 }
 
-export default Results
+export default ScoreDetails

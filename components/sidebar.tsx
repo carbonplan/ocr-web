@@ -6,6 +6,7 @@ import { Sidebar, SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
 import { Link } from '@carbonplan/components'
 import { Display, Geocode, Results } from '../components'
+import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -57,11 +58,12 @@ const SidebarComponent = () => {
           <Display />
         </div>
       </Sidebar>
+      <AddressDetails />
       {mapLoading && (
         <SidebarAttachment
           expanded={true}
           side='left'
-          width={4}
+          width={8}
           sx={{
             top: '16px',
           }}
