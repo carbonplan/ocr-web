@@ -22,7 +22,7 @@ const Legend = () => {
     : null
 
   const formatPercentage = (value: number, isMax: boolean) => {
-    return `${value.toFixed(0)}%${isMax ? '+' : ''}`
+    return `${value.toFixed(0)}%${isMax && value !== 100 ? '+' : ''}`
   }
 
   const formatTickValue = (d: number) => {
