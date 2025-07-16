@@ -61,8 +61,34 @@ const Geocode = () => {
         setIsEditing(false)
         menuRef.current?.blur()
         break
+      case 'Enter':
+        e.preventDefault()
+        handleEnterKeyPress()
+        break
       default:
         setIsEditing(true)
+    }
+  }
+
+  const handleEnterKeyPress = async () => {
+    if (!searchQuery.trim()) return
+    try {
+      const response = await fetch(
+        `/api/geocode/autocomplete?q=${encodeURIComponent(searchQuery)}`,
+      )
+      const data = await response.json()
+      if (data.items && data.items.length > 0) {
+        const locationResponse = await fetch(
+          `/api/geocode/lookup?id=${data.items[0].id}`,
+        )
+        const location = await locationResponse.json()
+        setSelectedLocation(location)
+        setIsEditing(false)
+        setSearchQuery('')
+        inputRef.current?.blur()
+      }
+    } catch (error) {
+      console.error('Enter key geocoding error:', error)
     }
   }
 
