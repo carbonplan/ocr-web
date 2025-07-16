@@ -475,10 +475,32 @@ const Buildings = () => {
       })
 
       const handleMoveEnd = () => {
-        highlightBuildingAtLocation(
-          selectedLocation.position.lng,
-          selectedLocation.position.lat,
-        )
+        if (!selectedLocation.address.houseNumber) return
+
+        const waitForBuildingsData = () => {
+          if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
+            highlightBuildingAtLocation(
+              selectedLocation.position.lng,
+              selectedLocation.position.lat,
+            )
+          } else {
+            const handleSourceData = (e: MapSourceDataEvent) => {
+              if (
+                e.sourceId === LAYERS.buildings.sourceId &&
+                e.isSourceLoaded
+              ) {
+                map.off('sourcedata', handleSourceData)
+                highlightBuildingAtLocation(
+                  selectedLocation.position.lng,
+                  selectedLocation.position.lat,
+                )
+              }
+            }
+            map.on('sourcedata', handleSourceData)
+          }
+        }
+
+        waitForBuildingsData()
       }
 
       map.once('moveend', handleMoveEnd)
