@@ -46,6 +46,26 @@ const Geocode = () => {
     }
   }, [selectedLocation])
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        menuRef.current?.focus()
+        break
+      case 'ArrowUp':
+        break
+      case 'Tab':
+        break
+      case 'Escape':
+        e.preventDefault()
+        setIsEditing(false)
+        menuRef.current?.blur()
+        break
+      default:
+        setIsEditing(true)
+    }
+  }
+
   const handleDeselect = () => {
     setSelectedLocation(null)
     setSelectedBuilding(null)
@@ -84,12 +104,7 @@ const Geocode = () => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setSearchQuery(e.target.value)
                 }
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault()
-                    menuRef.current?.focus()
-                  }
-                }}
+                onKeyDown={handleKeyDown}
                 onFocus={() => setIsEditing(true)}
                 placeholder={'enter search term'}
                 sx={{
