@@ -68,7 +68,7 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
-  attribute: 'baseRisk',
+  attribute: 'windRisk',
   setAttribute: (attribute: 'baseRisk' | 'windRisk') => set({ attribute }),
   colorLimits: {
     type: 'continuous',
