@@ -34,6 +34,8 @@ type LocationStore = {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
   }) => void
+  mapLoading: boolean
+  setMapLoading: (mapLoading: boolean) => void
 }
 
 export const useLocationStore = create<LocationStore>((set) => ({
@@ -64,4 +66,6 @@ export const useLocationStore = create<LocationStore>((set) => ({
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
+  mapLoading: false,
+  setMapLoading: (mapLoading) => set({ mapLoading }),
 }))
