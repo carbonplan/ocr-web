@@ -20,7 +20,7 @@ const Results = () => {
   const setTimePeriod = useLocationStore((state) => state.setTimePeriod)
   const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
   const hoveredBuilding = useLocationStore((state) => state.hoveredBuilding)
-  const wind = useLocationStore((state) => state.wind)
+  const attribute = useLocationStore((state) => state.attribute)
   const colorLimits = useLocationStore((state) => state.colorLimits)
   const riskConfig = useLocationStore((state) => state.riskConfig)
 
@@ -30,32 +30,10 @@ const Results = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const calculateRiskScores = (annualProbability: number) => {
-    return {
-      1: annualProbability * 100,
-      15: (1 - Math.pow(1 - annualProbability, 15)) * 100,
-      30: (1 - Math.pow(1 - annualProbability, 30)) * 100,
-    }
-  }
+  const riskScore = displayBuilding
+    ? displayBuilding[attribute][timePeriod][timeHorizon]
+    : null
 
-  const getRiskScoreForHorizon = (riskType: 'baseRisk' | 'windRisk') => {
-    if (!displayBuilding) return null
-
-    const riskAttribute =
-      riskType === 'baseRisk'
-        ? riskConfig.attributes.baseRisk[timePeriod]
-        : riskConfig.attributes.windRisk[timePeriod]
-
-    const riskValue = displayBuilding[riskAttribute]
-    if (!riskValue) return null
-
-    const riskScores = calculateRiskScores(Number(riskValue))
-    return riskScores[timeHorizon]
-  }
-
-  const riskScore = wind
-    ? getRiskScoreForHorizon('windRisk')
-    : getRiskScoreForHorizon('baseRisk')
   const scoreColor = getColorForRiskScore(
     riskScore,
     colormap,

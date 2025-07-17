@@ -27,7 +27,7 @@ const MapComponent = () => {
   const riskRaster = useLocationStore((state) => state.riskRaster)
   const riskConfig = useLocationStore((state) => state.riskConfig)
   const timePeriod = useLocationStore((state) => state.timePeriod)
-  const wind = useLocationStore((state) => state.wind)
+  const attribute = useLocationStore((state) => state.attribute)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
   const setMapLoading = useLocationStore((state) => state.setMapLoading)
 
@@ -86,12 +86,10 @@ const MapComponent = () => {
   }, [riskConfig, lightColormap, darkColormap])
 
   const activeRiskLayerId = useMemo(() => {
-    const riskAttribute = wind
-      ? riskConfig.attributes.windRisk[timePeriod]
-      : riskConfig.attributes.baseRisk[timePeriod]
+    const riskAttribute = riskConfig.attributes[attribute][timePeriod]
     const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
     return `wms_risk_${riskAttribute}_horizon_${timeHorizon}_${currentTheme}`
-  }, [wind, riskConfig, timePeriod, timeHorizon, colorMode])
+  }, [attribute, riskConfig, timePeriod, timeHorizon, colorMode])
 
   useEffect(() => {
     if (mapContainer.current && router.isReady) {

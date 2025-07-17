@@ -7,8 +7,8 @@ import { Legend } from './'
 const Display = () => {
   const satellite = useLocationStore((state) => state.satellite)
   const setSatellite = useLocationStore((state) => state.setSatellite)
-  const wind = useLocationStore((state) => state.wind)
-  const setWind = useLocationStore((state) => state.setWind)
+  const attribute = useLocationStore((state) => state.attribute)
+  const setAttribute = useLocationStore((state) => state.setAttribute)
   const riskRaster = useLocationStore((state) => state.riskRaster)
   const setRiskRaster = useLocationStore((state) => state.setRiskRaster)
 
@@ -41,7 +41,12 @@ const Display = () => {
           Wind Risk
         </Column>
         <Column start={2} width={3}>
-          <Toggle value={wind} onClick={() => setWind(!wind)} />
+          <Toggle
+            value={attribute === 'windRisk'}
+            onClick={() =>
+              setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
+            }
+          />
         </Column>
       </Row>
       <Legend />

@@ -25,16 +25,14 @@ const Buildings = () => {
     (state) => state.setSelectedLocation,
   )
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
-  const wind = useLocationStore((state) => state.wind)
+  const attribute = useLocationStore((state) => state.attribute)
   const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
   const timePeriod = useLocationStore((state) => state.timePeriod)
   const colorLimits = useLocationStore((state) => state.colorLimits)
   const riskConfig = useLocationStore((state) => state.riskConfig)
 
-  const riskAttribute = wind
-    ? riskConfig.attributes.windRisk[timePeriod]
-    : riskConfig.attributes.baseRisk[timePeriod]
+  const riskAttribute = riskConfig.attributes[attribute][timePeriod]
   const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
 

@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import { Map } from 'maplibre-gl'
+import { Map, MapGeoJSONFeature } from 'maplibre-gl'
 import { Location, Building } from '../types/location'
 import { RISKS } from '../lib/config'
+import { getBuildingRiskScores } from '@/lib/risk-utils'
 
 type LocationStore = {
   map: Map | null
@@ -10,14 +11,14 @@ type LocationStore = {
   setSelectedLocation: (location: Location | null) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
-  wind: boolean
-  setWind: (wind: boolean) => void
   riskRaster: boolean
   setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
-  setSelectedBuilding: (building: Building | null) => void
+  setSelectedBuilding: (
+    building: MapGeoJSONFeature['properties'] | null,
+  ) => void
   hoveredBuilding: Building | null
-  setHoveredBuilding: (building: Building | null) => void
+  setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   timeHorizon: 1 | 15 | 30
   setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   timePeriod: 'current' | 'future'
@@ -26,6 +27,8 @@ type LocationStore = {
   setSidebarWidth: (width: number) => void
   riskConfig: (typeof RISKS)[keyof typeof RISKS]
   setRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
+  attribute: 'baseRisk' | 'windRisk'
+  setAttribute: (attribute: 'baseRisk' | 'windRisk') => void
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
@@ -45,14 +48,18 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
-  wind: true,
-  setWind: (wind) => set({ wind }),
   riskRaster: false,
   setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
-  setSelectedBuilding: (building) => set({ selectedBuilding: building }),
+  setSelectedBuilding: (building) =>
+    set((state) => ({
+      selectedBuilding: getBuildingRiskScores(building, state.riskConfig),
+    })),
   hoveredBuilding: null,
-  setHoveredBuilding: (building) => set({ hoveredBuilding: building }),
+  setHoveredBuilding: (building) =>
+    set((state) => ({
+      hoveredBuilding: getBuildingRiskScores(building, state.riskConfig),
+    })),
   timeHorizon: 1,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',
@@ -61,6 +68,8 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
+  attribute: 'baseRisk',
+  setAttribute: (attribute: 'baseRisk' | 'windRisk') => set({ attribute }),
   colorLimits: {
     type: 'continuous',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
