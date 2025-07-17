@@ -2,16 +2,16 @@
 import { Colorbar, Column, Row, Filter, Input } from '@carbonplan/components'
 //@ts-expect-error - carbonplan charts types not available
 import { Chart, TickLabels } from '@carbonplan/charts'
-import { useLocationStore } from '../store/location'
+import { useStore } from '../lib/store'
 import { calculateBinBoundaries, useColormap } from '../lib/colormaps'
 import { Box, Flex } from 'theme-ui'
 
 const evenlySpacedTicks = [0, 1, 2, 3, 4]
 
 const Legend = () => {
-  const riskConfig = useLocationStore((state) => state.riskConfig)
-  const colorLimits = useLocationStore((state) => state.colorLimits)
-  const setColorLimits = useLocationStore((state) => state.setColorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
+  const colorLimits = useStore((state) => state.colorLimits)
+  const setColorLimits = useStore((state) => state.setColorLimits)
   const isDiscrete = colorLimits.type === 'discrete'
   const baseColormap = useColormap(riskConfig.colormap, {
     count: isDiscrete ? 5 : 256,

@@ -1,10 +1,10 @@
 import { create } from 'zustand'
 import { Map, MapGeoJSONFeature } from 'maplibre-gl'
 import { Location, Building } from '../types/location'
-import { RISKS } from '../lib/config'
-import { getBuildingRiskScores } from '@/lib/risk-utils'
+import { RISKS } from './config'
+import { getBuildingRiskScores } from './risk-utils'
 
-type LocationStore = {
+type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
@@ -41,7 +41,7 @@ type LocationStore = {
   setMapLoading: (mapLoading: boolean) => void
 }
 
-export const useLocationStore = create<LocationStore>((set) => ({
+export const useStore = create<Store>((set) => ({
   map: null,
   setMap: (map) => set({ map }),
   selectedLocation: null,

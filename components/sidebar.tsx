@@ -1,6 +1,6 @@
 import { Box, Spinner } from 'theme-ui'
 import { useRef, useEffect } from 'react'
-import { useLocationStore } from '@/store/location'
+import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar, SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
@@ -10,8 +10,8 @@ import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const setSidebarWidth = useLocationStore((state) => state.setSidebarWidth)
-  const mapLoading = useLocationStore((state) => state.mapLoading)
+  const mapLoading = useStore((state) => state.mapLoading)
+  const setSidebarWidth = useStore((state) => state.setSidebarWidth)
 
   useEffect(() => {
     const updateSidebarWidth = () => {

@@ -7,30 +7,24 @@ import {
   MapSourceDataEvent,
 } from 'maplibre-gl'
 import { centerOfMass, distance } from '@turf/turf'
-import { useLocationStore } from '@/store/location'
+import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
-  const map = useLocationStore((state) => state.map)
-  const selectedBuilding = useLocationStore((state) => state.selectedBuilding) // todo clear state
-  const setSelectedBuilding = useLocationStore(
-    (state) => state.setSelectedBuilding,
-  )
-  const setHoveredBuilding = useLocationStore(
-    (state) => state.setHoveredBuilding,
-  )
-  const setSelectedLocation = useLocationStore(
-    (state) => state.setSelectedLocation,
-  )
-  const selectedLocation = useLocationStore((state) => state.selectedLocation)
-  const attribute = useLocationStore((state) => state.attribute)
-  const sidebarWidth = useLocationStore((state) => state.sidebarWidth)
-  const timeHorizon = useLocationStore((state) => state.timeHorizon)
-  const timePeriod = useLocationStore((state) => state.timePeriod)
-  const colorLimits = useLocationStore((state) => state.colorLimits)
-  const riskConfig = useLocationStore((state) => state.riskConfig)
+  const map = useStore((state) => state.map)
+  const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
+  const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
+  const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
+  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
+  const selectedLocation = useStore((state) => state.selectedLocation)
+  const attribute = useStore((state) => state.attribute)
+  const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const colorLimits = useStore((state) => state.colorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
 
   const riskAttribute = riskConfig.attributes[attribute][timePeriod]
   const isUserClick = useRef(false)

@@ -5,7 +5,7 @@ import {
   Link,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-import { useLocationStore } from '@/store/location'
+import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
 const badgeSx = {
@@ -18,11 +18,11 @@ const renderScoreBadge = (score: number, color: string) => (
 )
 
 const ScoreDetails = () => {
-  const timeHorizon = useLocationStore((state) => state.timeHorizon)
-  const timePeriod = useLocationStore((state) => state.timePeriod)
-  const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
-  const colorLimits = useLocationStore((state) => state.colorLimits)
-  const riskConfig = useLocationStore((state) => state.riskConfig)
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const colorLimits = useStore((state) => state.colorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
 
   const colormap = useColormap(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,

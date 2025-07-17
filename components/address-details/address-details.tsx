@@ -4,13 +4,13 @@ import { Box } from 'theme-ui'
 import { Row, Column } from '@carbonplan/components'
 import ScoreDetails from './score-details'
 import SidebarSidecar from './sidebar-sidecar'
-import { useLocationStore } from '@/store/location'
+import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import Histogram from './histogram'
 
 const AddressDetails = () => {
-  const selectedLocation = useLocationStore((state) => state.selectedLocation)
-  const riskScore = useLocationStore(
+  const selectedLocation = useStore((state) => state.selectedLocation)
+  const riskScore = useStore(
     ({ selectedBuilding, attribute, timePeriod, timeHorizon }) =>
       selectedBuilding
         ? selectedBuilding[attribute][timePeriod][timeHorizon]

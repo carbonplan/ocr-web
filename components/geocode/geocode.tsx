@@ -7,7 +7,7 @@ import { Button, Input, Row, Column } from '@carbonplan/components'
 import { SidebarDivider } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan icons types not available
 import { X } from '@carbonplan/icons'
-import { useLocationStore } from '../../store/location'
+import { useStore } from '../../lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import Menu from './menu'
 
@@ -17,13 +17,9 @@ const Geocode = () => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
-  const setSelectedLocation = useLocationStore(
-    (state) => state.setSelectedLocation,
-  )
-  const selectedLocation = useLocationStore((state) => state.selectedLocation)
-  const setSelectedBuilding = useLocationStore(
-    (state) => state.setSelectedBuilding,
-  )
+  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
+  const selectedLocation = useStore((state) => state.selectedLocation)
+  const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

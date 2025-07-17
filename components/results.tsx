@@ -10,19 +10,19 @@ import {
 } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Right } from '@carbonplan/icons'
-import { useLocationStore } from '@/store/location'
+import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
 const Results = () => {
-  const timeHorizon = useLocationStore((state) => state.timeHorizon)
-  const setTimeHorizon = useLocationStore((state) => state.setTimeHorizon)
-  const timePeriod = useLocationStore((state) => state.timePeriod)
-  const setTimePeriod = useLocationStore((state) => state.setTimePeriod)
-  const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
-  const hoveredBuilding = useLocationStore((state) => state.hoveredBuilding)
-  const attribute = useLocationStore((state) => state.attribute)
-  const colorLimits = useLocationStore((state) => state.colorLimits)
-  const riskConfig = useLocationStore((state) => state.riskConfig)
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const setTimeHorizon = useStore((state) => state.setTimeHorizon)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const setTimePeriod = useStore((state) => state.setTimePeriod)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const hoveredBuilding = useStore((state) => state.hoveredBuilding)
+  const attribute = useStore((state) => state.attribute)
+  const colorLimits = useStore((state) => state.colorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
