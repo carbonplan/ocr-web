@@ -10,8 +10,18 @@ import Histogram from './histogram'
 
 const AddressDetails = () => {
   const selectedLocation = useLocationStore((state) => state.selectedLocation)
+  const riskScore = useLocationStore(
+    ({ selectedBuilding, attribute, timePeriod, timeHorizon }) =>
+      selectedBuilding
+        ? selectedBuilding[attribute][timePeriod][timeHorizon]
+        : null,
+  )
 
   if (!selectedLocation?.address.houseNumber) {
+    return null
+  }
+
+  if (riskScore === null) {
     return null
   }
 
@@ -52,6 +62,7 @@ const AddressDetails = () => {
               <Histogram
                 address={address}
                 region={`${selectedLocation.address.county} County`}
+                score={riskScore}
               />
             </Box>
           </Column>

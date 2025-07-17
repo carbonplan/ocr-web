@@ -11,12 +11,16 @@ import {
 } from '@carbonplan/charts'
 import { Box } from 'theme-ui'
 
+const NUM_BINS = 10
+
 const Histogram = ({
   address,
   region,
+  score,
 }: {
   address: string
   region: string
+  score: number
 }) => {
   return (
     <Box>
@@ -27,9 +31,18 @@ const Histogram = ({
         compared to {region}
       </Box>
       <Box sx={{ height: '250px', ml: -20 }}>
-        <Chart x={[-0.25, 10.25]} y={[0, 10]} padding={{ left: 20 }}>
+        <Chart
+          x={[-0.25, NUM_BINS + 0.25]}
+          y={[0, NUM_BINS]}
+          padding={{ left: 20 }}
+        >
           <Ticks left />
-          <Ticks bottom values={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]} />
+          <Ticks
+            bottom
+            values={Array(NUM_BINS + 1)
+              .fill(null)
+              .map((d, i) => i)}
+          />
           <TickLabels bottom format={(d: number) => `${d * 10}%`} />
           <Grid horizontal />
           <Axis left bottom />
@@ -42,18 +55,14 @@ const Histogram = ({
           <Plot>
             <Bar
               width={0.75}
-              data={[
-                [0.5, 7.5],
-                [1.5, 7.5],
-                [2.5, 7.5],
-                [3.5, 7.5],
-                [4.5, 7.5],
-                [5.5, 7.5],
-                [6.5, 7.5],
-                [7.5, 7.5],
-                [8.5, 7.5],
-                [9.5, 7.5],
-              ]}
+              data={Array(NUM_BINS)
+                .fill(null)
+                .map((d, i) => [i + 0.5, 7.5])}
+              color={Array(NUM_BINS)
+                .fill(null)
+                .map((d, i) =>
+                  score >= i * 10 && score < (i + 1) * 10 ? 'red' : 'primary',
+                )}
             />
           </Plot>
         </Chart>
