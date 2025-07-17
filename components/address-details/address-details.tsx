@@ -5,18 +5,36 @@ import { Row, Column } from '@carbonplan/components'
 import ScoreDetails from './score-details'
 import SidebarSidecar from './sidebar-sidecar'
 import { useLocationStore } from '@/store/location'
+import { formatAddress } from '@/lib/address-utils'
+import Histogram from './histogram'
 
 const AddressDetails = () => {
-  const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
+  const selectedLocation = useLocationStore((state) => state.selectedLocation)
 
-  if (!selectedBuilding) {
+  if (!selectedLocation?.address.houseNumber) {
     return null
   }
 
+  const address = formatAddress(selectedLocation.address, true)
+
   return (
     <SidebarSidecar>
-      <Column start={1} width={4} variant='labelFieldContainer'>
+      <Column start={1} width={4}>
         <Row columns={4}>
+          <Column
+            start={1}
+            width={4}
+            as='h2'
+            sx={{
+              fontSize: [5, 5, 5, 6],
+              fontFamily: 'heading',
+              letterSpacing: 'heading',
+              lineHeight: 'heading',
+              my: 3,
+            }}
+          >
+            {formatAddress(selectedLocation.address, true)}
+          </Column>
           <Column start={1} width={4} variant='labelFieldContainer'>
             <Box variant='sectionHeading'>About this score</Box>
             <ScoreDetails />
@@ -31,7 +49,10 @@ const AddressDetails = () => {
           <Column start={1} width={4} variant='labelFieldContainer'>
             <Box variant='sectionHeading'>Summary statistics</Box>
             <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
-              TK
+              <Histogram
+                address={address}
+                region={`${selectedLocation.address.county} County`}
+              />
             </Box>
           </Column>
         </Row>
