@@ -53,7 +53,7 @@ export const useLocationStore = create<LocationStore>((set) => ({
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
   hoveredBuilding: null,
   setHoveredBuilding: (building) => set({ hoveredBuilding: building }),
-  timeHorizon: 30,
+  timeHorizon: 1,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
