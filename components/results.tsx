@@ -13,7 +13,13 @@ import { Right } from '@carbonplan/icons'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
-const Results = () => {
+const Results = ({
+  showAddressDetails,
+  setShowAddressDetails,
+}: {
+  showAddressDetails: boolean
+  setShowAddressDetails: (value: boolean) => void
+}) => {
   const timeHorizon = useStore((state) => state.timeHorizon)
   const setTimeHorizon = useStore((state) => state.setTimeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
@@ -58,9 +64,19 @@ const Results = () => {
             {selectedBuilding ? (
               <Button
                 variant='label'
-                suffix={<Right sx={{ mt: -1 }} />}
+                suffix={
+                  <Right
+                    sx={{
+                      mt: -1,
+                      transform: showAddressDetails
+                        ? 'scaleX(-1) rotate(45deg) '
+                        : 'rotate(45deg) scaleX(1)',
+                    }}
+                  />
+                }
                 inverted
                 size='xs'
+                onClick={() => setShowAddressDetails(!showAddressDetails)}
                 sx={{
                   fontFamily: 'mono',
                   fontSize: [2, 2, 2, 3],

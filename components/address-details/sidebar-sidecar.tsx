@@ -10,7 +10,14 @@ const SIDEBAR_WIDTH = 4
 const SIDECAR_WIDTH = 4
 const OFFSET = SIDEBAR_WIDTH + SIDECAR_WIDTH
 
-const SidebarSidecar = ({ children }: { children: ReactNode }) => {
+const SidebarSidecar = ({
+  visible,
+  children,
+}: {
+  visible: boolean
+  children: ReactNode
+}) => {
+  const offset = visible ? OFFSET : 1
   return (
     <SidebarAttachment
       expanded
@@ -18,11 +25,20 @@ const SidebarSidecar = ({ children }: { children: ReactNode }) => {
       width={4}
       sx={{
         right: [
-          `calc(${6 - OFFSET} * (100vw - 7 * 24px) / 6 + ${12 - OFFSET} * 24px)`,
-          `calc(${8 - OFFSET} * (100vw - 9 * 32px) / 8 + ${12 - OFFSET} * 32px)`,
-          `calc(${12 - OFFSET} * (100vw - 13 * 32px) / 12 + ${12 - OFFSET} * 32px)`,
-          `calc(${12 - OFFSET} * (100vw - 13 * 48px) / 12 + ${12 - OFFSET} * 48px)`,
+          `calc(${6 - offset} * (100vw - 7 * 24px) / 6 + ${12 - offset} * 24px)`,
+          `calc(${8 - offset} * (100vw - 9 * 32px) / 8 + ${12 - offset} * 32px)`,
+          `calc(${12 - offset} * (100vw - 13 * 32px) / 12 + ${12 - offset} * 32px)`,
+          `calc(${12 - offset} * (100vw - 13 * 48px) / 12 + ${12 - offset} * 48px)`,
         ],
+        ...(visible
+          ? {
+              zIndex: 1,
+            }
+          : {
+              left: '12px',
+              width: '0px',
+              zIndex: -1,
+            }),
         ml: '-16px',
       }}
     >

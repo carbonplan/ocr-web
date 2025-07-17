@@ -1,14 +1,23 @@
 import { Box } from 'theme-ui'
 
 //@ts-expect-error - carbonplan components types not available
-import { Row, Column } from '@carbonplan/components'
+import { Button, Row, Column } from '@carbonplan/components'
+//@ts-expect-error - carbonplan icons types not available
+import { Left } from '@carbonplan/icons'
+
 import ScoreDetails from './score-details'
 import SidebarSidecar from './sidebar-sidecar'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import Histogram from './histogram'
 
-const AddressDetails = () => {
+const AddressDetails = ({
+  visible,
+  onCollapse,
+}: {
+  visible: boolean
+  onCollapse: () => void
+}) => {
   const selectedLocation = useStore((state) => state.selectedLocation)
   const riskScore = useStore(
     ({ selectedBuilding, attribute, timePeriod, timeHorizon }) =>
@@ -28,9 +37,14 @@ const AddressDetails = () => {
   const address = formatAddress(selectedLocation.address, true)
 
   return (
-    <SidebarSidecar>
+    <SidebarSidecar visible={visible}>
       <Column start={1} width={4}>
         <Row columns={4}>
+          <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
+            <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
+              Collapse
+            </Button>
+          </Column>
           <Column
             start={1}
             width={4}
