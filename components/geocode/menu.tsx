@@ -120,6 +120,7 @@ const Menu = forwardRef<Ref, Props>(
     }
 
     const handleFocus = () => {
+      if (errorMessage) return
       if (suggestions.length > 0) {
         setSelectedIndex(0)
       } else if (debouncedQuery) {
@@ -196,13 +197,14 @@ const Menu = forwardRef<Ref, Props>(
 
               {errorMessage && (
                 <Box
+                  aria-live='polite'
+                  role='status'
                   sx={{
                     py: 3,
                     mx: [-4, -5, -5, -6],
                     px: [4, 5, 5, 6],
                     color: 'secondary',
                     cursor: 'default',
-                    pointerEvents: 'none',
                   }}
                 >
                   {errorMessage}
