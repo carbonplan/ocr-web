@@ -18,13 +18,23 @@ const Index = () => {
         <Guide color='teal' />
       </Container>
 
-      <Container>
-        <Header
-          menuItems={[
-            <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
-          ]}
-        />
-      </Container>
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          height: '56px',
+          zIndex: 5000,
+          pointerEvents: 'none',
+        }}
+      >
+        <Container>
+          <Header
+            menuItems={[
+              <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
+            ]}
+          />
+        </Container>
+      </Box>
 
       <Box
         sx={{
