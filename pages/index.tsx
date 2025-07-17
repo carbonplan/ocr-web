@@ -13,15 +13,19 @@ const Index = () => {
         description={'Explore climate risks'}
         title={'Open Climate Risks – CarbonPlan'}
       />
+
+      <Container>
+        <Guide color='teal' />
+      </Container>
+
       <Container>
         <Header
-          sx={{ zIndex: 10 }}
           menuItems={[
             <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
           ]}
         />
-        <Guide color='teal' />
       </Container>
+
       <Box
         sx={{
           position: 'absolute',
@@ -29,7 +33,6 @@ const Index = () => {
           bottom: 0,
           width: '100%',
           overflowX: 'hidden',
-          zIndex: -1,
         }}
       >
         <Sidebar />
