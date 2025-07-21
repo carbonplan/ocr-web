@@ -1,157 +1,25 @@
-import { forwardRef, useCallback, useEffect, useState } from 'react'
+import { forwardRef } from 'react'
 import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarDivider } from '@carbonplan/layouts'
-import { useLocationStore } from '../../store/location'
-import { Location, Suggestion } from '../../types/location'
+import { Suggestion } from '../../types/location'
 import { formatAddress } from '@/lib/address-utils'
-import { useDebounce } from '@/hooks/useDebounce'
 
 interface Props {
-  query: string
-  focusInput: () => void
-  isEditing: boolean
-  setIsEditing: (isEditing: boolean) => void
+  suggestions: Suggestion[]
+  selectedIndex: number
+  errorMessage: string
+  onSelectSuggestion: (suggestion: Suggestion) => void
 }
 
 type Ref = HTMLDivElement
 const Menu = forwardRef<Ref, Props>(
-  ({ focusInput, isEditing, query, setIsEditing }, ref) => {
-    const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-    const [selectedIndex, setSelectedIndex] = useState(-1)
-    const [errorMessage, setErrorMessage] = useState<string>('')
-    const setSelectedLocation = useLocationStore(
-      (state) => state.setSelectedLocation,
-    )
-    const debouncedQuery = useDebounce(query, 300)
-
-    const fetchSuggestions = async (searchQuery: string) => {
-      setErrorMessage('')
-
-      if (!searchQuery.trim()) {
-        setSuggestions([])
-        return
-      }
-
-      try {
-        const response = await fetch(
-          `/api/geocode/autocomplete?q=${encodeURIComponent(searchQuery)}`,
-        )
-        const data = await response.json()
-        setSuggestions(data.items)
-
-        if (!data.items || data.items.length === 0) {
-          setErrorMessage('No results found')
-        }
-      } catch (error) {
-        console.error('Autocomplete error:', error)
-        setErrorMessage('Error searching for location')
-        setSuggestions([])
-      }
-    }
-
-    const closeMenu = useCallback(() => {
-      setSuggestions([])
-      setSelectedIndex(-1)
-      setErrorMessage('')
-    }, [])
-
-    useEffect(() => {
-      if (!query) {
-        closeMenu()
-      }
-    }, [query, closeMenu])
-
-    useEffect(() => {
-      fetchSuggestions(debouncedQuery)
-    }, [debouncedQuery])
-
-    const fetchLocationDetails = async (
-      locationId: string,
-    ): Promise<Location | null> => {
-      try {
-        const response = await fetch(`/api/geocode/lookup?id=${locationId}`)
-        const data = await response.json()
-        return data
-      } catch (error) {
-        console.error('Geocoding error:', error)
-        return null
-      }
-    }
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (suggestions.length === 0) return
-
-      e.preventDefault()
-      switch (e.key) {
-        case 'ArrowDown':
-          setSelectedIndex((prev) =>
-            prev < suggestions.length - 1 ? prev + 1 : prev,
-          )
-          break
-        case 'ArrowUp':
-          if (selectedIndex === 0) {
-            focusInput()
-          }
-          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-          break
-        case 'Tab':
-          if (e.shiftKey) {
-            setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev))
-          } else {
-            setSelectedIndex((prev) =>
-              prev < suggestions.length - 1 ? prev + 1 : prev,
-            )
-          }
-          break
-        case 'Enter':
-          if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-            handleSuggestionClick(suggestions[selectedIndex])
-          } else if (selectedIndex === -1) {
-            handleSuggestionClick(suggestions[0])
-          }
-          break
-        case 'Escape':
-          closeMenu()
-          break
-      }
-    }
-
-    const handleFocus = () => {
-      if (errorMessage) return
-      if (suggestions.length > 0) {
-        setSelectedIndex(0)
-      } else if (debouncedQuery) {
-        fetchSuggestions(debouncedQuery).then(() => {
-          setSelectedIndex(0)
-        })
-      }
-    }
-
-    const handleSuggestionClick = async (suggestion: Suggestion) => {
-      closeMenu()
-      setIsEditing(false)
-      const location = await fetchLocationDetails(suggestion.id)
-      if (location) {
-        setSelectedLocation(location)
-      }
-    }
-
-    const showMenu = isEditing && (suggestions.length > 0 || errorMessage)
-
+  ({ suggestions, selectedIndex, errorMessage, onSelectSuggestion }, ref) => {
     return (
-      <Box
-        ref={ref}
-        tabIndex={0}
-        role='listbox'
-        aria-label='Address results'
-        onFocus={handleFocus}
-        onBlur={closeMenu}
-        onKeyDown={handleKeyDown}
-      >
-        {showMenu && (
+      <Box ref={ref}>
+        {(suggestions.length > 0 || errorMessage) && (
           <Row
             columns={4}
             sx={{
@@ -176,7 +44,7 @@ const Menu = forwardRef<Ref, Props>(
                   aria-label={formatAddress(suggestion.address)}
                   onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.stopPropagation()
-                    handleSuggestionClick(suggestion)
+                    onSelectSuggestion(suggestion)
                   }}
                   sx={{
                     py: 3,
