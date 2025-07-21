@@ -34,6 +34,8 @@ type LocationStore = {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
   }) => void
+  mapLoading: boolean
+  setMapLoading: (mapLoading: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
 }
@@ -66,7 +68,9 @@ export const useLocationStore = create<LocationStore>((set) => ({
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
-  advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
+  mapLoading: false,
+  setMapLoading: (mapLoading) => set({ mapLoading }),
+  advancedMode: false,
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
 }))

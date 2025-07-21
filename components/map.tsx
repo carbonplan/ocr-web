@@ -29,6 +29,7 @@ const MapComponent = () => {
   const timePeriod = useLocationStore((state) => state.timePeriod)
   const wind = useLocationStore((state) => state.wind)
   const timeHorizon = useLocationStore((state) => state.timeHorizon)
+  const setMapLoading = useLocationStore((state) => state.setMapLoading)
 
   const [colorMode] = useColorMode()
 
@@ -173,6 +174,18 @@ const MapComponent = () => {
         })
       }
 
+      const handleLoadingOn = () => {
+        if (!newMap.isStyleLoaded()) {
+          setMapLoading(true)
+        }
+      }
+
+      const handleLoadingOff = () => {
+        setMapLoading(false)
+      }
+
+      newMap.on('sourcedata', handleLoadingOn)
+      newMap.on('idle', handleLoadingOff)
       newMap.on('moveend', handleMoveEnd)
 
       setMap(newMap)
@@ -180,6 +193,8 @@ const MapComponent = () => {
 
       return () => {
         if (newMap) {
+          newMap.off('sourcedata', handleLoadingOn)
+          newMap.off('idle', handleLoadingOff)
           newMap.off('moveend', handleMoveEnd)
           newMap.remove()
         }
