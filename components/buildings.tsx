@@ -463,7 +463,7 @@ const Buildings = () => {
 
       map.flyTo({
         center: addressLocation,
-        zoom: selectedLocation.address.houseNumber ? 17 : 12,
+        zoom: selectedLocation.address.houseNumber ? 16 : 12,
         offset: [sidebarWidth / 2, 0], // Dynamic offset based on actual sidebar width
       })
 
