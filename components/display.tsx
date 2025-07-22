@@ -11,6 +11,7 @@ const Display = () => {
   const setAttribute = useStore((state) => state.setAttribute)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
+  const advancedMode = useStore((state) => state.advancedMode)
 
   return (
     <>
@@ -36,19 +37,26 @@ const Display = () => {
           <Toggle value={satellite} onClick={() => setSatellite(!satellite)} />
         </Column>
       </Row>
-      <Row variant='labelFieldContainer' columns={4}>
-        <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
-          Wind Risk
-        </Column>
-        <Column start={2} width={3}>
-          <Toggle
-            value={attribute === 'windRisk'}
-            onClick={() =>
-              setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
-            }
-          />
-        </Column>
-      </Row>
+      {advancedMode && (
+        <Row variant='labelFieldContainer' columns={4}>
+          <Column
+            start={1}
+            width={1}
+            variant='label'
+            sx={{ textWrap: 'nowrap' }}
+          >
+            Wind Risk
+          </Column>
+          <Column start={2} width={3}>
+            <Toggle
+              value={attribute === 'windRisk'}
+              onClick={() =>
+                setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
+              }
+            />
+          </Column>
+        </Row>
+      )}
       <Legend />
     </>
   )
