@@ -20,7 +20,7 @@ const SidebarSidecar = ({
   const offset = visible ? OFFSET : 1
   return (
     <SidebarAttachment
-      expanded
+      expanded={visible}
       side='left'
       width={4}
       sx={{
@@ -32,14 +32,15 @@ const SidebarSidecar = ({
         ],
         ...(visible
           ? {
+              transform: 'translateX(0)',
               zIndex: 1,
             }
           : {
-              left: '12px',
-              width: '0px',
+              transform: 'translateX(-100%)',
               zIndex: -1,
             }),
-        ml: '-16px',
+        transition: 'transform 0.2s',
+        ml: ['-12px', '-16px', '-16px', '-24px'],
       }}
     >
       <Flex
