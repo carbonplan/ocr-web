@@ -460,6 +460,7 @@ const Buildings = () => {
         selectedLocation.position.lng,
         selectedLocation.position.lat,
       )
+
       map.flyTo({
         center: addressLocation,
         zoom: selectedLocation.address.houseNumber ? 17 : 12,

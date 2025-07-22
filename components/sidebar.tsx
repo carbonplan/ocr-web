@@ -12,20 +12,29 @@ const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const [showAddressDetails, setShowAddressDetails] = useState<boolean>(false)
   const mapLoading = useStore((state) => state.mapLoading)
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const hasSelectedBuilding = useStore((state) => !!state.selectedBuilding)
+  const houseNumber = useStore(
+    (state) => state.selectedLocation?.address.houseNumber,
+  )
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
 
   useEffect(() => {
-    if (selectedBuilding) {
+    if (hasSelectedBuilding && houseNumber) {
       setShowAddressDetails(true)
+      if (sidebarRef.current) {
+        setSidebarWidth(sidebarRef.current.offsetWidth * 2)
+      }
+    } else if (sidebarRef.current) {
+      setSidebarWidth(sidebarRef.current.offsetWidth)
     }
-  }, [selectedBuilding])
+  }, [houseNumber, hasSelectedBuilding, setSidebarWidth])
 
   useEffect(() => {
     const updateSidebarWidth = () => {
       if (sidebarRef.current) {
         const width = sidebarRef.current.offsetWidth
-        setSidebarWidth(width)
+
+        setSidebarWidth(showAddressDetails ? width * 2 : width)
       }
     }
 
@@ -36,7 +45,7 @@ const SidebarComponent = () => {
     return () => {
       window.removeEventListener('resize', updateSidebarWidth)
     }
-  }, [setSidebarWidth])
+  }, [setSidebarWidth, showAddressDetails])
 
   return (
     <>
@@ -73,6 +82,7 @@ const SidebarComponent = () => {
         visible={showAddressDetails}
         onCollapse={() => setShowAddressDetails(false)}
       />
+
       {mapLoading && (
         <SidebarAttachment
           expanded={true}
