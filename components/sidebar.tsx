@@ -10,9 +10,16 @@ import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const [showAddressDetails, setShowAddressDetails] = useState<boolean>(true)
+  const [showAddressDetails, setShowAddressDetails] = useState<boolean>(false)
   const mapLoading = useStore((state) => state.mapLoading)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
+
+  useEffect(() => {
+    if (selectedBuilding) {
+      setShowAddressDetails(true)
+    }
+  }, [selectedBuilding])
 
   useEffect(() => {
     const updateSidebarWidth = () => {
