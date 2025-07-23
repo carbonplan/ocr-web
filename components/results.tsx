@@ -1,39 +1,34 @@
-import React, { useState, useEffect } from 'react'
-import { Box } from 'theme-ui'
-import AnimateHeight from 'react-animate-height'
+import React from 'react'
+import { Box, Flex } from 'theme-ui'
 import {
+  Button,
   Row,
   Column,
   Badge,
   Filter,
-  Expander,
-  Link,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-import { useLocationStore } from '@/store/location'
+//@ts-expect-error - carbonplan icons types not available
+import { Right } from '@carbonplan/icons'
+import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
-const badgeSx = {
-  fontSize: [1, 1, 1, 2],
-  height: [18, 18, 18, 22],
-}
-
-const renderScoreBadge = (score: number, color: string) => (
-  <Badge sx={{ ...badgeSx, color }}>{score.toFixed(2)}%</Badge>
-)
-
-const Results = () => {
-  const [aboutExpanded, setAboutExpanded] = useState(false)
-
-  const timeHorizon = useLocationStore((state) => state.timeHorizon)
-  const setTimeHorizon = useLocationStore((state) => state.setTimeHorizon)
-  const timePeriod = useLocationStore((state) => state.timePeriod)
-  const setTimePeriod = useLocationStore((state) => state.setTimePeriod)
-  const selectedBuilding = useLocationStore((state) => state.selectedBuilding)
-  const hoveredBuilding = useLocationStore((state) => state.hoveredBuilding)
-  const wind = useLocationStore((state) => state.wind)
-  const colorLimits = useLocationStore((state) => state.colorLimits)
-  const riskConfig = useLocationStore((state) => state.riskConfig)
+const Results = ({
+  showAddressDetails,
+  setShowAddressDetails,
+}: {
+  showAddressDetails: boolean
+  setShowAddressDetails: (value: boolean) => void
+}) => {
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const setTimeHorizon = useStore((state) => state.setTimeHorizon)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const setTimePeriod = useStore((state) => state.setTimePeriod)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const hoveredBuilding = useStore((state) => state.hoveredBuilding)
+  const attribute = useStore((state) => state.attribute)
+  const colorLimits = useStore((state) => state.colorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
@@ -41,109 +36,70 @@ const Results = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  useEffect(() => {
-    if (!selectedBuilding) {
-      setAboutExpanded(false)
-    }
-  }, [selectedBuilding])
+  const riskScore = displayBuilding
+    ? displayBuilding[attribute][timePeriod][timeHorizon]
+    : null
 
-  const calculateRiskScores = (annualProbability: number) => {
-    return {
-      1: annualProbability * 100,
-      15: (1 - Math.pow(1 - annualProbability, 15)) * 100,
-      30: (1 - Math.pow(1 - annualProbability, 30)) * 100,
-    }
-  }
-
-  const getRiskScoreForHorizon = (riskType: 'baseRisk' | 'windRisk') => {
-    if (!displayBuilding) return null
-
-    const riskAttribute =
-      riskType === 'baseRisk'
-        ? riskConfig.attributes.baseRisk[timePeriod]
-        : riskConfig.attributes.windRisk[timePeriod]
-
-    const riskValue = displayBuilding[riskAttribute]
-    if (!riskValue) return null
-
-    const riskScores = calculateRiskScores(Number(riskValue))
-    return riskScores[timeHorizon]
-  }
-
-  const baseRiskScore = getRiskScoreForHorizon('baseRisk')
-  const windRiskScore = getRiskScoreForHorizon('windRisk')
-  const mainRiskScore = wind ? windRiskScore : baseRiskScore
-
-  const mainScoreColor = getColorForRiskScore(
-    mainRiskScore,
+  const scoreColor = getColorForRiskScore(
+    riskScore,
     colormap,
     colorLimits,
     riskConfig.binRatios,
     'primary',
   )
-
-  const baseScoreColor = getColorForRiskScore(
-    baseRiskScore,
-    colormap,
-    colorLimits,
-    riskConfig.binRatios,
-    'primary',
-  )
-
-  const windScoreColor = getColorForRiskScore(
-    windRiskScore,
-    colormap,
-    colorLimits,
-    riskConfig.binRatios,
-    'primary',
-  )
-
-  const getRiskScoreDeltaWording = () => {
-    if (baseRiskScore === null || windRiskScore === null) {
-      return null
-    }
-
-    const scoreDifference = windRiskScore - baseRiskScore
-
-    if (scoreDifference > 0.01) {
-      return (
-        <>
-          increases the burn probability to{' '}
-          {renderScoreBadge(windRiskScore, windScoreColor)}.
-        </>
-      )
-    } else if (scoreDifference < -0.01) {
-      return (
-        <>
-          decreases the burn probability to{' '}
-          {renderScoreBadge(windRiskScore, windScoreColor)}.
-        </>
-      )
-    } else {
-      return <>does not significantly change the burn probability.</>
-    }
-  }
-
   return (
     <>
       <Row columns={4} sx={{ my: 3, alignItems: 'baseline' }}>
-        <Column start={1} width={1} variant='sectionHeading'>
-          Results
+        <Column start={1} width={4} variant='sectionHeading'>
+          Climate risk
         </Column>
-        <Column start={2} width={3}>
-          {!selectedBuilding && (
-            <Box
-              variant='field'
-              sx={{ fontSize: 1, color: 'secondary', textTransform: 'none' }}
-            >
-              Select a structure
-            </Box>
-          )}
+        <Column start={2} width={3}></Column>
+      </Row>
+      <Row columns={4} variant='labelFieldContainer'>
+        <Column start={1} width={4} sx={{ height: 25 }}>
+          <Flex sx={{ gap: 3 }}>
+            <Badge sx={{ color: scoreColor }}>
+              {riskScore !== null ? `${riskScore.toFixed(2)}%` : '-----'}
+            </Badge>
+            {selectedBuilding ? (
+              <Button
+                variant='label'
+                suffix={
+                  <Right
+                    sx={{
+                      mt: -1,
+                      transform: showAddressDetails
+                        ? 'scaleX(-1) rotate(45deg) '
+                        : 'rotate(45deg) scaleX(1)',
+                    }}
+                  />
+                }
+                inverted
+                size='xs'
+                onClick={() => setShowAddressDetails(!showAddressDetails)}
+                sx={{
+                  fontFamily: 'mono',
+                  fontSize: [2, 2, 2, 3],
+                  color: 'secondary',
+                  letterSpacing: 'smallcaps',
+                }}
+              >
+                About this score
+              </Button>
+            ) : (
+              <Box
+                variant='field'
+                sx={{ fontSize: 1, color: 'secondary', textTransform: 'none' }}
+              >
+                select a structure to view score
+              </Box>
+            )}
+          </Flex>
         </Column>
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
         <Column start={1} width={1} variant='label'>
-          Risk
+          Hazard
         </Column>
         <Column start={2} width={3}>
           <Filter values={{ Fire: true }} colors={{ Fire: 'red' }} />
@@ -151,7 +107,7 @@ const Results = () => {
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
         <Column start={1} width={1} variant='label'>
-          Period
+          Scenario
         </Column>
         <Column start={2} width={3}>
           <Filter
@@ -178,7 +134,7 @@ const Results = () => {
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
         <Column start={1} width={1} variant='label'>
-          Horizon
+          Timeframe
         </Column>
         <Column start={2} width={3}>
           <Filter
@@ -197,66 +153,11 @@ const Results = () => {
               }
             }}
             labels={{
-              1: '01-Year',
+              1: '1-Year',
               15: '15-Year',
               30: '30-Year',
             }}
           />
-        </Column>
-      </Row>
-      <Row columns={4} variant='labelFieldContainer'>
-        <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
-          score
-        </Column>
-        <Column start={2} width={3} sx={{ height: 25 }}>
-          <Badge sx={{ color: mainScoreColor }}>
-            {mainRiskScore !== null ? `${mainRiskScore.toFixed(2)}%` : '---'}
-          </Badge>
-        </Column>
-      </Row>
-      <Row columns={4} variant='labelFieldContainer'>
-        <Column
-          start={1}
-          width={4}
-          variant='label'
-          sx={{ display: 'flex', alignItems: 'center', gap: 2, height: 25 }}
-        >
-          About this score
-          {selectedBuilding && (
-            <Expander
-              value={aboutExpanded}
-              onClick={() => setAboutExpanded(!aboutExpanded)}
-            />
-          )}
-        </Column>
-        <Column start={1} width={4}>
-          <AnimateHeight
-            duration={300}
-            height={
-              aboutExpanded &&
-              (baseRiskScore !== null || windRiskScore !== null)
-                ? 'auto'
-                : 0
-            }
-          >
-            {baseRiskScore !== null && windRiskScore !== null && (
-              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
-                <Box sx={{ mb: 2 }}>
-                  The risk score for this address is derived using the annual
-                  burn probability generated in the US Forest Service&apos;s
-                  Wildfire Risk to Communities dataset (
-                  {renderScoreBadge(baseRiskScore, baseScoreColor)}
-                  ). We then use historical wind data from fire weather days to
-                  predict how wildfire could spread, which{' '}
-                  {getRiskScoreDeltaWording()}
-                </Box>
-                <Box>
-                  Read our <Link href='#TK'>research methods</Link> for a
-                  detailed description
-                </Box>
-              </Box>
-            )}
-          </AnimateHeight>
         </Column>
       </Row>
     </>

@@ -1,17 +1,17 @@
 import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Row, Column, Toggle } from '@carbonplan/components'
-import { useLocationStore } from '../store/location'
+import { useStore } from '../lib/store'
 import { Legend } from './'
 
 const Display = () => {
-  const satellite = useLocationStore((state) => state.satellite)
-  const setSatellite = useLocationStore((state) => state.setSatellite)
-  const wind = useLocationStore((state) => state.wind)
-  const setWind = useLocationStore((state) => state.setWind)
-  const riskRaster = useLocationStore((state) => state.riskRaster)
-  const setRiskRaster = useLocationStore((state) => state.setRiskRaster)
-  const advancedMode = useLocationStore((state) => state.advancedMode)
+  const satellite = useStore((state) => state.satellite)
+  const setSatellite = useStore((state) => state.setSatellite)
+  const attribute = useStore((state) => state.attribute)
+  const setAttribute = useStore((state) => state.setAttribute)
+  const riskRaster = useStore((state) => state.riskRaster)
+  const setRiskRaster = useStore((state) => state.setRiskRaster)
+  const advancedMode = useStore((state) => state.advancedMode)
 
   return (
     <>
@@ -48,7 +48,12 @@ const Display = () => {
             Wind Risk
           </Column>
           <Column start={2} width={3}>
-            <Toggle value={wind} onClick={() => setWind(!wind)} />
+            <Toggle
+              value={attribute === 'windRisk'}
+              onClick={() =>
+                setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
+              }
+            />
           </Column>
         </Row>
       )}

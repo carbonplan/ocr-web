@@ -4,7 +4,7 @@ import { Box } from 'theme-ui'
 import { Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarDivider } from '@carbonplan/layouts'
-import { useLocationStore } from '../../store/location'
+import { useStore } from '../../lib/store'
 import { Location, Suggestion } from '../../types/location'
 import { formatAddress } from '@/lib/address-utils'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -21,9 +21,7 @@ const Menu = forwardRef<Ref, Props>(
   ({ focusInput, isEditing, query, setIsEditing }, ref) => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([])
     const [selectedIndex, setSelectedIndex] = useState(-1)
-    const setSelectedLocation = useLocationStore(
-      (state) => state.setSelectedLocation,
-    )
+    const setSelectedLocation = useStore((state) => state.setSelectedLocation)
     const debouncedQuery = useDebounce(query, 300)
 
     const fetchSuggestions = async (searchQuery: string) => {

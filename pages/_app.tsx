@@ -5,14 +5,12 @@ import type { AppProps } from 'next/app'
 import { AuthProvider } from '@carbonplan/auth'
 import { ThemeProvider } from 'theme-ui'
 import theme from '@/lib/theme'
-import { useLocationStore } from '@/store/location'
+import { useStore } from '@/lib/store'
 import '@carbonplan/components/fonts.css'
 import '@carbonplan/components/globals.css'
 
 const App = ({ Component, pageProps }: AppProps) => {
-  const toggleAdvancedMode = useLocationStore(
-    (state) => state.toggleAdvancedMode,
-  )
+  const toggleAdvancedMode = useStore((state) => state.toggleAdvancedMode)
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

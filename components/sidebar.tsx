@@ -1,22 +1,40 @@
 import { Box, Spinner } from 'theme-ui'
-import { useRef, useEffect } from 'react'
-import { useLocationStore } from '@/store/location'
+import { useRef, useEffect, useState } from 'react'
+import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar, SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
 import { Link } from '@carbonplan/components'
 import { Display, Geocode, Results } from '../components'
+import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const setSidebarWidth = useLocationStore((state) => state.setSidebarWidth)
-  const mapLoading = useLocationStore((state) => state.mapLoading)
+  const [showAddressDetails, setShowAddressDetails] = useState<boolean>(false)
+  const mapLoading = useStore((state) => state.mapLoading)
+  const hasSelectedBuilding = useStore((state) => !!state.selectedBuilding)
+  const houseNumber = useStore(
+    (state) => state.selectedLocation?.address.houseNumber,
+  )
+  const setSidebarWidth = useStore((state) => state.setSidebarWidth)
+
+  useEffect(() => {
+    if (hasSelectedBuilding && houseNumber) {
+      setShowAddressDetails(true)
+      if (sidebarRef.current) {
+        setSidebarWidth(sidebarRef.current.offsetWidth * 2)
+      }
+    } else if (sidebarRef.current) {
+      setSidebarWidth(sidebarRef.current.offsetWidth)
+    }
+  }, [houseNumber, hasSelectedBuilding, setSidebarWidth])
 
   useEffect(() => {
     const updateSidebarWidth = () => {
       if (sidebarRef.current) {
         const width = sidebarRef.current.offsetWidth
-        setSidebarWidth(width)
+
+        setSidebarWidth(showAddressDetails ? width * 2 : width)
       }
     }
 
@@ -27,7 +45,7 @@ const SidebarComponent = () => {
     return () => {
       window.removeEventListener('resize', updateSidebarWidth)
     }
-  }, [setSidebarWidth])
+  }, [setSidebarWidth, showAddressDetails])
 
   return (
     <>
@@ -53,15 +71,23 @@ const SidebarComponent = () => {
             <Link href='#TK'>analysis examples</Link> for more details.
           </Box>
           <Geocode />
-          <Results />
+          <Results
+            showAddressDetails={showAddressDetails}
+            setShowAddressDetails={setShowAddressDetails}
+          />
           <Display />
         </div>
       </Sidebar>
+      <AddressDetails
+        visible={showAddressDetails}
+        onCollapse={() => setShowAddressDetails(false)}
+      />
+
       {mapLoading && (
         <SidebarAttachment
           expanded={true}
           side='left'
-          width={4}
+          width={showAddressDetails ? 8 : 4}
           sx={{
             top: '16px',
           }}
