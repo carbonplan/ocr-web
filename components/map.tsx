@@ -12,7 +12,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { useColorMode } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
-import { useLocationStore } from '../store/location'
+import { useStore } from '../lib/store'
 import { Buildings } from './'
 import { generateColormap } from '@/lib/colormaps'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
@@ -21,14 +21,15 @@ const MapComponent = () => {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<Map | null>(null) // ref for cleanup
-  const map = useLocationStore((state) => state.map)
-  const setMap = useLocationStore((state) => state.setMap)
-  const satellite = useLocationStore((state) => state.satellite)
-  const riskRaster = useLocationStore((state) => state.riskRaster)
-  const riskConfig = useLocationStore((state) => state.riskConfig)
-  const timePeriod = useLocationStore((state) => state.timePeriod)
-  const wind = useLocationStore((state) => state.wind)
-  const timeHorizon = useLocationStore((state) => state.timeHorizon)
+  const map = useStore((state) => state.map)
+  const setMap = useStore((state) => state.setMap)
+  const satellite = useStore((state) => state.satellite)
+  const riskRaster = useStore((state) => state.riskRaster)
+  const riskConfig = useStore((state) => state.riskConfig)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const attribute = useStore((state) => state.attribute)
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const setMapLoading = useStore((state) => state.setMapLoading)
 
   const [colorMode] = useColorMode()
 
@@ -85,12 +86,10 @@ const MapComponent = () => {
   }, [riskConfig, lightColormap, darkColormap])
 
   const activeRiskLayerId = useMemo(() => {
-    const riskAttribute = wind
-      ? riskConfig.attributes.windRisk[timePeriod]
-      : riskConfig.attributes.baseRisk[timePeriod]
+    const riskAttribute = riskConfig.attributes[attribute][timePeriod]
     const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
     return `wms_risk_${riskAttribute}_horizon_${timeHorizon}_${currentTheme}`
-  }, [wind, riskConfig, timePeriod, timeHorizon, colorMode])
+  }, [attribute, riskConfig, timePeriod, timeHorizon, colorMode])
 
   useEffect(() => {
     if (mapContainer.current && router.isReady) {
@@ -173,6 +172,18 @@ const MapComponent = () => {
         })
       }
 
+      const handleLoadingOn = () => {
+        if (!newMap.isStyleLoaded()) {
+          setMapLoading(true)
+        }
+      }
+
+      const handleLoadingOff = () => {
+        setMapLoading(false)
+      }
+
+      newMap.on('sourcedata', handleLoadingOn)
+      newMap.on('idle', handleLoadingOff)
       newMap.on('moveend', handleMoveEnd)
 
       setMap(newMap)
@@ -180,6 +191,8 @@ const MapComponent = () => {
 
       return () => {
         if (newMap) {
+          newMap.off('sourcedata', handleLoadingOn)
+          newMap.off('idle', handleLoadingOff)
           newMap.off('moveend', handleMoveEnd)
           newMap.remove()
         }

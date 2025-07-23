@@ -33,8 +33,20 @@ export type Location = {
   mapView?: BoundingBox
 }
 
+type TimeFrames = {
+  1: number
+  15: number
+  30: number
+}
+
+export type RiskScoreSet = {
+  current: TimeFrames
+  future: TimeFrames
+}
+
 export type Building = {
-  [key: string]: number
+  baseRisk: RiskScoreSet
+  windRisk: RiskScoreSet
 }
 
 export type Suggestion = {
