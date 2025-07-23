@@ -6,10 +6,6 @@ import { SidebarAttachment } from '@carbonplan/layouts'
 import { Row } from '@carbonplan/components'
 import { ReactNode } from 'react'
 
-const SIDEBAR_WIDTH = 4
-const SIDECAR_WIDTH = 4
-const OFFSET = SIDEBAR_WIDTH + SIDECAR_WIDTH
-
 const SidebarSidecar = ({
   visible,
   children,
@@ -17,30 +13,19 @@ const SidebarSidecar = ({
   visible: boolean
   children: ReactNode
 }) => {
-  const offset = visible ? OFFSET : 1
   return (
     <SidebarAttachment
       expanded={visible}
-      side='left'
-      width={4}
       sx={{
-        right: [
-          `calc(${6 - offset} * (100vw - 7 * 24px) / 6 + ${12 - offset} * 24px)`,
-          `calc(${8 - offset} * (100vw - 9 * 32px) / 8 + ${12 - offset} * 32px)`,
-          `calc(${12 - offset} * (100vw - 13 * 32px) / 12 + ${12 - offset} * 32px)`,
-          `calc(${12 - offset} * (100vw - 13 * 48px) / 12 + ${12 - offset} * 48px)`,
+        mx: [
+          'calc(33.333% + 32px)',
+          'calc(33.333% + 32px)',
+          'calc(33.333% + 20px)',
+          'calc(33.333% + 32px)',
         ],
-        ...(visible
-          ? {
-              transform: 'translateX(0)',
-              zIndex: 1,
-            }
-          : {
-              transform: 'translateX(-100%)',
-              zIndex: -1,
-            }),
+        transform: visible ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.2s',
-        ml: ['-12px', '-16px', '-16px', '-24px'],
+        zIndex: 1,
       }}
     >
       <Flex
@@ -60,7 +45,7 @@ const SidebarSidecar = ({
           }}
         >
           <Row
-            columns={SIDECAR_WIDTH}
+            columns={4}
             sx={{
               flex: '0 0 auto',
               height: '100%',
