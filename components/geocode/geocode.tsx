@@ -9,11 +9,17 @@ import { SidebarDivider } from '@carbonplan/layouts'
 import { X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
 import { formatAddress } from '@/lib/address-utils'
+import { Suggestion } from '../../types/location'
+import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
 
 const Geocode = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [errorMessage, setErrorMessage] = useState<string>('')
+  const debouncedQuery = useDebounce(searchQuery, 300)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -42,23 +48,112 @@ const Geocode = () => {
     }
   }, [selectedLocation])
 
+  useEffect(() => {
+    if (!isEditing) {
+      setSuggestions([])
+      setSelectedIndex(-1)
+      setErrorMessage('')
+    }
+  }, [isEditing])
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestions([])
+      setErrorMessage('')
+    }
+  }, [searchQuery])
+
+  useEffect(() => {
+    if (debouncedQuery.trim() && searchQuery.trim() && isEditing) {
+      fetchSuggestions(debouncedQuery)
+    }
+  }, [debouncedQuery, searchQuery, isEditing])
+
+  const fetchSuggestions = async (query: string): Promise<Suggestion[]> => {
+    try {
+      const response = await fetch(
+        `/api/geocode/autocomplete?q=${encodeURIComponent(query)}`,
+      )
+      const data = await response.json()
+      const results = data.items || []
+      setSuggestions(results)
+
+      if (results.length === 0) {
+        setErrorMessage('No results found')
+      } else {
+        setErrorMessage('')
+      }
+      return results
+    } catch (error) {
+      console.error('Autocomplete error:', error)
+      setErrorMessage('Error searching for location')
+      setSuggestions([])
+      return []
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault()
-        menuRef.current?.focus()
+        if (suggestions.length > 0) {
+          setSelectedIndex((prev) =>
+            prev < suggestions.length - 1 ? prev + 1 : prev,
+          )
+        }
         break
       case 'ArrowUp':
+        e.preventDefault()
+        if (selectedIndex > 0) {
+          setSelectedIndex((prev) => prev - 1)
+        } else if (selectedIndex === 0) {
+          setSelectedIndex(-1)
+        }
         break
       case 'Tab':
+        setIsEditing(false)
+        setSelectedIndex(-1)
         break
       case 'Escape':
         e.preventDefault()
         setIsEditing(false)
-        menuRef.current?.blur()
+        setSelectedIndex(-1)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handleSuggestionSelect(suggestions[selectedIndex])
+        } else {
+          handleEnterKeyPress()
+        }
         break
       default:
         setIsEditing(true)
+        setSelectedIndex(-1)
+    }
+  }
+
+  const handleSuggestionSelect = async (suggestion: Suggestion) => {
+    try {
+      const locationResponse = await fetch(
+        `/api/geocode/lookup?id=${suggestion.id}`,
+      )
+      const location = await locationResponse.json()
+      setSelectedLocation(location)
+      setIsEditing(false)
+      setSelectedIndex(-1)
+      setSearchQuery('')
+      inputRef.current?.blur()
+    } catch (error) {
+      console.error('Suggestion selection error:', error)
+    }
+  }
+
+  const handleEnterKeyPress = async () => {
+    if (!searchQuery.trim()) return
+    const results = await fetchSuggestions(searchQuery)
+    if (results.length > 0) {
+      handleSuggestionSelect(results[0])
     }
   }
 
@@ -66,12 +161,15 @@ const Geocode = () => {
     setSelectedLocation(null)
     setSelectedBuilding(null)
     setSearchQuery('')
+    setSelectedIndex(-1)
   }
 
   return (
-    <Box sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}>
+    <Box
+      ref={wrapperRef}
+      sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}
+    >
       <Box
-        ref={wrapperRef}
         onClick={() => inputRef.current?.focus()}
         sx={{
           background: 'background',
@@ -147,15 +245,16 @@ const Geocode = () => {
         </Row>
 
         <SidebarDivider sx={{ mt: 3 }} />
-
-        <Menu
-          query={searchQuery}
-          focusInput={() => inputRef.current?.focus()}
-          ref={menuRef}
-          isEditing={isEditing}
-          setIsEditing={setIsEditing}
-        />
       </Box>
+      {isEditing && (
+        <Menu
+          suggestions={suggestions}
+          selectedIndex={selectedIndex}
+          errorMessage={errorMessage}
+          onSelectSuggestion={handleSuggestionSelect}
+          ref={menuRef}
+        />
+      )}
     </Box>
   )
 }
