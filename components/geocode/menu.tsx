@@ -79,9 +79,7 @@ const Menu = forwardRef<Ref, Props>(
                 </Box>
               )}
 
-              {(suggestions.length > 0 || errorMessage) && (
-                <SidebarDivider sx={{ my: 0 }} />
-              )}
+              <SidebarDivider sx={{ my: 0 }} />
             </Column>
           </Row>
         )}
