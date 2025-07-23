@@ -461,10 +461,16 @@ const Buildings = () => {
         selectedLocation.position.lat,
       )
 
+      // Optimistically assume double width when we have a house number since the sidecar will open
+      const willShowSidecar = !!selectedLocation.address.houseNumber
+      const effectiveSidebarWidth = willShowSidecar
+        ? sidebarWidth * 2
+        : sidebarWidth
+
       map.flyTo({
         center: addressLocation,
         zoom: selectedLocation.address.houseNumber ? 16 : 12,
-        offset: [sidebarWidth / 2, 0], // Dynamic offset based on actual sidebar width
+        offset: [effectiveSidebarWidth / 2, 0],
       })
 
       const handleMoveEnd = () => {
