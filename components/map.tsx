@@ -33,25 +33,13 @@ const MapComponent = () => {
 
   const [colorMode] = useColorMode()
 
-  const baseLightColormap = useMemo(
+  const lightColormap = useMemo(
     () => generateColormap(riskConfig.colormap, { count: 30, mode: 'light' }),
     [riskConfig.colormap],
   )
-  const baseDarkColormap = useMemo(
+  const darkColormap = useMemo(
     () => generateColormap(riskConfig.colormap, { count: 30, mode: 'dark' }),
     [riskConfig.colormap],
-  )
-
-  const lightBg = '#ffffff'
-  const darkBg = '#1b1e23'
-
-  const lightColormap = useMemo(
-    () => [lightBg, ...baseLightColormap],
-    [lightBg, baseLightColormap],
-  )
-  const darkColormap = useMemo(
-    () => [darkBg, ...baseDarkColormap],
-    [darkBg, baseDarkColormap],
   )
 
   const { mapLayers, sprite } = useMapTheme()
@@ -71,7 +59,7 @@ const MapComponent = () => {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const attr of riskAttributes) {
         for (const horizon of timeHorizons) {
-          const url = `${process.env.NEXT_PUBLIC_RISK_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=0,100&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+          const url = `${process.env.NEXT_PUBLIC_RISK_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${riskConfig.bounds.min},${riskConfig.bounds.max}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
           matrix.push({
             id: `wms_risk_${attr}_horizon_${horizon}_${themeType}`,
             riskAttribute: attr,
