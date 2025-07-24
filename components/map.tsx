@@ -30,7 +30,7 @@ const MapComponent = () => {
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const setMapLoading = useStore((state) => state.setMapLoading)
-  const geography = useStore((state) => state.geography)
+  const geographies = useStore((state) => state.geographies)
 
   const [colorMode] = useColorMode()
 
@@ -265,7 +265,7 @@ const MapComponent = () => {
       }}
     >
       <Counties />
-      {geography === 'building' && <Buildings />}
+      {geographies.building && <Buildings />}
     </div>
   )
 }

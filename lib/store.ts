@@ -21,8 +21,8 @@ type Store = {
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   activeCounty: County | null
   setActiveCounty: (county: County | null) => void
-  geography: 'building' | 'county'
-  setGeography: (geography: 'building' | 'county') => void
+  geographies: { building: boolean; county: boolean }
+  setGeographies: (geographies: { building: boolean; county: boolean }) => void
   timeHorizon: 1 | 15 | 30
   setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   timePeriod: 'current' | 'future'
@@ -68,8 +68,8 @@ export const useStore = create<Store>((set) => ({
     })),
   activeCounty: null,
   setActiveCounty: (county) => set({ activeCounty: county }),
-  geography: 'building',
-  setGeography: (geography) => set({ geography }),
+  geographies: { building: true, county: false },
+  setGeographies: (geographies) => set({ geographies }),
   timeHorizon: 1,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',

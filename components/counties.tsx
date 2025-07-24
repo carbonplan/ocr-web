@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
+import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
@@ -8,8 +8,7 @@ import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 const Counties = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const geography = useStore((state) => state.geography)
-  const setActiveCounty = useStore((state) => state.setActiveCounty)
+  const geographies = useStore((state) => state.geographies)
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
@@ -87,23 +86,6 @@ const Counties = () => {
     riskConfig.bounds.min,
   ])
 
-  const handleCountyClick = useCallback(
-    (e: MapMouseEvent) => {
-      if (!map || geography !== 'county') return
-
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [LAYERS.counties.layerIds.fill],
-      })
-
-      if (features.length > 0) {
-        setActiveCounty(features[0].properties)
-      } else {
-        setActiveCounty(null)
-      }
-    },
-    [map, geography, setActiveCounty],
-  )
-
   useEffect(() => {
     if (!map) return
 
@@ -124,7 +106,7 @@ const Counties = () => {
             'source-layer': LAYERS.counties.layerName,
             paint: {
               'fill-color': colorExpression,
-              'fill-opacity': geography === 'county' ? 1 : 0,
+              'fill-opacity': geographies.county ? 1 : 0,
             },
           },
           'background',
@@ -139,7 +121,7 @@ const Counties = () => {
             source: LAYERS.counties.sourceId,
             'source-layer': LAYERS.counties.layerName,
             paint: {
-              'line-opacity': geography === 'county' ? 0.8 : 0,
+              'line-opacity': geographies.county ? 0.8 : 0,
               'line-color': get(theme, 'rawColors.muted'),
               'line-width': 1,
             },
@@ -155,13 +137,9 @@ const Counties = () => {
       map.on('load', initializeLayers)
     }
 
-    map.on('click', handleCountyClick)
-
     return () => {
       try {
         if (!map) return
-
-        map.off('click', handleCountyClick)
 
         if (map.getLayer(LAYERS.counties.layerIds.fill)) {
           map.removeLayer(LAYERS.counties.layerIds.fill)
@@ -194,16 +172,16 @@ const Counties = () => {
     map.setPaintProperty(
       LAYERS.counties.layerIds.fill,
       'fill-opacity',
-      geography === 'county' ? 1 : 0,
+      geographies.county ? 1 : 0,
     )
     if (map.getLayer(LAYERS.counties.layerIds.line)) {
       map.setPaintProperty(
         LAYERS.counties.layerIds.line,
         'line-opacity',
-        geography === 'county' ? 0.8 : 0,
+        geographies.county ? 0.8 : 0,
       )
     }
-  }, [map, geography])
+  }, [map, geographies.county])
 
   return null
 }

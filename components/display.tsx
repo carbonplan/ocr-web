@@ -11,8 +11,8 @@ const Display = () => {
   const setAttribute = useStore((state) => state.setAttribute)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
-  const geography = useStore((state) => state.geography)
-  const setGeography = useStore((state) => state.setGeography)
+  const geographies = useStore((state) => state.geographies)
+  const setGeographies = useStore((state) => state.setGeographies)
   const advancedMode = useStore((state) => state.advancedMode)
 
   return (
@@ -26,19 +26,13 @@ const Display = () => {
         </Column>
         <Column start={2} width={3}>
           <Filter
-            values={{
-              building: geography === 'building',
-              county: geography === 'county',
-            }}
+            values={geographies}
+            multiSelect
             setValues={(values: Record<string, boolean>) => {
-              const selectedMode = Object.keys(values).find(
-                (key) => values[key],
-              )
-              if (selectedMode === 'building') {
-                setGeography('building')
-              } else if (selectedMode === 'county') {
-                setGeography('county')
-              }
+              setGeographies({
+                building: values.building,
+                county: values.county,
+              })
             }}
           />
         </Column>

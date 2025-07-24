@@ -391,7 +391,7 @@ const Buildings = () => {
               'fill-color': colorExpression,
             },
           },
-          'background',
+          LAYERS.counties.layerIds.line,
         )
       }
 
@@ -436,7 +436,7 @@ const Buildings = () => {
               ],
             },
           },
-          'background',
+          LAYERS.buildings.layerIds.fill,
         )
       }
     }
