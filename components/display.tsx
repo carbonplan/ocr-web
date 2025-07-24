@@ -1,6 +1,6 @@
 import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Row, Column, Toggle } from '@carbonplan/components'
+import { Row, Column, Toggle, Filter } from '@carbonplan/components'
 import { useStore } from '../lib/store'
 import { Legend } from './'
 
@@ -11,6 +11,8 @@ const Display = () => {
   const setAttribute = useStore((state) => state.setAttribute)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
+  const geography = useStore((state) => state.geography)
+  const setGeography = useStore((state) => state.setGeography)
   const advancedMode = useStore((state) => state.advancedMode)
 
   return (
@@ -18,6 +20,29 @@ const Display = () => {
       <Box variant='sectionHeading' sx={{ mt: 5, mb: 3 }}>
         Display
       </Box>
+      <Row variant='labelFieldContainer' columns={4}>
+        <Column start={1} width={1} variant='label'>
+          Geography
+        </Column>
+        <Column start={2} width={3}>
+          <Filter
+            values={{
+              building: geography === 'building',
+              county: geography === 'county',
+            }}
+            setValues={(values: Record<string, boolean>) => {
+              const selectedMode = Object.keys(values).find(
+                (key) => values[key],
+              )
+              if (selectedMode === 'building') {
+                setGeography('building')
+              } else if (selectedMode === 'county') {
+                setGeography('county')
+              }
+            }}
+          />
+        </Column>
+      </Row>
       <Row variant='labelFieldContainer' columns={4}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Raw data
