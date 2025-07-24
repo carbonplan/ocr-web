@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { Map, MapGeoJSONFeature } from 'maplibre-gl'
-import { Location, Building } from '../types/location'
+import { Location, Building, County } from '../types/location'
 import { RISKS } from './config'
 import { getBuildingRiskScores } from './risk-utils'
 
@@ -19,6 +19,8 @@ type Store = {
   ) => void
   hoveredBuilding: Building | null
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
+  activeCounty: County | null
+  setActiveCounty: (county: County | null) => void
   timeHorizon: 1 | 15 | 30
   setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
   timePeriod: 'current' | 'future'
@@ -62,6 +64,8 @@ export const useStore = create<Store>((set) => ({
     set((state) => ({
       hoveredBuilding: getBuildingRiskScores(building, state.riskConfig),
     })),
+  activeCounty: null,
+  setActiveCounty: (county) => set({ activeCounty: county }),
   timeHorizon: 1,
   setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',

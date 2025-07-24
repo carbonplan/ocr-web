@@ -7,6 +7,14 @@ export const LAYERS = {
       line: 'buildings-line',
     },
   },
+  counties: {
+    layerName: 'risk',
+    sourceId: 'counties',
+    layerIds: {
+      fill: 'counties-fill',
+      line: 'counties-line',
+    },
+  },
 } as const
 
 export const RISKS = {

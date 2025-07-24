@@ -49,6 +49,10 @@ export type Building = {
   windRisk: RiskScoreSet
 }
 
+export type County = {
+  [key: string]: string | number
+} // TODO: flesh out types for county and building
+
 export type Suggestion = {
   title: string
   id: string

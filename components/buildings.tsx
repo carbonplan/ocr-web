@@ -19,6 +19,7 @@ const Buildings = () => {
   const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
+  const setActiveCounty = useStore((state) => state.setActiveCounty)
   const attribute = useStore((state) => state.attribute)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const timeHorizon = useStore((state) => state.timeHorizon)
@@ -199,6 +200,26 @@ const Buildings = () => {
     map.getCanvas().style.cursor = ''
   }, [map, setHoveredBuilding])
 
+  const queryCountyAtPoint = useCallback(
+    (lng: number, lat: number) => {
+      if (!map) return
+
+      const countyFeatures = map.queryRenderedFeatures(
+        map.project([lng, lat]),
+        {
+          layers: [LAYERS.counties.layerIds.fill],
+        },
+      )
+
+      if (countyFeatures.length > 0) {
+        setActiveCounty(countyFeatures[0].properties)
+      } else {
+        setActiveCounty(null)
+      }
+    },
+    [map, setActiveCounty],
+  )
+
   const handleMapClick = useCallback(
     async (e: MapMouseEvent) => {
       if (!map) return
@@ -225,6 +246,8 @@ const Buildings = () => {
         const feature = features[0]
         const { lng, lat } = e.lngLat
         isUserClick.current = true
+
+        queryCountyAtPoint(lng, lat)
 
         if (feature.id) {
           map.removeFeatureState({
@@ -256,13 +279,21 @@ const Buildings = () => {
       } else {
         setSelectedBuilding(null)
         setSelectedLocation(null)
+        setActiveCounty(null)
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
         })
       }
     },
-    [map, setSelectedBuilding, setSelectedLocation, setHoveredBuilding],
+    [
+      map,
+      setSelectedBuilding,
+      setSelectedLocation,
+      setHoveredBuilding,
+      queryCountyAtPoint,
+      setActiveCounty,
+    ],
   )
 
   const highlightBuildingAtLocation = useCallback(
@@ -307,6 +338,8 @@ const Buildings = () => {
           const closestBuilding = featuresWithDistance[0].feature
           setSelectedBuilding(closestBuilding.properties)
 
+          queryCountyAtPoint(lng, lat)
+
           map.setFeatureState(
             {
               source: LAYERS.buildings.sourceId,
@@ -318,7 +351,7 @@ const Buildings = () => {
         }
       }
     },
-    [map, setSelectedBuilding],
+    [map, setSelectedBuilding, queryCountyAtPoint],
   )
 
   useEffect(() => {
