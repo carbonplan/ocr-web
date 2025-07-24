@@ -356,7 +356,11 @@ const Buildings = () => {
 
   useEffect(() => {
     // remove highlight when building is deselected outside of map context
-    if (!selectedBuilding && map?.isStyleLoaded()) {
+    if (
+      !selectedBuilding &&
+      map?.isStyleLoaded() &&
+      map.getSource(LAYERS.buildings.sourceId)
+    ) {
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
         sourceLayer: LAYERS.buildings.layerName,
