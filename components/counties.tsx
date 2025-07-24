@@ -1,9 +1,108 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
+import { useThemeUI, get } from 'theme-ui'
+import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
+import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Counties = () => {
+  const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
+  const geography = useStore((state) => state.geography)
+  const setActiveCounty = useStore((state) => state.setActiveCounty)
+  const attribute = useStore((state) => state.attribute)
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const colorLimits = useStore((state) => state.colorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
+
+  const riskAttribute = riskConfig.attributes[attribute][timePeriod]
+  const avgRiskAttribute = `avg_${riskAttribute}_horizon_${timeHorizon}`
+
+  const colormap = useColormap(riskConfig.colormap, {
+    format: 'hex',
+    count: colorLimits.type === 'discrete' ? 5 : 256,
+  })
+
+  const colorExpression: ExpressionSpecification = useMemo(() => {
+    if (!colormap?.length) return ['literal', 'transparent']
+
+    const wrap = (expr: ExpressionSpecification) => [
+      'case',
+      ['<', ['to-number', ['get', avgRiskAttribute]], riskConfig.bounds.min],
+      get(theme, 'rawColors.muted'),
+      expr,
+    ]
+
+    const makeDiscrete = (): ExpressionSpecification => {
+      const steps: (string | number)[] = []
+
+      const stepValues = calculateBinBoundaries(
+        colorLimits.bounds,
+        riskConfig.binRatios,
+      ).slice(1) // remove first value to shift to correct step
+
+      stepValues.forEach((value: number, index: number) => {
+        if (index < colormap.length - 1) {
+          steps.push(value, colormap[index + 1])
+        }
+      })
+
+      return [
+        'step',
+        ['to-number', ['get', avgRiskAttribute]],
+        colormap[0],
+        ...steps,
+      ] as ExpressionSpecification
+    }
+
+    const makeContinuous = (): ExpressionSpecification => {
+      const stops: (string | number)[] = []
+      colormap.forEach((color: string, index: number) => {
+        const rawValue =
+          colorLimits.bounds[0] +
+          (index / (colormap.length - 1)) *
+            (colorLimits.bounds[1] - colorLimits.bounds[0])
+        stops.push(rawValue, color)
+      })
+
+      return [
+        'interpolate',
+        ['linear'],
+        ['to-number', ['get', avgRiskAttribute]],
+        ...stops,
+      ] as ExpressionSpecification
+    }
+
+    return wrap(
+      colorLimits.type === 'discrete' ? makeDiscrete() : makeContinuous(),
+    ) as ExpressionSpecification
+  }, [
+    colormap,
+    avgRiskAttribute,
+    colorLimits.type,
+    colorLimits.bounds,
+    theme,
+    riskConfig.binRatios,
+    riskConfig.bounds.min,
+  ])
+
+  const handleCountyClick = useCallback(
+    (e: MapMouseEvent) => {
+      if (!map || geography !== 'county') return
+
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [LAYERS.counties.layerIds.fill],
+      })
+
+      if (features.length > 0) {
+        setActiveCounty(features[0].properties)
+      } else {
+        setActiveCounty(null)
+      }
+    },
+    [map, geography, setActiveCounty],
+  )
 
   useEffect(() => {
     if (!map) return
@@ -24,7 +123,8 @@ const Counties = () => {
             source: LAYERS.counties.sourceId,
             'source-layer': LAYERS.counties.layerName,
             paint: {
-              'fill-opacity': 0.1,
+              'fill-color': colorExpression,
+              'fill-opacity': geography === 'county' ? 1 : 0,
             },
           },
           'background',
@@ -39,7 +139,9 @@ const Counties = () => {
             source: LAYERS.counties.sourceId,
             'source-layer': LAYERS.counties.layerName,
             paint: {
-              'line-opacity': 0,
+              'line-opacity': geography === 'county' ? 0.8 : 0,
+              'line-color': get(theme, 'rawColors.muted'),
+              'line-width': 1,
             },
           },
           'background',
@@ -53,9 +155,13 @@ const Counties = () => {
       map.on('load', initializeLayers)
     }
 
+    map.on('click', handleCountyClick)
+
     return () => {
       try {
         if (!map) return
+
+        map.off('click', handleCountyClick)
 
         if (map.getLayer(LAYERS.counties.layerIds.fill)) {
           map.removeLayer(LAYERS.counties.layerIds.fill)
@@ -71,6 +177,33 @@ const Counties = () => {
       }
     }
   }, [map])
+
+  useEffect(() => {
+    // Update color expression when variable selection changes
+    if (!map || !map.getLayer(LAYERS.counties.layerIds.fill)) return
+    map.setPaintProperty(
+      LAYERS.counties.layerIds.fill,
+      'fill-color',
+      colorExpression,
+    )
+  }, [map, colorExpression])
+
+  useEffect(() => {
+    // Update opacity based on viewMode
+    if (!map || !map.getLayer(LAYERS.counties.layerIds.fill)) return
+    map.setPaintProperty(
+      LAYERS.counties.layerIds.fill,
+      'fill-opacity',
+      geography === 'county' ? 1 : 0,
+    )
+    if (map.getLayer(LAYERS.counties.layerIds.line)) {
+      map.setPaintProperty(
+        LAYERS.counties.layerIds.line,
+        'line-opacity',
+        geography === 'county' ? 0.8 : 0,
+      )
+    }
+  }, [map, geography])
 
   return null
 }
