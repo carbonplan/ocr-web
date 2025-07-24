@@ -12,6 +12,7 @@ import {
 } from '@carbonplan/charts'
 import { Box } from 'theme-ui'
 import { useStore } from '@/lib/store'
+import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
 const NUM_BINS = 10
 
@@ -28,7 +29,50 @@ const Histogram = ({
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
+  const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+
+  const colormap = useColormap(riskConfig.colormap, {
+    count: colorLimits.type === 'discrete' ? 5 : 256,
+  })
+
+  const scoreColor = useMemo(
+    () =>
+      getColorForRiskScore(
+        score,
+        colormap,
+        colorLimits,
+        riskConfig.binRatios,
+        'primary',
+      ),
+    [score, colormap, colorLimits, riskConfig.binRatios],
+  )
+
+  const countyColor = useMemo(() => {
+    if (!activeCounty) return 'primary'
+
+    const riskAttribute = riskConfig.attributes[attribute][timePeriod]
+    const avgRiskAttribute = `avg_${riskAttribute}_horizon_${timeHorizon}`
+    const countyAverage = activeCounty[avgRiskAttribute]
+    console.log(countyAverage)
+    if (typeof countyAverage !== 'number') return 'primary'
+
+    return getColorForRiskScore(
+      countyAverage,
+      colormap,
+      colorLimits,
+      riskConfig.binRatios,
+      'primary',
+    )
+  }, [
+    activeCounty,
+    attribute,
+    timePeriod,
+    timeHorizon,
+    riskConfig,
+    colormap,
+    colorLimits,
+  ])
 
   const countyBins = useMemo(() => {
     if (!activeCounty) return []
@@ -59,10 +103,13 @@ const Histogram = ({
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        <Box as='span' sx={{ color: 'red' }}>
+        <Box as='span' sx={{ color: scoreColor }}>
           {address}
         </Box>{' '}
-        compared to {region}
+        compared to{' '}
+        <Box as='span' sx={{ color: countyColor }}>
+          {region}
+        </Box>
       </Box>
       <Box sx={{ height: '250px', ml: -20 }}>
         <Chart
@@ -103,7 +150,7 @@ const Histogram = ({
                             ? score >= binStart && score <= binEnd
                             : score >= binStart && score < binEnd
 
-                        return isInBin ? 'red' : 'primary'
+                        return isInBin ? scoreColor : 'primary'
                       })
                   : []
               }
