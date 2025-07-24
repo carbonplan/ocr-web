@@ -28,14 +28,14 @@ const Histogram = ({
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
+  const riskConfig = useStore((state) => state.riskConfig)
 
   const countyBins = useMemo(() => {
     if (!activeCounty) return []
 
-    const year = timePeriod === 'current' ? '2011' : '2047'
-    const riskType = attribute === 'baseRisk' ? 'risk' : 'wind_risk'
-    const countsKey = `${riskType}_${year}_horizon_${timeHorizon}`
-    const countsString = activeCounty[countsKey as keyof typeof activeCounty]
+    const riskKey = riskConfig.attributes[attribute][timePeriod]
+    const countsKey = `${riskKey}_horizon_${timeHorizon}`
+    const countsString = activeCounty[countsKey]
 
     if (!countsString || typeof countsString !== 'string') {
       return []
@@ -48,7 +48,7 @@ const Histogram = ({
       console.error('Error parsing counts data:', error)
       return []
     }
-  }, [activeCounty, attribute, timeHorizon, timePeriod])
+  }, [activeCounty, attribute, timeHorizon, timePeriod, riskConfig])
 
   const maxCount: number = useMemo(() => {
     return Math.max(...countyBins.map(([, count]) => count))
