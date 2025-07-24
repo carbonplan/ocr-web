@@ -213,7 +213,8 @@ const MapComponent = () => {
         (layer) =>
           layer.id === 'satellite' ||
           layer.id.startsWith('wms_risk_') ||
-          layer.id.startsWith('buildings-'),
+          layer.id.startsWith('buildings-') ||
+          layer.id.startsWith('counties-'),
       )
       const newLayers = [...specialLayers, ...mapLayers]
 
