@@ -48,32 +48,6 @@ const Histogram = ({
     [score, colormap, colorLimits, riskConfig.binRatios],
   )
 
-  const countyColor = useMemo(() => {
-    if (!activeCounty) return 'primary'
-
-    const riskAttribute = riskConfig.attributes[attribute][timePeriod]
-    const avgRiskAttribute = `avg_${riskAttribute}_horizon_${timeHorizon}`
-    const countyAverage = activeCounty[avgRiskAttribute]
-    console.log(countyAverage)
-    if (typeof countyAverage !== 'number') return 'primary'
-
-    return getColorForRiskScore(
-      countyAverage,
-      colormap,
-      colorLimits,
-      riskConfig.binRatios,
-      'primary',
-    )
-  }, [
-    activeCounty,
-    attribute,
-    timePeriod,
-    timeHorizon,
-    riskConfig,
-    colormap,
-    colorLimits,
-  ])
-
   const countyBins = useMemo(() => {
     if (!activeCounty) return []
 
@@ -106,10 +80,7 @@ const Histogram = ({
         <Box as='span' sx={{ color: scoreColor }}>
           {address}
         </Box>{' '}
-        compared to{' '}
-        <Box as='span' sx={{ color: countyColor }}>
-          {region}
-        </Box>
+        compared to {region}
       </Box>
       <Box sx={{ height: '250px', ml: -20 }}>
         <Chart
