@@ -13,6 +13,7 @@ import {
 import { Box } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import { County } from '@/types/location'
 
 const NUM_BINS = 10
 
@@ -20,12 +21,13 @@ const Histogram = ({
   address,
   region,
   score,
+  activeCounty,
 }: {
   address: string
   region: string
   score: number
+  activeCounty: County
 }) => {
-  const activeCounty = useStore((state) => state.activeCounty)
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
