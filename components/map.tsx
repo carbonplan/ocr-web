@@ -29,6 +29,7 @@ const MapComponent = () => {
   const timePeriod = useStore((state) => state.timePeriod)
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
+  const colorLimits = useStore((state) => state.colorLimits)
   const setMapLoading = useStore((state) => state.setMapLoading)
 
   const [colorMode] = useColorMode()
@@ -59,7 +60,7 @@ const MapComponent = () => {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const attr of riskAttributes) {
         for (const horizon of timeHorizons) {
-          const url = `${process.env.NEXT_PUBLIC_RISK_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${riskConfig.bounds.min},${riskConfig.bounds.max}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+          const url = `${process.env.NEXT_PUBLIC_RISK_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorLimits.bounds.join(',')}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
           matrix.push({
             id: `wms_risk_${attr}_horizon_${horizon}_${themeType}`,
             riskAttribute: attr,
