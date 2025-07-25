@@ -33,25 +33,22 @@ export type Location = {
   mapView?: BoundingBox
 }
 
-type TimeFrames<T> = {
-  1: T
-  15: T
-  30: T
-}
+export type ScenarioKey = 'current' | 'future'
+export type RiskScoreSet<T> = Record<ScenarioKey, T>
 
-export type RiskScoreSet<T> = {
-  current: TimeFrames<T>
-  future: TimeFrames<T>
-}
+export type MethodKey = 'baseRisk' | 'windRisk'
+export type FireRisk<T> = Record<MethodKey, RiskScoreSet<T>>
 
-export type Building = {
-  baseRisk: RiskScoreSet<number>
-  windRisk: RiskScoreSet<number>
-}
+export type TimeHorizon = 1 | 15 | 30
+export type TimeHorizonRecord<T> = Record<TimeHorizon, T>
 
-export type County = {
-  [key: string]: string | number
-} // TODO: flesh out types for county and building
+export type Building = FireRisk<TimeHorizonRecord<number>>
+
+export type Geography = {
+  name: string
+  buildingCount: number
+  risk: FireRisk<TimeHorizonRecord<{ average: number; plotData: number[][] }>>
+}
 
 export type Suggestion = {
   title: string

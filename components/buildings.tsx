@@ -19,7 +19,7 @@ const Buildings = () => {
   const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
-  const setActiveCounty = useStore((state) => state.setActiveCounty)
+  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const attribute = useStore((state) => state.attribute)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const timeHorizon = useStore((state) => state.timeHorizon)
@@ -200,7 +200,7 @@ const Buildings = () => {
     map.getCanvas().style.cursor = ''
   }, [map, setHoveredBuilding])
 
-  const queryCountyAtPoint = useCallback(
+  const queryGeographiesAtPoint = useCallback(
     (lng: number, lat: number) => {
       if (!map) return
 
@@ -210,14 +210,17 @@ const Buildings = () => {
           layers: [LAYERS.counties.layerIds.fill],
         },
       )
+      const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+        layers: [LAYERS.censusTracts.layerIds.fill],
+      })
 
-      if (countyFeatures.length > 0) {
-        setActiveCounty(countyFeatures[0].properties)
-      } else {
-        setActiveCounty(null)
-      }
+      setActiveGeographies({
+        censusTract:
+          tractFeatures.length > 0 ? tractFeatures[0].properties : null,
+        county: countyFeatures.length > 0 ? countyFeatures[0].properties : null,
+      })
     },
-    [map, setActiveCounty],
+    [map, setActiveGeographies],
   )
 
   const handleMapClick = useCallback(
@@ -247,7 +250,7 @@ const Buildings = () => {
         const { lng, lat } = e.lngLat
         isUserClick.current = true
 
-        queryCountyAtPoint(lng, lat)
+        queryGeographiesAtPoint(lng, lat)
 
         if (feature.id) {
           map.removeFeatureState({
@@ -279,7 +282,7 @@ const Buildings = () => {
       } else {
         setSelectedBuilding(null)
         setSelectedLocation(null)
-        setActiveCounty(null)
+        setActiveGeographies({ county: null, censusTract: null })
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
@@ -291,8 +294,8 @@ const Buildings = () => {
       setSelectedBuilding,
       setSelectedLocation,
       setHoveredBuilding,
-      queryCountyAtPoint,
-      setActiveCounty,
+      queryGeographiesAtPoint,
+      setActiveGeographies,
     ],
   )
 
@@ -338,7 +341,7 @@ const Buildings = () => {
           const closestBuilding = featuresWithDistance[0].feature
           setSelectedBuilding(closestBuilding.properties)
 
-          queryCountyAtPoint(lng, lat)
+          queryGeographiesAtPoint(lng, lat)
 
           map.setFeatureState(
             {
@@ -351,7 +354,7 @@ const Buildings = () => {
         }
       }
     },
-    [map, setSelectedBuilding, queryCountyAtPoint],
+    [map, setSelectedBuilding, queryGeographiesAtPoint],
   )
 
   useEffect(() => {
