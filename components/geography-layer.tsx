@@ -101,7 +101,6 @@ const GeographyLayer = ({
     riskConfig.binRatios,
     riskConfig.bounds.min,
   ])
-  console.log(geographies)
 
   useEffect(() => {
     if (!map) return
