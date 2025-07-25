@@ -2,10 +2,26 @@ import { useEffect, useMemo } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
-import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
-const Counties = () => {
+interface GeographyLayerProps {
+  config: {
+    layerName: string
+    sourceId: string
+    layerIds: {
+      fill: string
+      line: string
+    }
+  }
+  geographyKey: 'county' | 'censusTract'
+  environmentUrl: string
+}
+
+const GeographyLayer = ({
+  config,
+  geographyKey,
+  environmentUrl,
+}: GeographyLayerProps) => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const geographies = useStore((state) => state.geographies)
@@ -85,43 +101,44 @@ const Counties = () => {
     riskConfig.binRatios,
     riskConfig.bounds.min,
   ])
+  console.log(geographies)
 
   useEffect(() => {
     if (!map) return
 
     const initializeLayers = () => {
-      if (!map.getSource(LAYERS.counties.sourceId)) {
-        map.addSource(LAYERS.counties.sourceId, {
+      if (!map.getSource(config.sourceId)) {
+        map.addSource(config.sourceId, {
           type: 'vector',
-          url: `pmtiles://${process.env.NEXT_PUBLIC_COUNTY_URL}`,
+          url: `pmtiles://${environmentUrl}`,
         })
       }
 
-      if (!map.getLayer(LAYERS.counties.layerIds.fill)) {
+      if (!map.getLayer(config.layerIds.fill)) {
         map.addLayer(
           {
-            id: LAYERS.counties.layerIds.fill,
+            id: config.layerIds.fill,
             type: 'fill',
-            source: LAYERS.counties.sourceId,
-            'source-layer': LAYERS.counties.layerName,
+            source: config.sourceId,
+            'source-layer': config.layerName,
             paint: {
               'fill-color': colorExpression,
-              'fill-opacity': geographies.county ? 1 : 0,
+              'fill-opacity': geographies[geographyKey] ? 1 : 0,
             },
           },
           'background',
         )
       }
 
-      if (!map.getLayer(LAYERS.counties.layerIds.line)) {
+      if (!map.getLayer(config.layerIds.line)) {
         map.addLayer(
           {
-            id: LAYERS.counties.layerIds.line,
+            id: config.layerIds.line,
             type: 'line',
-            source: LAYERS.counties.sourceId,
-            'source-layer': LAYERS.counties.layerName,
+            source: config.sourceId,
+            'source-layer': config.layerName,
             paint: {
-              'line-opacity': geographies.county ? 0.8 : 0,
+              'line-opacity': geographies[geographyKey] ? 0.8 : 0,
               'line-color': get(theme, 'rawColors.muted'),
               'line-width': 1,
             },
@@ -141,49 +158,45 @@ const Counties = () => {
       try {
         if (!map) return
 
-        if (map.getLayer(LAYERS.counties.layerIds.fill)) {
-          map.removeLayer(LAYERS.counties.layerIds.fill)
+        if (map.getLayer(config.layerIds.fill)) {
+          map.removeLayer(config.layerIds.fill)
         }
-        if (map.getLayer(LAYERS.counties.layerIds.line)) {
-          map.removeLayer(LAYERS.counties.layerIds.line)
+        if (map.getLayer(config.layerIds.line)) {
+          map.removeLayer(config.layerIds.line)
         }
-        if (map.getSource(LAYERS.counties.sourceId)) {
-          map.removeSource(LAYERS.counties.sourceId)
+        if (map.getSource(config.sourceId)) {
+          map.removeSource(config.sourceId)
         }
       } catch (error) {
-        console.error('Error removing counties layers:', error)
+        console.error(`Error removing ${geographyKey} layers:`, error)
       }
     }
   }, [map])
 
   useEffect(() => {
     // Update color expression when variable selection changes
-    if (!map || !map.getLayer(LAYERS.counties.layerIds.fill)) return
-    map.setPaintProperty(
-      LAYERS.counties.layerIds.fill,
-      'fill-color',
-      colorExpression,
-    )
+    if (!map || !map.getLayer(config.layerIds.fill)) return
+    map.setPaintProperty(config.layerIds.fill, 'fill-color', colorExpression)
   }, [map, colorExpression])
 
   useEffect(() => {
-    // Update opacity based on viewMode
-    if (!map || !map.getLayer(LAYERS.counties.layerIds.fill)) return
+    // Update opacity based on geography selection
+    if (!map || !map.getLayer(config.layerIds.fill)) return
     map.setPaintProperty(
-      LAYERS.counties.layerIds.fill,
+      config.layerIds.fill,
       'fill-opacity',
-      geographies.county ? 1 : 0,
+      geographies[geographyKey] ? 1 : 0,
     )
-    if (map.getLayer(LAYERS.counties.layerIds.line)) {
+    if (map.getLayer(config.layerIds.line)) {
       map.setPaintProperty(
-        LAYERS.counties.layerIds.line,
+        config.layerIds.line,
         'line-opacity',
-        geographies.county ? 0.8 : 0,
+        geographies[geographyKey] ? 1 : 0,
       )
     }
-  }, [map, geographies.county])
+  }, [map, geographies[geographyKey]])
 
   return null
 }
 
-export default Counties
+export default GeographyLayer

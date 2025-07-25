@@ -29,10 +29,13 @@ const Display = () => {
             values={geographies}
             multiSelect
             setValues={(values: Record<string, boolean>) => {
-              setGeographies({
-                building: values.building,
-                county: values.county,
-              })
+              setGeographies(
+                values as {
+                  building: boolean
+                  county: boolean
+                  censusTract: boolean
+                },
+              )
             }}
           />
         </Column>

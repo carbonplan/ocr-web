@@ -3,16 +3,24 @@ export const LAYERS = {
     layerName: 'risk',
     sourceId: 'buildings',
     layerIds: {
-      fill: 'buildings-fill',
-      line: 'buildings-line',
+      fill: 'risk-buildings-fill',
+      line: 'risk-buildings-line',
     },
   },
   counties: {
     layerName: 'risk',
     sourceId: 'counties',
     layerIds: {
-      fill: 'counties-fill',
-      line: 'counties-line',
+      fill: 'risk-counties-fill',
+      line: 'risk-counties-line',
+    },
+  },
+  censusTracts: {
+    layerName: 'risk',
+    sourceId: 'census-tracts',
+    layerIds: {
+      fill: 'risk-census-tracts-fill',
+      line: 'risk-census-tracts-line',
     },
   },
 } as const

@@ -13,7 +13,8 @@ import { Protocol } from 'pmtiles'
 import { useColorMode } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
-import { Buildings, Counties } from './'
+import { Buildings, GeographyLayer } from './'
+import { LAYERS } from '@/lib/config'
 import { generateColormap } from '@/lib/colormaps'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
@@ -214,8 +215,7 @@ const MapComponent = () => {
         (layer) =>
           layer.id === 'satellite' ||
           layer.id.startsWith('wms_risk_') ||
-          layer.id.startsWith('buildings-') ||
-          layer.id.startsWith('counties-'),
+          layer.id.startsWith('risk-'), // all vector layers
       )
       const newLayers = [...specialLayers, ...mapLayers]
 
@@ -264,7 +264,16 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      <Counties />
+      <GeographyLayer
+        config={LAYERS.counties}
+        geographyKey='county'
+        environmentUrl={process.env.NEXT_PUBLIC_COUNTY_URL!}
+      />
+      <GeographyLayer
+        config={LAYERS.censusTracts}
+        geographyKey='censusTract'
+        environmentUrl={process.env.NEXT_PUBLIC_CENSUS_TRACT_URL!}
+      />
       {geographies.building && <Buildings />}
     </div>
   )
