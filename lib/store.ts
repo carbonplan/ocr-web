@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { Map, MapGeoJSONFeature } from 'maplibre-gl'
-import { Location, Building, County, TimeHorizon } from '../types/location'
+import { Location, Building, Geography, TimeHorizon } from '../types/location'
 import { RISKS } from './config'
-import { getBuildingRiskScores, getCountyData } from './risk-utils'
+import { getBuildingRiskScores, getGeographyData } from './risk-utils'
 
 type Store = {
   map: Map | null
@@ -19,8 +19,11 @@ type Store = {
   ) => void
   hoveredBuilding: Building | null
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
-  activeCounty: County | null
-  setActiveCounty: (county: MapGeoJSONFeature['properties'] | null) => void
+  activeGeographies: { county: Geography | null; censusTract: Geography | null }
+  setActiveGeographies: (geographies: {
+    county: MapGeoJSONFeature['properties'] | null
+    censusTract: MapGeoJSONFeature['properties'] | null
+  }) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
     building: boolean
@@ -70,9 +73,21 @@ export const useStore = create<Store>((set) => ({
     set((state) => ({
       hoveredBuilding: getBuildingRiskScores(building, state.riskConfig),
     })),
-  activeCounty: null,
-  setActiveCounty: (county) =>
-    set((state) => ({ activeCounty: getCountyData(county, state.riskConfig) })),
+  activeGeographies: {
+    county: null,
+    censusTract: null,
+  },
+  setActiveGeographies: ({ county, censusTract }) =>
+    set((state) => ({
+      activeGeographies: {
+        county: getGeographyData(county, state.riskConfig, 'county_name'),
+        censusTract: getGeographyData(
+          censusTract,
+          state.riskConfig,
+          'tract_geoid',
+        ),
+      },
+    })),
   geographies: { building: true, county: false, censusTract: false },
   setGeographies: (geographies) => set({ geographies }),
   timeHorizon: 1,

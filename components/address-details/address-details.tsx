@@ -25,7 +25,7 @@ const AddressDetails = ({
         ? selectedBuilding[attribute][timePeriod][timeHorizon]
         : null,
   )
-  const activeCounty = useStore((state) => state.activeCounty)
+  const activeCounty = useStore((state) => state.activeGeographies.county)
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)

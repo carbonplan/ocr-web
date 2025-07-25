@@ -44,7 +44,7 @@ export type TimeHorizonRecord<T> = Record<TimeHorizon, T>
 
 export type Building = FireRisk<TimeHorizonRecord<number>>
 
-export type County = {
+export type Geography = {
   name: string
   buildingCount: number
   risk: FireRisk<TimeHorizonRecord<{ average: number; plotData: number[][] }>>

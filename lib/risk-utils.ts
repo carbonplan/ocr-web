@@ -1,7 +1,7 @@
 import { MapGeoJSONFeature } from 'maplibre-gl'
 import {
   Building,
-  County,
+  Geography,
   MethodKey,
   ScenarioKey,
   TimeHorizon,
@@ -63,22 +63,23 @@ const getPlotData = (countsString: string): number[][] => {
 }
 
 const HORIZONS: TimeHorizon[] = [1, 15, 30]
-export const getCountyData = (
+export const getGeographyData = (
   properties: MapGeoJSONFeature['properties'] | null,
   riskConfig: (typeof RISKS)[keyof typeof RISKS],
-): County | null => {
+  nameProperty: string,
+): Geography | null => {
   if (!properties) {
     return null
   }
 
-  const result: County = {
-    name: properties.county_name as string,
+  const result: Geography = {
+    name: properties[nameProperty] as string,
     buildingCount: properties.building_count as number,
     risk: {
       baseRisk: { current: {}, future: {} },
       windRisk: { current: {}, future: {} },
     },
-  } as County
+  } as Geography
 
   Object.keys(riskConfig.attributes).forEach((methodKey) => {
     Object.keys(riskConfig.attributes[methodKey as MethodKey]).forEach(
