@@ -25,10 +25,19 @@ const AddressDetails = ({
         ? selectedBuilding[attribute][timePeriod][timeHorizon]
         : null,
   )
-  const activeCounty = useStore((state) => state.activeGeographies.county)
-  const attribute = useStore((state) => state.attribute)
-  const timeHorizon = useStore((state) => state.timeHorizon)
-  const timePeriod = useStore((state) => state.timePeriod)
+  const countyName = useStore((state) => state.activeGeographies.county?.name)
+  const countyData = useStore(
+    (state) =>
+      state.activeGeographies.county?.risk[state.attribute][state.timePeriod][
+        state.timeHorizon
+      ].plotData,
+  )
+  const censusTractData = useStore(
+    (state) =>
+      state.activeGeographies.censusTract?.risk[state.attribute][
+        state.timePeriod
+      ][state.timeHorizon].plotData,
+  )
 
   if (!selectedLocation?.address.houseNumber) {
     return null
@@ -74,18 +83,27 @@ const AddressDetails = ({
               factors that each may drive actual fire risk up or down.
             </Box>
           </Column>
-          {activeCounty && (
+          {countyData && (
             <Column start={1} width={4} variant='labelFieldContainer'>
               <Box variant='sectionHeading'>Summary statistics</Box>
               <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
                 <Histogram
                   address={address}
-                  region={`${selectedLocation.address.county} County`}
+                  region={`${countyName} County`}
                   score={riskScore}
-                  data={
-                    activeCounty.risk[attribute][timePeriod][timeHorizon]
-                      .plotData
-                  }
+                  data={countyData}
+                />
+              </Box>
+            </Column>
+          )}
+          {censusTractData && (
+            <Column start={1} width={4}>
+              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
+                <Histogram
+                  address={address}
+                  region={'the census tract'}
+                  score={riskScore}
+                  data={censusTractData}
                 />
               </Box>
             </Column>
