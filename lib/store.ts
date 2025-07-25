@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { Map, MapGeoJSONFeature } from 'maplibre-gl'
-import { Location, Building, County } from '../types/location'
+import { Location, Building, County, TimeHorizon } from '../types/location'
 import { RISKS } from './config'
-import { getBuildingRiskScores } from './risk-utils'
+import { getBuildingRiskScores, getCountyData } from './risk-utils'
 
 type Store = {
   map: Map | null
@@ -20,15 +20,15 @@ type Store = {
   hoveredBuilding: Building | null
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   activeCounty: County | null
-  setActiveCounty: (county: County | null) => void
+  setActiveCounty: (county: MapGeoJSONFeature['properties'] | null) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
     building: boolean
     county: boolean
     censusTract: boolean
   }) => void
-  timeHorizon: 1 | 15 | 30
-  setTimeHorizon: (timeHorizon: 1 | 15 | 30) => void
+  timeHorizon: TimeHorizon
+  setTimeHorizon: (timeHorizon: TimeHorizon) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
   sidebarWidth: number
@@ -71,7 +71,8 @@ export const useStore = create<Store>((set) => ({
       hoveredBuilding: getBuildingRiskScores(building, state.riskConfig),
     })),
   activeCounty: null,
-  setActiveCounty: (county) => set({ activeCounty: county }),
+  setActiveCounty: (county) =>
+    set((state) => ({ activeCounty: getCountyData(county, state.riskConfig) })),
   geographies: { building: true, county: false, censusTract: false },
   setGeographies: (geographies) => set({ geographies }),
   timeHorizon: 1,

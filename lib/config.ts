@@ -1,3 +1,5 @@
+import { FireRisk } from '@/types/location'
+
 export const LAYERS = {
   buildings: {
     layerName: 'risk',
@@ -25,18 +27,20 @@ export const LAYERS = {
   },
 } as const
 
+const FIRE_ATTRIBUTES: FireRisk<string> = {
+  baseRisk: {
+    current: 'risk_2011',
+    future: 'risk_2047',
+  },
+  windRisk: {
+    current: 'wind_risk_2011',
+    future: 'wind_risk_2047',
+  },
+}
+
 export const RISKS = {
   fire: {
-    attributes: {
-      baseRisk: {
-        current: 'risk_2011',
-        future: 'risk_2047',
-      },
-      windRisk: {
-        current: 'wind_risk_2011',
-        future: 'wind_risk_2047',
-      },
-    },
+    attributes: FIRE_ATTRIBUTES,
     colormap: 'fire-risk',
     binRatios: [0.1, 0.2, 0.5, 1],
     bounds: {

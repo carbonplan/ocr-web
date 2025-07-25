@@ -14,7 +14,6 @@ import { Box } from 'theme-ui'
 import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
-import { County } from '@/types/location'
 
 const NUM_BINS = 10
 
@@ -41,16 +40,13 @@ const Histogram = ({
   address,
   region,
   score,
-  activeCounty,
+  data,
 }: {
   address: string
   region: string
   score: number
-  activeCounty: County
+  data: number[][]
 }) => {
-  const attribute = useStore((state) => state.attribute)
-  const timeHorizon = useStore((state) => state.timeHorizon)
-  const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
 
@@ -70,31 +66,9 @@ const Histogram = ({
     [score, colormap, colorLimits, riskConfig.binRatios],
   )
 
-  const countyBins = useMemo(() => {
-    if (!activeCounty) return []
-
-    const riskKey = riskConfig.attributes[attribute][timePeriod]
-    const countsKey = `${riskKey}_horizon_${timeHorizon}`
-    const countsString = activeCounty[countsKey]
-
-    if (!countsString || typeof countsString !== 'string') {
-      return []
-    }
-
-    try {
-      const counts = JSON.parse(countsString) as number[]
-      return counts.slice(0, NUM_BINS).map((count, i) => [i + 0.5, count])
-    } catch (error) {
-      console.error('Error parsing counts data:', error)
-      return []
-    }
-  }, [activeCounty, attribute, timeHorizon, timePeriod, riskConfig])
-
   const maxCount: number = useMemo(() => {
-    return Math.max(...countyBins.map(([, count]) => count))
-  }, [countyBins])
-
-  if (!activeCounty) return null
+    return Math.max(...data.map(([, count]) => count))
+  }, [data])
 
   return (
     <Box>
@@ -128,10 +102,10 @@ const Histogram = ({
           <Plot>
             <Bar
               width={0.75}
-              data={countyBins}
+              data={data}
               color={
-                countyBins.length > 0
-                  ? Array(countyBins.length)
+                data.length > 0
+                  ? Array(data.length)
                       .fill(null)
                       .map((d, i) => {
                         const binStart = i * 10

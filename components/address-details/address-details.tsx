@@ -26,6 +26,9 @@ const AddressDetails = ({
         : null,
   )
   const activeCounty = useStore((state) => state.activeCounty)
+  const attribute = useStore((state) => state.attribute)
+  const timeHorizon = useStore((state) => state.timeHorizon)
+  const timePeriod = useStore((state) => state.timePeriod)
 
   if (!selectedLocation?.address.houseNumber) {
     return null
@@ -79,7 +82,10 @@ const AddressDetails = ({
                   address={address}
                   region={`${selectedLocation.address.county} County`}
                   score={riskScore}
-                  activeCounty={activeCounty}
+                  data={
+                    activeCounty.risk[attribute][timePeriod][timeHorizon]
+                      .plotData
+                  }
                 />
               </Box>
             </Column>
