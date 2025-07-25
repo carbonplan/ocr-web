@@ -28,8 +28,10 @@ export const getBuildingRiskScores = (
     return null
   }
 
-  const result: Record<keyof typeof riskConfig.attributes, RiskScoreSet> =
-    {} as Record<keyof typeof riskConfig.attributes, RiskScoreSet>
+  const result: Record<
+    keyof typeof riskConfig.attributes,
+    RiskScoreSet<number>
+  > = {} as Record<keyof typeof riskConfig.attributes, RiskScoreSet<number>>
   Object.keys(riskConfig.attributes).forEach((key: string) => {
     const subKeys =
       riskConfig.attributes[key as keyof typeof riskConfig.attributes]
