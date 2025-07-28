@@ -15,7 +15,19 @@ import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
-const NUM_BINS = 10
+const BINS = [
+  0, // true 0%
+  10, // 0.01-10
+  20, // 10-20
+  30, // 20-30
+  40, // 30-40
+  50, // 40-50
+  60, // 50-60
+  70, // 60-70
+  80, // 70-80
+  90, // 80-90
+  100, // 90-100
+]
 
 export const formatValue = (value: number) => {
   const abs = Math.abs(value)
@@ -68,7 +80,7 @@ const Histogram = ({
 
   const maxCount: number = useMemo(() => Math.max(...data), [data])
   const plotData = useMemo(
-    () => data.slice(0, NUM_BINS).map((count, i) => [i + 0.5, count]),
+    () => data.map((count, i) => [i * 10 - 5, count]),
     [data],
   )
 
@@ -81,19 +93,14 @@ const Histogram = ({
         compared to {region}
       </Box>
       <Box sx={{ height: '250px', ml: -20 }}>
-        <Chart
-          x={[-0.25, NUM_BINS + 0.25]}
-          y={[0, maxCount * 1.1]}
-          padding={{ left: 60 }}
-        >
+        <Chart x={[-12, 102]} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
           <Ticks left />
-          <Ticks
+          <Ticks bottom values={BINS} />
+          <TickLabels
             bottom
-            values={Array(NUM_BINS + 1)
-              .fill(null)
-              .map((d, i) => i)}
+            values={[-6, ...BINS.filter((b) => b > 0 && b % 20 === 0)]}
+            format={(d: number) => (d < 0 ? '0%' : `${d}%`)}
           />
-          <TickLabels bottom format={(d: number) => `${d * 10}%`} />
           <TickLabels left format={formatValue} />
           <Grid horizontal />
           <Axis left bottom />
@@ -105,22 +112,12 @@ const Histogram = ({
             <Bar
               width={0.75}
               data={plotData}
-              color={
-                plotData.length > 0
-                  ? Array(plotData.length)
-                      .fill(null)
-                      .map((d, i) => {
-                        const binStart = i * 10
-                        const binEnd = (i + 1) * 10
-                        const isInBin =
-                          i === NUM_BINS - 1
-                            ? score >= binStart && score <= binEnd
-                            : score >= binStart && score < binEnd
+              color={BINS.map((bin, i) => {
+                const isInBin =
+                  i === 0 ? score < 0.01 : score > BINS[i - 1] && score <= bin
 
-                        return isInBin ? scoreColor : 'primary'
-                      })
-                  : []
-              }
+                return isInBin ? scoreColor : 'primary'
+              })}
             />
           </Plot>
         </Chart>
