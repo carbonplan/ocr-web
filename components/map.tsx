@@ -13,7 +13,8 @@ import { Protocol } from 'pmtiles'
 import { useColorMode } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
-import { Buildings } from './'
+import { Buildings, GeographyLayer } from './'
+import { LAYERS } from '@/lib/config'
 import { generateColormap } from '@/lib/colormaps'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
@@ -31,6 +32,7 @@ const MapComponent = () => {
   const timeHorizon = useStore((state) => state.timeHorizon)
   const colorLimits = useStore((state) => state.colorLimits)
   const setMapLoading = useStore((state) => state.setMapLoading)
+  const geographies = useStore((state) => state.geographies)
 
   const [colorMode] = useColorMode()
 
@@ -202,7 +204,7 @@ const MapComponent = () => {
         (layer) =>
           layer.id === 'satellite' ||
           layer.id.startsWith('wms_risk_') ||
-          layer.id.startsWith('buildings-'),
+          layer.id.startsWith('risk-'), // all vector layers
       )
       const newLayers = [...specialLayers, ...mapLayers]
 
@@ -251,7 +253,17 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      <Buildings />
+      <GeographyLayer
+        config={LAYERS.counties}
+        geographyKey='county'
+        environmentUrl={process.env.NEXT_PUBLIC_COUNTY_URL!}
+      />
+      <GeographyLayer
+        config={LAYERS.censusTracts}
+        geographyKey='censusTract'
+        environmentUrl={process.env.NEXT_PUBLIC_CENSUS_TRACT_URL!}
+      />
+      {geographies.building && <Buildings />}
     </div>
   )
 }

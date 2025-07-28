@@ -25,6 +25,19 @@ const AddressDetails = ({
         ? selectedBuilding[attribute][timePeriod][timeHorizon]
         : null,
   )
+  const countyName = useStore((state) => state.activeGeographies.county?.name)
+  const countyData = useStore(
+    (state) =>
+      state.activeGeographies.county?.risk[state.attribute][state.timePeriod][
+        state.timeHorizon
+      ].data,
+  )
+  const censusTractData = useStore(
+    (state) =>
+      state.activeGeographies.censusTract?.risk[state.attribute][
+        state.timePeriod
+      ][state.timeHorizon].data,
+  )
 
   if (!selectedLocation?.address.houseNumber) {
     return null
@@ -70,16 +83,31 @@ const AddressDetails = ({
               factors that each may drive actual fire risk up or down.
             </Box>
           </Column>
-          <Column start={1} width={4} variant='labelFieldContainer'>
-            <Box variant='sectionHeading'>Summary statistics</Box>
-            <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
-              <Histogram
-                address={address}
-                region={`${selectedLocation.address.county} County`}
-                score={riskScore}
-              />
-            </Box>
-          </Column>
+          {countyData && (
+            <Column start={1} width={4} variant='labelFieldContainer'>
+              <Box variant='sectionHeading'>Summary statistics</Box>
+              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
+                <Histogram
+                  address={address}
+                  region={`${countyName} County`}
+                  score={riskScore}
+                  data={countyData}
+                />
+              </Box>
+            </Column>
+          )}
+          {censusTractData && (
+            <Column start={1} width={4}>
+              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
+                <Histogram
+                  address={address}
+                  region={'the census tract'}
+                  score={riskScore}
+                  data={censusTractData}
+                />
+              </Box>
+            </Column>
+          )}
         </Row>
       </Column>
     </SidebarSidecar>

@@ -19,6 +19,7 @@ const Buildings = () => {
   const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
+  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const attribute = useStore((state) => state.attribute)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const timeHorizon = useStore((state) => state.timeHorizon)
@@ -199,6 +200,29 @@ const Buildings = () => {
     map.getCanvas().style.cursor = ''
   }, [map, setHoveredBuilding])
 
+  const queryGeographiesAtPoint = useCallback(
+    (lng: number, lat: number) => {
+      if (!map) return
+
+      const countyFeatures = map.queryRenderedFeatures(
+        map.project([lng, lat]),
+        {
+          layers: [LAYERS.counties.layerIds.fill],
+        },
+      )
+      const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+        layers: [LAYERS.censusTracts.layerIds.fill],
+      })
+
+      setActiveGeographies({
+        censusTract:
+          tractFeatures.length > 0 ? tractFeatures[0].properties : null,
+        county: countyFeatures.length > 0 ? countyFeatures[0].properties : null,
+      })
+    },
+    [map, setActiveGeographies],
+  )
+
   const handleMapClick = useCallback(
     async (e: MapMouseEvent) => {
       if (!map) return
@@ -225,6 +249,8 @@ const Buildings = () => {
         const feature = features[0]
         const { lng, lat } = e.lngLat
         isUserClick.current = true
+
+        queryGeographiesAtPoint(lng, lat)
 
         if (feature.id) {
           map.removeFeatureState({
@@ -256,13 +282,21 @@ const Buildings = () => {
       } else {
         setSelectedBuilding(null)
         setSelectedLocation(null)
+        setActiveGeographies({ county: null, censusTract: null })
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
         })
       }
     },
-    [map, setSelectedBuilding, setSelectedLocation, setHoveredBuilding],
+    [
+      map,
+      setSelectedBuilding,
+      setSelectedLocation,
+      setHoveredBuilding,
+      queryGeographiesAtPoint,
+      setActiveGeographies,
+    ],
   )
 
   const highlightBuildingAtLocation = useCallback(
@@ -307,6 +341,8 @@ const Buildings = () => {
           const closestBuilding = featuresWithDistance[0].feature
           setSelectedBuilding(closestBuilding.properties)
 
+          queryGeographiesAtPoint(lng, lat)
+
           map.setFeatureState(
             {
               source: LAYERS.buildings.sourceId,
@@ -318,12 +354,16 @@ const Buildings = () => {
         }
       }
     },
-    [map, setSelectedBuilding],
+    [map, setSelectedBuilding, queryGeographiesAtPoint],
   )
 
   useEffect(() => {
     // remove highlight when building is deselected outside of map context
-    if (!selectedBuilding && map?.isStyleLoaded()) {
+    if (
+      !selectedBuilding &&
+      map?.isStyleLoaded() &&
+      map.getSource(LAYERS.buildings.sourceId)
+    ) {
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
         sourceLayer: LAYERS.buildings.layerName,
@@ -354,7 +394,7 @@ const Buildings = () => {
               'fill-color': colorExpression,
             },
           },
-          'background',
+          LAYERS.counties.layerIds.line,
         )
       }
 
@@ -399,7 +439,7 @@ const Buildings = () => {
               ],
             },
           },
-          'background',
+          LAYERS.buildings.layerIds.fill,
         )
       }
     }

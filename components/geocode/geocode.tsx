@@ -26,6 +26,7 @@ const Geocode = () => {
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
+  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -160,6 +161,7 @@ const Geocode = () => {
   const handleDeselect = () => {
     setSelectedLocation(null)
     setSelectedBuilding(null)
+    setActiveGeographies({ county: null, censusTract: null })
     setSearchQuery('')
     setSelectedIndex(-1)
   }
