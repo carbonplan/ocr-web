@@ -24,6 +24,7 @@
     "@turf/turf": "^7.2.0",
     "@types/chroma-js": "^3.1.1",
     "chroma-js": "^3.1.2",
+    "d3-format": "^3.1.0",
     "maplibre-gl": "^5.2.0",
     "next": "^14.2.24",
     "pmtiles": "^4.3.0",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@carbonplan/prettier": "^1.2.0",
     "@eslint/eslintrc": "^3",
+    "@types/d3-format": "^3.0.4",
     "@types/node": "^20",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

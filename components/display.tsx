@@ -27,11 +27,17 @@ const Display = () => {
         <Column start={2} width={3}>
           <Filter
             values={geographies}
+            labels={{
+              building: 'Building',
+              county: 'County',
+              censusTract: 'Census tract',
+            }}
             multiSelect
             setValues={(values: Record<string, boolean>) => {
               setGeographies({
-                building: values.building,
+                building: true,
                 county: values.county,
+                censusTract: values.censusTract,
               })
             }}
           />
