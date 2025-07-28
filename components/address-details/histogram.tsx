@@ -73,7 +73,7 @@ const Histogram = ({
         colormap,
         colorLimits,
         riskConfig.binRatios,
-        'primary',
+        'secondary',
       ),
     [score, colormap, colorLimits, riskConfig.binRatios],
   )
