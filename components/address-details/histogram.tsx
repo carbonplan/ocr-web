@@ -45,7 +45,7 @@ const Histogram = ({
   address: string
   region: string
   score: number
-  data: number[][]
+  data: number[]
 }) => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
@@ -66,9 +66,11 @@ const Histogram = ({
     [score, colormap, colorLimits, riskConfig.binRatios],
   )
 
-  const maxCount: number = useMemo(() => {
-    return Math.max(...data.map(([, count]) => count))
-  }, [data])
+  const maxCount: number = useMemo(() => Math.max(...data), [data])
+  const plotData = useMemo(
+    () => data.slice(0, NUM_BINS).map((count, i) => [i + 0.5, count]),
+    [data],
+  )
 
   return (
     <Box>
@@ -102,10 +104,10 @@ const Histogram = ({
           <Plot>
             <Bar
               width={0.75}
-              data={data}
+              data={plotData}
               color={
-                data.length > 0
-                  ? Array(data.length)
+                plotData.length > 0
+                  ? Array(plotData.length)
                       .fill(null)
                       .map((d, i) => {
                         const binStart = i * 10

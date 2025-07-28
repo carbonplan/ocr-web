@@ -30,13 +30,13 @@ const AddressDetails = ({
     (state) =>
       state.activeGeographies.county?.risk[state.attribute][state.timePeriod][
         state.timeHorizon
-      ].plotData,
+      ].data,
   )
   const censusTractData = useStore(
     (state) =>
       state.activeGeographies.censusTract?.risk[state.attribute][
         state.timePeriod
-      ][state.timeHorizon].plotData,
+      ][state.timeHorizon].data,
   )
 
   if (!selectedLocation?.address.houseNumber) {

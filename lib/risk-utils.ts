@@ -48,14 +48,14 @@ export const getBuildingRiskScores = (
   return result
 }
 
-const getPlotData = (countsString: string): number[][] => {
+const getHistogramData = (countsString: string): number[] => {
   if (!countsString) {
     return []
   }
 
   try {
     const counts = JSON.parse(countsString) as number[]
-    return counts.map((count, i) => [i + 0.5, count])
+    return counts
   } catch (error) {
     console.error('Error parsing counts data:', error)
     return []
@@ -94,7 +94,7 @@ export const getGeographyData = (
             horizon
           ] = {
             average: properties[`avg_${propertyKey}`] as number,
-            plotData: getPlotData(properties[propertyKey]),
+            data: getHistogramData(properties[propertyKey]),
           }
         })
       },

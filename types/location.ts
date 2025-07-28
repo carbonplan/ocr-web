@@ -47,7 +47,7 @@ export type Building = FireRisk<TimeHorizonRecord<number>>
 export type Geography = {
   name: string
   buildingCount: number
-  risk: FireRisk<TimeHorizonRecord<{ average: number; plotData: number[][] }>>
+  risk: FireRisk<TimeHorizonRecord<{ average: number; data: number[] }>>
 }
 
 export type Suggestion = {
