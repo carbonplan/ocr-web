@@ -1,10 +1,10 @@
+import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Colorbar, Column, Row, Filter, Input } from '@carbonplan/components'
+import { Colorbar, Filter, Input } from '@carbonplan/components'
 //@ts-expect-error - carbonplan charts types not available
 import { Chart, TickLabels } from '@carbonplan/charts'
 import { useStore } from '../lib/store'
 import { calculateBinBoundaries, useColormap } from '../lib/colormaps'
-import { Box, Flex } from 'theme-ui'
 
 const evenlySpacedTicks = [0, 1, 2, 3, 4]
 
@@ -22,7 +22,7 @@ const Legend = () => {
     : null
 
   const formatPercentage = (value: number, isMax: boolean) => {
-    return `${value.toFixed(0)}%${isMax && value !== 100 ? '+' : ''}`
+    return `${value.toFixed(0)}${isMax && value !== 100 ? '+' : ''}`
   }
 
   const formatTickValue = (d: number) => {
@@ -39,66 +39,71 @@ const Legend = () => {
   const chartXRange = isDiscrete ? [0, 5] : [0, colorLimits.bounds[1]]
 
   return (
-    <>
-      <Row variant='labelFieldContainer' columns={4}>
-        <Column start={1} width={1} variant='label'>
-          Legend
-        </Column>
-        <Column start={2} width={3}>
+    <Box
+      sx={{ position: 'absolute', right: [4, 5, 5, 6], bottom: 30, width: 340 }}
+    >
+      {advancedMode ? (
+        <Flex sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <Filter
+            values={{
+              continuous: !isDiscrete,
+              discrete: isDiscrete,
+            }}
+            setValues={(values: Record<string, boolean>) => {
+              const type = values.discrete ? 'discrete' : 'continuous'
+              setColorLimits({
+                type,
+                bounds: colorLimits.bounds,
+              })
+            }}
+          />
           <Flex
-            sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}
+            sx={{
+              alignItems: 'baseline',
+              gap: 1,
+              fontSize: [1, 1, 1, 2],
+              whiteSpace: 'nowrap',
+            }}
           >
-            {advancedMode && (
-              <Filter
-                values={{
-                  continuous: !isDiscrete,
-                  discrete: isDiscrete,
-                }}
-                setValues={(values: Record<string, boolean>) => {
-                  const type = values.discrete ? 'discrete' : 'continuous'
-                  setColorLimits({
-                    type,
-                    bounds: colorLimits.bounds,
-                  })
-                }}
-              />
-            )}
-            {advancedMode && (
-              <Flex
-                sx={{
-                  alignItems: 'baseline',
-                  gap: 1,
-                  fontSize: [1, 1, 1, 2],
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                0 -
-                <Input
-                  size='xs'
-                  type='number'
-                  min={0}
-                  max={100}
-                  step={10}
-                  sx={{
-                    fontSize: [1, 1, 1, 2],
-                    '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
-                      { opacity: 1 },
-                  }}
-                  value={colorLimits.bounds[1]}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const value = parseFloat(e.target.value)
-                    if (value < 1 || value > 100) return
-                    setColorLimits({
-                      type: colorLimits.type,
-                      bounds: [riskConfig.bounds.min, value],
-                    })
-                  }}
-                />
-              </Flex>
-            )}
+            0 -
+            <Input
+              size='xs'
+              type='number'
+              min={0}
+              max={100}
+              step={10}
+              sx={{
+                fontSize: [1, 1, 1, 2],
+                '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+                  opacity: 1,
+                },
+              }}
+              value={colorLimits.bounds[1]}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = parseFloat(e.target.value)
+                if (value < 1 || value > 100) return
+                setColorLimits({
+                  type: colorLimits.type,
+                  bounds: [riskConfig.bounds.min, value],
+                })
+              }}
+            />
           </Flex>
-        </Column>
-      </Row>
+        </Flex>
+      ) : (
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+            mb: 1,
+            fontSize: [1, 1, 1, 2],
+          }}
+        >
+          Burn probability (%)
+        </Flex>
+      )}
       <Flex
         sx={{
           width: '100%',
@@ -131,7 +136,8 @@ const Legend = () => {
           values={isDiscrete ? evenlySpacedTicks : null}
           format={formatTickValue}
           sx={{
-            ml: discreteClim ? 2 : 0,
+            color: 'primary',
+            ml: discreteClim ? 2 : '-10px',
             width: discreteClim ? 10 : 'auto',
             ':first-of-type': {
               // nudge zero over
@@ -141,7 +147,7 @@ const Legend = () => {
           }}
         />
       </Chart>
-    </>
+    </Box>
   )
 }
 export default Legend
