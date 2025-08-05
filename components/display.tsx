@@ -2,7 +2,6 @@ import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Row, Column, Toggle, Filter } from '@carbonplan/components'
 import { useStore } from '../lib/store'
-import { Legend } from './'
 
 const Display = () => {
   const satellite = useStore((state) => state.satellite)
@@ -82,7 +81,6 @@ const Display = () => {
           </Column>
         </Row>
       )}
-      <Legend />
     </>
   )
 }

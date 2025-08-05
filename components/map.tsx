@@ -151,6 +151,7 @@ const MapComponent = () => {
         },
         center: [initialView.lng, initialView.lat],
         zoom: initialView.zoom,
+        attributionControl: false,
       })
 
       const handleMoveEnd = () => {
