@@ -49,13 +49,12 @@ const Results = ({
   )
   return (
     <>
-      <Row columns={4} sx={{ my: 3, alignItems: 'baseline' }}>
+      <Row columns={4} sx={{ mt: 3, alignItems: 'baseline' }}>
         <Column start={1} width={4} variant='sectionHeading'>
           Climate risk
         </Column>
-        <Column start={2} width={3}></Column>
       </Row>
-      <Row columns={4} variant='labelFieldContainer'>
+      <Row columns={4} variant='labelFieldContainer' sx={{ mt: 2 }}>
         <Column start={1} width={4} sx={{ height: 25 }}>
           <Flex sx={{ gap: 3 }}>
             <Badge sx={{ color: scoreColor }}>
@@ -87,10 +86,7 @@ const Results = ({
                 About this score
               </Button>
             ) : (
-              <Box
-                variant='field'
-                sx={{ fontSize: 1, color: 'secondary', textTransform: 'none' }}
-              >
+              <Box sx={{ color: 'secondary' }}>
                 select a structure to view score
               </Box>
             )}

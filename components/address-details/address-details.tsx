@@ -80,10 +80,8 @@ const AddressDetails = ({
           </Column>
           <Column start={1} width={4} variant='labelFieldContainer'>
             <Box variant='sectionHeading'>Other factors</Box>
-            <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
-              The risk score described above does not account for a variety of
-              factors that each may drive actual fire risk up or down.
-            </Box>
+            The risk score described above does not account for a variety of
+            factors that each may drive actual fire risk up or down.
             <Table
               columns={[4]}
               start={[[1], [4]]}
@@ -132,26 +130,22 @@ const AddressDetails = ({
           {countyData && (
             <Column start={1} width={4} variant='labelFieldContainer'>
               <Box variant='sectionHeading'>Summary statistics</Box>
-              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
-                <Histogram
-                  address={address}
-                  region={`${countyName} County`}
-                  score={riskScore}
-                  data={countyData}
-                />
-              </Box>
+              <Histogram
+                address={address}
+                region={`${countyName} County`}
+                score={riskScore}
+                data={countyData}
+              />
             </Column>
           )}
           {censusTractData && (
-            <Column start={1} width={4}>
-              <Box sx={{ fontFamily: 'mono', fontSize: [1, 1, 1, 2], pt: 2 }}>
-                <Histogram
-                  address={address}
-                  region={'the census tract'}
-                  score={riskScore}
-                  data={censusTractData}
-                />
-              </Box>
+            <Column start={1} width={4} sx={{ mt: 2 }}>
+              <Histogram
+                address={address}
+                region={'the census tract'}
+                score={riskScore}
+                data={censusTractData}
+              />
             </Column>
           )}
         </Row>
