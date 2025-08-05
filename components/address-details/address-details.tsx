@@ -1,7 +1,7 @@
 import { Box } from 'theme-ui'
 
 //@ts-expect-error - carbonplan components types not available
-import { Button, Row, Column } from '@carbonplan/components'
+import { Badge, Button, Row, Column, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Left } from '@carbonplan/icons'
 
@@ -10,6 +10,8 @@ import SidebarSidecar from './sidebar-sidecar'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import Histogram from './histogram'
+
+const sx = { badge: { color: 'red', textTransform: 'uppercase' } }
 
 const AddressDetails = ({
   visible,
@@ -82,6 +84,50 @@ const AddressDetails = ({
               The risk score described above does not account for a variety of
               factors that each may drive actual fire risk up or down.
             </Box>
+            <Table
+              columns={[4]}
+              start={[[1], [4]]}
+              width={[[3], [1]]}
+              data={[
+                [
+                  'Building retrofit',
+                  <Badge key='lower' sx={sx.badge}>
+                    Lower
+                  </Badge>,
+                ],
+                [
+                  'Community emergency response',
+                  <Badge key='lower' sx={sx.badge}>
+                    Lower
+                  </Badge>,
+                ],
+                [
+                  'Previous fire',
+                  <Badge key='lower' sx={sx.badge}>
+                    Lower
+                  </Badge>,
+                ],
+                [
+                  'Access limitations',
+                  <Badge key='higher' sx={sx.badge}>
+                    Higher
+                  </Badge>,
+                ],
+              ]}
+              index={false}
+              sx={{
+                mt: 3,
+                '& tr': {
+                  py: 2,
+                },
+                '& td': {
+                  fontFamily: 'mono',
+                  letterSpacing: 'mono',
+                  textTransform: 'uppercase',
+                  fontSize: [2, 2, 2, 3],
+                },
+              }}
+            />
           </Column>
           {countyData && (
             <Column start={1} width={4} variant='labelFieldContainer'>
