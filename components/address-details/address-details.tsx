@@ -9,9 +9,8 @@ import ScoreDetails from './score-details'
 import SidebarSidecar from './sidebar-sidecar'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
+import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import Histogram from './histogram'
-
-const sx = { badge: { color: 'red', textTransform: 'uppercase' } }
 
 const AddressDetails = ({
   visible,
@@ -39,6 +38,27 @@ const AddressDetails = ({
       state.activeGeographies.censusTract?.risk[state.attribute][
         state.timePeriod
       ][state.timeHorizon].data,
+  )
+  const colorLimits = useStore((state) => state.colorLimits)
+  const riskConfig = useStore((state) => state.riskConfig)
+
+  const colormap = useColormap(riskConfig.colormap, {
+    count: colorLimits.type === 'discrete' ? 5 : 256,
+  })
+
+  const higherColor = getColorForRiskScore(
+    90,
+    colormap,
+    colorLimits,
+    riskConfig.binRatios,
+    'primary',
+  )
+  const lowerColor = getColorForRiskScore(
+    5,
+    colormap,
+    colorLimits,
+    riskConfig.binRatios,
+    'primary',
   )
 
   if (!selectedLocation?.address.houseNumber) {
@@ -89,25 +109,37 @@ const AddressDetails = ({
               data={[
                 [
                   'Building retrofit',
-                  <Badge key='lower' sx={sx.badge}>
+                  <Badge
+                    key='lower'
+                    sx={{ textTransform: 'uppercase', color: lowerColor }}
+                  >
                     Lower
                   </Badge>,
                 ],
                 [
                   'Community emergency response',
-                  <Badge key='lower' sx={sx.badge}>
+                  <Badge
+                    key='lower'
+                    sx={{ textTransform: 'uppercase', color: lowerColor }}
+                  >
                     Lower
                   </Badge>,
                 ],
                 [
                   'Previous fire',
-                  <Badge key='lower' sx={sx.badge}>
+                  <Badge
+                    key='lower'
+                    sx={{ textTransform: 'uppercase', color: lowerColor }}
+                  >
                     Lower
                   </Badge>,
                 ],
                 [
                   'Access limitations',
-                  <Badge key='higher' sx={sx.badge}>
+                  <Badge
+                    key='higher'
+                    sx={{ textTransform: 'uppercase', color: higherColor }}
+                  >
                     Higher
                   </Badge>,
                 ],
