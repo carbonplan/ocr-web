@@ -46,21 +46,13 @@ const AddressDetails = ({
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const higherColor = getColorForRiskScore(
-    90,
+  const scoreColor = getColorForRiskScore(
+    riskScore,
     colormap,
     colorLimits,
     riskConfig.binRatios,
     'primary',
   )
-  const lowerColor = getColorForRiskScore(
-    5,
-    colormap,
-    colorLimits,
-    riskConfig.binRatios,
-    'primary',
-  )
-
   if (!selectedLocation?.address.houseNumber) {
     return null
   }
@@ -111,7 +103,7 @@ const AddressDetails = ({
                   'Building retrofit',
                   <Badge
                     key='lower'
-                    sx={{ textTransform: 'uppercase', color: lowerColor }}
+                    sx={{ textTransform: 'uppercase', color: scoreColor }}
                   >
                     Lower
                   </Badge>,
@@ -120,7 +112,7 @@ const AddressDetails = ({
                   'Community emergency response',
                   <Badge
                     key='lower'
-                    sx={{ textTransform: 'uppercase', color: lowerColor }}
+                    sx={{ textTransform: 'uppercase', color: scoreColor }}
                   >
                     Lower
                   </Badge>,
@@ -129,7 +121,7 @@ const AddressDetails = ({
                   'Previous fire',
                   <Badge
                     key='lower'
-                    sx={{ textTransform: 'uppercase', color: lowerColor }}
+                    sx={{ textTransform: 'uppercase', color: scoreColor }}
                   >
                     Lower
                   </Badge>,
@@ -138,7 +130,7 @@ const AddressDetails = ({
                   'Access limitations',
                   <Badge
                     key='higher'
-                    sx={{ textTransform: 'uppercase', color: higherColor }}
+                    sx={{ textTransform: 'uppercase', color: scoreColor }}
                   >
                     Higher
                   </Badge>,
