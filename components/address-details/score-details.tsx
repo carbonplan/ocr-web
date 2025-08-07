@@ -57,28 +57,26 @@ const ScoreDetails = () => {
     if (scoreDifference > 0.01) {
       return (
         <>
-          increases the burn probability to{' '}
-          <ScoreBadge score={score} color={scoreColor} />.
+          increases the risk to <ScoreBadge score={score} color={scoreColor} />.
         </>
       )
     } else if (scoreDifference < -0.01) {
       return (
         <>
-          decreases the burn probability to{' '}
-          <ScoreBadge score={score} color={scoreColor} />.
+          decreases the risk to <ScoreBadge score={score} color={scoreColor} />.
         </>
       )
     } else {
-      return <>does not significantly change the burn probability.</>
+      return <>does not significantly change the risk.</>
     }
   }
 
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        The risk score for this address is derived using the annual burn
-        probability generated in the US Forest Service&apos;s Wildfire Risk to
-        Communities dataset (
+        The risk of destruction for this address is derived using the annual
+        risk to potential structures generated in the US Forest Service&apos;s
+        Wildfire Risk to Communities dataset (
         <ScoreBadge score={baseRiskScore} color={baseScoreColor} />
         ). We then use historical wind data from fire weather days to predict
         how wildfire could spread, which {getRiskScoreDeltaWording()}

@@ -12,6 +12,7 @@ import {
 import { Right } from '@carbonplan/icons'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import TooltipWrapper from './tooltip'
 
 const Results = ({
   showAddressDetails,
@@ -106,26 +107,31 @@ const Results = ({
           Scenario
         </Column>
         <Column start={2} width={3}>
-          <Filter
-            values={{
-              current: timePeriod === 'current',
-              future: timePeriod === 'future',
-            }}
-            labels={{
-              current: 'Current (2011)',
-              future: 'Future (2047)',
-            }}
-            setValues={(values: Record<string, boolean>) => {
-              const selectedPeriod = Object.keys(values).find(
-                (key) => values[key],
-              )
-              if (selectedPeriod === 'current') {
-                setTimePeriod('current')
-              } else if (selectedPeriod === 'future') {
-                setTimePeriod('future')
-              }
-            }}
-          />
+          <TooltipWrapper
+            tooltip='Current risk estimates are based on a climate circa 2003-2018 while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from 2020.'
+            sx={{ justifyContent: 'flex-start', gap: 2 }}
+          >
+            <Filter
+              values={{
+                current: timePeriod === 'current',
+                future: timePeriod === 'future',
+              }}
+              labels={{
+                current: 'Current',
+                future: 'Future',
+              }}
+              setValues={(values: Record<string, boolean>) => {
+                const selectedPeriod = Object.keys(values).find(
+                  (key) => values[key],
+                )
+                if (selectedPeriod === 'current') {
+                  setTimePeriod('current')
+                } else if (selectedPeriod === 'future') {
+                  setTimePeriod('future')
+                }
+              }}
+            />
+          </TooltipWrapper>
         </Column>
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
