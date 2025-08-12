@@ -394,7 +394,7 @@ const Buildings = () => {
               'fill-color': colorExpression,
             },
           },
-          LAYERS.counties.layerIds.line,
+          'boundaries',
         )
       }
 
@@ -411,8 +411,8 @@ const Buildings = () => {
                 ['boolean', ['feature-state', 'selected'], false],
                 get(theme, 'rawColors.primary'),
                 ['boolean', ['feature-state', 'hovered'], false],
+                get(theme, 'rawColors.primary'),
                 get(theme, 'rawColors.secondary'),
-                get(theme, 'rawColors.muted'),
               ],
               'line-width': [
                 'interpolate',
@@ -424,7 +424,7 @@ const Buildings = () => {
                   ['boolean', ['feature-state', 'selected'], false],
                   2,
                   ['boolean', ['feature-state', 'hovered'], false],
-                  1.5,
+                  1,
                   0,
                 ],
                 14,
@@ -433,13 +433,13 @@ const Buildings = () => {
                   ['boolean', ['feature-state', 'selected'], false],
                   2,
                   ['boolean', ['feature-state', 'hovered'], false],
-                  1.5,
                   1,
+                  0.3,
                 ],
               ],
             },
           },
-          LAYERS.buildings.layerIds.fill,
+          'boundaries',
         )
       }
     }
