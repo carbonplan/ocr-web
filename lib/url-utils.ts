@@ -38,23 +38,15 @@ export function getMapViewFromQuery(
   }
 }
 
-export function updateMapViewUrl(
-  router: NextRouter,
-  params: MapViewParams,
-): void {
-  const query = {
-    ...router.query,
-    lat: params.lat.toFixed(5),
-    lng: params.lng.toFixed(5),
-    zoom: params.zoom.toFixed(2),
-  }
-
-  router.replace(
-    {
-      pathname: router.pathname,
-      query,
-    },
-    undefined,
-    { shallow: true },
+export function updateMapViewUrl(params: MapViewParams): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  url.searchParams.set('lat', params.lat.toFixed(5))
+  url.searchParams.set('lng', params.lng.toFixed(5))
+  url.searchParams.set('zoom', params.zoom.toFixed(2))
+  window.history.replaceState(
+    null,
+    '',
+    `${url.pathname}?${url.searchParams.toString()}`,
   )
 }
