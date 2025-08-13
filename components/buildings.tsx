@@ -394,7 +394,7 @@ const Buildings = () => {
               'fill-color': colorExpression,
             },
           },
-          'boundaries',
+          'buildings',
         )
       }
 
@@ -439,7 +439,7 @@ const Buildings = () => {
               ],
             },
           },
-          'boundaries',
+          'buildings',
         )
       }
     }

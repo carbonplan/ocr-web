@@ -125,7 +125,7 @@ const GeographyLayer = ({
               'fill-opacity': geographies[geographyKey] ? 1 : 0,
             },
           },
-          'background',
+          'landcover',
         )
       }
 
@@ -137,12 +137,12 @@ const GeographyLayer = ({
             source: config.sourceId,
             'source-layer': config.layerName,
             paint: {
-              'line-opacity': geographies[geographyKey] ? 0.8 : 0,
-              'line-color': get(theme, 'rawColors.muted'),
+              'line-opacity': geographies[geographyKey] ? 1 : 0,
+              'line-color': get(theme, 'rawColors.primary'),
               'line-width': 1,
             },
           },
-          'background',
+          'address_label',
         )
       }
     }
@@ -150,7 +150,7 @@ const GeographyLayer = ({
     if (map.isStyleLoaded()) {
       initializeLayers()
     } else {
-      map.on('load', initializeLayers)
+      map.once('load', initializeLayers)
     }
 
     return () => {
@@ -192,8 +192,13 @@ const GeographyLayer = ({
         'line-opacity',
         geographies[geographyKey] ? 1 : 0,
       )
+      map.setPaintProperty(
+        config.layerIds.line,
+        'line-color',
+        get(theme, 'rawColors.primary'),
+      )
     }
-  }, [map, geographies[geographyKey]])
+  }, [map, geographies, geographyKey, theme])
 
   return null
 }
