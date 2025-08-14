@@ -119,6 +119,17 @@ const Buildings = () => {
     riskConfig.bounds.min,
   ])
 
+  const lineColorExpression: ExpressionSpecification = useMemo(() => {
+    return [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      get(theme, 'rawColors.primary'),
+      ['boolean', ['feature-state', 'hovered'], false],
+      get(theme, 'rawColors.primary'),
+      get(theme, 'rawColors.secondary'),
+    ] as ExpressionSpecification
+  }, [theme])
+
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
       if (!map || map.getZoom() <= 13) return
@@ -406,14 +417,7 @@ const Buildings = () => {
             source: LAYERS.buildings.sourceId,
             'source-layer': LAYERS.buildings.layerName,
             paint: {
-              'line-color': [
-                'case',
-                ['boolean', ['feature-state', 'selected'], false],
-                get(theme, 'rawColors.primary'),
-                ['boolean', ['feature-state', 'hovered'], false],
-                get(theme, 'rawColors.primary'),
-                get(theme, 'rawColors.secondary'),
-              ],
+              'line-color': lineColorExpression,
               'line-width': [
                 'interpolate',
                 ['linear'],
@@ -549,6 +553,16 @@ const Buildings = () => {
       colorExpression,
     )
   }, [map, colorExpression])
+
+  useEffect(() => {
+    // update line highlight color when theme changes
+    if (!map || !map.getLayer(LAYERS.buildings.layerIds.line)) return
+    map.setPaintProperty(
+      LAYERS.buildings.layerIds.line,
+      'line-color',
+      lineColorExpression,
+    )
+  }, [map, lineColorExpression])
 
   return null
 }
