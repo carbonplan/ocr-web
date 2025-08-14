@@ -43,7 +43,7 @@ const MapComponent = () => {
     [riskConfig.colormap],
   )
 
-  const { mapLayers } = useMapTheme()
+  const { mapLayers, sprite } = useMapTheme()
 
   const riskMatrix = useMemo(() => {
     const riskAttributes = [
@@ -146,6 +146,7 @@ const MapComponent = () => {
             'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
           sources,
           layers: [...layers, ...mapLayers],
+          sprite,
         },
         center: [initialView.lng, initialView.lat],
         zoom: initialView.zoom,
@@ -195,7 +196,11 @@ const MapComponent = () => {
   }, [riskMatrix, setMap, setMapLoading, router, router.isReady])
 
   useEffect(() => {
-    if (!map || !map.getStyle()) return
+    if (!map) return
+    const currentStyle = map.getStyle()
+    if (!currentStyle) return
+    const newStyle = { ...currentStyle, sprite }
+    map.setStyle(newStyle, { diff: true })
     const updateLayerProps = (layerId: string, spec: LayerSpecification) => {
       if (spec.paint) {
         for (const [key, value] of Object.entries(spec.paint)) {
@@ -204,7 +209,7 @@ const MapComponent = () => {
       }
     }
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
-  }, [mapLayers, map, map?.getStyle])
+  }, [mapLayers, map, sprite])
 
   useEffect(() => {
     if (!map) return
