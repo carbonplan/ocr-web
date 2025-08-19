@@ -27,7 +27,7 @@ export const getBuildingRiskScores = (
   const hasAllKeys = Object.keys(riskConfig.attributes).every((key: string) => {
     const subKeys =
       riskConfig.attributes[key as keyof typeof riskConfig.attributes]
-    return building[subKeys.current] && building[subKeys.future]
+    return building[subKeys.current] != null && building[subKeys.future] != null
   })
 
   if (!hasAllKeys) {
