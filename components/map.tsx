@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import {
-  StyleSpecification,
   Map,
   addProtocol,
   removeProtocol,
@@ -21,7 +20,6 @@ import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 const MapComponent = () => {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<Map | null>(null) // ref for cleanup
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
@@ -74,7 +72,7 @@ const MapComponent = () => {
       }
     }
     return matrix
-  }, [riskConfig, lightColormap, darkColormap])
+  }, [riskConfig, lightColormap, darkColormap, colorLimits])
 
   const activeRiskLayerId = useMemo(() => {
     const riskAttribute = riskConfig.attributes[attribute][timePeriod]
@@ -147,7 +145,8 @@ const MapComponent = () => {
           glyphs:
             'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
           sources,
-          layers,
+          layers: [...layers, ...mapLayers],
+          sprite,
         },
         center: [initialView.lng, initialView.lat],
         zoom: initialView.zoom,
@@ -157,7 +156,7 @@ const MapComponent = () => {
       const handleMoveEnd = () => {
         const center = newMap.getCenter()
         const zoom = newMap.getZoom()
-        updateMapViewUrl(router, {
+        updateMapViewUrl({
           lat: center.lat,
           lng: center.lng,
           zoom: zoom,
@@ -179,7 +178,6 @@ const MapComponent = () => {
       newMap.on('moveend', handleMoveEnd)
 
       setMap(newMap)
-      mapRef.current = newMap
 
       return () => {
         if (newMap) {
@@ -195,33 +193,23 @@ const MapComponent = () => {
       removeProtocol('pmtiles')
       setMap(null)
     }
-  }, [riskMatrix, setMap, router.isReady])
+  }, [riskMatrix, setMap, setMapLoading, router, router.isReady])
 
   useEffect(() => {
-    const applyStyle = () => {
-      if (!map) return
-      const existingStyle = map.getStyle()
-      const specialLayers = existingStyle.layers.filter(
-        (layer) =>
-          layer.id === 'satellite' ||
-          layer.id.startsWith('wms_risk_') ||
-          layer.id.startsWith('risk-'), // all vector layers
-      )
-      const newLayers = [...specialLayers, ...mapLayers]
-
-      const newStyle: StyleSpecification = {
-        ...existingStyle,
-        layers: newLayers,
-        sprite,
+    if (!map) return
+    const currentStyle = map.getStyle()
+    if (!currentStyle) return
+    const newStyle = { ...currentStyle, sprite }
+    map.setStyle(newStyle, { diff: true })
+    const updateLayerProps = (layerId: string, spec: LayerSpecification) => {
+      if (spec.paint) {
+        for (const [key, value] of Object.entries(spec.paint)) {
+          map.setPaintProperty(layerId, key, value)
+        }
       }
-      map.setStyle(newStyle)
     }
-    if (!map || !map.getStyle()) {
-      map?.once('style.load', applyStyle)
-    } else {
-      applyStyle()
-    }
-  }, [mapLayers, sprite, map])
+    mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
+  }, [mapLayers, map, sprite])
 
   useEffect(() => {
     if (!map) return

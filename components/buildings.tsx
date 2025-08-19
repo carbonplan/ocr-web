@@ -119,6 +119,17 @@ const Buildings = () => {
     riskConfig.bounds.min,
   ])
 
+  const lineColorExpression: ExpressionSpecification = useMemo(() => {
+    return [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      get(theme, 'rawColors.primary'),
+      ['boolean', ['feature-state', 'hovered'], false],
+      get(theme, 'rawColors.primary'),
+      get(theme, 'rawColors.secondary'),
+    ] as ExpressionSpecification
+  }, [theme])
+
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
       if (!map || map.getZoom() <= 13) return
@@ -394,7 +405,7 @@ const Buildings = () => {
               'fill-color': colorExpression,
             },
           },
-          LAYERS.counties.layerIds.line,
+          'buildings',
         )
       }
 
@@ -406,14 +417,7 @@ const Buildings = () => {
             source: LAYERS.buildings.sourceId,
             'source-layer': LAYERS.buildings.layerName,
             paint: {
-              'line-color': [
-                'case',
-                ['boolean', ['feature-state', 'selected'], false],
-                get(theme, 'rawColors.primary'),
-                ['boolean', ['feature-state', 'hovered'], false],
-                get(theme, 'rawColors.secondary'),
-                get(theme, 'rawColors.muted'),
-              ],
+              'line-color': lineColorExpression,
               'line-width': [
                 'interpolate',
                 ['linear'],
@@ -424,7 +428,7 @@ const Buildings = () => {
                   ['boolean', ['feature-state', 'selected'], false],
                   2,
                   ['boolean', ['feature-state', 'hovered'], false],
-                  1.5,
+                  1,
                   0,
                 ],
                 14,
@@ -433,13 +437,13 @@ const Buildings = () => {
                   ['boolean', ['feature-state', 'selected'], false],
                   2,
                   ['boolean', ['feature-state', 'hovered'], false],
-                  1.5,
                   1,
+                  0.3,
                 ],
               ],
             },
           },
-          LAYERS.buildings.layerIds.fill,
+          'buildings',
         )
       }
     }
@@ -549,6 +553,16 @@ const Buildings = () => {
       colorExpression,
     )
   }, [map, colorExpression])
+
+  useEffect(() => {
+    // update line highlight color when theme changes
+    if (!map || !map.getLayer(LAYERS.buildings.layerIds.line)) return
+    map.setPaintProperty(
+      LAYERS.buildings.layerIds.line,
+      'line-color',
+      lineColorExpression,
+    )
+  }, [map, lineColorExpression])
 
   return null
 }
