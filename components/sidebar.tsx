@@ -1,5 +1,5 @@
 import { Box, Spinner } from 'theme-ui'
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar, SidebarAttachment } from '@carbonplan/layouts'
@@ -10,42 +10,37 @@ import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const [showAddressDetails, setShowAddressDetails] = useState<boolean>(false)
   const mapLoading = useStore((state) => state.mapLoading)
   const hasSelectedBuilding = useStore((state) => !!state.selectedBuilding)
   const houseNumber = useStore(
     (state) => state.selectedLocation?.address.houseNumber,
   )
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
+  const showAddressDetails = useStore((state) => state.showAddressDetails)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
 
   useEffect(() => {
     if (hasSelectedBuilding && houseNumber) {
       setShowAddressDetails(true)
-      if (sidebarRef.current) {
-        setSidebarWidth(sidebarRef.current.offsetWidth * 2)
-      }
-    } else if (sidebarRef.current) {
-      setSidebarWidth(sidebarRef.current.offsetWidth)
     }
-  }, [houseNumber, hasSelectedBuilding, setSidebarWidth])
+  }, [houseNumber, hasSelectedBuilding, setShowAddressDetails])
 
   useEffect(() => {
     const updateSidebarWidth = () => {
       if (sidebarRef.current) {
-        const width = sidebarRef.current.offsetWidth
-
-        setSidebarWidth(showAddressDetails ? width * 2 : width)
+        const width =
+          sidebarRef.current.parentElement?.parentElement?.offsetWidth
+        if (width) {
+          setSidebarWidth(width)
+        }
       }
     }
-
     updateSidebarWidth()
-
     window.addEventListener('resize', updateSidebarWidth)
-
     return () => {
       window.removeEventListener('resize', updateSidebarWidth)
     }
-  }, [setSidebarWidth, showAddressDetails])
+  }, [houseNumber, hasSelectedBuilding, showAddressDetails, setSidebarWidth])
 
   return (
     <>
