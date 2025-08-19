@@ -66,10 +66,7 @@ const SidebarComponent = () => {
             <Link href='#TK'>analysis examples</Link> for more details.
           </Box>
           <Geocode />
-          <Results
-            showAddressDetails={showAddressDetails}
-            setShowAddressDetails={setShowAddressDetails}
-          />
+          <Results />
           <Display />
         </div>
       </Sidebar>

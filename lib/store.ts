@@ -50,6 +50,8 @@ type Store = {
   }) => void
   mapLoading: boolean
   setMapLoading: (mapLoading: boolean) => void
+  showAddressDetails: boolean
+  setShowAddressDetails: (showAddressDetails: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
 }
@@ -107,6 +109,8 @@ export const useStore = create<Store>((set) => ({
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
   setMapLoading: (mapLoading) => set({ mapLoading }),
+  showAddressDetails: false,
+  setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
