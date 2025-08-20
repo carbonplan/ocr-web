@@ -32,7 +32,7 @@ const DownloadBuildings = () => {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `buildings_${new Date().toISOString().split('T')[0]}.geojson`
+      link.download = `building-fire-risk-${new Date().toISOString().split('T')[0]}.geojson`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
