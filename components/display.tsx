@@ -10,6 +10,8 @@ const Display = () => {
   const setAttribute = useStore((state) => state.setAttribute)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
+  const rpsRaster = useStore((state) => state.rpsRaster)
+  const setRpsRaster = useStore((state) => state.setRpsRaster)
   const geographies = useStore((state) => state.geographies)
   const setGeographies = useStore((state) => state.setGeographies)
   const advancedMode = useStore((state) => state.advancedMode)
@@ -62,24 +64,44 @@ const Display = () => {
         </Column>
       </Row>
       {advancedMode && (
-        <Row variant='labelFieldContainer' columns={4}>
-          <Column
-            start={1}
-            width={1}
-            variant='label'
-            sx={{ textWrap: 'nowrap' }}
-          >
-            Wind Risk
-          </Column>
-          <Column start={2} width={3}>
-            <Toggle
-              value={attribute === 'windRisk'}
-              onClick={() =>
-                setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
-              }
-            />
-          </Column>
-        </Row>
+        <>
+          <Row variant='labelFieldContainer' columns={4}>
+            <Column
+              start={1}
+              width={1}
+              variant='label'
+              sx={{ textWrap: 'nowrap' }}
+            >
+              Wind Risk
+            </Column>
+            <Column start={2} width={3}>
+              <Toggle
+                value={attribute === 'windRisk'}
+                onClick={() =>
+                  setAttribute(
+                    attribute !== 'windRisk' ? 'windRisk' : 'baseRisk',
+                  )
+                }
+              />
+            </Column>
+          </Row>
+          <Row variant='labelFieldContainer' columns={4}>
+            <Column
+              start={1}
+              width={1}
+              variant='label'
+              sx={{ textWrap: 'nowrap' }}
+            >
+              RPS data
+            </Column>
+            <Column start={2} width={3}>
+              <Toggle
+                value={rpsRaster}
+                onClick={() => setRpsRaster(!rpsRaster)}
+              />
+            </Column>
+          </Row>
+        </>
       )}
     </>
   )
