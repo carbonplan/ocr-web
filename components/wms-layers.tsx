@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
+import { RasterTileSource } from 'maplibre-gl'
 import { useStore } from '../lib/store'
 import { generateColormap } from '@/lib/colormaps'
 
@@ -85,126 +86,76 @@ const WmsLayers = () => {
     return `wms_rps_RPS_horizon_${timeHorizon}_${currentTheme}`
   }, [timeHorizon, colorMode])
 
-  useEffect(() => {
-    if (!map || !(riskRaster || rpsRaster)) return
-
-    const removeExistingWmsLayers = () => {
-      riskMatrix.forEach((risk) => {
-        if (map.getLayer(risk.id)) {
-          map.removeLayer(risk.id)
-        }
-        if (map.getSource(risk.id)) {
-          map.removeSource(risk.id)
-        }
-      })
-
-      rpsMatrix.forEach((rps) => {
-        if (map.getLayer(rps.id)) {
-          map.removeLayer(rps.id)
-        }
-        if (map.getSource(rps.id)) {
-          map.removeSource(rps.id)
-        }
-      })
-    }
-
-    const addWmsLayers = () => {
-      removeExistingWmsLayers()
-
-      riskMatrix.forEach((risk) => {
-        map.addSource(risk.id, {
-          type: 'raster',
-          tiles: [risk.url],
-          tileSize: 256,
-        })
-      })
-
-      rpsMatrix.forEach((rps) => {
-        map.addSource(rps.id, {
-          type: 'raster',
-          tiles: [rps.url],
-          tileSize: 256,
-        })
-      })
-
-      riskMatrix.forEach((risk) => {
-        map.addLayer(
-          {
-            id: risk.id,
-            type: 'raster',
-            source: risk.id,
-            layout: {
-              visibility:
-                risk.id === activeRiskLayerId && riskRaster
-                  ? 'visible'
-                  : 'none',
-            },
-          },
-          'satellite',
-        )
-      })
-
-      rpsMatrix.forEach((rps) => {
-        map.addLayer(
-          {
-            id: rps.id,
-            type: 'raster',
-            source: rps.id,
-            layout: {
-              visibility:
-                rps.id === activeRpsLayerId && rpsRaster ? 'visible' : 'none',
-            },
-          },
-          'satellite',
-        )
-      })
-    }
-
-    if (map.isStyleLoaded()) {
-      addWmsLayers()
-    } else {
-      map.once('styledata', addWmsLayers)
-    }
-
-    return () => {
-      map.off('styledata', addWmsLayers)
-      if (map.isStyleLoaded()) {
-        removeExistingWmsLayers()
-      }
-    }
-  }, [
-    map,
-    riskMatrix,
-    rpsMatrix,
-    riskRaster,
-    rpsRaster,
-    activeRiskLayerId,
-    activeRpsLayerId,
-  ])
-
+  // manage full url updates
   useEffect(() => {
     if (!map) return
-    riskMatrix.forEach((risk) => {
-      if (map.getLayer(risk.id)) {
-        map.setLayoutProperty(risk.id, 'visibility', 'none')
+
+    const allLayers = [...riskMatrix, ...rpsMatrix]
+    allLayers.forEach((layer) => {
+      const existingSource = map.getSource(layer.id)
+      if (!existingSource) {
+        map.addSource(layer.id, {
+          type: 'raster',
+          tiles: [layer.url],
+          tileSize: 256,
+        })
+      } else if (existingSource.type === 'raster') {
+        const rasterSource = existingSource as RasterTileSource
+        const currentTiles = rasterSource.tiles
+        if (!currentTiles || currentTiles[0] !== layer.url) {
+          if (map.getLayer(layer.id)) {
+            map.removeLayer(layer.id)
+          }
+          map.removeSource(layer.id)
+          map.addSource(layer.id, {
+            type: 'raster',
+            tiles: [layer.url],
+            tileSize: 256,
+          })
+        }
+      }
+
+      if (!map.getLayer(layer.id)) {
+        map.addLayer(
+          {
+            id: layer.id,
+            type: 'raster',
+            source: layer.id,
+            layout: { visibility: 'none' },
+          },
+          'satellite',
+        )
       }
     })
+  }, [map, riskMatrix, rpsMatrix])
+
+  // manage layer visibility
+  useEffect(() => {
+    if (!map) return
+
+    const allLayers = [...riskMatrix, ...rpsMatrix]
+
+    allLayers.forEach((layer) => {
+      if (map.getLayer(layer.id)) {
+        map.setLayoutProperty(layer.id, 'visibility', 'none')
+      }
+    })
+
     if (riskRaster && activeRiskLayerId && map.getLayer(activeRiskLayerId)) {
       map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
     }
-  }, [riskRaster, activeRiskLayerId, map, riskMatrix])
-
-  useEffect(() => {
-    if (!map) return
-    rpsMatrix.forEach((rps) => {
-      if (map.getLayer(rps.id)) {
-        map.setLayoutProperty(rps.id, 'visibility', 'none')
-      }
-    })
     if (rpsRaster && activeRpsLayerId && map.getLayer(activeRpsLayerId)) {
       map.setLayoutProperty(activeRpsLayerId, 'visibility', 'visible')
     }
-  }, [rpsRaster, activeRpsLayerId, map, rpsMatrix])
+  }, [
+    riskRaster,
+    activeRiskLayerId,
+    rpsRaster,
+    activeRpsLayerId,
+    map,
+    riskMatrix,
+    rpsMatrix,
+  ])
 
   return null
 }
