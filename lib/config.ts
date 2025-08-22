@@ -44,7 +44,7 @@ export const RISKS = {
     colormap: 'fire-risk',
     binRatios: [0.1, 0.2, 0.5, 1],
     bounds: {
-      min: 0.00005,
+      min: 0.005,
       max: 25,
     },
   },
