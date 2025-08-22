@@ -86,7 +86,7 @@ const WmsLayers = () => {
   }, [timeHorizon, colorMode])
 
   useEffect(() => {
-    if (!map) return
+    if (!map || !(riskRaster || rpsRaster)) return
 
     const removeExistingWmsLayers = () => {
       riskMatrix.forEach((risk) => {
@@ -134,7 +134,10 @@ const WmsLayers = () => {
             type: 'raster',
             source: risk.id,
             layout: {
-              visibility: 'none',
+              visibility:
+                risk.id === activeRiskLayerId && riskRaster
+                  ? 'visible'
+                  : 'none',
             },
           },
           'satellite',
@@ -148,7 +151,8 @@ const WmsLayers = () => {
             type: 'raster',
             source: rps.id,
             layout: {
-              visibility: 'none',
+              visibility:
+                rps.id === activeRpsLayerId && rpsRaster ? 'visible' : 'none',
             },
           },
           'satellite',
@@ -168,7 +172,15 @@ const WmsLayers = () => {
         removeExistingWmsLayers()
       }
     }
-  }, [map, riskMatrix, rpsMatrix])
+  }, [
+    map,
+    riskMatrix,
+    rpsMatrix,
+    riskRaster,
+    rpsRaster,
+    activeRiskLayerId,
+    activeRpsLayerId,
+  ])
 
   useEffect(() => {
     if (!map) return
