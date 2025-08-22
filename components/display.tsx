@@ -57,8 +57,16 @@ const Display = () => {
                 usfs: rpsRaster,
               }}
               setValues={(values: Record<string, boolean>) => {
-                setRiskRaster(values.ocr)
-                setRpsRaster(values.usfs)
+                if (values.ocr === riskRaster) {
+                  setRiskRaster(false)
+                } else {
+                  setRiskRaster(values.ocr)
+                }
+                if (values.usfs === rpsRaster) {
+                  setRpsRaster(false)
+                } else {
+                  setRpsRaster(values.usfs)
+                }
               }}
             />
           ) : (
