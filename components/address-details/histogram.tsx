@@ -105,7 +105,7 @@ const Histogram = ({
           <Grid horizontal />
           <Axis left bottom />
           <AxisLabel bottom units='%'>
-            Risk of destruction
+            Risk of structure loss
           </AxisLabel>
           <AxisLabel left>Number addresses</AxisLabel>
           <Plot>
