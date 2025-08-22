@@ -24,6 +24,7 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
   const riskRaster = useStore((state) => state.riskRaster)
+  const rpsRaster = useStore((state) => state.rpsRaster)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const attribute = useStore((state) => state.attribute)
@@ -74,11 +75,37 @@ const MapComponent = () => {
     return matrix
   }, [riskConfig, lightColormap, darkColormap, colorLimits])
 
+  const rpsMatrix = useMemo(() => {
+    const timeHorizons = [1, 15, 30]
+    const themes = ['light', 'dark']
+
+    const matrix = []
+    for (const themeType of themes) {
+      const colormap = themeType === 'light' ? lightColormap : darkColormap
+      for (const horizon of timeHorizons) {
+        const url = `${process.env.NEXT_PUBLIC_RPS_RASTER_URL}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorLimits.bounds.join(',')}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        matrix.push({
+          id: `wms_rps_RPS_horizon_${horizon}_${themeType}`,
+          riskAttribute: 'RPS',
+          timeHorizon: horizon,
+          theme: themeType,
+          url,
+        })
+      }
+    }
+    return matrix
+  }, [lightColormap, darkColormap, colorLimits])
+
   const activeRiskLayerId = useMemo(() => {
     const riskAttribute = riskConfig.attributes[attribute][timePeriod]
     const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
     return `wms_risk_${riskAttribute}_horizon_${timeHorizon}_${currentTheme}`
   }, [attribute, riskConfig, timePeriod, timeHorizon, colorMode])
+
+  const activeRpsLayerId = useMemo(() => {
+    const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
+    return `wms_rps_RPS_horizon_${timeHorizon}_${currentTheme}`
+  }, [timeHorizon, colorMode])
 
   useEffect(() => {
     if (mapContainer.current && router.isReady) {
@@ -113,6 +140,14 @@ const MapComponent = () => {
         }
       })
 
+      rpsMatrix.forEach((rps) => {
+        sources[rps.id] = {
+          type: 'raster',
+          tiles: [rps.url],
+          tileSize: 256,
+        }
+      })
+
       const layers: LayerSpecification[] = []
 
       riskMatrix.forEach((risk) => {
@@ -120,6 +155,16 @@ const MapComponent = () => {
           id: risk.id,
           type: 'raster',
           source: risk.id,
+          layout: {
+            visibility: 'none',
+          },
+        })
+      })
+      rpsMatrix.forEach((rps) => {
+        layers.push({
+          id: rps.id,
+          type: 'raster',
+          source: rps.id,
           layout: {
             visibility: 'none',
           },
@@ -193,7 +238,7 @@ const MapComponent = () => {
       removeProtocol('pmtiles')
       setMap(null)
     }
-  }, [riskMatrix, setMap, setMapLoading, router, router.isReady])
+  }, [riskMatrix, rpsMatrix, setMap, setMapLoading, router, router.isReady])
 
   useEffect(() => {
     if (!map) return
@@ -233,6 +278,18 @@ const MapComponent = () => {
       map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
     }
   }, [riskRaster, activeRiskLayerId, map, riskMatrix])
+
+  useEffect(() => {
+    if (!map) return
+    rpsMatrix.forEach((rps) => {
+      if (map.getLayer(rps.id)) {
+        map.setLayoutProperty(rps.id, 'visibility', 'none')
+      }
+    })
+    if (rpsRaster && activeRpsLayerId && map.getLayer(activeRpsLayerId)) {
+      map.setLayoutProperty(activeRpsLayerId, 'visibility', 'visible')
+    }
+  }, [rpsRaster, activeRpsLayerId, map, rpsMatrix])
 
   return (
     <div
