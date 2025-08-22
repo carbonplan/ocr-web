@@ -84,6 +84,10 @@ const Histogram = ({
     [data],
   )
 
+  if (data.length !== BINS.length) {
+    return null
+  }
+
   return (
     <Box>
       <Box sx={{ mb: 2 }}>

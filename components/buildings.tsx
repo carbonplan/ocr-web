@@ -39,7 +39,7 @@ const Buildings = () => {
   const riskPercentExpression: ExpressionSpecification = useMemo(
     () =>
       timeHorizon === 1
-        ? ['*', ['to-number', ['get', riskAttribute]], 100]
+        ? ['to-number', ['get', riskAttribute]]
         : [
             '*',
             [
@@ -47,7 +47,7 @@ const Buildings = () => {
               1,
               [
                 '^',
-                ['-', 1, ['to-number', ['get', riskAttribute]]],
+                ['-', 1, ['/', ['to-number', ['get', riskAttribute]], 100]],
                 timeHorizon,
               ],
             ],
