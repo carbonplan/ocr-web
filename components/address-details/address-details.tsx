@@ -93,8 +93,8 @@ const AddressDetails = ({
           <Column start={1} width={4} variant='labelFieldContainer'>
             <Box variant='sectionHeading'>Other factors</Box>
             The risk described above does not account for a variety of factors
-            that each may drive the actual risk of destruction due to fire up or
-            down.
+            that each may drive the actual risk of structure loss due to fire up
+            or down.
             <Table
               columns={[4]}
               start={[[1], [4]]}

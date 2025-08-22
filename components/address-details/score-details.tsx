@@ -74,7 +74,7 @@ const ScoreDetails = () => {
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        The risk of destruction for this address is derived using the annual
+        The risk of structure loss at this address is derived using the annual
         risk to potential structures generated in the US Forest Service&apos;s
         Wildfire Risk to Communities dataset (
         <ScoreBadge score={baseRiskScore} color={baseScoreColor} />
