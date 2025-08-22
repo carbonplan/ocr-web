@@ -49,10 +49,24 @@ const Display = () => {
           Raw data
         </Column>
         <Column start={2} width={3}>
-          <Toggle
-            value={riskRaster}
-            onClick={() => setRiskRaster(!riskRaster)}
-          />
+          {advancedMode ? (
+            <Filter
+              multiSelect
+              values={{
+                ocr: riskRaster,
+                usfs: rpsRaster,
+              }}
+              setValues={(values: Record<string, boolean>) => {
+                setRiskRaster(values.ocr)
+                setRpsRaster(values.usfs)
+              }}
+            />
+          ) : (
+            <Toggle
+              value={riskRaster}
+              onClick={() => setRiskRaster(!riskRaster)}
+            />
+          )}
         </Column>
       </Row>
       <Row variant='labelFieldContainer' columns={4}>
@@ -64,44 +78,24 @@ const Display = () => {
         </Column>
       </Row>
       {advancedMode && (
-        <>
-          <Row variant='labelFieldContainer' columns={4}>
-            <Column
-              start={1}
-              width={1}
-              variant='label'
-              sx={{ textWrap: 'nowrap' }}
-            >
-              Wind Risk
-            </Column>
-            <Column start={2} width={3}>
-              <Toggle
-                value={attribute === 'windRisk'}
-                onClick={() =>
-                  setAttribute(
-                    attribute !== 'windRisk' ? 'windRisk' : 'baseRisk',
-                  )
-                }
-              />
-            </Column>
-          </Row>
-          <Row variant='labelFieldContainer' columns={4}>
-            <Column
-              start={1}
-              width={1}
-              variant='label'
-              sx={{ textWrap: 'nowrap' }}
-            >
-              RPS data
-            </Column>
-            <Column start={2} width={3}>
-              <Toggle
-                value={rpsRaster}
-                onClick={() => setRpsRaster(!rpsRaster)}
-              />
-            </Column>
-          </Row>
-        </>
+        <Row variant='labelFieldContainer' columns={4}>
+          <Column
+            start={1}
+            width={1}
+            variant='label'
+            sx={{ textWrap: 'nowrap' }}
+          >
+            Wind Risk
+          </Column>
+          <Column start={2} width={3}>
+            <Toggle
+              value={attribute === 'windRisk'}
+              onClick={() =>
+                setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
+              }
+            />
+          </Column>
+        </Row>
       )}
     </>
   )
