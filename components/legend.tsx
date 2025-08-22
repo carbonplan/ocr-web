@@ -70,7 +70,7 @@ const Legend = () => {
               size='xs'
               type='number'
               min={0}
-              max={100}
+              max={25}
               step={10}
               sx={{
                 fontSize: [1, 1, 1, 2],
@@ -81,7 +81,7 @@ const Legend = () => {
               value={colorLimits.bounds[1]}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = parseFloat(e.target.value)
-                if (value < 1 || value > 100) return
+                if (value < 1 || value > 25) return
                 setColorLimits({
                   type: colorLimits.type,
                   bounds: [riskConfig.bounds.min, value],
