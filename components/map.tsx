@@ -23,103 +23,101 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
   const setMapLoading = useStore((state) => state.setMapLoading)
-  const geographies = useStore((state) => state.geographies)
 
   const { mapLayers, sprite } = useMapTheme()
 
   useEffect(() => {
-    if (mapContainer.current && router.isReady) {
-      const protocol = new Protocol()
-      addProtocol('pmtiles', protocol.tile)
+    if (!mapContainer.current || !router.isReady) {
+      return
+    }
+    setMapLoading(true)
+    const protocol = new Protocol()
+    addProtocol('pmtiles', protocol.tile)
 
-      const initialView = getMapViewFromQuery(router.query) || {
-        lat: 47.7,
-        lng: -121.3,
-        zoom: 8,
-      }
+    const initialView = getMapViewFromQuery(router.query) || {
+      lat: 47.7,
+      lng: -121.3,
+      zoom: 8,
+    }
 
-      const sources: Record<string, SourceSpecification> = {
-        basemap: {
-          type: 'vector',
-          url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
-          attribution:
-            '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
-        },
-        satellite: {
-          type: 'raster',
-          tiles: [`/api/map/tiles/{z}/{x}/{y}`],
-          tileSize: 256,
-        },
-      }
+    const sources: Record<string, SourceSpecification> = {
+      basemap: {
+        type: 'vector',
+        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
+        attribution:
+          '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
+      },
+      satellite: {
+        type: 'raster',
+        tiles: [`/api/map/tiles/{z}/{x}/{y}`],
+        tileSize: 256,
+        // todo: add attribution
+      },
+    }
 
-      const layers: LayerSpecification[] = [
-        {
-          id: 'satellite',
-          type: 'raster',
-          source: 'satellite',
-          paint: {
-            'raster-saturation': -0.8,
-            'raster-opacity': 0.5,
-          },
-          layout: {
-            visibility: 'none',
-          },
+    const layers: LayerSpecification[] = [
+      {
+        id: 'satellite',
+        type: 'raster',
+        source: 'satellite',
+        paint: {
+          'raster-saturation': -0.8,
+          'raster-opacity': 0.5,
         },
-      ]
+        layout: {
+          visibility: 'none',
+        },
+      },
+    ]
 
-      const newMap = new Map({
-        container: mapContainer.current,
-        style: {
-          version: 8,
-          glyphs:
-            'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
-          sources,
-          layers: [...layers, ...mapLayers],
-          sprite,
-        },
-        center: [initialView.lng, initialView.lat],
-        zoom: initialView.zoom,
-        attributionControl: false,
+    const newMap = new Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        glyphs:
+          'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
+        sources,
+        layers: [...layers, ...mapLayers],
+        sprite,
+      },
+      center: [initialView.lng, initialView.lat],
+      zoom: initialView.zoom,
+      attributionControl: false,
+    })
+
+    const handleMoveEnd = () => {
+      const center = newMap.getCenter()
+      const zoom = newMap.getZoom()
+      updateMapViewUrl({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: zoom,
       })
+    }
 
-      const handleMoveEnd = () => {
-        const center = newMap.getCenter()
-        const zoom = newMap.getZoom()
-        updateMapViewUrl({
-          lat: center.lat,
-          lng: center.lng,
-          zoom: zoom,
-        })
-      }
-
-      const handleLoadingOn = () => {
-        if (!newMap.isStyleLoaded()) {
-          setMapLoading(true)
-        }
-      }
-
-      const handleLoadingOff = () => {
-        setMapLoading(false)
-      }
-
-      newMap.on('sourcedata', handleLoadingOn)
-      newMap.on('idle', handleLoadingOff)
-      newMap.on('moveend', handleMoveEnd)
-
-      setMap(newMap)
-      setMapLoaded(true)
-
-      return () => {
-        if (newMap) {
-          newMap.off('sourcedata', handleLoadingOn)
-          newMap.off('idle', handleLoadingOff)
-          newMap.off('moveend', handleMoveEnd)
-          newMap.remove()
-        }
+    const handleLoadingOn = () => {
+      if (!newMap.isStyleLoaded()) {
+        setMapLoading(true)
       }
     }
 
+    const handleLoadingOff = () => {
+      setMapLoading(false)
+    }
+
+    newMap.on('sourcedata', handleLoadingOn)
+    newMap.on('idle', handleLoadingOff)
+    newMap.on('moveend', handleMoveEnd)
+
+    setMap(newMap)
+    setMapLoaded(true)
+
     return () => {
+      setMapLoaded(false)
+      newMap.off('sourcedata', handleLoadingOn)
+      newMap.off('idle', handleLoadingOff)
+      newMap.off('moveend', handleMoveEnd)
+      newMap.remove()
       removeProtocol('pmtiles')
       setMap(null)
     }
