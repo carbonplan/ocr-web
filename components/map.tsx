@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import {
   Map,
@@ -18,6 +18,7 @@ import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 const MapComponent = () => {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
+  const [mapLoaded, setMapLoaded] = useState(false)
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
@@ -106,6 +107,7 @@ const MapComponent = () => {
       newMap.on('moveend', handleMoveEnd)
 
       setMap(newMap)
+      setMapLoaded(true)
 
       return () => {
         if (newMap) {
@@ -158,18 +160,22 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      <WmsLayers />
-      <GeographyLayer
-        config={LAYERS.counties}
-        geographyKey='county'
-        environmentUrl={process.env.NEXT_PUBLIC_COUNTY_URL!}
-      />
-      <GeographyLayer
-        config={LAYERS.censusTracts}
-        geographyKey='censusTract'
-        environmentUrl={process.env.NEXT_PUBLIC_CENSUS_TRACT_URL!}
-      />
-      {geographies.building && <Buildings />}
+      {mapLoaded && (
+        <>
+          <WmsLayers />
+          <GeographyLayer
+            config={LAYERS.counties}
+            geographyKey='county'
+            environmentUrl={process.env.NEXT_PUBLIC_COUNTY_URL!}
+          />
+          <GeographyLayer
+            config={LAYERS.censusTracts}
+            geographyKey='censusTract'
+            environmentUrl={process.env.NEXT_PUBLIC_CENSUS_TRACT_URL!}
+          />
+          <Buildings />
+        </>
+      )}
     </div>
   )
 }
