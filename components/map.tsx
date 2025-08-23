@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import {
   Map,
@@ -18,7 +18,6 @@ import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 const MapComponent = () => {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
-  const [mapLoaded, setMapLoaded] = useState(false)
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
@@ -110,7 +109,6 @@ const MapComponent = () => {
     newMap.on('moveend', handleMoveEnd)
 
     setMap(newMap)
-    setMapLoaded(true)
 
     return () => {
       setMapLoaded(false)
@@ -158,7 +156,7 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      {mapLoaded && (
+      {map && (
         <>
           <WmsLayers />
           <GeographyLayer
