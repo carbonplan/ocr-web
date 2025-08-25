@@ -57,29 +57,36 @@ const ScoreDetails = () => {
     if (scoreDifference > 0.01) {
       return (
         <>
-          increases the risk to <ScoreBadge score={score} color={scoreColor} />.
+          increasing the risk to <ScoreBadge score={score} color={scoreColor} />
+          .
         </>
       )
     } else if (scoreDifference < -0.01) {
       return (
         <>
-          decreases the risk to <ScoreBadge score={score} color={scoreColor} />.
+          decreasing the risk to <ScoreBadge score={score} color={scoreColor} />
+          .
         </>
       )
     } else {
-      return <>does not significantly change the risk.</>
+      return <>which did not significantly change the risk.</>
     }
   }
 
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        The risk of structure loss at this address is derived using the annual
-        risk to potential structures generated in the US Forest Service&apos;s
+        The risk of structure loss at this address is is based on fire
+        projections from the US Forest Service, similar to what underpins their
         Wildfire Risk to Communities dataset (
         <ScoreBadge score={baseRiskScore} color={baseScoreColor} />
-        ). We then use historical wind data from fire weather days to predict
-        how wildfire could spread, which {getRiskScoreDeltaWording()}
+        ). We adjusted our risk estimates by local wind directions during
+        historical fire weather, mimicking how wildfire could spread into the
+        built environment
+        {timePeriod === 'future'
+          ? ' and evaluated future climate change impacts,'
+          : ','}{' '}
+        {getRiskScoreDeltaWording()}
       </Box>
       <Box>
         Read our <Link href='#TK'>research methods</Link> for a detailed
