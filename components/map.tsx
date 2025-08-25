@@ -111,7 +111,6 @@ const MapComponent = () => {
     setMap(newMap)
 
     return () => {
-      setMapLoaded(false)
       newMap.off('sourcedata', handleLoadingOn)
       newMap.off('idle', handleLoadingOff)
       newMap.off('moveend', handleMoveEnd)
