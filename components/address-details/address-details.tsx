@@ -9,7 +9,6 @@ import ScoreDetails from './score-details'
 import SidebarSidecar from './sidebar-sidecar'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
-import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import Histogram from './histogram'
 
 const AddressDetails = ({
@@ -38,20 +37,6 @@ const AddressDetails = ({
       state.activeGeographies.censusTract?.risk[state.attribute][
         state.timePeriod
       ][state.timeHorizon].data,
-  )
-  const colorLimits = useStore((state) => state.colorLimits)
-  const riskConfig = useStore((state) => state.riskConfig)
-
-  const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
-  })
-
-  const scoreColor = getColorForRiskScore(
-    riskScore,
-    colormap,
-    colorLimits,
-    riskConfig.binRatios,
-    'primary',
   )
   if (!selectedLocation?.address.houseNumber) {
     return null
@@ -93,8 +78,8 @@ const AddressDetails = ({
           <Column start={1} width={4} variant='labelFieldContainer'>
             <Box variant='sectionHeading'>Other factors</Box>
             The risk described above does not account for a variety of factors
-            that each may drive the actual risk of destruction due to fire up or
-            down.
+            that each may drive the actual risk of structure loss due to fire up
+            or down.
             <Table
               columns={[4]}
               start={[[1], [4]]}
@@ -102,37 +87,25 @@ const AddressDetails = ({
               data={[
                 [
                   'Building retrofit',
-                  <Badge
-                    key='lower'
-                    sx={{ textTransform: 'uppercase', color: scoreColor }}
-                  >
+                  <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
                     Lower
                   </Badge>,
                 ],
                 [
                   'Community emergency response',
-                  <Badge
-                    key='lower'
-                    sx={{ textTransform: 'uppercase', color: scoreColor }}
-                  >
+                  <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
                     Lower
                   </Badge>,
                 ],
                 [
                   'Previous fire',
-                  <Badge
-                    key='lower'
-                    sx={{ textTransform: 'uppercase', color: scoreColor }}
-                  >
+                  <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
                     Lower
                   </Badge>,
                 ],
                 [
                   'Access limitations',
-                  <Badge
-                    key='higher'
-                    sx={{ textTransform: 'uppercase', color: scoreColor }}
-                  >
+                  <Badge key='higher' sx={{ textTransform: 'uppercase' }}>
                     Higher
                   </Badge>,
                 ],

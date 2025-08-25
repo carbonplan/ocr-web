@@ -10,9 +10,9 @@ import { RISKS } from './config'
 
 const calculateRiskScores = (annualProbability: number) => {
   return {
-    1: annualProbability * 100,
-    15: (1 - Math.pow(1 - annualProbability, 15)) * 100,
-    30: (1 - Math.pow(1 - annualProbability, 30)) * 100,
+    1: annualProbability,
+    15: (1 - Math.pow(1 - annualProbability / 100, 15)) * 100,
+    30: (1 - Math.pow(1 - annualProbability / 100, 30)) * 100,
   }
 }
 

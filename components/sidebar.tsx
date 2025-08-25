@@ -60,10 +60,10 @@ const SidebarComponent = () => {
           </Box>
           <Box sx={{ mb: 3 }}>
             This explorer lets you browse datasets containing different climate
-            risks. Use the map to explore risk data at address, census block,
-            and census tract levels. Read our <Link href='#TK'>methods</Link>,
-            the <Link href='#TK'>FAQs</Link>, or{' '}
-            <Link href='#TK'>analysis examples</Link> for more details.
+            risks. Use the map to explore risk data at address, county, and
+            census tract levels. Read our <Link href='#TK'>methods</Link>, the{' '}
+            <Link href='#TK'>FAQs</Link>, or{' '}
+            <Link href='#TK'>download the data</Link> for more details.
           </Box>
           <Geocode />
           <Results />
