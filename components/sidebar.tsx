@@ -10,6 +10,9 @@ import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
+  const isLoading = useStore(
+    (state) => state.mapLoading || state.reverseGeocodeLoading,
+  )
   const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
   const showAddressDetails = useStore((state) => state.showAddressDetails)
@@ -66,7 +69,7 @@ const SidebarComponent = () => {
         onCollapse={() => setShowAddressDetails(false)}
       />
 
-      {mapLoading && (
+      {isLoading && (
         <SidebarAttachment
           expanded={true}
           side='left'

@@ -12,6 +12,9 @@ const Buildings = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
+  const setSelectedCoordinates = useStore(
+    (state) => state.setSelectedCoordinates,
+  )
   const clearSelections = useStore((state) => state.clearSelections)
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
@@ -19,7 +22,7 @@ const Buildings = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const showAddressDetails = useStore((state) => state.showAddressDetails)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const { queryGeographiesAtPoint } = useBuildingUtils()
 
   const riskAttribute = riskConfig.attributes[attribute][timePeriod]
@@ -251,22 +254,12 @@ const Buildings = () => {
             },
             { selected: true },
           )
-
-          try {
-            const response = await fetch(
-              `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
-            )
-            if (response.ok) {
-              const location = await response.json()
-              setSelectedLocation(location)
-              map.flyTo({
-                center: [location.position.lng, location.position.lat],
-                offset: showAddressDetails ? [sidebarWidth / 2, 0] : [0, 0],
-              })
-            }
-          } catch (error) {
-            console.error('Error fetching location details:', error)
-          }
+          map.flyTo({
+            center: [lng, lat],
+            offset: [(sidebarWidth - 50) / 2, 0],
+          })
+          setSelectedCoordinates({ lat, lng })
+          setShowAddressDetails(true)
         }
       } else {
         clearSelections()
@@ -279,7 +272,7 @@ const Buildings = () => {
     [
       map,
       setSelectedBuilding,
-      setSelectedLocation,
+      setSelectedCoordinates,
       clearSelections,
       setHoveredBuilding,
       queryGeographiesAtPoint,

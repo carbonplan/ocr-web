@@ -7,6 +7,9 @@ export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const setActiveGeographies = useStore((state) => state.setActiveGeographies)
+  const setSelectedCoordinates = useStore(
+    (state) => state.setSelectedCoordinates,
+  )
 
   const queryGeographiesAtPoint = useCallback(
     (lng: number, lat: number) => {
@@ -72,6 +75,7 @@ export const useBuildingUtils = () => {
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
           setSelectedBuilding(closestBuilding.properties)
+          setSelectedCoordinates({ lat, lng })
 
           queryGeographiesAtPoint(lng, lat)
 
@@ -86,7 +90,7 @@ export const useBuildingUtils = () => {
         }
       }
     },
-    [map, setSelectedBuilding, queryGeographiesAtPoint],
+    [map, setSelectedBuilding, queryGeographiesAtPoint, setSelectedCoordinates],
   )
 
   return {

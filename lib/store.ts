@@ -9,6 +9,10 @@ type Store = {
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location | null) => void
+  selectedCoordinates: { lat: number; lng: number } | null
+  setSelectedCoordinates: (
+    coordinates: { lat: number; lng: number } | null,
+  ) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
@@ -52,6 +56,8 @@ type Store = {
   }) => void
   mapLoading: boolean
   setMapLoading: (mapLoading: boolean) => void
+  reverseGeocodeLoading: boolean
+  setReverseGeocodeLoading: (reverseGeocodeLoading: boolean) => void
   showAddressDetails: boolean
   setShowAddressDetails: (showAddressDetails: boolean) => void
   advancedMode: boolean
@@ -64,6 +70,9 @@ export const useStore = create<Store>((set) => ({
   setMap: (map) => set({ map }),
   selectedLocation: null,
   setSelectedLocation: (location) => set({ selectedLocation: location }),
+  selectedCoordinates: null,
+  setSelectedCoordinates: (coordinates) =>
+    set({ selectedCoordinates: coordinates }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
@@ -114,6 +123,9 @@ export const useStore = create<Store>((set) => ({
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
   setMapLoading: (mapLoading) => set({ mapLoading }),
+  reverseGeocodeLoading: false,
+  setReverseGeocodeLoading: (reverseGeocodeLoading) =>
+    set({ reverseGeocodeLoading }),
   showAddressDetails: false,
   setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',

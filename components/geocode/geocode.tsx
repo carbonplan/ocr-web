@@ -28,10 +28,10 @@ const Geocode = () => {
   const menuRef = useRef<HTMLDivElement>(null)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
-  const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const map = useStore((state) => state.map)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
 
@@ -161,12 +161,17 @@ const Geocode = () => {
       )
       const location = await locationResponse.json()
       setSelectedLocation(location)
+      if (location.address.houseNumber) {
+        setShowAddressDetails(true)
+      }
 
       if (map && location) {
         map.flyTo({
           center: [location.position.lng, location.position.lat],
           zoom: location.address.houseNumber ? 16 : 12,
-          offset: showAddressDetails ? [sidebarWidth / 2, 0] : [0, 0],
+          offset: location.address.houseNumber
+            ? [(sidebarWidth - 50) / 2, 0]
+            : [0, 0],
         })
 
         // Highlight building after map movement completes
