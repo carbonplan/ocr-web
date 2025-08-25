@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import {
   Map,
@@ -22,6 +22,7 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
   const setMapLoading = useStore((state) => state.setMapLoading)
+  const [styleLoaded, setStyleLoaded] = useState(false)
 
   const { mapLayers, sprite } = useMapTheme()
 
@@ -104,9 +105,14 @@ const MapComponent = () => {
       setMapLoading(false)
     }
 
+    const handleStyleLoad = () => {
+      setStyleLoaded(true)
+    }
+
     newMap.on('sourcedata', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
     newMap.on('moveend', handleMoveEnd)
+    newMap.once('styledata', handleStyleLoad)
 
     setMap(newMap)
 
@@ -117,6 +123,7 @@ const MapComponent = () => {
       newMap.remove()
       removeProtocol('pmtiles')
       setMap(null)
+      setStyleLoaded(false)
     }
   }, [router.isReady])
 
@@ -155,7 +162,7 @@ const MapComponent = () => {
         height: '100vh',
       }}
     >
-      {map && (
+      {map && styleLoaded && (
         <>
           <WmsLayers />
           <GeographyLayer
