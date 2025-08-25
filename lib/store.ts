@@ -56,6 +56,7 @@ type Store = {
   setShowAddressDetails: (showAddressDetails: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
+  clearSelections: () => void
 }
 
 export const useStore = create<Store>((set) => ({
@@ -118,4 +119,11 @@ export const useStore = create<Store>((set) => ({
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
+  clearSelections: () =>
+    set({
+      selectedLocation: null,
+      selectedBuilding: null,
+      selectedCoordinates: null,
+      activeGeographies: { county: null, censusTract: null },
+    }),
 }))

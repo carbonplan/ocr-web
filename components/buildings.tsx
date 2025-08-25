@@ -12,8 +12,7 @@ const Buildings = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
-  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
+  const clearSelections = useStore((state) => state.clearSelections)
   const attribute = useStore((state) => state.attribute)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
@@ -211,6 +210,8 @@ const Buildings = () => {
     async (e: MapMouseEvent) => {
       if (!map) return
 
+      clearSelections()
+
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
       })
@@ -268,9 +269,7 @@ const Buildings = () => {
           }
         }
       } else {
-        setSelectedBuilding(null)
-        setSelectedLocation(null)
-        setActiveGeographies({ county: null, censusTract: null })
+        clearSelections()
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
@@ -281,10 +280,10 @@ const Buildings = () => {
       map,
       setSelectedBuilding,
       setSelectedLocation,
+      clearSelections,
       setHoveredBuilding,
       queryGeographiesAtPoint,
-      setActiveGeographies,
-      showAddressDetails,
+      setShowAddressDetails,
       sidebarWidth,
     ],
   )

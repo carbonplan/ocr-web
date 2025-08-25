@@ -32,7 +32,7 @@ const Geocode = () => {
   const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const map = useStore((state) => state.map)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const showAddressDetails = useStore((state) => state.showAddressDetails)
+  const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
 
   useEffect(() => {
@@ -142,8 +142,8 @@ const Geocode = () => {
   }
 
   const clearSelectedLocation = useCallback(() => {
-    setSelectedLocation(null)
-    setSelectedBuilding(null)
+    clearSelections()
+    setShowAddressDetails(false)
     setActiveGeographies({ county: null, censusTract: null })
     if (map) {
       map.removeFeatureState({
@@ -151,7 +151,7 @@ const Geocode = () => {
         sourceLayer: LAYERS.buildings.layerName,
       })
     }
-  }, [setSelectedLocation, setSelectedBuilding, setActiveGeographies, map])
+  }, [clearSelections, setActiveGeographies, setShowAddressDetails, map])
 
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
@@ -215,9 +215,7 @@ const Geocode = () => {
   }
 
   const handleDeselect = () => {
-    setSelectedLocation(null)
-    setSelectedBuilding(null)
-    setActiveGeographies({ county: null, censusTract: null })
+    clearSelections()
     setSearchQuery('')
     setSelectedIndex(-1)
   }
