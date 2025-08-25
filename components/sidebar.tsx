@@ -10,20 +10,10 @@ import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const mapLoading = useStore((state) => state.mapLoading)
-  const hasSelectedBuilding = useStore((state) => !!state.selectedBuilding)
-  const houseNumber = useStore(
-    (state) => state.selectedLocation?.address.houseNumber,
-  )
+  const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
   const showAddressDetails = useStore((state) => state.showAddressDetails)
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
-
-  useEffect(() => {
-    if (hasSelectedBuilding && houseNumber) {
-      setShowAddressDetails(true)
-    }
-  }, [houseNumber, hasSelectedBuilding, setShowAddressDetails])
 
   useEffect(() => {
     const updateSidebarWidth = () => {
@@ -32,6 +22,7 @@ const SidebarComponent = () => {
           sidebarRef.current.parentElement?.parentElement?.offsetWidth
         if (width) {
           setSidebarWidth(width)
+          map?.resize()
         }
       }
     }
@@ -40,7 +31,7 @@ const SidebarComponent = () => {
     return () => {
       window.removeEventListener('resize', updateSidebarWidth)
     }
-  }, [houseNumber, hasSelectedBuilding, showAddressDetails, setSidebarWidth])
+  }, [setSidebarWidth, map])
 
   return (
     <>
