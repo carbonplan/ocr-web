@@ -52,6 +52,8 @@ const Geocode = () => {
   useEffect(() => {
     if (selectedLocation) {
       setSearchQuery(formatAddress(selectedLocation.address))
+    } else {
+      setSearchQuery('')
     }
   }, [selectedLocation])
 
