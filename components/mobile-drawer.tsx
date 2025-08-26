@@ -8,22 +8,16 @@ import { AddressDetails } from './address-details'
 import { Drawer } from 'vaul'
 
 const MobileDrawer = () => {
+  const showAddressDetails = useStore((state) => state.showAddressDetails)
   const snapPoints = ['90px', 0.54, 0.94]
   const [currentView, setCurrentView] = useState<'main' | 'details'>('main')
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
 
-  const hasSelectedBuilding = useStore((state) => !!state.selectedBuilding)
-  const houseNumber = useStore(
-    (state) => state.selectedLocation?.address.houseNumber,
-  )
-
-  const showDetailsView = hasSelectedBuilding && houseNumber
-
   useEffect(() => {
-    if (showDetailsView) {
+    if (showAddressDetails) {
       setCurrentView('details')
     }
-  }, [showDetailsView])
+  }, [showAddressDetails])
 
   return (
     <Drawer.Root
@@ -80,7 +74,7 @@ const MobileDrawer = () => {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
-              {showDetailsView && (
+              {showAddressDetails && (
                 <Flex
                   sx={{
                     borderBottom: '1px solid',
@@ -120,13 +114,10 @@ const MobileDrawer = () => {
                 </Flex>
               )}
 
-              {currentView === 'main' || !showDetailsView ? (
+              {currentView === 'main' || !showAddressDetails ? (
                 <>
                   <Intro />
-                  <Results
-                    showAddressDetails={false}
-                    setShowAddressDetails={() => setCurrentView('details')}
-                  />
+                  <Results />
                   <Display />
                 </>
               ) : (
