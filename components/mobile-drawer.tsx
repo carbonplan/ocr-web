@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Box, Flex } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
@@ -7,21 +7,41 @@ import { Geocode, Results, Display, Intro } from '@/components'
 import { AddressDetails } from './address-details'
 import { Drawer } from 'vaul'
 
+const BuildingPlaceholder = () => (
+  <Box
+    sx={{
+      color: 'secondary',
+    }}
+  >
+    <Box
+      sx={{
+        fontSize: 3,
+        fontFamily: 'heading',
+        letterSpacing: 'heading',
+        mb: 2,
+      }}
+    >
+      No building selected
+    </Box>
+    <Box sx={{ fontSize: 2 }}>
+      Select a building on the map or search for an address to view detailed
+      risk information.
+    </Box>
+  </Box>
+)
+
 const MobileDrawer = () => {
-  const showAddressDetails = useStore((state) => state.showAddressDetails)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const snapPoints = useMemo(() => ['90px', 0.54, 0.94], [])
   const [currentView, setCurrentView] = useState<'main' | 'details'>('main')
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
 
   useEffect(() => {
-    if (showAddressDetails) {
+    if (selectedBuilding) {
       setCurrentView('details')
       setSnap(snapPoints[1])
-    } else {
-      setCurrentView('main')
-      setSnap(snapPoints[1])
     }
-  }, [showAddressDetails, setSnap, snapPoints])
+  }, [selectedBuilding, setSnap, snapPoints])
 
   return (
     <Drawer.Root
@@ -61,7 +81,6 @@ const MobileDrawer = () => {
                 position: 'sticky',
                 top: 0,
                 bg: 'background',
-                flexShrink: 0,
                 zIndex: 1,
               }}
             >
@@ -80,54 +99,53 @@ const MobileDrawer = () => {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
-              {showAddressDetails && (
-                <Flex
+              <Flex
+                sx={{
+                  borderBottom: '1px solid',
+                  borderColor: 'muted',
+                  flexShrink: 0,
+                  mb: 3,
+                }}
+              >
+                <Button
+                  size='sm'
+                  onClick={() => setCurrentView('main')}
                   sx={{
-                    borderBottom: '1px solid',
-                    borderColor: 'muted',
-                    flexShrink: 0,
-                    mb: 3,
+                    flex: 1,
+                    borderRadius: 0,
+                    borderBottom: currentView === 'main' ? '2px solid' : 'none',
+                    borderBottomColor: 'primary',
+                    py: 1,
                   }}
                 >
-                  <Button
-                    size='sm'
-                    onClick={() => setCurrentView('main')}
-                    sx={{
-                      flex: 1,
-                      borderRadius: 0,
-                      borderBottom:
-                        currentView === 'main' ? '2px solid' : 'none',
-                      borderBottomColor: 'primary',
-                      py: 3,
-                    }}
-                  >
-                    Settings
-                  </Button>
-                  <Button
-                    size='sm'
-                    onClick={() => setCurrentView('details')}
-                    sx={{
-                      flex: 1,
-                      borderRadius: 0,
-                      borderBottom:
-                        currentView === 'details' ? '2px solid' : 'none',
-                      borderBottomColor: 'primary',
-                      py: 3,
-                    }}
-                  >
-                    Details
-                  </Button>
-                </Flex>
-              )}
+                  Settings
+                </Button>
+                <Button
+                  size='sm'
+                  onClick={() => setCurrentView('details')}
+                  sx={{
+                    flex: 1,
+                    borderRadius: 0,
+                    borderBottom:
+                      currentView === 'details' ? '2px solid' : 'none',
+                    borderBottomColor: 'primary',
+                    py: 1,
+                  }}
+                >
+                  Details
+                </Button>
+              </Flex>
 
-              {currentView === 'main' || !showAddressDetails ? (
+              {currentView === 'main' ? (
                 <>
                   <Intro />
                   <Results />
                   <Display />
                 </>
-              ) : (
+              ) : selectedBuilding ? (
                 <AddressDetails />
+              ) : (
+                <BuildingPlaceholder />
               )}
             </Box>
           </Flex>
