@@ -47,8 +47,7 @@ const Index = () => {
           overflowX: 'hidden',
         }}
       >
-        {index === 0 && <MobileDrawer />}
-        {index > 0 && <Sidebar />}
+        {index < 2 ? <MobileDrawer /> : <Sidebar />}
         <Map />
         <Legend />
       </Box>
