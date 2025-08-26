@@ -23,8 +23,8 @@ type Store = {
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
   setActiveGeographies: (geographies: {
-    county: MapGeoJSONFeature['properties']
-    censusTract: MapGeoJSONFeature['properties']
+    county: MapGeoJSONFeature['properties'] | null
+    censusTract: MapGeoJSONFeature['properties'] | null
   }) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
