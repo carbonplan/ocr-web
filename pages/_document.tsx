@@ -5,6 +5,13 @@ class MyDocument extends Document {
   render() {
     return (
       <Html lang='en'>
+        <style>
+          {`
+            html {
+              overscroll-behavior: none;
+            }
+          `}
+        </style>
         <Head>
           <meta
             name='viewport'
