@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan components types not available
@@ -9,24 +9,32 @@ import { Drawer } from 'vaul'
 
 const MobileDrawer = () => {
   const showAddressDetails = useStore((state) => state.showAddressDetails)
-  const snapPoints = ['90px', 0.54, 0.94]
+  const snapPoints = useMemo(() => ['90px', 0.54, 0.94], [])
   const [currentView, setCurrentView] = useState<'main' | 'details'>('main')
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
 
   useEffect(() => {
     if (showAddressDetails) {
       setCurrentView('details')
+      setSnap(snapPoints[1])
+    } else {
+      setCurrentView('main')
+      setSnap(snapPoints[1])
     }
-  }, [showAddressDetails])
+  }, [showAddressDetails, setSnap, snapPoints])
 
   return (
     <Drawer.Root
       open={true}
+      defaultOpen={true}
       snapPoints={snapPoints}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
       modal={false}
       dismissible={false}
+      repositionInputs={false}
+      preventScrollRestoration={true}
+      // scrollLockTimeout={1}
       // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
     >
       <Drawer.Portal>
@@ -65,10 +73,7 @@ const MobileDrawer = () => {
             <Box
               sx={{
                 px: 4,
-                overflowY:
-                  snap === snapPoints[snapPoints.length - 1]
-                    ? 'auto'
-                    : 'hidden',
+                overflowY: 'auto',
                 flex: 1,
                 pb: '50vh', // Bottom padding for scroll space
                 WebkitOverflowScrolling: 'touch',
