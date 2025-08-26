@@ -29,8 +29,8 @@ export const LAYERS = {
 
 const FIRE_ATTRIBUTES: FireRisk<string> = {
   baseRisk: {
-    current: 'risk_2011',
-    future: 'risk_2047',
+    current: 'USFS_RPS',
+    future: 'USFS_RPS',
   },
   windRisk: {
     current: 'wind_risk_2011',
