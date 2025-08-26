@@ -163,9 +163,6 @@ const Geocode = () => {
       )
       const location = await locationResponse.json()
       setSelectedLocation(location)
-      if (location.address.houseNumber) {
-        setShowAddressDetails(true)
-      }
 
       if (map && location) {
         let offset: [number, number]
@@ -184,6 +181,7 @@ const Geocode = () => {
         // Highlight building after map movement completes
         if (location.address.houseNumber) {
           const handleMoveEnd = () => {
+            setShowAddressDetails(true)
             if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
               highlightBuildingAtLocation(
                 location.position.lng,
