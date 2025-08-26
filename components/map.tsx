@@ -9,6 +9,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
+import { Box } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { Buildings, GeographyLayer, WmsLayers } from './'
@@ -23,6 +24,7 @@ const MapComponent = () => {
   const satellite = useStore((state) => state.satellite)
   const setMapLoading = useStore((state) => state.setMapLoading)
   const [styleLoaded, setStyleLoaded] = useState(false)
+  const sidebarWidth = useStore((state) => state.sidebarWidth)
 
   const { mapLayers, sprite } = useMapTheme()
 
@@ -155,11 +157,14 @@ const MapComponent = () => {
   }, [satellite, map])
 
   return (
-    <div
+    <Box
       ref={mapContainer}
-      style={{
-        width: '100vw',
-        height: '100vh',
+      sx={{
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: sidebarWidth,
       }}
     >
       {map && styleLoaded && (
@@ -178,7 +183,7 @@ const MapComponent = () => {
           <Buildings />
         </>
       )}
-    </div>
+    </Box>
   )
 }
 
