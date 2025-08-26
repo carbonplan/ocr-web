@@ -28,7 +28,6 @@ const Geocode = () => {
   const menuRef = useRef<HTMLDivElement>(null)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const map = useStore((state) => state.map)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
@@ -144,14 +143,13 @@ const Geocode = () => {
   const clearSelectedLocation = useCallback(() => {
     clearSelections()
     setShowAddressDetails(false)
-    setActiveGeographies({ county: null, censusTract: null })
     if (map) {
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
         sourceLayer: LAYERS.buildings.layerName,
       })
     }
-  }, [clearSelections, setActiveGeographies, setShowAddressDetails, map])
+  }, [clearSelections, setShowAddressDetails, map])
 
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
