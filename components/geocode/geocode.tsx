@@ -219,6 +219,7 @@ const Geocode = () => {
 
   const handleDeselect = () => {
     clearSelections()
+    setShowAddressDetails(false)
     setSearchQuery('')
     setSelectedIndex(-1)
   }
