@@ -5,6 +5,7 @@ import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -28,6 +29,17 @@ const Buildings = () => {
   const riskAttribute = riskConfig.attributes[attribute][timePeriod]
   const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
+  const index = useBreakpointIndex()
+  const indexRef = useRef(index)
+  const sidebarWidthRef = useRef(sidebarWidth)
+
+  // refs prevent stale state in event listeners
+  useEffect(() => {
+    indexRef.current = index
+  }, [index])
+  useEffect(() => {
+    sidebarWidthRef.current = sidebarWidth
+  }, [sidebarWidth])
 
   const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',
@@ -214,6 +226,7 @@ const Buildings = () => {
       if (!map) return
 
       clearSelections()
+      setShowAddressDetails(false)
 
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
@@ -254,15 +267,22 @@ const Buildings = () => {
             },
             { selected: true },
           )
+
+          const offset: [number, number] =
+            indexRef.current < 2
+              ? [0, -window.innerHeight / 4]
+              : [(sidebarWidthRef.current - 50) / 2, 0]
+
           map.flyTo({
             center: [lng, lat],
-            offset: [(sidebarWidth - 50) / 2, 0],
+            offset,
           })
           setSelectedCoordinates({ lat, lng })
           setShowAddressDetails(true)
         }
       } else {
         clearSelections()
+        setShowAddressDetails(false)
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
@@ -277,7 +297,6 @@ const Buildings = () => {
       setHoveredBuilding,
       queryGeographiesAtPoint,
       setShowAddressDetails,
-      sidebarWidth,
     ],
   )
 

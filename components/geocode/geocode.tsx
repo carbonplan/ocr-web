@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import { MapSourceDataEvent } from 'maplibre-gl'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
@@ -33,6 +34,7 @@ const Geocode = () => {
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
+  const index = useBreakpointIndex()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -166,12 +168,17 @@ const Geocode = () => {
       }
 
       if (map && location) {
+        let offset: [number, number]
+        if (index < 2) {
+          offset = [0, -window.innerHeight / 4]
+        } else if (location.address.houseNumber) {
+          offset = [(sidebarWidth - 50) / 2, 0]
+        } else offset = [0, 0]
+
         map.flyTo({
           center: [location.position.lng, location.position.lat],
           zoom: location.address.houseNumber ? 16 : 12,
-          offset: location.address.houseNumber
-            ? [(sidebarWidth - 50) / 2, 0]
-            : [0, 0],
+          offset,
         })
 
         // Highlight building after map movement completes
