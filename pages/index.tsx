@@ -1,11 +1,13 @@
 import { Box, Container } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
-import { Legend, Map, Sidebar } from '../components'
+import { Legend, Map, Sidebar, MobileDrawer } from '../components'
 // @ts-expect-error - carbonplan auth types not available
 import { withAuth } from '@carbonplan/auth'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 
 const Index = () => {
+  const index = useBreakpointIndex()
   return (
     <>
       <Meta
@@ -45,7 +47,8 @@ const Index = () => {
           overflowX: 'hidden',
         }}
       >
-        <Sidebar />
+        {index === 0 && <MobileDrawer />}
+        {index > 0 && <Sidebar />}
         <Map />
         <Legend />
       </Box>

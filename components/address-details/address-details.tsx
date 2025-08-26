@@ -6,19 +6,12 @@ import { Badge, Button, Row, Column, Table } from '@carbonplan/components'
 import { Left } from '@carbonplan/icons'
 
 import ScoreDetails from './score-details'
-import SidebarSidecar from './sidebar-sidecar'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import Histogram from './histogram'
 
-const AddressDetails = ({
-  visible,
-  onCollapse,
-}: {
-  visible: boolean
-  onCollapse: () => void
-}) => {
+const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const selectedLocation = useStore((state) => state.selectedLocation)
   const riskScore = useStore(
     ({ selectedBuilding, attribute, timePeriod, timeHorizon }) =>
@@ -64,20 +57,22 @@ const AddressDetails = ({
   const address = formatAddress(selectedLocation.address, true)
 
   return (
-    <SidebarSidecar visible={visible}>
+    <>
+      {onCollapse && (
+        <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
+          <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
+            Collapse
+          </Button>
+        </Column>
+      )}
       <Column start={1} width={4}>
         <Row columns={4}>
-          <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
-            <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
-              Collapse
-            </Button>
-          </Column>
           <Column
             start={1}
             width={4}
             as='h2'
             sx={{
-              fontSize: [5, 5, 5, 6],
+              fontSize: [4, 5, 5, 6],
               fontFamily: 'heading',
               letterSpacing: 'heading',
               lineHeight: 'heading',
@@ -175,7 +170,7 @@ const AddressDetails = ({
           )}
         </Row>
       </Column>
-    </SidebarSidecar>
+    </>
   )
 }
 
