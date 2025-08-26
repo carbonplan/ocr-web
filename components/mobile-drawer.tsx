@@ -62,6 +62,7 @@ const MobileDrawer = () => {
                 top: 0,
                 bg: 'background',
                 flexShrink: 0,
+                zIndex: 1,
               }}
             >
               <Box as={Drawer.Handle} sx={{ mt: 2 }} />
