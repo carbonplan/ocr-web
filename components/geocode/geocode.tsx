@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
+import { MapSourceDataEvent } from 'maplibre-gl'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
@@ -9,6 +10,8 @@ import { SidebarDivider } from '@carbonplan/layouts'
 import { X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
 import { formatAddress } from '@/lib/address-utils'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { LAYERS } from '@/lib/config'
 import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
@@ -25,8 +28,11 @@ const Geocode = () => {
   const menuRef = useRef<HTMLDivElement>(null)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
-  const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
+  const map = useStore((state) => state.map)
+  const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
+  const clearSelections = useStore((state) => state.clearSelections)
+  const { highlightBuildingAtLocation } = useBuildingUtils()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -134,13 +140,66 @@ const Geocode = () => {
     }
   }
 
+  const clearSelectedLocation = useCallback(() => {
+    clearSelections()
+    setShowAddressDetails(false)
+    if (map) {
+      map.removeFeatureState({
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
+      })
+    }
+  }, [clearSelections, setShowAddressDetails, map])
+
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
+      clearSelectedLocation()
       const locationResponse = await fetch(
         `/api/geocode/lookup?id=${suggestion.id}`,
       )
       const location = await locationResponse.json()
       setSelectedLocation(location)
+      if (location.address.houseNumber) {
+        setShowAddressDetails(true)
+      }
+
+      if (map && location) {
+        map.flyTo({
+          center: [location.position.lng, location.position.lat],
+          zoom: location.address.houseNumber ? 16 : 12,
+          offset: location.address.houseNumber
+            ? [(sidebarWidth - 50) / 2, 0]
+            : [0, 0],
+        })
+
+        // Highlight building after map movement completes
+        if (location.address.houseNumber) {
+          const handleMoveEnd = () => {
+            if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
+              highlightBuildingAtLocation(
+                location.position.lng,
+                location.position.lat,
+              )
+            } else {
+              const handleSourceData = (e: MapSourceDataEvent) => {
+                if (
+                  e.sourceId === LAYERS.buildings.sourceId &&
+                  e.isSourceLoaded
+                ) {
+                  map.off('sourcedata', handleSourceData)
+                  highlightBuildingAtLocation(
+                    location.position.lng,
+                    location.position.lat,
+                  )
+                }
+              }
+              map.on('sourcedata', handleSourceData)
+            }
+          }
+          map.once('moveend', handleMoveEnd)
+        }
+      }
+
       setIsEditing(false)
       setSelectedIndex(-1)
       setSearchQuery('')
@@ -159,9 +218,7 @@ const Geocode = () => {
   }
 
   const handleDeselect = () => {
-    setSelectedLocation(null)
-    setSelectedBuilding(null)
-    setActiveGeographies({ county: null, censusTract: null })
+    clearSelections()
     setSearchQuery('')
     setSelectedIndex(-1)
   }

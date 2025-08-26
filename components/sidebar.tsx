@@ -1,5 +1,5 @@
 import { Box, Spinner } from 'theme-ui'
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar, SidebarAttachment } from '@carbonplan/layouts'
@@ -10,42 +10,31 @@ import AddressDetails from './address-details'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const [showAddressDetails, setShowAddressDetails] = useState<boolean>(false)
-  const mapLoading = useStore((state) => state.mapLoading)
-  const hasSelectedBuilding = useStore((state) => !!state.selectedBuilding)
-  const houseNumber = useStore(
-    (state) => state.selectedLocation?.address.houseNumber,
+  const isLoading = useStore(
+    (state) => state.mapLoading || state.reverseGeocodeLoading,
   )
+  const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
-
-  useEffect(() => {
-    if (hasSelectedBuilding && houseNumber) {
-      setShowAddressDetails(true)
-      if (sidebarRef.current) {
-        setSidebarWidth(sidebarRef.current.offsetWidth * 2)
-      }
-    } else if (sidebarRef.current) {
-      setSidebarWidth(sidebarRef.current.offsetWidth)
-    }
-  }, [houseNumber, hasSelectedBuilding, setSidebarWidth])
+  const showAddressDetails = useStore((state) => state.showAddressDetails)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
 
   useEffect(() => {
     const updateSidebarWidth = () => {
       if (sidebarRef.current) {
-        const width = sidebarRef.current.offsetWidth
-
-        setSidebarWidth(showAddressDetails ? width * 2 : width)
+        const width =
+          sidebarRef.current.parentElement?.parentElement?.offsetWidth
+        if (width) {
+          setSidebarWidth(width)
+          map?.resize()
+        }
       }
     }
-
     updateSidebarWidth()
-
     window.addEventListener('resize', updateSidebarWidth)
-
     return () => {
       window.removeEventListener('resize', updateSidebarWidth)
     }
-  }, [setSidebarWidth, showAddressDetails])
+  }, [setSidebarWidth, map])
 
   return (
     <>
@@ -71,10 +60,7 @@ const SidebarComponent = () => {
             <Link href='#TK'>download the data</Link> for more details.
           </Box>
           <Geocode />
-          <Results
-            showAddressDetails={showAddressDetails}
-            setShowAddressDetails={setShowAddressDetails}
-          />
+          <Results />
           <Display />
         </div>
       </Sidebar>
@@ -83,7 +69,7 @@ const SidebarComponent = () => {
         onCollapse={() => setShowAddressDetails(false)}
       />
 
-      {mapLoading && (
+      {isLoading && (
         <SidebarAttachment
           expanded={true}
           side='left'

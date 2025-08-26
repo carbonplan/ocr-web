@@ -8,7 +8,9 @@ type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
-  setSelectedLocation: (location: Location | null) => void
+  setSelectedLocation: (location: Location) => void
+  selectedCoordinates: { lat: number; lng: number } | null
+  setSelectedCoordinates: (coordinates: { lat: number; lng: number }) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
@@ -16,9 +18,7 @@ type Store = {
   rpsRaster: boolean
   setRpsRaster: (rpsRaster: boolean) => void
   selectedBuilding: Building | null
-  setSelectedBuilding: (
-    building: MapGeoJSONFeature['properties'] | null,
-  ) => void
+  setSelectedBuilding: (building: MapGeoJSONFeature['properties']) => void
   hoveredBuilding: Building | null
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
@@ -52,8 +52,13 @@ type Store = {
   }) => void
   mapLoading: boolean
   setMapLoading: (mapLoading: boolean) => void
+  reverseGeocodeLoading: boolean
+  setReverseGeocodeLoading: (reverseGeocodeLoading: boolean) => void
+  showAddressDetails: boolean
+  setShowAddressDetails: (showAddressDetails: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
+  clearSelections: () => void
 }
 
 export const useStore = create<Store>((set) => ({
@@ -61,6 +66,9 @@ export const useStore = create<Store>((set) => ({
   setMap: (map) => set({ map }),
   selectedLocation: null,
   setSelectedLocation: (location) => set({ selectedLocation: location }),
+  selectedCoordinates: null,
+  setSelectedCoordinates: (coordinates) =>
+    set({ selectedCoordinates: coordinates }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
@@ -111,7 +119,19 @@ export const useStore = create<Store>((set) => ({
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
   setMapLoading: (mapLoading) => set({ mapLoading }),
+  reverseGeocodeLoading: false,
+  setReverseGeocodeLoading: (reverseGeocodeLoading) =>
+    set({ reverseGeocodeLoading }),
+  showAddressDetails: false,
+  setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
+  clearSelections: () =>
+    set({
+      selectedLocation: null,
+      selectedBuilding: null,
+      selectedCoordinates: null,
+      activeGeographies: { county: null, censusTract: null },
+    }),
 }))

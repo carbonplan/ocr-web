@@ -9,7 +9,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
-import { useColorMode } from 'theme-ui'
+import { Box, useColorMode } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { Buildings, GeographyLayer } from './'
@@ -32,6 +32,7 @@ const MapComponent = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const setMapLoading = useStore((state) => state.setMapLoading)
   const geographies = useStore((state) => state.geographies)
+  const sidebarWidth = useStore((state) => state.sidebarWidth)
 
   const [colorMode] = useColorMode()
 
@@ -292,11 +293,14 @@ const MapComponent = () => {
   }, [rpsRaster, activeRpsLayerId, map, rpsMatrix])
 
   return (
-    <div
+    <Box
       ref={mapContainer}
-      style={{
-        width: '100vw',
-        height: '100vh',
+      sx={{
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: sidebarWidth,
       }}
     >
       <GeographyLayer
@@ -310,7 +314,7 @@ const MapComponent = () => {
         environmentUrl={process.env.NEXT_PUBLIC_CENSUS_TRACT_URL!}
       />
       {geographies.building && <Buildings />}
-    </div>
+    </Box>
   )
 }
 
