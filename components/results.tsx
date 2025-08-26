@@ -14,13 +14,7 @@ import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import TooltipWrapper from './tooltip'
 
-const Results = ({
-  showAddressDetails,
-  setShowAddressDetails,
-}: {
-  showAddressDetails: boolean
-  setShowAddressDetails: (value: boolean) => void
-}) => {
+const Results = () => {
   const timeHorizon = useStore((state) => state.timeHorizon)
   const setTimeHorizon = useStore((state) => state.setTimeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
@@ -30,6 +24,8 @@ const Results = ({
   const attribute = useStore((state) => state.attribute)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+  const showAddressDetails = useStore((state) => state.showAddressDetails)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 

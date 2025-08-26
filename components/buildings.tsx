@@ -1,13 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import {
-  ExpressionSpecification,
-  LngLat,
-  MapMouseEvent,
-  MapSourceDataEvent,
-} from 'maplibre-gl'
-import { centerOfMass, distance } from '@turf/turf'
+import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
@@ -17,15 +12,18 @@ const Buildings = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
-  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
-  const selectedLocation = useStore((state) => state.selectedLocation)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
+  const setSelectedCoordinates = useStore(
+    (state) => state.setSelectedCoordinates,
+  )
+  const clearSelections = useStore((state) => state.clearSelections)
   const attribute = useStore((state) => state.attribute)
-  const sidebarWidth = useStore((state) => state.sidebarWidth)
   const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+  const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
+  const { queryGeographiesAtPoint } = useBuildingUtils()
 
   const riskAttribute = riskConfig.attributes[attribute][timePeriod]
   const isUserClick = useRef(false)
@@ -39,7 +37,7 @@ const Buildings = () => {
   const riskPercentExpression: ExpressionSpecification = useMemo(
     () =>
       timeHorizon === 1
-        ? ['*', ['to-number', ['get', riskAttribute]], 100]
+        ? ['to-number', ['get', riskAttribute]]
         : [
             '*',
             [
@@ -47,7 +45,7 @@ const Buildings = () => {
               1,
               [
                 '^',
-                ['-', 1, ['to-number', ['get', riskAttribute]]],
+                ['-', 1, ['/', ['to-number', ['get', riskAttribute]], 100]],
                 timeHorizon,
               ],
             ],
@@ -211,32 +209,11 @@ const Buildings = () => {
     map.getCanvas().style.cursor = ''
   }, [map, setHoveredBuilding])
 
-  const queryGeographiesAtPoint = useCallback(
-    (lng: number, lat: number) => {
-      if (!map) return
-
-      const countyFeatures = map.queryRenderedFeatures(
-        map.project([lng, lat]),
-        {
-          layers: [LAYERS.counties.layerIds.fill],
-        },
-      )
-      const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-        layers: [LAYERS.censusTracts.layerIds.fill],
-      })
-
-      setActiveGeographies({
-        censusTract:
-          tractFeatures.length > 0 ? tractFeatures[0].properties : null,
-        county: countyFeatures.length > 0 ? countyFeatures[0].properties : null,
-      })
-    },
-    [map, setActiveGeographies],
-  )
-
   const handleMapClick = useCallback(
     async (e: MapMouseEvent) => {
       if (!map) return
+
+      clearSelections()
 
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
@@ -277,23 +254,15 @@ const Buildings = () => {
             },
             { selected: true },
           )
-
-          try {
-            const response = await fetch(
-              `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
-            )
-            if (response.ok) {
-              const location = await response.json()
-              setSelectedLocation(location)
-            }
-          } catch (error) {
-            console.error('Error fetching location details:', error)
-          }
+          map.flyTo({
+            center: [lng, lat],
+            offset: [(sidebarWidth - 50) / 2, 0],
+          })
+          setSelectedCoordinates({ lat, lng })
+          setShowAddressDetails(true)
         }
       } else {
-        setSelectedBuilding(null)
-        setSelectedLocation(null)
-        setActiveGeographies({ county: null, censusTract: null })
+        clearSelections()
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
@@ -303,69 +272,13 @@ const Buildings = () => {
     [
       map,
       setSelectedBuilding,
-      setSelectedLocation,
+      setSelectedCoordinates,
+      clearSelections,
       setHoveredBuilding,
       queryGeographiesAtPoint,
-      setActiveGeographies,
+      setShowAddressDetails,
+      sidebarWidth,
     ],
-  )
-
-  const highlightBuildingAtLocation = useCallback(
-    (lng: number, lat: number) => {
-      if (
-        !map?.getSource(LAYERS.buildings.sourceId) ||
-        !map?.getLayer(LAYERS.buildings.layerIds.fill)
-      ) {
-        return
-      }
-
-      map.removeFeatureState({
-        source: LAYERS.buildings.sourceId,
-        sourceLayer: LAYERS.buildings.layerName,
-      })
-
-      const point = map.project([lng, lat])
-      const tolerance = 100
-      const bbox: [[number, number], [number, number]] = [
-        [point.x - tolerance, point.y - tolerance],
-        [point.x + tolerance, point.y + tolerance],
-      ]
-
-      const features = map.queryRenderedFeatures(bbox, {
-        layers: [LAYERS.buildings.layerIds.fill],
-      })
-
-      if (features.length > 0) {
-        const featuresWithDistance = features
-          .map((feature) => {
-            const center = centerOfMass(feature)
-            const centroid = center.geometry.coordinates as [number, number]
-
-            const distanceValue = distance([lng, lat], centroid, {
-              units: 'meters',
-            })
-            return { feature, distance: distanceValue }
-          })
-          .sort((a, b) => a.distance - b.distance)
-
-        if (featuresWithDistance.length > 0) {
-          const closestBuilding = featuresWithDistance[0].feature
-          setSelectedBuilding(closestBuilding.properties)
-
-          queryGeographiesAtPoint(lng, lat)
-
-          map.setFeatureState(
-            {
-              source: LAYERS.buildings.sourceId,
-              id: closestBuilding.id,
-              sourceLayer: LAYERS.buildings.layerName,
-            },
-            { selected: true },
-          )
-        }
-      }
-    },
-    [map, setSelectedBuilding, queryGeographiesAtPoint],
   )
 
   useEffect(() => {
@@ -494,55 +407,6 @@ const Buildings = () => {
       }
     }
   }, [map])
-
-  useEffect(() => {
-    // fly to selected location and highlight building
-    if (!map || !selectedLocation || !map.isStyleLoaded()) return
-
-    if (!isUserClick.current) {
-      const addressLocation = new LngLat(
-        selectedLocation.position.lng,
-        selectedLocation.position.lat,
-      )
-
-      map.flyTo({
-        center: addressLocation,
-        zoom: selectedLocation.address.houseNumber ? 16 : 12,
-        offset: [sidebarWidth / 2, 0], // Dynamic offset based on actual sidebar width
-      })
-
-      const handleMoveEnd = () => {
-        if (!selectedLocation.address.houseNumber) return
-
-        if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-          highlightBuildingAtLocation(
-            selectedLocation.position.lng,
-            selectedLocation.position.lat,
-          )
-        } else {
-          const handleSourceData = (e: MapSourceDataEvent) => {
-            if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
-              map.off('sourcedata', handleSourceData)
-              highlightBuildingAtLocation(
-                selectedLocation.position.lng,
-                selectedLocation.position.lat,
-              )
-            }
-          }
-          map.on('sourcedata', handleSourceData)
-        }
-      }
-
-      map.once('moveend', handleMoveEnd)
-      return () => {
-        if (map) {
-          map.off('moveend', handleMoveEnd)
-        }
-      }
-    }
-
-    isUserClick.current = false
-  }, [selectedLocation, highlightBuildingAtLocation, map, sidebarWidth])
 
   useEffect(() => {
     // update color expression when variable selection changes

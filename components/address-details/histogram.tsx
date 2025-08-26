@@ -84,6 +84,10 @@ const Histogram = ({
     [data],
   )
 
+  if (data.length !== BINS.length) {
+    return null
+  }
+
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
@@ -105,7 +109,7 @@ const Histogram = ({
           <Grid horizontal />
           <Axis left bottom />
           <AxisLabel bottom units='%'>
-            Risk of destruction
+            Risk of structure loss
           </AxisLabel>
           <AxisLabel left>Number addresses</AxisLabel>
           <Plot>

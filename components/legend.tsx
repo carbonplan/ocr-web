@@ -101,7 +101,7 @@ const Legend = () => {
             fontSize: [1, 1, 1, 2],
           }}
         >
-          Risk of destruction (%)
+          Risk of structure loss (%)
         </Flex>
       )}
       <Flex

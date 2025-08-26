@@ -45,7 +45,7 @@ export const RISKS = {
     binRatios: [0.1, 0.2, 0.5, 1],
     bounds: {
       min: 0.005,
-      max: 100,
+      max: 25,
     },
   },
 } as const
