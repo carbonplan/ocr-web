@@ -95,7 +95,11 @@ const Results = () => {
           Hazard
         </Column>
         <Column start={2} width={3}>
-          <Filter values={{ Fire: true }} colors={{ Fire: 'red' }} />
+          <Filter
+            values={{ Fire: true }}
+            setValues={() => {}}
+            colors={{ Fire: 'red' }}
+          />
         </Column>
       </Row>
       <Row columns={4} variant='labelFieldContainer'>
