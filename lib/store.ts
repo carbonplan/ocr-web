@@ -8,11 +8,9 @@ type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
-  setSelectedLocation: (location: Location | null) => void
+  setSelectedLocation: (location: Location) => void
   selectedCoordinates: { lat: number; lng: number } | null
-  setSelectedCoordinates: (
-    coordinates: { lat: number; lng: number } | null,
-  ) => void
+  setSelectedCoordinates: (coordinates: { lat: number; lng: number }) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
@@ -20,15 +18,13 @@ type Store = {
   rpsRaster: boolean
   setRpsRaster: (rpsRaster: boolean) => void
   selectedBuilding: Building | null
-  setSelectedBuilding: (
-    building: MapGeoJSONFeature['properties'] | null,
-  ) => void
+  setSelectedBuilding: (building: MapGeoJSONFeature['properties']) => void
   hoveredBuilding: Building | null
   setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
   setActiveGeographies: (geographies: {
-    county: MapGeoJSONFeature['properties'] | null
-    censusTract: MapGeoJSONFeature['properties'] | null
+    county: MapGeoJSONFeature['properties']
+    censusTract: MapGeoJSONFeature['properties']
   }) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
