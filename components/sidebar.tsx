@@ -32,6 +32,8 @@ const SidebarComponent = () => {
     window.addEventListener('resize', updateSidebarWidth)
     return () => {
       window.removeEventListener('resize', updateSidebarWidth)
+      setSidebarWidth(0)
+      map?.resize()
     }
   }, [setSidebarWidth, map])
 
