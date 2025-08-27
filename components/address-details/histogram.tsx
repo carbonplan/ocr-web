@@ -17,16 +17,12 @@ import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 
 const BINS = [
   0, // true 0%
-  10, // 0.01-10
-  20, // 10-20
-  30, // 20-30
-  40, // 30-40
-  50, // 40-50
-  60, // 50-60
-  70, // 60-70
-  80, // 70-80
-  90, // 80-90
-  100, // 90-100
+  5, // 0.01-5
+  10, // 5-10
+  15, // 10-15
+  20, // 15-20
+  25, // 20-2%
+  100, // 25+
 ]
 
 export const formatValue = (value: number) => {
@@ -79,10 +75,41 @@ const Histogram = ({
   )
 
   const maxCount: number = useMemo(() => Math.max(...data), [data])
-  const plotData = useMemo(
-    () => data.map((count, i) => [i * 10 - 5, count]),
-    [data],
-  )
+
+  const { plotData, xRange, tickValues, tickLabelValues } = useMemo(() => {
+    const binWidth = BINS[2] - BINS[1]
+    const halfBinWidth = binWidth / 2
+
+    const positions = BINS.map((bin, i) => {
+      if (i === 0) {
+        return -halfBinWidth
+      } else if (i === BINS.length - 1) {
+        return BINS[i - 1] + halfBinWidth
+      } else {
+        const prevBin = BINS[i - 1]
+        const currentBin = BINS[i]
+        return (prevBin + currentBin) / 2
+      }
+    })
+
+    const minPosition = Math.min(...positions)
+    const maxPosition = Math.max(...positions)
+    const padding = halfBinWidth
+
+    const ticks = BINS.slice(0, -1)
+
+    const tickLabels = [positions[0], ...BINS.slice(1, -1)]
+
+    return {
+      plotData: data.map((count, i) => [positions[i], count]),
+      xRange: [minPosition - padding, maxPosition + padding] as [
+        number,
+        number,
+      ],
+      tickValues: ticks,
+      tickLabelValues: tickLabels,
+    }
+  }, [data])
 
   if (data.length !== BINS.length) {
     return null
@@ -97,13 +124,18 @@ const Histogram = ({
         compared to {region}
       </Box>
       <Box sx={{ height: '250px', ml: -20 }}>
-        <Chart x={[-12, 102]} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
+        <Chart x={xRange} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
           <Ticks left />
-          <Ticks bottom values={BINS} />
+          <Ticks bottom values={tickValues} />
           <TickLabels
             bottom
-            values={[-6, ...BINS.filter((b) => b > 0 && b % 20 === 0)]}
-            format={(d: number) => (d < 0 ? '0%' : `${d}%`)}
+            values={tickLabelValues}
+            format={(d: number) => {
+              if (d === tickLabelValues[0]) return '0%'
+              if (d === BINS[BINS.length - 2])
+                return `${BINS[BINS.length - 2]}%+`
+              return `${d}%`
+            }}
           />
           <TickLabels left format={formatValue} />
           <Grid horizontal />
@@ -116,10 +148,16 @@ const Histogram = ({
             <Bar
               width={0.75}
               data={plotData}
-              color={BINS.map((bin, i) => {
-                const isInBin =
-                  i === 0 ? score < 0.01 : score > BINS[i - 1] && score <= bin
-
+              color={data.map((_, i) => {
+                let isInBin = false
+                if (i === 0) {
+                  isInBin = score === 0
+                } else if (i === BINS.length - 1) {
+                  isInBin = score > BINS[i - 1]
+                } else {
+                  const prevBin = i === 1 ? 0.01 : BINS[i - 1] + 0.01
+                  isInBin = score >= prevBin && score <= BINS[i]
+                }
                 return isInBin ? scoreColor : 'primary'
               })}
             />
