@@ -101,10 +101,10 @@ const MobileDrawer = () => {
             >
               <Flex
                 sx={{
-                  borderBottom: '1px solid',
                   borderColor: 'muted',
                   flexShrink: 0,
                   mb: 3,
+                  gap: 2,
                 }}
               >
                 <Button
@@ -113,8 +113,10 @@ const MobileDrawer = () => {
                   sx={{
                     flex: 1,
                     borderRadius: 0,
-                    borderBottom: currentView === 'main' ? '2px solid' : 'none',
-                    borderBottomColor: 'primary',
+                    borderBottom:
+                      currentView === 'main' ? '2px solid' : '1px solid',
+                    borderBottomColor:
+                      currentView === 'main' ? 'primary' : 'muted',
                     py: 1,
                   }}
                 >
@@ -127,8 +129,9 @@ const MobileDrawer = () => {
                     flex: 1,
                     borderRadius: 0,
                     borderBottom:
-                      currentView === 'details' ? '2px solid' : 'none',
-                    borderBottomColor: 'primary',
+                      currentView === 'details' ? '2px solid' : '1px solid',
+                    borderBottomColor:
+                      currentView === 'details' ? 'primary' : 'muted',
                     py: 1,
                   }}
                 >

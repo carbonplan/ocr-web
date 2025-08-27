@@ -104,12 +104,18 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
               fontFamily: 'heading',
               letterSpacing: 'heading',
               lineHeight: 'heading',
-              my: 3,
+              mb: 3,
+              mt: [0, 0, 3, 3],
             }}
           >
             {address}
           </Column>
-          <Column start={1} width={4} variant='labelFieldContainer'>
+          <Column
+            start={1}
+            width={4}
+            variant='labelFieldContainer'
+            sx={{ mt: [1, 1, 3, 3] }}
+          >
             <Box variant='sectionHeading'>About this score</Box>
             <ScoreDetails />
           </Column>
