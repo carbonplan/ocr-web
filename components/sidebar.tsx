@@ -1,4 +1,4 @@
-import { Box, Spinner } from 'theme-ui'
+import { Spinner } from 'theme-ui'
 import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available

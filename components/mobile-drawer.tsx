@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
