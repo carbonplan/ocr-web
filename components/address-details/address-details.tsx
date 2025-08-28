@@ -105,7 +105,7 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
               letterSpacing: 'heading',
               lineHeight: 'heading',
               mb: 3,
-              mt: [0, 0, 3, 3],
+              mt: [2, 2, 3, 3],
             }}
           >
             {address}
