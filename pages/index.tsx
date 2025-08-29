@@ -5,13 +5,20 @@ import { Box, Container, IconButton } from 'theme-ui'
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Info, X } from '@carbonplan/icons'
-import { Legend, Map, Sidebar, MobileDrawer, Intro } from '../components'
+import {
+  Legend,
+  Map,
+  Sidebar,
+  MobileDrawer,
+  Intro,
+  Loading,
+} from '../components'
 // @ts-expect-error - carbonplan auth types not available
 import { withAuth } from '@carbonplan/auth'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 
 const Index = () => {
-  const index = useBreakpointIndex()
+  const index = useBreakpointIndex({ defaultIndex: 2 })
   const [showIntro, setShowIntro] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
 
@@ -114,6 +121,7 @@ const Index = () => {
         }}
       >
         {index < 2 ? <MobileDrawer /> : <Sidebar />}
+        <Loading />
         <Map />
         <Legend />
       </Box>

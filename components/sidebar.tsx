@@ -51,19 +51,6 @@ const SidebarComponent = () => {
       <SidebarSidecar visible={showAddressDetails}>
         <AddressDetails onCollapse={() => setShowAddressDetails(false)} />
       </SidebarSidecar>
-
-      {isLoading && (
-        <SidebarAttachment
-          expanded={true}
-          side='left'
-          width={showAddressDetails ? 8 : 4}
-          sx={{
-            top: '16px',
-          }}
-        >
-          <Spinner size={32} />
-        </SidebarAttachment>
-      )}
     </>
   )
 }

@@ -29,7 +29,7 @@ const Buildings = () => {
   const riskAttribute = riskConfig.attributes[attribute][timePeriod]
   const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
-  const index = useBreakpointIndex()
+  const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
   const sidebarWidthRef = useRef(sidebarWidth)
 

@@ -38,7 +38,7 @@ const Geocode = ({
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
-  const index = useBreakpointIndex()
+  const index = useBreakpointIndex({ defaultIndex: 2 })
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
