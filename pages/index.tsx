@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import type { SyntheticEvent } from 'react'
 import { Box, Container, IconButton } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
@@ -28,22 +27,13 @@ const Index = () => {
 
   useEffect(() => {
     if (!showIntro) return
-    const handleOutsideIntroModal = (event: Event) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        setShowIntro(false)
-      }
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node
+      const insideModal = modalRef.current?.contains(target)
+      if (!insideModal) setShowIntro(false)
     }
-    document.addEventListener('touchstart', handleOutsideIntroModal, {
-      passive: true,
-    })
-    document.addEventListener('mousedown', handleOutsideIntroModal)
-    return () => {
-      document.removeEventListener('touchstart', handleOutsideIntroModal)
-      document.removeEventListener('mousedown', handleOutsideIntroModal)
-    }
+    document.addEventListener('pointerdown', onPointerDown, { passive: true })
+    return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [showIntro])
 
   return (
@@ -72,12 +62,18 @@ const Index = () => {
             menuItems={[
               <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
               index < 2 ? (
-                <Info
+                <IconButton
                   key='info'
-                  onTouchStart={(e: SyntheticEvent) => e.stopPropagation()}
-                  onClick={() => setShowIntro((prev) => !prev)}
+                  aria-label={showIntro ? 'Hide intro' : 'Show intro'}
+                  aria-pressed={showIntro}
+                  onPointerDown={(e) => {
+                    e.stopPropagation()
+                    setShowIntro((s) => !s)
+                  }}
                   sx={{ color: showIntro ? 'secondary' : 'primary' }}
-                />
+                >
+                  <Info />
+                </IconButton>
               ) : null,
             ]}
           />
