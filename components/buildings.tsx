@@ -3,7 +3,7 @@ import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
-import { LAYERS } from '@/lib/config'
+import { DATA_URLS, LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 
 const Buildings = () => {
@@ -303,7 +303,7 @@ const Buildings = () => {
       if (!map.getSource(LAYERS.buildings.sourceId)) {
         map.addSource(LAYERS.buildings.sourceId, {
           type: 'vector',
-          url: `pmtiles://${process.env.NEXT_PUBLIC_BUILDING_URL}`,
+          url: `pmtiles://${DATA_URLS.vector.buildings}`,
         })
       }
 

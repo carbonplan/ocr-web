@@ -1,5 +1,21 @@
 import { FireRisk } from '@/types/location'
 
+export const DATA_URLS = {
+  vector: {
+    buildings:
+      'https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/prod/pmtiles/buildings.pmtiles',
+    counties:
+      'https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/prod/pmtiles/counties.pmtiles',
+    censusTracts:
+      'https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/prod/pmtiles/tracts.pmtiles',
+  },
+  raster: {
+    risk: 'https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/prod',
+    usfsBase:
+      'https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/RPS',
+  },
+}
+
 export const LAYERS = {
   buildings: {
     layerName: 'risk',
