@@ -13,7 +13,7 @@ import { Box } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { Buildings, GeographyLayer, WmsLayers } from './'
-import { LAYERS } from '@/lib/config'
+import { DATA_URLS, LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
 const MapComponent = () => {
@@ -173,12 +173,12 @@ const MapComponent = () => {
           <GeographyLayer
             config={LAYERS.counties}
             geographyKey='county'
-            environmentUrl={process.env.NEXT_PUBLIC_COUNTY_URL!}
+            environmentUrl={DATA_URLS.vector.counties}
           />
           <GeographyLayer
             config={LAYERS.censusTracts}
             geographyKey='censusTract'
-            environmentUrl={process.env.NEXT_PUBLIC_CENSUS_TRACT_URL!}
+            environmentUrl={DATA_URLS.vector.censusTracts}
           />
           <Buildings />
         </>
