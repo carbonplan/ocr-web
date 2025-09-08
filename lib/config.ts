@@ -1,6 +1,6 @@
 import { FireRisk } from '@/types/location'
 
-const DATA_VERSION = 'v0.0.0' // TODO: update when there is a first version
+const DATA_VERSION = 'v0.1.0'
 
 export const DATA_URLS = {
   vector: {
