@@ -17,7 +17,7 @@ export const DATA_URLS = {
   raster: {
     risk:
       process.env.NEXT_PUBLIC_RISK_RASTER_URL ??
-      `https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/production`,
+      `https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/production-${DATA_VERSION}`,
     usfsBase:
       'https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/RPS',
   },
