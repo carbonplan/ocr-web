@@ -61,7 +61,7 @@ export interface ColormapOptions {
 
 export function generateFireRiskColormap(
   options: ColormapOptions = {},
-): string[] {
+): string[] | [number, number, number][] {
   const { count = 256, format = 'hex', mode = 'dark' } = options
 
   const red = '#f57273'
@@ -101,7 +101,7 @@ export function generateFireRiskColormap(
   if (format === 'hex') {
     return scale.colors(count, 'hex')
   } else if (format === 'rgb') {
-    return scale.colors(count).map((c) => chroma(c).css())
+    return scale.colors(count).map((c) => chroma(c).rgb())
   }
   return scale.colors(count, 'hex')
 }
@@ -109,7 +109,7 @@ export function generateFireRiskColormap(
 export function generateColormap(
   name: string,
   options: ColormapOptions = {},
-): string[] {
+): string[] | [number, number, number][] {
   switch (name) {
     case 'fire-risk':
       return generateFireRiskColormap(options)
@@ -122,7 +122,7 @@ export function generateColormap(
 export function useColormap(
   name: string,
   options: Omit<ColormapOptions, 'mode'> = {},
-): string[] {
+): string[] | [number, number, number][] {
   const [colorMode] = useColorMode()
   const mode = colorMode === 'dark' ? 'dark' : 'light'
 

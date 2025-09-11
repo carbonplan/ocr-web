@@ -12,7 +12,7 @@ import { Protocol } from 'pmtiles'
 import { Box } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
-import { Buildings, GeographyLayer, WmsLayers } from './'
+import { Buildings, GeographyLayer, WmsLayers, ZarrLayer } from './'
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
@@ -181,6 +181,7 @@ const MapComponent = () => {
             environmentUrl={DATA_URLS.vector.censusTracts}
           />
           <Buildings />
+          <ZarrLayer />
         </>
       )}
     </Box>
