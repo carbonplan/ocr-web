@@ -29,17 +29,17 @@ const Tabs = ({ activeTab, onTabChange, tabs }: TabsProps) => {
           sx={{
             fontFamily: 'heading',
             letterSpacing: 'smallcaps',
-            fontSize: 2,
             flex: 1,
             height: '50px',
             textAlign: 'center',
+            color: activeTab === tab.id ? 'primary' : 'secondary',
             borderBottom: '1px solid',
-            borderColor: 'muted',
+            borderBottomColor: activeTab === tab.id ? 'background' : 'muted',
             '&:not(:last-child)': {
               borderRight: '1px solid',
-              borderColor: 'muted',
+              borderRightColor: 'muted',
             },
-            bg: activeTab === tab.id ? 'hinted' : 'background',
+            bg: activeTab === tab.id ? 'background' : 'hinted',
           }}
         >
           {tab.label}
