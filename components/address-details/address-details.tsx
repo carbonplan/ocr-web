@@ -100,7 +100,8 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
             width={4}
             as='h2'
             sx={{
-              fontSize: [4, 5, 5, 6],
+              display: ['none', 'none', 'block'],
+              fontSize: [5, 5, 5, 6],
               fontFamily: 'heading',
               letterSpacing: 'heading',
               lineHeight: 'heading',
