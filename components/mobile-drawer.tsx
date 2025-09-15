@@ -19,25 +19,27 @@ interface TabsProps {
 
 const Tabs = ({ activeTab, onTabChange, tabs }: TabsProps) => {
   return (
-    <Flex
-      sx={{
-        mt: -2,
-        mx: 4,
-        py: 2,
-        gap: 2,
-      }}
-    >
+    <Flex sx={{ mt: -2 }}>
       {tabs.map((tab) => (
         <Button
           key={tab.id}
           size='sm'
           onClick={() => onTabChange(tab.id)}
+          variant='sectionHeading'
           sx={{
+            fontFamily: 'heading',
+            letterSpacing: 'smallcaps',
+            fontSize: 2,
             flex: 1,
-            borderRadius: 0,
-            borderBottom: activeTab === tab.id ? '2px solid' : '1px solid',
-            borderBottomColor: activeTab === tab.id ? 'primary' : 'muted',
-            py: 2,
+            height: '50px',
+            textAlign: 'center',
+            borderBottom: '1px solid',
+            borderColor: 'muted',
+            '&:not(:last-child)': {
+              borderRight: '1px solid',
+              borderColor: 'muted',
+            },
+            bg: activeTab === tab.id ? 'hinted' : 'background',
           }}
         >
           {tab.label}
@@ -72,7 +74,7 @@ const BuildingPlaceholder = () => (
 
 const MobileDrawer = () => {
   // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
-  const snapPoints = useMemo(() => ['140px', 0.54, 0.94, 0.94, 0.94], [])
+  const snapPoints = useMemo(() => ['135px', 0.54, 0.94, 0.94, 0.94], [])
 
   const [currentView, setCurrentView] = useState<'settings' | 'risk'>(
     'settings',
