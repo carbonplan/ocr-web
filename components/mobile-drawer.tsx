@@ -127,20 +127,20 @@ const MobileDrawer = () => {
   }
 
   return (
-    <Drawer.Root
-      open={true}
-      defaultOpen={true}
-      snapPoints={snapPoints}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
-      modal={false}
-      dismissible={false}
-      repositionInputs={false}
-      preventScrollRestoration={true}
-      // scrollLockTimeout={1}
-      // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
-    >
-      <Drawer.Portal>
+    <Box sx={{ display: ['block', 'block', 'none'] }}>
+      <Drawer.Root
+        open={true}
+        defaultOpen={true}
+        snapPoints={snapPoints}
+        activeSnapPoint={snap}
+        setActiveSnapPoint={setSnap}
+        modal={false}
+        dismissible={false}
+        repositionInputs={false}
+        preventScrollRestoration={true}
+        // scrollLockTimeout={1}
+        // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
+      >
         <Drawer.Content
           style={{
             position: 'fixed',
@@ -148,6 +148,7 @@ const MobileDrawer = () => {
             left: 0,
             right: 0,
             height: '100%',
+            zIndex: 1,
           }}
         >
           <Flex
@@ -212,8 +213,8 @@ const MobileDrawer = () => {
             </Box>
           </Flex>
         </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+      </Drawer.Root>
+    </Box>
   )
 }
 

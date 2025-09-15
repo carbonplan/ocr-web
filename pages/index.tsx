@@ -14,16 +14,10 @@ import {
 } from '../components'
 // @ts-expect-error - carbonplan auth types not available
 import { withAuth } from '@carbonplan/auth'
-import { useBreakpointIndex } from '@theme-ui/match-media'
 
 const Index = () => {
-  const index = useBreakpointIndex({ defaultIndex: 2 })
-  const [showIntro, setShowIntro] = useState(false)
+  const [showIntro, setShowIntro] = useState(true)
   const modalRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    setShowIntro(index < 2)
-  }, [index])
 
   useEffect(() => {
     if (!showIntro) return
@@ -61,26 +55,28 @@ const Index = () => {
           <Header
             menuItems={[
               <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
-              index < 2 ? (
-                <IconButton
-                  key='info'
-                  aria-label={showIntro ? 'Hide intro' : 'Show intro'}
-                  aria-pressed={showIntro}
-                  onPointerDown={(e) => {
-                    e.stopPropagation()
-                    setShowIntro((s) => !s)
-                  }}
-                  sx={{ color: showIntro ? 'secondary' : 'primary' }}
-                >
-                  <Info />
-                </IconButton>
-              ) : null,
+              <IconButton
+                key='info'
+                aria-label={showIntro ? 'Hide intro' : 'Show intro'}
+                aria-pressed={showIntro}
+                onPointerDown={(e) => {
+                  e.stopPropagation()
+                  setShowIntro((s) => !s)
+                }}
+                sx={{
+                  display: ['block', 'block', 'none'],
+                  color: showIntro ? 'secondary' : 'primary',
+                }}
+              >
+                <Info />
+              </IconButton>,
             ]}
           />
           {showIntro && (
             <Box
               ref={modalRef}
               sx={{
+                display: ['block', 'block', 'none'],
                 p: 4,
                 bg: 'background',
                 border: '1px solid',
@@ -116,7 +112,8 @@ const Index = () => {
           overflowX: 'hidden',
         }}
       >
-        {index < 2 ? <MobileDrawer /> : <Sidebar />}
+        <Sidebar />
+        <MobileDrawer />
         <Loading />
         <Map />
         <Legend />

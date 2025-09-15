@@ -1,17 +1,14 @@
-import { Spinner } from 'theme-ui'
+import { Box } from 'theme-ui'
 import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
-import { Sidebar, SidebarAttachment } from '@carbonplan/layouts'
+import { Sidebar } from '@carbonplan/layouts'
 import { Display, Geocode, Results } from '../components'
 import { AddressDetails, SidebarSidecar } from './address-details'
 import Intro from './intro'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
-  const isLoading = useStore(
-    (state) => state.mapLoading || state.reverseGeocodeLoading,
-  )
   const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
   const showAddressDetails = useStore((state) => state.showAddressDetails)
@@ -36,7 +33,7 @@ const SidebarComponent = () => {
   }, [setSidebarWidth, map])
 
   return (
-    <>
+    <Box sx={{ display: ['none', 'none', 'block'] }}>
       <Sidebar expanded={true} side='left' width={4}>
         <div ref={sidebarRef}>
           <Intro />
@@ -49,7 +46,7 @@ const SidebarComponent = () => {
       <SidebarSidecar visible={showAddressDetails}>
         <AddressDetails onCollapse={() => setShowAddressDetails(false)} />
       </SidebarSidecar>
-    </>
+    </Box>
   )
 }
 
