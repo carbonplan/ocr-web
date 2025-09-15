@@ -21,11 +21,9 @@ const SidebarComponent = () => {
     const updateSidebarWidth = () => {
       if (sidebarRef.current) {
         const width =
-          sidebarRef.current.parentElement?.parentElement?.offsetWidth
-        if (width) {
-          setSidebarWidth(width)
-          map?.resize()
-        }
+          sidebarRef.current.parentElement?.parentElement?.offsetWidth ?? 0
+        setSidebarWidth(width)
+        map?.resize()
       }
     }
     updateSidebarWidth()
