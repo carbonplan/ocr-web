@@ -11,6 +11,7 @@ export const useMapTheme = () => {
   const flavorName = isDark ? 'black' : 'white'
   const transparent = 'transparent'
   const hinted = get(theme, 'rawColors.hinted')
+  const primary = get(theme, 'rawColors.primary')
   const secondary = get(theme, 'rawColors.secondary')
   const muted = get(theme, 'rawColors.muted')
   const background = get(theme, 'rawColors.background')
@@ -92,9 +93,25 @@ export const useMapTheme = () => {
       roads_label_major: secondary,
       roads_label_major_halo: background,
       ocean_label: secondary,
-      subplace_label: secondary,
+      subplace_label: [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        8,
+        secondary,
+        22,
+        primary,
+      ],
       subplace_label_halo: background,
-      city_label: secondary,
+      city_label: [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        8,
+        secondary,
+        22,
+        primary,
+      ],
       city_label_halo: background,
       state_label: secondary,
       state_label_halo: background,
@@ -107,7 +124,7 @@ export const useMapTheme = () => {
       bold: 'Relative Pro Book',
       italic: 'Relative Pro Book',
     }),
-    [flavorName, hinted, secondary, muted, background],
+    [flavorName, hinted, secondary, muted, background, primary],
   )
 
   const mapLayers = useMemo(
