@@ -6,6 +6,7 @@ import {
   removeProtocol,
   LayerSpecification,
   SourceSpecification,
+  AttributionControl,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
@@ -54,6 +55,7 @@ const MapComponent = () => {
         tiles: [`/api/map/tiles/{z}/{x}/{y}`],
         tileSize: 256,
         // todo: add attribution
+        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
       },
     }
 
@@ -109,6 +111,8 @@ const MapComponent = () => {
     const handleStyleLoad = () => {
       setStyleLoaded(true)
     }
+
+    newMap.addControl(new AttributionControl(), 'bottom-left')
 
     newMap.on('sourcedata', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
