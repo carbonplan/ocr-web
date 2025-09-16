@@ -85,113 +85,107 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   }
 
   return (
-    <>
-      <Column start={1} width={4}>
-        <Row columns={4}>
-          {onCollapse && (
-            <Column
-              start={1}
-              width={4}
-              sx={{ mt: 2, mb: 3, pointEvents: 'all' }}
-            >
-              <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
-                Collapse
-              </Button>
-            </Column>
-          )}
-          <Column
-            start={1}
-            width={4}
-            as='h2'
+    <Column start={1} width={4}>
+      <Row columns={4}>
+        {onCollapse && (
+          <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
+            <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
+              Collapse
+            </Button>
+          </Column>
+        )}
+        <Column
+          start={1}
+          width={4}
+          as='h2'
+          sx={{
+            display: ['none', 'none', 'block'],
+            fontSize: [5, 5, 5, 6],
+            fontFamily: 'heading',
+            letterSpacing: 'heading',
+            lineHeight: 'heading',
+            my: 3,
+          }}
+        >
+          {address}
+        </Column>
+        <Column start={1} width={4} variant='labelFieldContainer'>
+          <Box variant='sectionHeading'>About this score</Box>
+          <ScoreDetails />
+        </Column>
+        <Column start={1} width={4} variant='labelFieldContainer'>
+          <Box variant='sectionHeading'>Other factors</Box>
+          The risk described above does not account for a variety of factors
+          that each may drive the actual risk of structure loss due to fire up
+          or down.
+          <Table
+            columns={[4]}
+            start={[[1], [4]]}
+            width={[[3], [1]]}
+            data={[
+              [
+                'Building retrofit',
+                <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
+                  Lower
+                </Badge>,
+              ],
+              [
+                'Community emergency response',
+                <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
+                  Lower
+                </Badge>,
+              ],
+              [
+                'Previous fire',
+                <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
+                  Lower
+                </Badge>,
+              ],
+              [
+                'Access limitations',
+                <Badge key='higher' sx={{ textTransform: 'uppercase' }}>
+                  Higher
+                </Badge>,
+              ],
+            ]}
+            index={false}
             sx={{
-              display: ['none', 'none', 'block'],
-              fontSize: [5, 5, 5, 6],
-              fontFamily: 'heading',
-              letterSpacing: 'heading',
-              lineHeight: 'heading',
-              my: 3,
+              mt: 3,
+              '& tr': {
+                py: 2,
+              },
+              '& td': {
+                fontFamily: 'mono',
+                letterSpacing: 'mono',
+                textTransform: 'uppercase',
+                fontSize: [2, 2, 2, 3],
+              },
             }}
-          >
-            {address}
-          </Column>
+          />
+        </Column>
+        {countyData && (
           <Column start={1} width={4} variant='labelFieldContainer'>
-            <Box variant='sectionHeading'>About this score</Box>
-            <ScoreDetails />
-          </Column>
-          <Column start={1} width={4} variant='labelFieldContainer'>
-            <Box variant='sectionHeading'>Other factors</Box>
-            The risk described above does not account for a variety of factors
-            that each may drive the actual risk of structure loss due to fire up
-            or down.
-            <Table
-              columns={[4]}
-              start={[[1], [4]]}
-              width={[[3], [1]]}
-              data={[
-                [
-                  'Building retrofit',
-                  <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
-                    Lower
-                  </Badge>,
-                ],
-                [
-                  'Community emergency response',
-                  <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
-                    Lower
-                  </Badge>,
-                ],
-                [
-                  'Previous fire',
-                  <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
-                    Lower
-                  </Badge>,
-                ],
-                [
-                  'Access limitations',
-                  <Badge key='higher' sx={{ textTransform: 'uppercase' }}>
-                    Higher
-                  </Badge>,
-                ],
-              ]}
-              index={false}
-              sx={{
-                mt: 3,
-                '& tr': {
-                  py: 2,
-                },
-                '& td': {
-                  fontFamily: 'mono',
-                  letterSpacing: 'mono',
-                  textTransform: 'uppercase',
-                  fontSize: [2, 2, 2, 3],
-                },
-              }}
+            <Box variant='sectionHeading'>Summary statistics</Box>
+            <Histogram
+              address={address}
+              region={`${countyName} County`}
+              score={riskScore}
+              data={countyData}
             />
           </Column>
-          {countyData && (
-            <Column start={1} width={4} variant='labelFieldContainer'>
-              <Box variant='sectionHeading'>Summary statistics</Box>
-              <Histogram
-                address={address}
-                region={`${countyName} County`}
-                score={riskScore}
-                data={countyData}
-              />
-            </Column>
-          )}
-          {censusTractData && (
-            <Column start={1} width={4} sx={{ mt: 2 }}>
-              <Histogram
-                address={address}
-                region={'the census tract'}
-                score={riskScore}
-                data={censusTractData}
-              />
-            </Column>
-          )}
-        </Row>
-      </Column>
-    </>
+        )}
+        {censusTractData && (
+          <Column start={1} width={4} sx={{ mt: 2 }}>
+            <Histogram
+              address={address}
+              region={'the census tract'}
+              score={riskScore}
+              data={censusTractData}
+            />
+          </Column>
+        )}
+      </Row>
+    </Column>
   )
 }
 
