@@ -86,15 +86,19 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
 
   return (
     <>
-      {onCollapse && (
-        <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
-          <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
-            Collapse
-          </Button>
-        </Column>
-      )}
       <Column start={1} width={4}>
         <Row columns={4}>
+          {onCollapse && (
+            <Column
+              start={1}
+              width={4}
+              sx={{ mt: 2, mb: 3, pointEvents: 'all' }}
+            >
+              <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
+                Collapse
+              </Button>
+            </Column>
+          )}
           <Column
             start={1}
             width={4}
@@ -105,18 +109,12 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
               fontFamily: 'heading',
               letterSpacing: 'heading',
               lineHeight: 'heading',
-              mb: 3,
-              mt: [2, 2, 3, 3],
+              my: 3,
             }}
           >
             {address}
           </Column>
-          <Column
-            start={1}
-            width={4}
-            variant='labelFieldContainer'
-            sx={{ mt: [1, 1, 3, 3] }}
-          >
+          <Column start={1} width={4} variant='labelFieldContainer'>
             <Box variant='sectionHeading'>About this score</Box>
             <ScoreDetails />
           </Column>
