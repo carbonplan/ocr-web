@@ -1,6 +1,6 @@
 import { useColorMode, useThemeUI, get } from 'theme-ui'
 import { useMemo } from 'react'
-import { Flavor, layers, namedFlavor } from '@protomaps/basemaps'
+import { layers, namedFlavor, type Flavor } from '@protomaps/basemaps'
 
 const language = 'en'
 
@@ -16,13 +16,7 @@ export const useMapTheme = () => {
   const muted = get(theme, 'rawColors.muted')
   const background = get(theme, 'rawColors.background')
 
-  const sprite = useMemo(
-    () =>
-      `https://protomaps.github.io/basemaps-assets/sprites/v4/${flavorName}`,
-    [flavorName],
-  )
-
-  const mapTheme: Flavor = useMemo(
+  const mapTheme = useMemo(
     () => ({
       ...namedFlavor(flavorName),
       buildings: transparent,
@@ -127,12 +121,28 @@ export const useMapTheme = () => {
     [flavorName, hinted, secondary, muted, background, primary],
   )
 
-  const mapLayers = useMemo(
-    () => layers('basemap', mapTheme, { lang: language }),
-    [mapTheme],
-  )
+  const mapLayers = useMemo(() => {
+    const baseLayers = layers('basemap', mapTheme as unknown as Flavor, {
+      lang: language,
+    })
+
+    return baseLayers.map((layer) => {
+      if (layer.id === 'places_locality' && layer.type === 'symbol') {
+        return {
+          ...layer,
+          layout: {
+            ...layer.layout,
+            'text-anchor': 'center' as const,
+            'text-justify': 'center' as const,
+          },
+        }
+      }
+      return layer
+    })
+  }, [mapTheme])
+
   return {
     mapLayers,
-    sprite,
+    mapTheme,
   }
 }

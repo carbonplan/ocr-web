@@ -26,7 +26,7 @@ const MapComponent = () => {
   const [styleLoaded, setStyleLoaded] = useState(false)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
 
-  const { mapLayers, sprite } = useMapTheme()
+  const { mapLayers } = useMapTheme()
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -80,7 +80,6 @@ const MapComponent = () => {
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
         layers: [...layers, ...mapLayers],
-        sprite,
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
@@ -133,7 +132,7 @@ const MapComponent = () => {
     if (!map) return
     const currentStyle = map.getStyle()
     if (!currentStyle) return
-    const newStyle = { ...currentStyle, sprite }
+    const newStyle = { ...currentStyle }
     map.setStyle(newStyle, { diff: true })
     const updateLayerProps = (layerId: string, spec: LayerSpecification) => {
       if (spec.paint) {
@@ -143,7 +142,7 @@ const MapComponent = () => {
       }
     }
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
-  }, [mapLayers, map, sprite])
+  }, [mapLayers, map])
 
   useEffect(() => {
     if (!map) return
