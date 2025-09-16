@@ -138,8 +138,16 @@ const GeographyLayer = ({
             'source-layer': config.layerName,
             paint: {
               'line-opacity': geographies[geographyKey] ? 1 : 0,
-              'line-color': get(theme, 'rawColors.primary'),
-              'line-width': 1,
+              'line-color': get(theme, 'rawColors.secondary'),
+              'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                2,
+                0.1,
+                14,
+                0.5,
+              ],
             },
           },
           'address_label',
@@ -195,7 +203,7 @@ const GeographyLayer = ({
       map.setPaintProperty(
         config.layerIds.line,
         'line-color',
-        get(theme, 'rawColors.primary'),
+        get(theme, 'rawColors.secondary'),
       )
     }
   }, [map, geographies, geographyKey, theme])
