@@ -40,7 +40,13 @@ const Legend = () => {
 
   return (
     <Box
-      sx={{ position: 'absolute', right: [4, 5, 5, 6], bottom: 30, width: 340 }}
+      sx={{
+        position: 'absolute',
+        right: [3, 3, 5, 6],
+        bottom: ['unset', 'unset', 30, 30],
+        top: [50, 50, 'unset', 'unset'],
+        width: [200, 200, 340, 340],
+      }}
     >
       {advancedMode ? (
         <Flex sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
@@ -98,7 +104,7 @@ const Legend = () => {
             letterSpacing: 'mono',
             textTransform: 'uppercase',
             mb: 1,
-            fontSize: [1, 1, 1, 2],
+            fontSize: [0, 0, 1, 2],
           }}
         >
           Risk of structure loss (%)
@@ -113,7 +119,7 @@ const Legend = () => {
         <Box
           sx={{
             width: '2%',
-            height: '100%',
+            height: ['10px', '10px', '100%', '100%'],
             bg: 'muted',
             mt: '1px',
             border: '1px solid',
