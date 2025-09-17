@@ -6,6 +6,7 @@ import {
   removeProtocol,
   LayerSpecification,
   SourceSpecification,
+  AttributionControl,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
@@ -26,7 +27,7 @@ const MapComponent = () => {
   const [styleLoaded, setStyleLoaded] = useState(false)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
 
-  const { mapLayers, sprite } = useMapTheme()
+  const mapLayers = useMapTheme()
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -54,6 +55,7 @@ const MapComponent = () => {
         tiles: [`/api/map/tiles/{z}/{x}/{y}`],
         tileSize: 256,
         // todo: add attribution
+        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
       },
     }
 
@@ -80,7 +82,6 @@ const MapComponent = () => {
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
         layers: [...layers, ...mapLayers],
-        sprite,
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
@@ -111,6 +112,8 @@ const MapComponent = () => {
       setStyleLoaded(true)
     }
 
+    newMap.addControl(new AttributionControl({ compact: true }), 'bottom-left')
+
     newMap.on('sourcedata', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
     newMap.on('moveend', handleMoveEnd)
@@ -133,7 +136,7 @@ const MapComponent = () => {
     if (!map) return
     const currentStyle = map.getStyle()
     if (!currentStyle) return
-    const newStyle = { ...currentStyle, sprite }
+    const newStyle = { ...currentStyle }
     map.setStyle(newStyle, { diff: true })
     const updateLayerProps = (layerId: string, spec: LayerSpecification) => {
       if (spec.paint) {
@@ -143,7 +146,7 @@ const MapComponent = () => {
       }
     }
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
-  }, [mapLayers, map, sprite])
+  }, [mapLayers, map])
 
   useEffect(() => {
     if (!map) return
@@ -165,6 +168,13 @@ const MapComponent = () => {
         right: 0,
         bottom: 0,
         left: sidebarWidth,
+        '.maplibregl-ctrl-bottom-left': {
+          textTransform: 'uppercase',
+          fontSize: 1,
+          fontFamily: 'mono',
+          letterSpacing: 'mono',
+          zIndex: 0,
+        },
       }}
     >
       {map && styleLoaded && (

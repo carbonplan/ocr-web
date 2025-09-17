@@ -1,6 +1,6 @@
 import { useColorMode, useThemeUI, get } from 'theme-ui'
 import { useMemo } from 'react'
-import { Flavor, layers, namedFlavor } from '@protomaps/basemaps'
+import { layers, namedFlavor, type Flavor } from '@protomaps/basemaps'
 
 const language = 'en'
 
@@ -11,17 +11,12 @@ export const useMapTheme = () => {
   const flavorName = isDark ? 'black' : 'white'
   const transparent = 'transparent'
   const hinted = get(theme, 'rawColors.hinted')
+  const primary = get(theme, 'rawColors.primary')
   const secondary = get(theme, 'rawColors.secondary')
   const muted = get(theme, 'rawColors.muted')
   const background = get(theme, 'rawColors.background')
 
-  const sprite = useMemo(
-    () =>
-      `https://protomaps.github.io/basemaps-assets/sprites/v4/${flavorName}`,
-    [flavorName],
-  )
-
-  const mapTheme: Flavor = useMemo(
+  const mapTheme = useMemo(
     () => ({
       ...namedFlavor(flavorName),
       buildings: transparent,
@@ -92,9 +87,25 @@ export const useMapTheme = () => {
       roads_label_major: secondary,
       roads_label_major_halo: background,
       ocean_label: secondary,
-      subplace_label: secondary,
+      subplace_label: [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        8,
+        secondary,
+        22,
+        primary,
+      ],
       subplace_label_halo: background,
-      city_label: secondary,
+      city_label: [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        8,
+        secondary,
+        22,
+        primary,
+      ],
       city_label_halo: background,
       state_label: secondary,
       state_label_halo: background,
@@ -107,15 +118,28 @@ export const useMapTheme = () => {
       bold: 'Relative Pro Book',
       italic: 'Relative Pro Book',
     }),
-    [flavorName, hinted, secondary, muted, background],
+    [flavorName, hinted, secondary, muted, background, primary],
   )
 
-  const mapLayers = useMemo(
-    () => layers('basemap', mapTheme, { lang: language }),
-    [mapTheme],
-  )
-  return {
-    mapLayers,
-    sprite,
-  }
+  const mapLayers = useMemo(() => {
+    const baseLayers = layers('basemap', mapTheme as unknown as Flavor, {
+      lang: language,
+    })
+
+    return baseLayers.map((layer) => {
+      if (layer.id === 'places_locality' && layer.type === 'symbol') {
+        return {
+          ...layer,
+          layout: {
+            ...layer.layout,
+            'text-anchor': 'center' as const,
+            'text-justify': 'center' as const,
+          },
+        }
+      }
+      return layer
+    })
+  }, [mapTheme])
+
+  return mapLayers
 }
