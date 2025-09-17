@@ -119,7 +119,7 @@ const Legend = () => {
         <Box
           sx={{
             width: '2%',
-            height: ['10px', '10px', '100%', '100%'],
+            height: ['10px', '100%', '100%', '100%'],
             bg: 'muted',
             mt: '1px',
             border: '1px solid',
