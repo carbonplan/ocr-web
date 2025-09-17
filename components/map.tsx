@@ -168,6 +168,12 @@ const MapComponent = () => {
         right: 0,
         bottom: 0,
         left: sidebarWidth,
+        '.maplibregl-ctrl-bottom-left': {
+          textTransform: 'uppercase',
+          fontSize: 1,
+          fontFamily: 'mono',
+          letterSpacing: 'mono',
+        },
       }}
     >
       {map && styleLoaded && (
