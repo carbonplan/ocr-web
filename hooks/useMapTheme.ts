@@ -141,8 +141,5 @@ export const useMapTheme = () => {
     })
   }, [mapTheme])
 
-  return {
-    mapLayers,
-    mapTheme,
-  }
+  return mapLayers
 }

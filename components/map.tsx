@@ -27,7 +27,7 @@ const MapComponent = () => {
   const [styleLoaded, setStyleLoaded] = useState(false)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
 
-  const { mapLayers } = useMapTheme()
+  const mapLayers = useMapTheme()
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
