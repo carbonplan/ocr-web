@@ -173,6 +173,7 @@ const MapComponent = () => {
           fontSize: 1,
           fontFamily: 'mono',
           letterSpacing: 'mono',
+          zIndex: 0,
         },
       }}
     >
