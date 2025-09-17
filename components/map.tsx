@@ -6,14 +6,19 @@ import {
   removeProtocol,
   LayerSpecification,
   SourceSpecification,
-  AttributionControl,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { Box } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
-import { Buildings, GeographyLayer, WmsLayers } from './'
+import {
+  Buildings,
+  GeographyLayer,
+  WmsLayers,
+  MapAttribution,
+  useMapControlStyles,
+} from './'
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
@@ -28,6 +33,7 @@ const MapComponent = () => {
   const sidebarWidth = useStore((state) => state.sidebarWidth)
 
   const mapLayers = useMapTheme()
+  const mapControlStyles = useMapControlStyles()
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -54,7 +60,6 @@ const MapComponent = () => {
         type: 'raster',
         tiles: [`/api/map/tiles/{z}/{x}/{y}`],
         tileSize: 256,
-        // todo: add attribution
         attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
       },
     }
@@ -112,8 +117,6 @@ const MapComponent = () => {
       setStyleLoaded(true)
     }
 
-    newMap.addControl(new AttributionControl({ compact: true }), 'bottom-left')
-
     newMap.on('sourcedata', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
     newMap.on('moveend', handleMoveEnd)
@@ -168,17 +171,12 @@ const MapComponent = () => {
         right: 0,
         bottom: 0,
         left: sidebarWidth,
-        '.maplibregl-ctrl-bottom-left': {
-          textTransform: 'uppercase',
-          fontSize: 1,
-          fontFamily: 'mono',
-          letterSpacing: 'mono',
-          zIndex: 0,
-        },
+        ...mapControlStyles,
       }}
     >
       {map && styleLoaded && (
         <>
+          <MapAttribution />
           <WmsLayers />
           <GeographyLayer
             config={LAYERS.counties}

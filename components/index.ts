@@ -1,5 +1,9 @@
 export { default as Geocode } from './geocode'
 export { default as Map } from './map'
+export {
+  default as MapAttribution,
+  useMapControlStyles,
+} from './map-attribution'
 export { default as Buildings } from './buildings'
 export { default as GeographyLayer } from './geography-layer'
 export { default as WmsLayers } from './wms-layers'

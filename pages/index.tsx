@@ -78,6 +78,7 @@ const Index = () => {
               sx={{
                 display: ['block', 'block', 'none'],
                 p: 4,
+                mt: -2,
                 bg: 'background',
                 border: '1px solid',
                 borderColor: 'muted',
