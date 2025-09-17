@@ -112,7 +112,7 @@ const MapComponent = () => {
       setStyleLoaded(true)
     }
 
-    newMap.addControl(new AttributionControl(), 'bottom-left')
+    newMap.addControl(new AttributionControl({ compact: true }), 'bottom-left')
 
     newMap.on('sourcedata', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
