@@ -141,6 +141,27 @@ const MobileDrawer = () => {
         // scrollLockTimeout={1}
         // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
       >
+        {/* hidden accessibility elements */}
+        <Drawer.Title
+          style={{
+            position: 'absolute',
+            width: 0,
+            height: 0,
+            overflow: 'hidden',
+          }}
+        >
+          Mobile drawer for search, settings, and risk
+        </Drawer.Title>
+        <Drawer.Description
+          style={{
+            position: 'absolute',
+            width: 0,
+            height: 0,
+            overflow: 'hidden',
+          }}
+        >
+          Search for an address, adjust settings, and view risk details
+        </Drawer.Description>
         <Drawer.Content
           style={{
             position: 'fixed',
