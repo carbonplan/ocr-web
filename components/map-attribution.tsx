@@ -1,19 +1,19 @@
 import { useEffect } from 'react'
 import { AttributionControl } from 'maplibre-gl'
-import { get, useThemeUI } from 'theme-ui'
+import { get, useThemeUI, ThemeUIStyleObject } from 'theme-ui'
 import { useStore } from '@/lib/store'
 
-export const useMapControlStyles = () => {
+export const useMapControlStyles = (): ThemeUIStyleObject => {
   const { theme } = useThemeUI()
   const primary = get(theme, 'rawColors.primary')
 
   return {
-    '.maplibregl-control-container': {
+    '& .maplibregl-control-container': {
       textTransform: 'uppercase',
       fontSize: [0, 0, 1, 1],
       fontFamily: 'mono',
       letterSpacing: 'mono',
-      '[class*="maplibregl-ctrl-"]': { zIndex: 0 },
+      '& [class*="maplibregl-ctrl-"]': { zIndex: 0 },
       '& .maplibregl-ctrl-attrib': {
         bottom: [135, 135, 'unset', 'unset'],
         bg: 'hinted',
