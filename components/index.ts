@@ -1,5 +1,9 @@
 export { default as Geocode } from './geocode'
 export { default as Map } from './map'
+export {
+  default as MapAttribution,
+  useMapControlStyles,
+} from './map-attribution'
 export { default as Buildings } from './buildings'
 export { default as GeographyLayer } from './geography-layer'
 export { default as WmsLayers } from './wms-layers'
@@ -7,3 +11,6 @@ export { default as Sidebar } from './sidebar'
 export { default as Results } from './results'
 export { default as Display } from './display'
 export { default as Legend } from './legend'
+export { default as MobileDrawer } from './mobile-drawer'
+export { default as Intro } from './intro'
+export { default as Loading } from './loading'

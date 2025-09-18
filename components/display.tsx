@@ -21,11 +21,11 @@ const Display = () => {
       <Box variant='sectionHeading' sx={{ mt: 5 }}>
         Display
       </Box>
-      <Row variant='labelFieldContainer' columns={4}>
+      <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label'>
           Geography
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           <Filter
             values={geographies}
             labels={{
@@ -44,11 +44,11 @@ const Display = () => {
           />
         </Column>
       </Row>
-      <Row variant='labelFieldContainer' columns={4}>
+      <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Raw data
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           {advancedMode ? (
             <Filter
               multiSelect
@@ -77,16 +77,16 @@ const Display = () => {
           )}
         </Column>
       </Row>
-      <Row variant='labelFieldContainer' columns={4}>
+      <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Satellite
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           <Toggle value={satellite} onClick={() => setSatellite(!satellite)} />
         </Column>
       </Row>
       {advancedMode && (
-        <Row variant='labelFieldContainer' columns={4}>
+        <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
           <Column
             start={1}
             width={1}
@@ -95,7 +95,7 @@ const Display = () => {
           >
             Wind Risk
           </Column>
-          <Column start={2} width={3}>
+          <Column start={2} width={[2, 2, 3, 3]}>
             <Toggle
               value={attribute === 'windRisk'}
               onClick={() =>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import { MapSourceDataEvent } from 'maplibre-gl'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
@@ -16,7 +17,11 @@ import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
 
-const Geocode = () => {
+const Geocode = ({
+  leftAccessory = null,
+}: {
+  leftAccessory?: React.ReactNode | null
+}) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
@@ -33,6 +38,7 @@ const Geocode = () => {
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
+  const index = useBreakpointIndex({ defaultIndex: 2 })
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,6 +58,8 @@ const Geocode = () => {
   useEffect(() => {
     if (selectedLocation) {
       setSearchQuery(formatAddress(selectedLocation.address))
+    } else {
+      setSearchQuery('')
     }
   }, [selectedLocation])
 
@@ -159,22 +167,25 @@ const Geocode = () => {
       )
       const location = await locationResponse.json()
       setSelectedLocation(location)
-      if (location.address.houseNumber) {
-        setShowAddressDetails(true)
-      }
 
       if (map && location) {
+        let offset: [number, number]
+        if (index < 2) {
+          offset = [0, -window.innerHeight / 4]
+        } else if (location.address.houseNumber) {
+          offset = [(sidebarWidth - 50) / 2, 0]
+        } else offset = [0, 0]
+
         map.flyTo({
           center: [location.position.lng, location.position.lat],
           zoom: location.address.houseNumber ? 16 : 12,
-          offset: location.address.houseNumber
-            ? [(sidebarWidth - 50) / 2, 0]
-            : [0, 0],
+          offset,
         })
 
         // Highlight building after map movement completes
         if (location.address.houseNumber) {
           const handleMoveEnd = () => {
+            setShowAddressDetails(true)
             if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
               highlightBuildingAtLocation(
                 location.position.lng,
@@ -219,6 +230,7 @@ const Geocode = () => {
 
   const handleDeselect = () => {
     clearSelections()
+    setShowAddressDetails(false)
     setSearchQuery('')
     setSelectedIndex(-1)
   }
@@ -251,7 +263,7 @@ const Geocode = () => {
         <SidebarDivider sx={{ mb: 3 }} />
         <Row columns={4}>
           <Column start={1} width={1}>
-            <Box variant='label'>Address</Box>
+            {leftAccessory ?? <Box variant='label'>Address</Box>}
           </Column>
           <Column start={2} width={3}>
             <Flex sx={{ gap: 1 }}>

@@ -51,7 +51,11 @@ const Results = () => {
           Climate risk
         </Column>
       </Row>
-      <Row columns={4} variant='labelFieldContainer' sx={{ mt: 2 }}>
+      <Row
+        columns={4}
+        variant='labelFieldContainer'
+        sx={{ mt: 2, display: ['none', 'none', 'block'] }}
+      >
         <Column start={1} width={4} sx={{ height: 25 }}>
           <Flex sx={{ gap: 3 }}>
             <Badge sx={{ color: scoreColor }}>
@@ -90,19 +94,23 @@ const Results = () => {
           </Flex>
         </Column>
       </Row>
-      <Row columns={4} variant='labelFieldContainer'>
+      <Row columns={[3, 3, 4, 4]} variant='labelFieldContainer'>
         <Column start={1} width={1} variant='label'>
           Hazard
         </Column>
-        <Column start={2} width={3}>
-          <Filter values={{ Fire: true }} colors={{ Fire: 'red' }} />
+        <Column start={2} width={[2, 2, 3, 3]}>
+          <Filter
+            values={{ Fire: true }}
+            setValues={() => {}}
+            colors={{ Fire: 'red' }}
+          />
         </Column>
       </Row>
-      <Row columns={4} variant='labelFieldContainer'>
+      <Row columns={[3, 3, 4, 4]} variant='labelFieldContainer'>
         <Column start={1} width={1} variant='label'>
           Scenario
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           <TooltipWrapper
             tooltip='Current risk estimates are based on a climate circa 2003-2018 while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from 2020.'
             sx={{ justifyContent: 'flex-start', gap: 2 }}
@@ -130,11 +138,11 @@ const Results = () => {
           </TooltipWrapper>
         </Column>
       </Row>
-      <Row columns={4} variant='labelFieldContainer'>
+      <Row columns={[3, 3, 4, 4]} variant='labelFieldContainer'>
         <Column start={1} width={1} variant='label'>
           Timeframe
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           <Filter
             values={{
               1: timeHorizon === 1,
