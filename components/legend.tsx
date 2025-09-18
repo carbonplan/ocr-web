@@ -42,7 +42,7 @@ const Legend = () => {
     <Box
       sx={{
         position: 'absolute',
-        right: [3, 3, 5, 6],
+        right: [3, 4, 5, 6],
         bottom: ['unset', 'unset', 30, 30],
         top: [50, 50, 'unset', 'unset'],
         width: [200, 200, 340, 340],
