@@ -233,7 +233,7 @@ const Buildings = () => {
       })
 
       if (features.length > 0) {
-        setSelectedBuilding(features[0].properties)
+        setSelectedBuilding(features[0])
         if (hoveredFeatureId.current !== null) {
           map.setFeatureState(
             {

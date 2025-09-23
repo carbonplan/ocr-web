@@ -74,7 +74,7 @@ export const useBuildingUtils = () => {
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          setSelectedBuilding(closestBuilding.properties)
+          setSelectedBuilding(closestBuilding)
           setSelectedCoordinates({ lat, lng })
 
           queryGeographiesAtPoint(lng, lat)

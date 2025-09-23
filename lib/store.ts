@@ -1,30 +1,43 @@
 import { create } from 'zustand'
 import { Map, MapGeoJSONFeature } from 'maplibre-gl'
-import { Location, Building, Geography, TimeHorizon } from '../types/location'
+import {
+  Location,
+  Building,
+  Geography,
+  TimeHorizon,
+  Coordinates,
+  MethodKey,
+  ScenarioKey,
+} from '../types/location'
 import { RISKS } from './config'
 import { getBuildingRiskScores, getGeographyData } from './risk-utils'
+
+type GeoJSONGeometry = MapGeoJSONFeature['geometry']
+type GeoJSONProperties = MapGeoJSONFeature['properties']
+type SelectedBuilding = Building & { geometry: GeoJSONGeometry }
+type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
 type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location) => void
-  selectedCoordinates: { lat: number; lng: number } | null
-  setSelectedCoordinates: (coordinates: { lat: number; lng: number }) => void
+  selectedCoordinates: Coordinates | null
+  setSelectedCoordinates: (coordinates: Coordinates) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
   setRiskRaster: (riskRaster: boolean) => void
   rpsRaster: boolean
   setRpsRaster: (rpsRaster: boolean) => void
-  selectedBuilding: Building | null
-  setSelectedBuilding: (building: MapGeoJSONFeature['properties']) => void
+  selectedBuilding: SelectedBuilding | null
+  setSelectedBuilding: (feature: MapGeoJSONFeature) => void
   hoveredBuilding: Building | null
-  setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
+  setHoveredBuilding: (building: GeoJSONProperties | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
   setActiveGeographies: (geographies: {
-    county: MapGeoJSONFeature['properties'] | null
-    censusTract: MapGeoJSONFeature['properties'] | null
+    county: GeoJSONProperties | null
+    censusTract: GeoJSONProperties | null
   }) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
@@ -34,14 +47,14 @@ type Store = {
   }) => void
   timeHorizon: TimeHorizon
   setTimeHorizon: (timeHorizon: TimeHorizon) => void
-  timePeriod: 'current' | 'future'
-  setTimePeriod: (timePeriod: 'current' | 'future') => void
+  timePeriod: ScenarioKey
+  setTimePeriod: (timePeriod: ScenarioKey) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
-  riskConfig: (typeof RISKS)[keyof typeof RISKS]
-  setRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
-  attribute: 'baseRisk' | 'windRisk'
-  setAttribute: (attribute: 'baseRisk' | 'windRisk') => void
+  riskConfig: RiskConfig
+  setRiskConfig: (riskConfig: RiskConfig) => void
+  attribute: MethodKey
+  setAttribute: (attribute: MethodKey) => void
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
@@ -76,10 +89,15 @@ export const useStore = create<Store>((set) => ({
   rpsRaster: false,
   setRpsRaster: (rpsRaster) => set({ rpsRaster }),
   selectedBuilding: null,
-  setSelectedBuilding: (building) =>
-    set((state) => ({
-      selectedBuilding: getBuildingRiskScores(building, state.riskConfig),
-    })),
+  setSelectedBuilding: (feature) =>
+    set((state) => {
+      const scores = getBuildingRiskScores(feature.properties, state.riskConfig)
+      return {
+        selectedBuilding: scores
+          ? { ...scores, geometry: feature.geometry }
+          : null,
+      }
+    }),
   hoveredBuilding: null,
   setHoveredBuilding: (building) =>
     set((state) => ({
@@ -111,7 +129,7 @@ export const useStore = create<Store>((set) => ({
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   attribute: 'windRisk',
-  setAttribute: (attribute: 'baseRisk' | 'windRisk') => set({ attribute }),
+  setAttribute: (attribute: MethodKey) => set({ attribute }),
   colorLimits: {
     type: 'continuous',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
