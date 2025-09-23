@@ -5,14 +5,7 @@ import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Badge } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
-import { Address } from '@/types/location'
-
-const formatAddress = (address: Address) => {
-  const parts = []
-  if (address.houseNumber) parts.push(address.houseNumber)
-  if (address.street) parts.push(address.street)
-  return parts.join(' ')
-}
+import { formatAddress } from '@/lib/address-utils'
 
 const calculateTopMiddlePosition = (
   geometry: MapGeoJSONFeature['geometry'],
@@ -58,7 +51,7 @@ const SelectionMarker = () => {
 
   const addressString = useMemo(() => {
     if (selectedLocation) {
-      return formatAddress(selectedLocation.address)
+      return formatAddress(selectedLocation.address, true)
     }
     return null
   }, [selectedLocation])
