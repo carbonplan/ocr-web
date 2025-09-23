@@ -17,6 +17,12 @@ const WmsLayers = () => {
 
   const [colorMode] = useColorMode()
 
+  const colorscaleRange = useMemo(() => {
+    const epsilon = 1e-9
+    const [min, max] = colorLimits.bounds
+    return `${min - epsilon},${max}`
+  }, [colorLimits])
+
   const lightColormap = useMemo(
     () => generateColormap(riskConfig.colormap, { count: 30, mode: 'light' }),
     [riskConfig.colormap],
@@ -41,7 +47,7 @@ const WmsLayers = () => {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const attr of riskAttributes) {
         for (const horizon of timeHorizons) {
-          const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorLimits.bounds.join(',')}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+          const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
           matrix.push({
             id: `wms_risk_${attr}_horizon_${horizon}_${themeType}`,
             riskAttribute: attr,
@@ -53,7 +59,7 @@ const WmsLayers = () => {
       }
     }
     return matrix
-  }, [riskConfig, lightColormap, darkColormap, colorLimits])
+  }, [riskConfig, lightColormap, darkColormap, colorscaleRange])
 
   const rpsMatrix = useMemo(() => {
     const timeHorizons = [1, 15, 30]
@@ -63,7 +69,7 @@ const WmsLayers = () => {
     for (const themeType of themes) {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const horizon of timeHorizons) {
-        const url = `${DATA_URLS.raster.usfsBase}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorLimits.bounds.join(',')}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        const url = `${DATA_URLS.raster.usfsBase}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
         matrix.push({
           id: `wms_rps_RPS_horizon_${horizon}_${themeType}`,
           riskAttribute: 'RPS',
@@ -74,7 +80,7 @@ const WmsLayers = () => {
       }
     }
     return matrix
-  }, [lightColormap, darkColormap, colorLimits])
+  }, [lightColormap, darkColormap, colorscaleRange])
 
   const activeRiskLayerId = useMemo(() => {
     const riskAttribute = riskConfig.attributes[attribute][timePeriod]
