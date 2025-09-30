@@ -18,7 +18,7 @@ const calculateTopMiddlePosition = (
   for (const [, lat] of ring) {
     if (lat > maxLat) maxLat = lat
   }
-  const tol = 1e-4
+  const tol = 1e-5
   let minLng = Infinity
   let maxLng = -Infinity
   for (const [lng, lat] of ring) {
