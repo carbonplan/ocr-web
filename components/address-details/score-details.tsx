@@ -16,7 +16,6 @@ const ScoreBadge = ({ score, color }: { score: number; color: string }) => (
   </Badge>
 )
 const ScoreDetails = () => {
-  const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const colorLimits = useStore((state) => state.colorLimits)
@@ -30,8 +29,8 @@ const ScoreDetails = () => {
     return null
   }
 
-  const baseRiskScore = selectedBuilding.baseRisk[timePeriod][timeHorizon]
-  const score = selectedBuilding.windRisk[timePeriod][timeHorizon]
+  const baseRiskScore = selectedBuilding.baseRisk[timePeriod]
+  const score = selectedBuilding.windRisk[timePeriod]
   const baseScoreColor = getColorForRiskScore(
     baseRiskScore,
     colormap,

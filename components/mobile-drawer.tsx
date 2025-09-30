@@ -89,10 +89,7 @@ const MobileDrawer = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
   const score = useStore(
-    (state) =>
-      state.selectedBuilding?.[state.attribute][state.timePeriod][
-        state.timeHorizon
-      ],
+    (state) => state.selectedBuilding?.[state.attribute][state.timePeriod],
   )?.toFixed(2)
 
   const scoreColor = getColorForRiskScore(

@@ -1,20 +1,6 @@
 import { MapGeoJSONFeature } from 'maplibre-gl'
-import {
-  Building,
-  Geography,
-  MethodKey,
-  ScenarioKey,
-  TimeHorizon,
-} from '@/types/location'
+import { Building, Geography, MethodKey, ScenarioKey } from '@/types/location'
 import { RISKS } from './config'
-
-const calculateRiskScores = (annualProbability: number) => {
-  return {
-    1: annualProbability,
-    15: (1 - Math.pow(1 - annualProbability / 100, 15)) * 100,
-    30: (1 - Math.pow(1 - annualProbability / 100, 30)) * 100,
-  }
-}
 
 export const getBuildingRiskScores = (
   building: MapGeoJSONFeature['properties'] | null,
@@ -40,8 +26,8 @@ export const getBuildingRiskScores = (
       riskConfig.attributes[key as keyof typeof riskConfig.attributes]
 
     result[key as keyof typeof riskConfig.attributes] = {
-      current: calculateRiskScores(Number(building[subKeys.current])),
-      future: calculateRiskScores(Number(building[subKeys.future])),
+      current: Number(building[subKeys.current]),
+      future: Number(building[subKeys.future]),
     }
   })
 
@@ -61,8 +47,6 @@ const getHistogramData = (countsString: string): number[] => {
     return []
   }
 }
-
-const HORIZONS: TimeHorizon[] = [1, 15, 30]
 export const getGeographyData = (
   properties: MapGeoJSONFeature['properties'] | null,
   riskConfig: (typeof RISKS)[keyof typeof RISKS],
@@ -84,19 +68,15 @@ export const getGeographyData = (
   Object.keys(riskConfig.attributes).forEach((methodKey) => {
     Object.keys(riskConfig.attributes[methodKey as MethodKey]).forEach(
       (scenarioKey) => {
-        HORIZONS.forEach((horizon: TimeHorizon) => {
-          const riskKey =
-            riskConfig.attributes[methodKey as MethodKey][
-              scenarioKey as ScenarioKey
-            ]
-          const propertyKey = `${riskKey}_horizon_${horizon}`
-          result.risk[methodKey as MethodKey][scenarioKey as ScenarioKey][
-            horizon
-          ] = {
-            average: properties[`avg_${propertyKey}`] as number,
-            data: getHistogramData(properties[propertyKey]),
-          }
-        })
+        const riskKey =
+          riskConfig.attributes[methodKey as MethodKey][
+            scenarioKey as ScenarioKey
+          ]
+        const horizonProperty = `${riskKey}_horizon_1`
+        result.risk[methodKey as MethodKey][scenarioKey as ScenarioKey] = {
+          average: properties[`avg_${horizonProperty}`] as number,
+          data: getHistogramData(properties[horizonProperty]),
+        }
       },
     )
   })

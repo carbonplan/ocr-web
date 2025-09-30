@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { Map, MapGeoJSONFeature } from 'maplibre-gl'
-import { Location, Building, Geography, TimeHorizon } from '../types/location'
+import { Location, Building, Geography } from '../types/location'
 import { RISKS } from './config'
 import { getBuildingRiskScores, getGeographyData } from './risk-utils'
 
@@ -32,8 +32,6 @@ type Store = {
     county: boolean
     censusTract: boolean
   }) => void
-  timeHorizon: TimeHorizon
-  setTimeHorizon: (timeHorizon: TimeHorizon) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
   sidebarWidth: number
@@ -102,8 +100,6 @@ export const useStore = create<Store>((set) => ({
     })),
   geographies: { building: true, county: false, censusTract: false },
   setGeographies: (geographies) => set({ geographies }),
-  timeHorizon: 1,
-  setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,

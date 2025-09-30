@@ -18,7 +18,6 @@ const Buildings = () => {
   )
   const clearSelections = useStore((state) => state.clearSelections)
   const attribute = useStore((state) => state.attribute)
-  const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
@@ -46,28 +45,13 @@ const Buildings = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const riskPercentExpression: ExpressionSpecification = useMemo(
-    () =>
-      timeHorizon === 1
-        ? ['to-number', ['get', riskAttribute]]
-        : [
-            '*',
-            [
-              '-',
-              1,
-              [
-                '^',
-                ['-', 1, ['/', ['to-number', ['get', riskAttribute]], 100]],
-                timeHorizon,
-              ],
-            ],
-            100,
-          ],
-    [timeHorizon, riskAttribute],
-  )
-
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
+
+    const riskPercentExpression: ExpressionSpecification = [
+      'to-number',
+      ['get', riskAttribute],
+    ]
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
@@ -121,7 +105,7 @@ const Buildings = () => {
     ) as ExpressionSpecification
   }, [
     colormap,
-    riskPercentExpression,
+    riskAttribute,
     colorLimits.type,
     colorLimits.bounds,
     theme,

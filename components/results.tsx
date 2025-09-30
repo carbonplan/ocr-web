@@ -15,8 +15,6 @@ import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import TooltipWrapper from './tooltip'
 
 const Results = () => {
-  const timeHorizon = useStore((state) => state.timeHorizon)
-  const setTimeHorizon = useStore((state) => state.setTimeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const setTimePeriod = useStore((state) => state.setTimePeriod)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -34,7 +32,7 @@ const Results = () => {
   })
 
   const riskScore = displayBuilding
-    ? displayBuilding[attribute][timePeriod][timeHorizon]
+    ? displayBuilding[attribute][timePeriod]
     : null
 
   const scoreColor = getColorForRiskScore(
@@ -136,34 +134,6 @@ const Results = () => {
               }}
             />
           </TooltipWrapper>
-        </Column>
-      </Row>
-      <Row columns={[3, 3, 4, 4]} variant='labelFieldContainer'>
-        <Column start={1} width={1} variant='label'>
-          Timeframe
-        </Column>
-        <Column start={2} width={[2, 2, 3, 3]}>
-          <Filter
-            values={{
-              1: timeHorizon === 1,
-              15: timeHorizon === 15,
-              30: timeHorizon === 30,
-            }}
-            setValues={(values: Record<string, boolean>) => {
-              const selectedTimeHorizon = Object.keys(values).find(
-                (key) => values[key],
-              )
-              if (selectedTimeHorizon) {
-                const horizon = Number(selectedTimeHorizon) as 1 | 15 | 30
-                setTimeHorizon(horizon)
-              }
-            }}
-            labels={{
-              1: '1-Year',
-              15: '15-Year',
-              30: '30-Year',
-            }}
-          />
         </Column>
       </Row>
     </>

@@ -19,24 +19,20 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
-  const riskScore = useStore(
-    ({ selectedBuilding, attribute, timePeriod, timeHorizon }) =>
-      selectedBuilding
-        ? selectedBuilding[attribute][timePeriod][timeHorizon]
-        : null,
+  const riskScore = useStore(({ selectedBuilding, attribute, timePeriod }) =>
+    selectedBuilding ? selectedBuilding[attribute][timePeriod] : null,
   )
   const countyName = useStore((state) => state.activeGeographies.county?.name)
   const countyData = useStore(
     (state) =>
-      state.activeGeographies.county?.risk[state.attribute][state.timePeriod][
-        state.timeHorizon
-      ].data,
+      state.activeGeographies.county?.risk[state.attribute][state.timePeriod]
+        .data,
   )
   const censusTractData = useStore(
     (state) =>
       state.activeGeographies.censusTract?.risk[state.attribute][
         state.timePeriod
-      ][state.timeHorizon].data,
+      ].data,
   )
 
   useEffect(() => {

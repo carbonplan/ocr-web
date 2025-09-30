@@ -39,15 +39,12 @@ export type RiskScoreSet<T> = Record<ScenarioKey, T>
 export type MethodKey = 'baseRisk' | 'windRisk'
 export type FireRisk<T> = Record<MethodKey, RiskScoreSet<T>>
 
-export type TimeHorizon = 1 | 15 | 30
-export type TimeHorizonRecord<T> = Record<TimeHorizon, T>
-
-export type Building = FireRisk<TimeHorizonRecord<number>>
+export type Building = FireRisk<number>
 
 export type Geography = {
   name: string
   buildingCount: number
-  risk: FireRisk<TimeHorizonRecord<{ average: number; data: number[] }>>
+  risk: FireRisk<{ average: number; data: number[] }>
 }
 
 export type Suggestion = {

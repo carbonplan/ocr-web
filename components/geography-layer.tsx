@@ -26,13 +26,12 @@ const GeographyLayer = ({
   const map = useStore((state) => state.map)
   const geographies = useStore((state) => state.geographies)
   const attribute = useStore((state) => state.attribute)
-  const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
 
   const riskAttribute = riskConfig.attributes[attribute][timePeriod]
-  const avgRiskAttribute = `avg_${riskAttribute}_horizon_${timeHorizon}`
+  const avgRiskAttribute = `avg_${riskAttribute}_horizon_1`
 
   const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',

@@ -12,7 +12,6 @@ const WmsLayers = () => {
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const attribute = useStore((state) => state.attribute)
-  const timeHorizon = useStore((state) => state.timeHorizon)
   const colorLimits = useStore((state) => state.colorLimits)
 
   const [colorMode] = useColorMode()
@@ -39,45 +38,37 @@ const WmsLayers = () => {
       riskConfig.attributes.windRisk.current,
       riskConfig.attributes.windRisk.future,
     ]
-    const timeHorizons = [1, 15, 30]
     const themes = ['light', 'dark']
 
     const matrix = []
     for (const themeType of themes) {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const attr of riskAttributes) {
-        for (const horizon of timeHorizons) {
-          const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
-          matrix.push({
-            id: `wms_risk_${attr}_horizon_${horizon}_${themeType}`,
-            riskAttribute: attr,
-            timeHorizon: horizon,
-            theme: themeType,
-            url,
-          })
-        }
+        const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        matrix.push({
+          id: `wms_risk_${attr}_${themeType}`,
+          riskAttribute: attr,
+          theme: themeType,
+          url,
+        })
       }
     }
     return matrix
   }, [riskConfig, lightColormap, darkColormap, colorscaleRange])
 
   const rpsMatrix = useMemo(() => {
-    const timeHorizons = [1, 15, 30]
     const themes = ['light', 'dark']
 
     const matrix = []
     for (const themeType of themes) {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
-      for (const horizon of timeHorizons) {
-        const url = `${DATA_URLS.raster.usfsBase}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS_horizon_${horizon}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
-        matrix.push({
-          id: `wms_rps_RPS_horizon_${horizon}_${themeType}`,
-          riskAttribute: 'RPS',
-          timeHorizon: horizon,
-          theme: themeType,
-          url,
-        })
-      }
+      const url = `${DATA_URLS.raster.usfsBase}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+      matrix.push({
+        id: `wms_rps_RPS_${themeType}`,
+        riskAttribute: 'RPS',
+        theme: themeType,
+        url,
+      })
     }
     return matrix
   }, [lightColormap, darkColormap, colorscaleRange])
@@ -85,13 +76,13 @@ const WmsLayers = () => {
   const activeRiskLayerId = useMemo(() => {
     const riskAttribute = riskConfig.attributes[attribute][timePeriod]
     const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
-    return `wms_risk_${riskAttribute}_horizon_${timeHorizon}_${currentTheme}`
-  }, [attribute, riskConfig, timePeriod, timeHorizon, colorMode])
+    return `wms_risk_${riskAttribute}_${currentTheme}`
+  }, [attribute, riskConfig, timePeriod, colorMode])
 
   const activeRpsLayerId = useMemo(() => {
     const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
-    return `wms_rps_RPS_horizon_${timeHorizon}_${currentTheme}`
-  }, [timeHorizon, colorMode])
+    return `wms_rps_RPS_${currentTheme}`
+  }, [colorMode])
 
   // manage full url updates
   useEffect(() => {
