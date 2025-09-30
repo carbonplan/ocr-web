@@ -27,12 +27,6 @@ const calculateTopMiddlePosition = (
       if (lng > maxLng) maxLng = lng
     }
   }
-  if (!isFinite(minLng) || !isFinite(maxLng)) {
-    let sumLng = 0
-    for (const [lng] of ring) sumLng += lng
-    const centerLng = sumLng / ring.length
-    return [centerLng, maxLat]
-  }
   const middleLng = (minLng + maxLng) / 2
   return [middleLng, maxLat]
 }
@@ -92,7 +86,12 @@ const SelectionMarker = () => {
     }
   }, [map, selectedLocation, selectedBuilding, markerPoint])
 
-  if (!selectedBuilding || !selectedLocation || !markerPoint) {
+  if (
+    !selectedBuilding ||
+    !selectedLocation ||
+    !markerPoint ||
+    !addressString
+  ) {
     return null
   }
 
