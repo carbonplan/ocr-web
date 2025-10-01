@@ -90,32 +90,31 @@ const SelectionMarker = () => {
     !selectedBuilding ||
     !selectedLocation ||
     !markerPoint ||
-    !addressString
+    !addressString ||
+    !container
   ) {
     return null
   }
 
-  return container
-    ? createPortal(
-        <Flex
-          sx={{
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Badge>{addressString}</Badge>
-          <Box
-            sx={{
-              borderLeft: '8px solid transparent',
-              borderRight: '8px solid transparent',
-              borderTop: `8px solid`,
-              borderTopColor: 'muted',
-            }}
-          />
-        </Flex>,
-        container,
-      )
-    : null
+  return createPortal(
+    <Flex
+      sx={{
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <Badge>{addressString}</Badge>
+      <Box
+        sx={{
+          borderLeft: '8px solid transparent',
+          borderRight: '8px solid transparent',
+          borderTop: `8px solid`,
+          borderTopColor: 'muted',
+        }}
+      />
+    </Flex>,
+    container,
+  )
 }
 
 export default SelectionMarker
