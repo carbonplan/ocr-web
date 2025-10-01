@@ -50,14 +50,24 @@ export const LAYERS = {
   },
 } as const
 
+export const BUILDING_ATTRIBUTE_KEYS = {
+  wind_risk_2011: '0', // strings for map expressions
+  wind_risk_2047: '1',
+  burn_probability_2011: '2',
+  burn_probability_2047: '3',
+  conditional_risk_usfs: '4',
+  burn_probability_usfs_2011: '5',
+  burn_probability_usfs_2047: '6',
+} as const
+
 const FIRE_ATTRIBUTES: FireRisk<string> = {
   baseRisk: {
-    current: 'USFS_RPS',
-    future: 'USFS_RPS',
+    current: BUILDING_ATTRIBUTE_KEYS.burn_probability_2011,
+    future: BUILDING_ATTRIBUTE_KEYS.burn_probability_2047,
   },
   windRisk: {
-    current: 'wind_risk_2011',
-    future: 'wind_risk_2047',
+    current: BUILDING_ATTRIBUTE_KEYS.wind_risk_2011,
+    future: BUILDING_ATTRIBUTE_KEYS.wind_risk_2047,
   },
 }
 
