@@ -12,9 +12,7 @@ import {
 import { RISKS } from './config'
 import { getBuildingRiskScores, getGeographyData } from './risk-utils'
 
-type GeoJSONGeometry = MapGeoJSONFeature['geometry']
-type GeoJSONProperties = MapGeoJSONFeature['properties']
-type SelectedBuilding = Building & { geometry: GeoJSONGeometry }
+type SelectedBuilding = Building & { geometry: MapGeoJSONFeature['geometry'] }
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
 type Store = {
@@ -33,11 +31,11 @@ type Store = {
   selectedBuilding: SelectedBuilding | null
   setSelectedBuilding: (feature: MapGeoJSONFeature) => void
   hoveredBuilding: Building | null
-  setHoveredBuilding: (building: GeoJSONProperties | null) => void
+  setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
   setActiveGeographies: (geographies: {
-    county: GeoJSONProperties | null
-    censusTract: GeoJSONProperties | null
+    county: MapGeoJSONFeature['properties'] | null
+    censusTract: MapGeoJSONFeature['properties'] | null
   }) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
