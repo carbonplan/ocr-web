@@ -6,6 +6,8 @@ import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
 import { useBreakpointIndex } from '@theme-ui/match-media'
+import { getBuildingRiskKey } from '@/lib/risk-utils'
+import { Building } from '@/types/location'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -17,15 +19,13 @@ const Buildings = () => {
     (state) => state.setSelectedCoordinates,
   )
   const clearSelections = useStore((state) => state.clearSelections)
-  const attribute = useStore((state) => state.attribute)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const { queryGeographiesAtPoint } = useBuildingUtils()
-
-  const riskAttribute = riskConfig.attributes[attribute][timePeriod]
+  const riskAttribute = getBuildingRiskKey(timePeriod)
   const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const index = useBreakpointIndex({ defaultIndex: 2 })
@@ -148,7 +148,7 @@ const Buildings = () => {
           }
 
           if (feature.id && feature.properties) {
-            setHoveredBuilding(feature.properties)
+            setHoveredBuilding(feature.properties as Building)
             hoveredFeatureId.current = feature.id
 
             map.setFeatureState(
@@ -217,7 +217,7 @@ const Buildings = () => {
       })
 
       if (features.length > 0) {
-        setSelectedBuilding(features[0].properties)
+        setSelectedBuilding(features[0].properties as Building)
         if (hoveredFeatureId.current !== null) {
           map.setFeatureState(
             {

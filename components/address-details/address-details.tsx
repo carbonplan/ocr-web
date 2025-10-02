@@ -1,14 +1,14 @@
 import { useEffect, useMemo } from 'react'
 import { Box } from 'theme-ui'
-
 //@ts-expect-error - carbonplan components types not available
 import { Badge, Button, Row, Column, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Left } from '@carbonplan/icons'
-
 import ScoreDetails from './score-details'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
+import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
+import { getBuildingRiskKey, getGeographyRiskKey } from '@/lib/risk-utils'
 import Histogram from './histogram'
 
 const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
@@ -19,21 +19,25 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
-  const riskScore = useStore(({ selectedBuilding, attribute, timePeriod }) =>
-    selectedBuilding ? selectedBuilding[attribute][timePeriod] : null,
+  const riskScore = useStore(({ selectedBuilding, timePeriod }) =>
+    selectedBuilding ? selectedBuilding[getBuildingRiskKey(timePeriod)] : null,
   )
-  const countyName = useStore((state) => state.activeGeographies.county?.name)
-  const countyData = useStore(
-    (state) =>
-      state.activeGeographies.county?.risk[state.attribute][state.timePeriod]
-        .data,
-  )
-  const censusTractData = useStore(
-    (state) =>
-      state.activeGeographies.censusTract?.risk[state.attribute][
-        state.timePeriod
-      ].data,
-  )
+  const activeGeographyData = useStore((state) => state.activeGeographies)
+  const timePeriod = useStore((state) => state.timePeriod)
+  const countyData = useMemo(() => {
+    const value = activeGeographyData.county?.[getGeographyRiskKey(timePeriod)]
+    return value ? (JSON.parse(value as string) as number[]) : null
+  }, [activeGeographyData, timePeriod])
+
+  const censusTractData = useMemo(() => {
+    const value =
+      activeGeographyData.censusTract?.[getGeographyRiskKey(timePeriod)]
+    return value ? (JSON.parse(value as string) as number[]) : null
+  }, [activeGeographyData, timePeriod])
+
+  const countyName = useMemo(() => {
+    return activeGeographyData.county?.[GEOGRAPHY_ATTRIBUTE_KEYS.county_name]
+  }, [activeGeographyData])
 
   useEffect(() => {
     if (selectedCoordinates && !selectedLocation) {

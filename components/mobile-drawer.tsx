@@ -9,6 +9,7 @@ import { Geocode, Results, Display } from '@/components'
 import { AddressDetails } from './address-details'
 import { Drawer } from 'vaul'
 import { getColorForRiskScore, useColormap } from '@/lib/colormaps'
+import { getBuildingRiskKey } from '@/lib/risk-utils'
 
 type TabKeys = 'settings' | 'risk'
 interface TabsProps {
@@ -89,7 +90,7 @@ const MobileDrawer = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
   const score = useStore(
-    (state) => state.selectedBuilding?.[state.attribute][state.timePeriod],
+    (state) => state.selectedBuilding?.[getBuildingRiskKey(state.timePeriod)],
   )?.toFixed(2)
 
   const scoreColor = getColorForRiskScore(

@@ -7,8 +7,10 @@ import {
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import { getBuildingRiskKey } from '@/lib/risk-utils'
+import { BUILDING_ATTRIBUTE_KEYS } from '@/lib/config'
 
-const ScoreBadge = ({ score, color }: { score: number; color: string }) => (
+const ScoreBadge = ({ score, color }: { score: number; color?: string }) => (
   <Badge
     sx={{ fontSize: [1, 1, 1, 2], height: [21, 21, 21, 22], mb: '-5px', color }}
   >
@@ -29,63 +31,41 @@ const ScoreDetails = () => {
     return null
   }
 
-  const baseRiskScore = selectedBuilding.baseRisk[timePeriod]
-  const score = selectedBuilding.windRisk[timePeriod]
-  const baseScoreColor = getColorForRiskScore(
-    baseRiskScore,
+  const year = timePeriod === 'current' ? '2011' : '2047'
+
+  const usfsBurnProb =
+    selectedBuilding[BUILDING_ATTRIBUTE_KEYS[`burn_probability_usfs_${year}`]]
+  const adjustedBurnProb =
+    selectedBuilding[BUILDING_ATTRIBUTE_KEYS[`burn_probability_${year}`]]
+  const conditionalRisk =
+    selectedBuilding[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
+  const windRisk = selectedBuilding[getBuildingRiskKey(timePeriod)]
+
+  const windRiskColor = getColorForRiskScore(
+    windRisk,
     colormap,
     colorLimits,
     riskConfig.binRatios,
     'primary',
   )
-  const scoreColor = getColorForRiskScore(
-    score,
-    colormap,
-    colorLimits,
-    riskConfig.binRatios,
-    'primary',
-  )
 
-  const getRiskScoreDeltaWording = () => {
-    if (baseRiskScore === null || score === null) {
-      return null
-    }
-
-    const scoreDifference = score - baseRiskScore
-
-    if (scoreDifference > 0.01) {
-      return (
-        <>
-          increasing the risk to <ScoreBadge score={score} color={scoreColor} />
-          .
-        </>
-      )
-    } else if (scoreDifference < -0.01) {
-      return (
-        <>
-          decreasing the risk to <ScoreBadge score={score} color={scoreColor} />
-          .
-        </>
-      )
-    } else {
-      return <>which did not significantly change the risk.</>
-    }
-  }
+  const likelihoodDirection =
+    adjustedBurnProb > usfsBurnProb ? 'increasing' : 'decreasing'
 
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        The risk of structure loss at this address is is based on fire
-        projections from the US Forest Service, similar to what underpins their
-        Wildfire Risk to Communities dataset (
-        <ScoreBadge score={baseRiskScore} color={baseScoreColor} />
+        The risk of structure loss at this address is based on wildfire
+        likelihood projections from the US Forest Service, similar to what
+        underpins their Wildfire Risk to Communities dataset (
+        <ScoreBadge score={usfsBurnProb} />
         ). We adjusted our risk estimates by local wind directions during
         historical fire weather, mimicking how wildfire could spread into the
-        built environment
-        {timePeriod === 'future'
-          ? ' and evaluated future climate change impacts,'
-          : ','}{' '}
-        {getRiskScoreDeltaWording()}
+        built environment, {likelihoodDirection} the likelihood to{' '}
+        <ScoreBadge score={adjustedBurnProb} />
+        . Combining this likelihood with a score of intensity (
+        <ScoreBadge score={conditionalRisk} />) resulted in an overall risk
+        score of <ScoreBadge score={windRisk} color={windRiskColor} />.
       </Box>
       <Box>
         Read our <Link href='#TK'>research methods</Link> for a detailed
