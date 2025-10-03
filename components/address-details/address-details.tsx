@@ -85,7 +85,11 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
     <Column start={1} width={4}>
       <Row columns={4}>
         {onCollapse && (
-          <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
+          <Column
+            start={1}
+            width={4}
+            sx={{ mt: 2, mb: 3, pointerEvents: 'all' }}
+          >
             <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
               Collapse
             </Button>
