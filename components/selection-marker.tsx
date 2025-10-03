@@ -12,7 +12,7 @@ const calculateTopMiddlePosition = (
 ): [number, number] | null => {
   if (!geometry) return null
   if (geometry.type !== 'Polygon') return null
-  const ring = geometry.coordinates?.[0] as [number, number][] | undefined
+  const ring = geometry.coordinates?.[0]
   if (!ring?.length) return null
   let maxLat = -Infinity
   for (const [, lat] of ring) {
