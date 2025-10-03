@@ -6,8 +6,7 @@ export const getBuildingRiskKey: (
 ) => (typeof BUILDING_ATTRIBUTE_KEYS)[keyof typeof BUILDING_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const year = timePeriod === 'current' ? '2011' : '2047'
-  const key = `wind_risk_${year}` as keyof typeof BUILDING_ATTRIBUTE_KEYS
+  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   return BUILDING_ATTRIBUTE_KEYS[key]
 }
 
@@ -16,8 +15,7 @@ export const getGeographyRiskKey: (
 ) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const year = timePeriod === 'current' ? '2011' : '2047'
-  const key = `wind_risk_${year}` as keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS
+  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
@@ -26,7 +24,7 @@ export const getGeographyAverageRiskKey: (
 ) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const year = timePeriod === 'current' ? '2011' : '2047'
-  const key = `mean_wind_risk_${year}` as keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS
+  const key =
+    timePeriod === 'current' ? 'mean_wind_risk_2011' : 'mean_wind_risk_2047'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
