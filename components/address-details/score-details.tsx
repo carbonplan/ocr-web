@@ -7,8 +7,12 @@ import {
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
-import { getBuildingRiskKey } from '@/lib/risk-utils'
-import { BUILDING_ATTRIBUTE_KEYS } from '@/lib/config'
+import {
+  getRiskScore,
+  getBurnProbabilityUsfs,
+  getAdjustedBurnProbability,
+  getConditionalRiskUsfs,
+} from '@/lib/risk-utils'
 
 const ScoreBadge = ({ score, color }: { score: number; color?: string }) => (
   <Badge
@@ -31,15 +35,13 @@ const ScoreDetails = () => {
     return null
   }
 
-  const year = timePeriod === 'current' ? '2011' : '2047'
-
-  const usfsBurnProb =
-    selectedBuilding[BUILDING_ATTRIBUTE_KEYS[`burn_probability_usfs_${year}`]]
-  const adjustedBurnProb =
-    selectedBuilding[BUILDING_ATTRIBUTE_KEYS[`burn_probability_${year}`]]
-  const conditionalRisk =
-    selectedBuilding[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
-  const windRisk = selectedBuilding[getBuildingRiskKey(timePeriod)]
+  const usfsBurnProb = getBurnProbabilityUsfs(selectedBuilding, timePeriod)!
+  const adjustedBurnProb = getAdjustedBurnProbability(
+    selectedBuilding,
+    timePeriod,
+  )!
+  const conditionalRisk = getConditionalRiskUsfs(selectedBuilding)!
+  const windRisk = getRiskScore(selectedBuilding, timePeriod)!
 
   const windRiskColor = getColorForRiskScore(
     windRisk,

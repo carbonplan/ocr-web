@@ -13,7 +13,7 @@ import { Right } from '@carbonplan/icons'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import TooltipWrapper from './tooltip'
-import { getBuildingRiskKey } from '@/lib/risk-utils'
+import { getRiskScore } from '@/lib/risk-utils'
 
 const Results = () => {
   const timePeriod = useStore((state) => state.timePeriod)
@@ -31,9 +31,7 @@ const Results = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  const riskScore = displayBuilding
-    ? displayBuilding[getBuildingRiskKey(timePeriod)]
-    : null
+  const riskScore = getRiskScore(displayBuilding, timePeriod)
 
   const scoreColor = getColorForRiskScore(
     riskScore,

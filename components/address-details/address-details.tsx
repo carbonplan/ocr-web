@@ -7,8 +7,7 @@ import { Left } from '@carbonplan/icons'
 import ScoreDetails from './score-details'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
-import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
-import { getBuildingRiskKey, getGeographyRiskKey } from '@/lib/risk-utils'
+import { getRiskScore, getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import Histogram from './histogram'
 
 const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
@@ -19,25 +18,23 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
-  const riskScore = useStore(({ selectedBuilding, timePeriod }) =>
-    selectedBuilding ? selectedBuilding[getBuildingRiskKey(timePeriod)] : null,
-  )
-  const activeGeographyData = useStore((state) => state.activeGeographies)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const timePeriod = useStore((state) => state.timePeriod)
-  const countyData = useMemo(() => {
-    const value = activeGeographyData.county?.[getGeographyRiskKey(timePeriod)]
-    return value ? (JSON.parse(value as string) as number[]) : null
-  }, [activeGeographyData, timePeriod])
-
-  const censusTractData = useMemo(() => {
-    const value =
-      activeGeographyData.censusTract?.[getGeographyRiskKey(timePeriod)]
-    return value ? (JSON.parse(value as string) as number[]) : null
-  }, [activeGeographyData, timePeriod])
-
-  const countyName = useMemo(() => {
-    return activeGeographyData.county?.[GEOGRAPHY_ATTRIBUTE_KEYS.county_name]
-  }, [activeGeographyData])
+  const county = useStore((state) => state.activeGeographies.county)
+  const censusTract = useStore((state) => state.activeGeographies.censusTract)
+  const riskScore = useMemo(
+    () => getRiskScore(selectedBuilding, timePeriod),
+    [selectedBuilding, timePeriod],
+  )
+  const countyData = useMemo(
+    () => getGeographyRisk(county, timePeriod),
+    [county, timePeriod],
+  )
+  const censusTractData = useMemo(
+    () => getGeographyRisk(censusTract, timePeriod),
+    [censusTract, timePeriod],
+  )
+  const countyName = getCountyName(county)
 
   useEffect(() => {
     if (selectedCoordinates && !selectedLocation) {
