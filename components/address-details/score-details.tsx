@@ -8,11 +8,11 @@ import {
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import {
-  getRiskScore,
   getBurnProbabilityUsfs,
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
 } from '@/lib/risk-utils'
+import { useRiskScore } from '@/lib/risk-hooks'
 
 const ScoreBadge = ({ score, color }: { score: number; color?: string }) => (
   <Badge
@@ -31,7 +31,9 @@ const ScoreDetails = () => {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  if (!selectedBuilding) {
+  const windRisk = useRiskScore()
+
+  if (!selectedBuilding || windRisk === null) {
     return null
   }
 
@@ -41,7 +43,6 @@ const ScoreDetails = () => {
     timePeriod,
   )!
   const conditionalRisk = getConditionalRiskUsfs(selectedBuilding)!
-  const windRisk = getRiskScore(selectedBuilding, timePeriod)!
 
   const windRiskColor = getColorForRiskScore(
     windRisk,

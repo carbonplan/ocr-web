@@ -7,7 +7,12 @@ import { Left } from '@carbonplan/icons'
 import ScoreDetails from './score-details'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
-import { getRiskScore, getGeographyRisk, getCountyName } from '@/lib/risk-utils'
+import {
+  useRiskScore,
+  useCountyData,
+  useCensusTractData,
+  useCountyName,
+} from '@/lib/risk-hooks'
 import Histogram from './histogram'
 
 const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
@@ -18,23 +23,10 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const timePeriod = useStore((state) => state.timePeriod)
-  const county = useStore((state) => state.activeGeographies.county)
-  const censusTract = useStore((state) => state.activeGeographies.censusTract)
-  const riskScore = useMemo(
-    () => getRiskScore(selectedBuilding, timePeriod),
-    [selectedBuilding, timePeriod],
-  )
-  const countyData = useMemo(
-    () => getGeographyRisk(county, timePeriod),
-    [county, timePeriod],
-  )
-  const censusTractData = useMemo(
-    () => getGeographyRisk(censusTract, timePeriod),
-    [censusTract, timePeriod],
-  )
-  const countyName = getCountyName(county)
+  const riskScore = useRiskScore()
+  const countyData = useCountyData()
+  const censusTractData = useCensusTractData()
+  const countyName = useCountyName()
 
   useEffect(() => {
     if (selectedCoordinates && !selectedLocation) {

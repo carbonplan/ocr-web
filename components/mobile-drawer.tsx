@@ -9,7 +9,7 @@ import { Geocode, Results, Display } from '@/components'
 import { AddressDetails } from './address-details'
 import { Drawer } from 'vaul'
 import { getColorForRiskScore, useColormap } from '@/lib/colormaps'
-import { getRiskScore } from '@/lib/risk-utils'
+import { useRiskScore } from '@/lib/risk-hooks'
 
 type TabKeys = 'settings' | 'risk'
 interface TabsProps {
@@ -84,19 +84,15 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const timePeriod = useStore((state) => state.timePeriod)
   const riskConfig = useStore((state) => state.riskConfig)
   const colorLimits = useStore((state) => state.colorLimits)
   const colormap = useColormap(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
-  const score = useMemo(
-    () => getRiskScore(selectedBuilding, timePeriod)?.toFixed(2) ?? null,
-    [selectedBuilding, timePeriod],
-  )
+  const score = useRiskScore()
 
   const scoreColor = getColorForRiskScore(
-    score ? parseFloat(score) : 0,
+    score,
     colormap,
     colorLimits,
     riskConfig.binRatios,
@@ -194,7 +190,9 @@ const MobileDrawer = () => {
                 <Geocode
                   leftAccessory={
                     score != null ? (
-                      <Badge sx={{ color: scoreColor }}>{score}%</Badge>
+                      <Badge sx={{ color: scoreColor }}>
+                        {score.toFixed(2)}%
+                      </Badge>
                     ) : (
                       <Search />
                     )
