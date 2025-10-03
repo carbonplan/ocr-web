@@ -57,15 +57,15 @@ const ScoreDetails = () => {
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        The risk of structure loss at this address is based on wildfire
-        likelihood projections from the US Forest Service, similar to what
+        The risk of structure loss at this address is based on burn
+        probability projections from the US Forest Service, similar to what
         underpins their Wildfire Risk to Communities dataset (
         <ScoreBadge score={usfsBurnProb} />
-        ). We adjusted our risk estimates by local wind directions during
+        ). We adjusted our burn probability estimates using local wind directions during
         historical fire weather, mimicking how wildfire could spread into the
-        built environment, {likelihoodDirection} the likelihood to{' '}
+        built environment, {likelihoodDirection} the probability to{' '}
         <ScoreBadge score={adjustedBurnProb} />
-        . Combining this likelihood with a score of intensity (
+        . Combining this probability with a score of conditional risk (
         <ScoreBadge score={conditionalRisk} />) resulted in an overall risk
         score of <ScoreBadge score={windRisk} color={windRiskColor} />.
       </Box>
