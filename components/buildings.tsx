@@ -148,7 +148,7 @@ const Buildings = () => {
           }
 
           if (feature.id && feature.properties) {
-            setHoveredBuilding(feature.properties as Building)
+            setHoveredBuilding(feature as Building)
             hoveredFeatureId.current = feature.id
 
             map.setFeatureState(
@@ -217,7 +217,7 @@ const Buildings = () => {
       })
 
       if (features.length > 0) {
-        setSelectedBuilding(features[0].properties as Building)
+        setSelectedBuilding(features[0] as Building)
         if (hoveredFeatureId.current !== null) {
           map.setFeatureState(
             {

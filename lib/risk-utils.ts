@@ -45,7 +45,7 @@ export const getRiskScore = (
 ): number | null => {
   if (!selectedBuilding) return null
   const riskKey = getBuildingRiskKey(timePeriod)
-  return selectedBuilding[riskKey]
+  return selectedBuilding.properties[riskKey]
 }
 
 export const getCountyName = (geography: Geography | null): string | null => {
@@ -62,7 +62,7 @@ export const getBurnProbabilityUsfs = (
     timePeriod === 'current'
       ? BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2011
       : BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2047
-  return building[key]
+  return building.properties[key]
 }
 
 export const getAdjustedBurnProbability = (
@@ -74,12 +74,12 @@ export const getAdjustedBurnProbability = (
     timePeriod === 'current'
       ? BUILDING_ATTRIBUTE_KEYS.burn_probability_2011
       : BUILDING_ATTRIBUTE_KEYS.burn_probability_2047
-  return building[key]
+  return building.properties[key]
 }
 
 export const getConditionalRiskUsfs = (
   building: Building | null,
 ): number | null => {
   if (!building) return null
-  return building[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
+  return building.properties[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
 }

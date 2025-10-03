@@ -1,15 +1,17 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import { Location, Building, Geography } from '../types/location'
+import { Location, Building, Geography, Coordinates } from '../types/location'
 import { RISKS } from './config'
+
+type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
 type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location) => void
-  selectedCoordinates: { lat: number; lng: number } | null
-  setSelectedCoordinates: (coordinates: { lat: number; lng: number }) => void
+  selectedCoordinates: Coordinates | null
+  setSelectedCoordinates: (coordinates: Coordinates) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
@@ -33,8 +35,8 @@ type Store = {
   setTimePeriod: (timePeriod: 'current' | 'future') => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
-  riskConfig: (typeof RISKS)[keyof typeof RISKS]
-  setRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
+  riskConfig: RiskConfig
+  setRiskConfig: (riskConfig: RiskConfig) => void
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]

@@ -1,3 +1,4 @@
+import { MapGeoJSONFeature } from 'maplibre-gl'
 import { BUILDING_ATTRIBUTE_KEYS, GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 
 export type Coordinates = {
@@ -37,7 +38,7 @@ export type Location = {
 
 export type ScenarioKey = 'current' | 'future'
 
-export type Building = {
+export type BuildingProperties = {
   [BUILDING_ATTRIBUTE_KEYS.wind_risk_2011]: number
   [BUILDING_ATTRIBUTE_KEYS.wind_risk_2047]: number
   [BUILDING_ATTRIBUTE_KEYS.burn_probability_2011]: number
@@ -45,6 +46,10 @@ export type Building = {
   [BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]: number
   [BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2011]: number
   [BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2047]: number
+}
+
+export type Building = Omit<MapGeoJSONFeature, 'properties'> & {
+  properties: BuildingProperties
 }
 
 export type Geography = {

@@ -5,6 +5,7 @@ export {
   useMapControlStyles,
 } from './map-attribution'
 export { default as Buildings } from './buildings'
+export { default as SelectionMarker } from './selection-marker'
 export { default as GeographyLayer } from './geography-layer'
 export { default as WmsLayers } from './wms-layers'
 export { default as Sidebar } from './sidebar'
