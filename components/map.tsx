@@ -14,6 +14,7 @@ import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import {
   Buildings,
+  SelectionMarker,
   GeographyLayer,
   WmsLayers,
   MapAttribution,
@@ -91,6 +92,9 @@ const MapComponent = () => {
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
       attributionControl: false,
+      dragRotate: false,
+      touchZoomRotate: false,
+      pitchWithRotate: false,
     })
 
     const handleMoveEnd = () => {
@@ -189,6 +193,7 @@ const MapComponent = () => {
             environmentUrl={DATA_URLS.vector.censusTracts}
           />
           <Buildings />
+          <SelectionMarker />
         </>
       )}
     </Box>
