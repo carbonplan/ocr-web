@@ -127,7 +127,7 @@ export const useStore = create<Store>((set) => ({
     set({ reverseGeocodeLoading }),
   showAddressDetails: false,
   setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
-  advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
+  advancedMode: true,
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
   clearSelections: () =>
