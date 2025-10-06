@@ -11,8 +11,8 @@ import {
   getBurnProbabilityUsfs,
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
+  getRiskScore,
 } from '@/lib/risk-utils'
-import { useRiskScore } from '@/lib/risk-hooks'
 
 const ScoreBadge = ({ score, color }: { score: number; color?: string }) => (
   <Badge
@@ -26,12 +26,13 @@ const ScoreDetails = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+  const windRisk = useStore((state) =>
+    getRiskScore(state.selectedBuilding, state.timePeriod),
+  )
 
   const colormap = useColormap(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
-
-  const windRisk = useRiskScore()
 
   if (!selectedBuilding || windRisk === null) {
     return null
