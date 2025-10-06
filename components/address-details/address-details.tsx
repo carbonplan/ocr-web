@@ -6,6 +6,7 @@ import { Badge, Button, Row, Column, Table } from '@carbonplan/components'
 import { Left } from '@carbonplan/icons'
 import ScoreDetails from './score-details'
 import { useStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 import { formatAddress } from '@/lib/address-utils'
 import { getRiskScore, getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import Histogram from './histogram'
@@ -18,24 +19,21 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
-  const county = useStore((state) => state.activeGeographies.county)
-  const censusTract = useStore((state) => state.activeGeographies.censusTract)
-  const timePeriod = useStore((state) => state.timePeriod)
   const riskScore = useStore((state) =>
     getRiskScore(state.selectedBuilding, state.timePeriod),
   )
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
-
-  // memoize because bins are recreated on every render
-  const countyData = useMemo(
-    () => getGeographyRisk(county, timePeriod),
-    [county, timePeriod],
+  const countyData = useStore(
+    useShallow((state) =>
+      getGeographyRisk(state.activeGeographies.county, state.timePeriod),
+    ),
   )
-  const censusTractData = useMemo(
-    () => getGeographyRisk(censusTract, timePeriod),
-    [censusTract, timePeriod],
+  const censusTractData = useStore(
+    useShallow((state) =>
+      getGeographyRisk(state.activeGeographies.censusTract, state.timePeriod),
+    ),
   )
 
   useEffect(() => {
