@@ -14,12 +14,6 @@ const WmsLayers = () => {
 
   const [colorMode] = useColorMode()
 
-  const colorscaleRange = useMemo(() => {
-    const epsilon = 1e-9
-    const [min, max] = colorLimits.bounds
-    return `${min - epsilon},${max}`
-  }, [colorLimits])
-
   const lightColormap = useMemo(
     () => generateColormap(riskConfig.colormap, { count: 30, mode: 'light' }),
     [riskConfig.colormap],
@@ -32,12 +26,13 @@ const WmsLayers = () => {
   const riskMatrix = useMemo(() => {
     const riskAttributes = ['wind_risk_2011', 'wind_risk_2047']
     const themes = ['light', 'dark']
+    const [min, max] = colorLimits.bounds
 
     const matrix = []
     for (const themeType of themes) {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const attr of riskAttributes) {
-        const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${min},${max}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
         matrix.push({
           id: `wms_risk_${attr}_${themeType}`,
           riskAttribute: attr,
@@ -47,7 +42,7 @@ const WmsLayers = () => {
       }
     }
     return matrix
-  }, [lightColormap, darkColormap, colorscaleRange])
+  }, [lightColormap, darkColormap, colorLimits])
 
   const activeRiskLayerId = useMemo(() => {
     const year = timePeriod === 'current' ? '2011' : '2047'
