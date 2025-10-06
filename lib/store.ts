@@ -115,7 +115,7 @@ export const useStore = create<Store>((set) => ({
   attribute: 'windRisk',
   setAttribute: (attribute: 'baseRisk' | 'windRisk') => set({ attribute }),
   colorLimits: {
-    type: 'continuous',
+    type: 'discrete',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
     binBoundaries: [0.01, 0.1, 1, 2, 3, 5, 7, 10, 15, 20],
   },
