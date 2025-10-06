@@ -4,7 +4,7 @@ import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { DATA_URLS, LAYERS } from '@/lib/config'
-import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
+import { useColormap } from '@/lib/colormaps'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 
 const Buildings = () => {
@@ -43,7 +43,8 @@ const Buildings = () => {
 
   const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+    count:
+      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
   })
 
   const riskPercentExpression: ExpressionSpecification = useMemo(
@@ -79,14 +80,9 @@ const Buildings = () => {
     const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
-      const stepValues = calculateBinBoundaries(
-        colorLimits.bounds,
-        riskConfig.binRatios,
-      ).slice(1) // remove first value to shift to correct step
-
-      stepValues.forEach((value: number, index: number) => {
-        if (index < colormap.length - 1) {
-          steps.push(value, colormap[index + 1])
+      colorLimits.binBoundaries.forEach((value: number, index: number) => {
+        if (index < colormap.length) {
+          steps.push(value, colormap[index])
         }
       })
 
@@ -124,8 +120,8 @@ const Buildings = () => {
     riskPercentExpression,
     colorLimits.type,
     colorLimits.bounds,
+    colorLimits.binBoundaries,
     theme,
-    riskConfig.binRatios,
     riskConfig.bounds.min,
   ])
 
