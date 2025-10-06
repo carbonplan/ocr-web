@@ -7,8 +7,14 @@ import {
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import {
+  getBurnProbabilityUsfs,
+  getAdjustedBurnProbability,
+  getConditionalRiskUsfs,
+  getRiskScore,
+} from '@/lib/risk-utils'
 
-const ScoreBadge = ({ score, color }: { score: number; color: string }) => (
+const ScoreBadge = ({ score, color }: { score: number; color?: string }) => (
   <Badge
     sx={{ fontSize: [1, 1, 1, 2], height: [21, 21, 21, 22], mb: '-5px', color }}
   >
@@ -16,77 +22,54 @@ const ScoreBadge = ({ score, color }: { score: number; color: string }) => (
   </Badge>
 )
 const ScoreDetails = () => {
-  const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+  const windRisk = useStore((state) =>
+    getRiskScore(state.selectedBuilding, state.timePeriod),
+  )
 
   const colormap = useColormap(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
-  if (!selectedBuilding) {
+  if (!selectedBuilding || windRisk === null) {
     return null
   }
 
-  const baseRiskScore = selectedBuilding.baseRisk[timePeriod][timeHorizon]
-  const score = selectedBuilding.windRisk[timePeriod][timeHorizon]
-  const baseScoreColor = getColorForRiskScore(
-    baseRiskScore,
+  const usfsBurnProb = getBurnProbabilityUsfs(selectedBuilding, timePeriod)!
+  const adjustedBurnProb = getAdjustedBurnProbability(
+    selectedBuilding,
+    timePeriod,
+  )!
+  const conditionalRisk = getConditionalRiskUsfs(selectedBuilding)!
+
+  const windRiskColor = getColorForRiskScore(
+    windRisk,
     colormap,
     colorLimits,
     riskConfig.binRatios,
     'primary',
   )
-  const scoreColor = getColorForRiskScore(
-    score,
-    colormap,
-    colorLimits,
-    riskConfig.binRatios,
-    'primary',
-  )
 
-  const getRiskScoreDeltaWording = () => {
-    if (baseRiskScore === null || score === null) {
-      return null
-    }
-
-    const scoreDifference = score - baseRiskScore
-
-    if (scoreDifference > 0.01) {
-      return (
-        <>
-          increasing the risk to <ScoreBadge score={score} color={scoreColor} />
-          .
-        </>
-      )
-    } else if (scoreDifference < -0.01) {
-      return (
-        <>
-          decreasing the risk to <ScoreBadge score={score} color={scoreColor} />
-          .
-        </>
-      )
-    } else {
-      return <>which did not significantly change the risk.</>
-    }
-  }
+  const likelihoodDirection =
+    adjustedBurnProb > usfsBurnProb ? 'increasing' : 'decreasing'
 
   return (
     <Box>
       <Box sx={{ mb: 2 }}>
-        The risk of structure loss at this address is is based on fire
+        The risk of structure loss at this address is based on burn probability
         projections from the US Forest Service, similar to what underpins their
         Wildfire Risk to Communities dataset (
-        <ScoreBadge score={baseRiskScore} color={baseScoreColor} />
-        ). We adjusted our risk estimates by local wind directions during
-        historical fire weather, mimicking how wildfire could spread into the
-        built environment
-        {timePeriod === 'future'
-          ? ' and evaluated future climate change impacts,'
-          : ','}{' '}
-        {getRiskScoreDeltaWording()}
+        <ScoreBadge score={usfsBurnProb} />
+        ). We adjusted our burn probability estimates using local wind
+        directions during historical fire weather, mimicking how wildfire could
+        spread into the built environment, {likelihoodDirection} the probability
+        to <ScoreBadge score={adjustedBurnProb} />
+        . Combining this probability with a score of conditional risk (
+        <ScoreBadge score={conditionalRisk} />) resulted in an overall risk
+        score of <ScoreBadge score={windRisk} color={windRiskColor} />.
       </Box>
       <Box>
         Read our <Link href='#TK'>research methods</Link> for a detailed

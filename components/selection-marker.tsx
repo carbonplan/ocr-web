@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Marker, MapGeoJSONFeature } from 'maplibre-gl'
+import { Marker } from 'maplibre-gl'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Badge } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
+import { Building } from '@/types/location'
 
 const calculateTopMiddlePosition = (
-  geometry: MapGeoJSONFeature['geometry'],
+  geometry: Building['geometry'],
 ): [number, number] | null => {
   if (!geometry) return null
   if (geometry.type !== 'Polygon') return null

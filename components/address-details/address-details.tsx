@@ -1,14 +1,14 @@
 import { useEffect, useMemo } from 'react'
 import { Box } from 'theme-ui'
-
 //@ts-expect-error - carbonplan components types not available
 import { Badge, Button, Row, Column, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Left } from '@carbonplan/icons'
-
 import ScoreDetails from './score-details'
 import { useStore } from '@/lib/store'
+import { useShallow } from 'zustand/react/shallow'
 import { formatAddress } from '@/lib/address-utils'
+import { getRiskScore, getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import Histogram from './histogram'
 
 const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
@@ -19,24 +19,21 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
-  const riskScore = useStore(
-    ({ selectedBuilding, attribute, timePeriod, timeHorizon }) =>
-      selectedBuilding
-        ? selectedBuilding[attribute][timePeriod][timeHorizon]
-        : null,
+  const riskScore = useStore((state) =>
+    getRiskScore(state.selectedBuilding, state.timePeriod),
   )
-  const countyName = useStore((state) => state.activeGeographies.county?.name)
+  const countyName = useStore((state) =>
+    getCountyName(state.activeGeographies.county),
+  )
   const countyData = useStore(
-    (state) =>
-      state.activeGeographies.county?.risk[state.attribute][state.timePeriod][
-        state.timeHorizon
-      ].data,
+    useShallow((state) =>
+      getGeographyRisk(state.activeGeographies.county, state.timePeriod),
+    ),
   )
   const censusTractData = useStore(
-    (state) =>
-      state.activeGeographies.censusTract?.risk[state.attribute][
-        state.timePeriod
-      ][state.timeHorizon].data,
+    useShallow((state) =>
+      getGeographyRisk(state.activeGeographies.censusTract, state.timePeriod),
+    ),
   )
 
   useEffect(() => {
@@ -88,7 +85,11 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
     <Column start={1} width={4}>
       <Row columns={4}>
         {onCollapse && (
-          <Column start={1} width={4} sx={{ mt: 2, mb: 3, pointEvents: 'all' }}>
+          <Column
+            start={1}
+            width={4}
+            sx={{ mt: 2, mb: 3, pointerEvents: 'all' }}
+          >
             <Button size='xs' inverted prefix={<Left />} onClick={onCollapse}>
               Collapse
             </Button>

@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { centerOfMass, distance } from '@turf/turf'
 import { LAYERS } from '@/lib/config'
 import { useStore } from '@/lib/store'
+import { Building, Geography } from '@/types/location'
 
 export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
@@ -27,8 +28,13 @@ export const useBuildingUtils = () => {
 
       setActiveGeographies({
         censusTract:
-          tractFeatures.length > 0 ? tractFeatures[0].properties : null,
-        county: countyFeatures.length > 0 ? countyFeatures[0].properties : null,
+          tractFeatures.length > 0
+            ? (tractFeatures[0].properties as Geography)
+            : null,
+        county:
+          countyFeatures.length > 0
+            ? (countyFeatures[0].properties as Geography)
+            : null,
       })
     },
     [map, setActiveGeographies],
@@ -74,7 +80,7 @@ export const useBuildingUtils = () => {
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          setSelectedBuilding(closestBuilding)
+          setSelectedBuilding(closestBuilding as Building)
           setSelectedCoordinates({ lat, lng })
 
           queryGeographiesAtPoint(lng, lat)

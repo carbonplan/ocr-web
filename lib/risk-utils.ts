@@ -1,105 +1,85 @@
-import { MapGeoJSONFeature } from 'maplibre-gl'
-import {
-  Building,
-  Geography,
-  MethodKey,
-  ScenarioKey,
-  TimeHorizon,
-} from '@/types/location'
-import { RISKS } from './config'
+import { ScenarioKey, Geography, Building } from '@/types/location'
+import { BUILDING_ATTRIBUTE_KEYS, GEOGRAPHY_ATTRIBUTE_KEYS } from './config'
 
-const calculateRiskScores = (annualProbability: number) => {
-  return {
-    1: annualProbability,
-    15: (1 - Math.pow(1 - annualProbability / 100, 15)) * 100,
-    30: (1 - Math.pow(1 - annualProbability / 100, 30)) * 100,
-  }
+export const getBuildingRiskKey: (
+  timePeriod: ScenarioKey,
+) => (typeof BUILDING_ATTRIBUTE_KEYS)[keyof typeof BUILDING_ATTRIBUTE_KEYS] = (
+  timePeriod: ScenarioKey,
+) => {
+  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+  return BUILDING_ATTRIBUTE_KEYS[key]
 }
 
-export const getBuildingRiskScores = (
-  building: MapGeoJSONFeature['properties'] | null,
-  riskConfig: (typeof RISKS)[keyof typeof RISKS],
-): Building | null => {
-  if (!building) {
-    return null
-  }
-
-  const hasAllKeys = Object.keys(riskConfig.attributes).every((key: string) => {
-    const subKeys =
-      riskConfig.attributes[key as keyof typeof riskConfig.attributes]
-    return building[subKeys.current] != null && building[subKeys.future] != null
-  })
-
-  if (!hasAllKeys) {
-    return null
-  }
-
-  const result: Building = {} as Building
-  Object.keys(riskConfig.attributes).forEach((key: string) => {
-    const subKeys =
-      riskConfig.attributes[key as keyof typeof riskConfig.attributes]
-
-    result[key as keyof typeof riskConfig.attributes] = {
-      current: calculateRiskScores(Number(building[subKeys.current])),
-      future: calculateRiskScores(Number(building[subKeys.future])),
-    }
-  })
-
-  return result
+export const getGeographyRiskKey: (
+  timePeriod: ScenarioKey,
+) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
+  timePeriod: ScenarioKey,
+) => {
+  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+  return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
-const getHistogramData = (countsString: string): number[] => {
-  if (!countsString) {
-    return []
-  }
-
-  try {
-    const counts = JSON.parse(countsString) as number[]
-    return counts
-  } catch (error) {
-    console.error('Error parsing counts data:', error)
-    return []
-  }
+export const getGeographyAverageRiskKey: (
+  timePeriod: ScenarioKey,
+) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
+  timePeriod: ScenarioKey,
+) => {
+  const key =
+    timePeriod === 'current' ? 'mean_wind_risk_2011' : 'mean_wind_risk_2047'
+  return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
-const HORIZONS: TimeHorizon[] = [1, 15, 30]
-export const getGeographyData = (
-  properties: MapGeoJSONFeature['properties'] | null,
-  riskConfig: (typeof RISKS)[keyof typeof RISKS],
-  nameProperty: string,
-): Geography | null => {
-  if (!properties) {
-    return null
-  }
+export const getGeographyRisk = (
+  geography: Geography | null,
+  timePeriod: ScenarioKey,
+): number[] | null => {
+  if (!geography) return null
+  const riskKey = getGeographyRiskKey(timePeriod)
+  const value = geography[riskKey]
+  return value ? (JSON.parse(value as string) as number[]) : null
+}
 
-  const result: Geography = {
-    name: properties[nameProperty] as string,
-    buildingCount: properties.building_count as number,
-    risk: {
-      baseRisk: { current: {}, future: {} },
-      windRisk: { current: {}, future: {} },
-    },
-  } as Geography
+export const getRiskScore = (
+  selectedBuilding: Building | null,
+  timePeriod: ScenarioKey,
+): number | null => {
+  if (!selectedBuilding) return null
+  const riskKey = getBuildingRiskKey(timePeriod)
+  return selectedBuilding.properties[riskKey]
+}
 
-  Object.keys(riskConfig.attributes).forEach((methodKey) => {
-    Object.keys(riskConfig.attributes[methodKey as MethodKey]).forEach(
-      (scenarioKey) => {
-        HORIZONS.forEach((horizon: TimeHorizon) => {
-          const riskKey =
-            riskConfig.attributes[methodKey as MethodKey][
-              scenarioKey as ScenarioKey
-            ]
-          const propertyKey = `${riskKey}_horizon_${horizon}`
-          result.risk[methodKey as MethodKey][scenarioKey as ScenarioKey][
-            horizon
-          ] = {
-            average: properties[`avg_${propertyKey}`] as number,
-            data: getHistogramData(properties[propertyKey]),
-          }
-        })
-      },
-    )
-  })
+export const getCountyName = (geography: Geography | null): string | null => {
+  if (!geography) return null
+  return (geography[GEOGRAPHY_ATTRIBUTE_KEYS.county_name] as string) ?? null
+}
 
-  return result
+export const getBurnProbabilityUsfs = (
+  building: Building | null,
+  timePeriod: ScenarioKey,
+): number | null => {
+  if (!building) return null
+  const key =
+    timePeriod === 'current'
+      ? BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2011
+      : BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2047
+  return building.properties[key]
+}
+
+export const getAdjustedBurnProbability = (
+  building: Building | null,
+  timePeriod: ScenarioKey,
+): number | null => {
+  if (!building) return null
+  const key =
+    timePeriod === 'current'
+      ? BUILDING_ATTRIBUTE_KEYS.burn_probability_2011
+      : BUILDING_ATTRIBUTE_KEYS.burn_probability_2047
+  return building.properties[key]
+}
+
+export const getConditionalRiskUsfs = (
+  building: Building | null,
+): number | null => {
+  if (!building) return null
+  return building.properties[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
 }
