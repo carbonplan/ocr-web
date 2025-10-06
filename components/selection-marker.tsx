@@ -36,7 +36,6 @@ const SelectionMarker = () => {
   const map = useStore((state) => state.map)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  console.log(selectedBuilding)
 
   const markerPoint = useMemo(() => {
     if (selectedBuilding && selectedBuilding.geometry) {
