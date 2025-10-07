@@ -3,6 +3,25 @@ import { useStore } from '@/lib/store'
 // @ts-expect-error - carbonplan maps types not available
 import { MapProvider, Raster } from '@carbonplan/maps/core'
 
+const frag = (variable: string) => `
+  if (${variable} == fillValue) {
+    discard;
+    return;
+  }
+
+  float value = ${variable};
+
+  if (value < clim.x) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+
+  float rescaled = (value - clim.x) / (clim.y - clim.x);
+  gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
+  gl_FragColor.a = opacity;
+  gl_FragColor.rgb *= gl_FragColor.a;
+`
+
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
   const riskConfig = useStore((state) => state.riskConfig)
@@ -22,6 +41,7 @@ const ZarrLayer = () => {
         }
         variable={'USFS_RPS'}
         fillValue={NaN}
+        frag={frag('USFS_RPS')}
       />
     </MapProvider>
   )
