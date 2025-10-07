@@ -10,16 +10,18 @@ const ZarrLayer = () => {
     format: 'rgb',
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
+
   return (
     <MapProvider map={map}>
       <Raster
         colormap={colormap}
-        clim={[0, 25]}
+        clim={colorLimits.bounds}
         mode={'texture'}
         source={
-          'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/ndpyramid-test/conustest_12lvl.zarr'
+          'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/pyr/single_var_clipped_11_512.zarr'
         }
-        variable={'risk_2011'}
+        variable={'USFS_RPS'}
+        fillValue={NaN}
       />
     </MapProvider>
   )
