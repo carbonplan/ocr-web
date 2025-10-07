@@ -3,7 +3,7 @@ import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
-import { RotatingArrow } from '@carbonplan/icons'
+import { Down } from '@carbonplan/icons'
 import { DATA_URLS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 
@@ -14,7 +14,6 @@ interface DownloadProps {
 export const Download = ({ geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
   const activeGeographies = useStore((state) => state.activeGeographies)
-  console.log(activeGeographies)
 
   const activeGeographyId =
     geography === 'tract'
@@ -30,7 +29,7 @@ export const Download = ({ geography }: DownloadProps) => {
   return (
     <Box sx={{ position: 'relative', display: 'inline-block' }}>
       <Button
-        suffix={<RotatingArrow />}
+        prefix={<Down sx={{ mt: '-4px', height: 10 }} />}
         size='xs'
         onClick={() => setShowModal(!showModal)}
         inverted
@@ -76,14 +75,14 @@ export const Download = ({ geography }: DownloadProps) => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Button
                 size='xs'
-                suffix={<RotatingArrow />}
+                prefix={<Down sx={{ mt: -1 }} />}
                 onClick={() => handleDownload('csv')}
               >
                 CSV
               </Button>
               <Button
                 size='xs'
-                suffix={<RotatingArrow />}
+                prefix={<Down sx={{ mt: -1 }} />}
                 onClick={() => handleDownload('geojson')}
               >
                 GeoJSON
