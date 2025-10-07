@@ -6,6 +6,7 @@ import { Button } from '@carbonplan/components'
 import { Down } from '@carbonplan/icons'
 import { DATA_URLS } from '@/lib/config'
 import { useStore } from '@/lib/store'
+import { getGeoid } from '@/lib/risk-utils'
 
 interface DownloadProps {
   geography: 'tract' | 'county'
@@ -17,8 +18,8 @@ export const Download = ({ geography }: DownloadProps) => {
 
   const activeGeographyId =
     geography === 'tract'
-      ? activeGeographies.censusTract?.name
-      : activeGeographies.county?.name
+      ? getGeoid(activeGeographies.censusTract)
+      : getGeoid(activeGeographies.county)
 
   const handleDownload = (format: 'csv' | 'geojson') => {
     const url = `${DATA_URLS.downloads}${geography}/${format}/${activeGeographyId}.${format}`

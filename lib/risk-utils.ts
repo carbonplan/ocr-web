@@ -53,6 +53,11 @@ export const getCountyName = (geography: Geography | null): string | null => {
   return (geography[GEOGRAPHY_ATTRIBUTE_KEYS.county_name] as string) ?? null
 }
 
+export const getGeoid = (geography: Geography | null): string | null => {
+  if (!geography) return null
+  return (geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid] as string) ?? null
+}
+
 export const getBurnProbabilityUsfs = (
   building: Building | null,
   timePeriod: ScenarioKey,
