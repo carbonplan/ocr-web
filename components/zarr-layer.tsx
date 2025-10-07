@@ -1,5 +1,6 @@
 import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
+// @ts-expect-error - carbonplan maps types not available
 import { MapProvider, Raster } from '@carbonplan/maps/core'
 
 const ZarrLayer = () => {
