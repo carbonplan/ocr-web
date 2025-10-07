@@ -7,7 +7,7 @@ const customVariants = {
     fontFamily: 'heading',
     letterSpacing: 'smallcaps',
     textTransform: 'uppercase' as const,
-    fontSize: [3, 3, 3, 4],
+    fontSize: [2, 3, 3, 4],
     mb: 2,
   },
 
@@ -21,6 +21,7 @@ const customVariants = {
 
   labelFieldContainer: {
     my: 3,
+    fontSize: [1, 2, 2, 3],
   },
 }
 

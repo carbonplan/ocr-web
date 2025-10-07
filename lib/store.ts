@@ -1,30 +1,29 @@
 import { create } from 'zustand'
-import { Map, MapGeoJSONFeature } from 'maplibre-gl'
-import { Location, Building, Geography, TimeHorizon } from '../types/location'
+import { Map } from 'maplibre-gl'
+import { Location, Building, Geography, Coordinates } from '../types/location'
 import { RISKS } from './config'
-import { getBuildingRiskScores, getGeographyData } from './risk-utils'
+
+type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
 type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location) => void
-  selectedCoordinates: { lat: number; lng: number } | null
-  setSelectedCoordinates: (coordinates: { lat: number; lng: number }) => void
+  selectedCoordinates: Coordinates | null
+  setSelectedCoordinates: (coordinates: Coordinates) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
   setRiskRaster: (riskRaster: boolean) => void
-  rpsRaster: boolean
-  setRpsRaster: (rpsRaster: boolean) => void
   selectedBuilding: Building | null
-  setSelectedBuilding: (building: MapGeoJSONFeature['properties']) => void
+  setSelectedBuilding: (building: Building) => void
   hoveredBuilding: Building | null
-  setHoveredBuilding: (building: MapGeoJSONFeature['properties'] | null) => void
+  setHoveredBuilding: (building: Building | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
-  setActiveGeographies: (geographies: {
-    county: MapGeoJSONFeature['properties'] | null
-    censusTract: MapGeoJSONFeature['properties'] | null
+  setActiveGeographies: (activeGeographies: {
+    county: Geography | null
+    censusTract: Geography | null
   }) => void
   geographies: { building: boolean; county: boolean; censusTract: boolean }
   setGeographies: (geographies: {
@@ -32,16 +31,12 @@ type Store = {
     county: boolean
     censusTract: boolean
   }) => void
-  timeHorizon: TimeHorizon
-  setTimeHorizon: (timeHorizon: TimeHorizon) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
-  riskConfig: (typeof RISKS)[keyof typeof RISKS]
-  setRiskConfig: (riskConfig: (typeof RISKS)[keyof typeof RISKS]) => void
-  attribute: 'baseRisk' | 'windRisk'
-  setAttribute: (attribute: 'baseRisk' | 'windRisk') => void
+  riskConfig: RiskConfig
+  setRiskConfig: (riskConfig: RiskConfig) => void
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
@@ -73,45 +68,26 @@ export const useStore = create<Store>((set) => ({
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
   setRiskRaster: (riskRaster) => set({ riskRaster }),
-  rpsRaster: false,
-  setRpsRaster: (rpsRaster) => set({ rpsRaster }),
   selectedBuilding: null,
-  setSelectedBuilding: (building) =>
-    set((state) => ({
-      selectedBuilding: getBuildingRiskScores(building, state.riskConfig),
-    })),
+  setSelectedBuilding: (building) => set({ selectedBuilding: building }),
   hoveredBuilding: null,
-  setHoveredBuilding: (building) =>
-    set((state) => ({
-      hoveredBuilding: getBuildingRiskScores(building, state.riskConfig),
-    })),
+  setHoveredBuilding: (building) => set({ hoveredBuilding: building }),
   activeGeographies: {
     county: null,
     censusTract: null,
   },
   setActiveGeographies: ({ county, censusTract }) =>
-    set((state) => ({
-      activeGeographies: {
-        county: getGeographyData(county, state.riskConfig, 'county_name'),
-        censusTract: getGeographyData(
-          censusTract,
-          state.riskConfig,
-          'tract_geoid',
-        ),
-      },
-    })),
+    set({
+      activeGeographies: { county, censusTract },
+    }),
   geographies: { building: true, county: false, censusTract: false },
   setGeographies: (geographies) => set({ geographies }),
-  timeHorizon: 1,
-  setTimeHorizon: (timeHorizon) => set({ timeHorizon }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
-  attribute: 'windRisk',
-  setAttribute: (attribute: 'baseRisk' | 'windRisk') => set({ attribute }),
   colorLimits: {
     type: 'continuous',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],

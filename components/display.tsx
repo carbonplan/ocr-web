@@ -6,26 +6,21 @@ import { useStore } from '../lib/store'
 const Display = () => {
   const satellite = useStore((state) => state.satellite)
   const setSatellite = useStore((state) => state.setSatellite)
-  const attribute = useStore((state) => state.attribute)
-  const setAttribute = useStore((state) => state.setAttribute)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
-  const rpsRaster = useStore((state) => state.rpsRaster)
-  const setRpsRaster = useStore((state) => state.setRpsRaster)
   const geographies = useStore((state) => state.geographies)
   const setGeographies = useStore((state) => state.setGeographies)
-  const advancedMode = useStore((state) => state.advancedMode)
 
   return (
     <>
       <Box variant='sectionHeading' sx={{ mt: 5 }}>
         Display
       </Box>
-      <Row variant='labelFieldContainer' columns={4}>
+      <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label'>
           Geography
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           <Filter
             values={geographies}
             labels={{
@@ -44,67 +39,25 @@ const Display = () => {
           />
         </Column>
       </Row>
-      <Row variant='labelFieldContainer' columns={4}>
+      <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Raw data
         </Column>
-        <Column start={2} width={3}>
-          {advancedMode ? (
-            <Filter
-              multiSelect
-              values={{
-                ocr: riskRaster,
-                usfs: rpsRaster,
-              }}
-              setValues={(values: Record<string, boolean>) => {
-                if (values.ocr === riskRaster) {
-                  setRiskRaster(false)
-                } else {
-                  setRiskRaster(values.ocr)
-                }
-                if (values.usfs === rpsRaster) {
-                  setRpsRaster(false)
-                } else {
-                  setRpsRaster(values.usfs)
-                }
-              }}
-            />
-          ) : (
-            <Toggle
-              value={riskRaster}
-              onClick={() => setRiskRaster(!riskRaster)}
-            />
-          )}
+        <Column start={2} width={[2, 2, 3, 3]}>
+          <Toggle
+            value={riskRaster}
+            onClick={() => setRiskRaster(!riskRaster)}
+          />
         </Column>
       </Row>
-      <Row variant='labelFieldContainer' columns={4}>
+      <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
           Satellite
         </Column>
-        <Column start={2} width={3}>
+        <Column start={2} width={[2, 2, 3, 3]}>
           <Toggle value={satellite} onClick={() => setSatellite(!satellite)} />
         </Column>
       </Row>
-      {advancedMode && (
-        <Row variant='labelFieldContainer' columns={4}>
-          <Column
-            start={1}
-            width={1}
-            variant='label'
-            sx={{ textWrap: 'nowrap' }}
-          >
-            Wind Risk
-          </Column>
-          <Column start={2} width={3}>
-            <Toggle
-              value={attribute === 'windRisk'}
-              onClick={() =>
-                setAttribute(attribute !== 'windRisk' ? 'windRisk' : 'baseRisk')
-              }
-            />
-          </Column>
-        </Row>
-      )}
     </>
   )
 }

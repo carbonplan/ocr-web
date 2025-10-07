@@ -19,9 +19,10 @@
     "@carbonplan/maps": "^3.5.0",
     "@carbonplan/prettier": "^1.2.0",
     "@carbonplan/theme": "^8.1.0",
-    "@emotion/react": "11.10.6",
+    "@emotion/react": "^11.14.0",
     "@protomaps/basemaps": "^5.0.1",
-    "@theme-ui/color": "^0.15.5",
+    "@theme-ui/color": "^0.15.7",
+    "@theme-ui/match-media": "^0.15.7",
     "@turf/turf": "^7.2.0",
     "@types/chroma-js": "^3.1.1",
     "chroma-js": "^3.1.2",
@@ -33,6 +34,7 @@
     "react-animate-height": "^3.2.3",
     "react-dom": "^18.3.1",
     "theme-ui": "0.15.5",
+    "vaul": "^1.1.2",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

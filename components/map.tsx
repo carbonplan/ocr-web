@@ -12,7 +12,15 @@ import { Protocol } from 'pmtiles'
 import { Box } from 'theme-ui'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
-import { Buildings, GeographyLayer, WmsLayers, ZarrLayer } from './'
+import {
+  Buildings,
+  SelectionMarker,
+  GeographyLayer,
+  WmsLayers,
+  ZarrLayer,
+  MapAttribution,
+  useMapControlStyles,
+} from './'
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
@@ -26,7 +34,8 @@ const MapComponent = () => {
   const [styleLoaded, setStyleLoaded] = useState(false)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
 
-  const { mapLayers, sprite } = useMapTheme()
+  const mapLayers = useMapTheme()
+  const mapControlStyles = useMapControlStyles()
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -53,7 +62,7 @@ const MapComponent = () => {
         type: 'raster',
         tiles: [`/api/map/tiles/{z}/{x}/{y}`],
         tileSize: 256,
-        // todo: add attribution
+        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
       },
     }
 
@@ -80,11 +89,13 @@ const MapComponent = () => {
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
         layers: [...layers, ...mapLayers],
-        sprite,
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
       attributionControl: false,
+      dragRotate: false,
+      touchZoomRotate: false,
+      pitchWithRotate: false,
     })
 
     const handleMoveEnd = () => {
@@ -133,7 +144,7 @@ const MapComponent = () => {
     if (!map) return
     const currentStyle = map.getStyle()
     if (!currentStyle) return
-    const newStyle = { ...currentStyle, sprite }
+    const newStyle = { ...currentStyle }
     map.setStyle(newStyle, { diff: true })
     const updateLayerProps = (layerId: string, spec: LayerSpecification) => {
       if (spec.paint) {
@@ -143,7 +154,7 @@ const MapComponent = () => {
       }
     }
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
-  }, [mapLayers, map, sprite])
+  }, [mapLayers, map])
 
   useEffect(() => {
     if (!map) return
@@ -165,10 +176,12 @@ const MapComponent = () => {
         right: 0,
         bottom: 0,
         left: sidebarWidth,
+        ...mapControlStyles,
       }}
     >
       {map && styleLoaded && (
         <>
+          <MapAttribution />
           <WmsLayers />
           <GeographyLayer
             config={LAYERS.counties}
@@ -182,6 +195,7 @@ const MapComponent = () => {
           />
           <Buildings />
           <ZarrLayer />
+          <SelectionMarker />
         </>
       )}
     </Box>
