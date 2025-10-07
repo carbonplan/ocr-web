@@ -3,6 +3,7 @@ import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
+import { getGeographyAverageRiskKey } from '@/lib/risk-utils'
 
 interface GeographyLayerProps {
   config: {
@@ -25,14 +26,11 @@ const GeographyLayer = ({
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const geographies = useStore((state) => state.geographies)
-  const attribute = useStore((state) => state.attribute)
-  const timeHorizon = useStore((state) => state.timeHorizon)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
 
-  const riskAttribute = riskConfig.attributes[attribute][timePeriod]
-  const avgRiskAttribute = `avg_${riskAttribute}_horizon_${timeHorizon}`
+  const avgRiskAttribute = getGeographyAverageRiskKey(timePeriod)
 
   const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',
@@ -184,7 +182,7 @@ const GeographyLayer = ({
     // Update color expression when variable selection changes
     if (!map || !map.getLayer(config.layerIds.fill)) return
     map.setPaintProperty(config.layerIds.fill, 'fill-color', colorExpression)
-  }, [map, colorExpression])
+  }, [map, colorExpression, config.layerIds.fill])
 
   useEffect(() => {
     // Update opacity based on geography selection
@@ -206,7 +204,14 @@ const GeographyLayer = ({
         get(theme, 'rawColors.secondary'),
       )
     }
-  }, [map, geographies, geographyKey, theme])
+  }, [
+    map,
+    geographies,
+    geographyKey,
+    theme,
+    config.layerIds.fill,
+    config.layerIds.line,
+  ])
 
   return null
 }

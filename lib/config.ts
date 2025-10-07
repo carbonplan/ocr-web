@@ -1,5 +1,3 @@
-import { FireRisk } from '@/types/location'
-
 const DATA_VERSION = 'v0.4.0'
 
 export const DATA_URLS = {
@@ -53,20 +51,30 @@ export const LAYERS = {
   },
 } as const
 
-const FIRE_ATTRIBUTES: FireRisk<string> = {
-  baseRisk: {
-    current: 'USFS_RPS',
-    future: 'USFS_RPS',
-  },
-  windRisk: {
-    current: 'wind_risk_2011',
-    future: 'wind_risk_2047',
-  },
-}
+export const BUILDING_ATTRIBUTE_KEYS = {
+  wind_risk_2011: '0', // strings for map expressions
+  wind_risk_2047: '1',
+  burn_probability_2011: '2',
+  burn_probability_2047: '3',
+  conditional_risk_usfs: '4',
+  burn_probability_usfs_2011: '5',
+  burn_probability_usfs_2047: '6',
+} as const
+
+export const GEOGRAPHY_ATTRIBUTE_KEYS = {
+  building_count: '0',
+  mean_wind_risk_2011: '1',
+  mean_wind_risk_2047: '2',
+  median_wind_risk_2011: '3',
+  median_wind_risk_2047: '4',
+  wind_risk_2011: '5',
+  wind_risk_2047: '6',
+  geoid: '7',
+  county_name: '8',
+} as const
 
 export const RISKS = {
   fire: {
-    attributes: FIRE_ATTRIBUTES,
     colormap: 'fire-risk',
     binRatios: [0.1, 0.2, 0.5, 1],
     bounds: {

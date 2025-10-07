@@ -1,3 +1,6 @@
+import { MapGeoJSONFeature } from 'maplibre-gl'
+import { BUILDING_ATTRIBUTE_KEYS, GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
+
 export type Coordinates = {
   lat: number
   lng: number
@@ -34,20 +37,31 @@ export type Location = {
 }
 
 export type ScenarioKey = 'current' | 'future'
-export type RiskScoreSet<T> = Record<ScenarioKey, T>
 
-export type MethodKey = 'baseRisk' | 'windRisk'
-export type FireRisk<T> = Record<MethodKey, RiskScoreSet<T>>
+export type BuildingProperties = {
+  [BUILDING_ATTRIBUTE_KEYS.wind_risk_2011]: number
+  [BUILDING_ATTRIBUTE_KEYS.wind_risk_2047]: number
+  [BUILDING_ATTRIBUTE_KEYS.burn_probability_2011]: number
+  [BUILDING_ATTRIBUTE_KEYS.burn_probability_2047]: number
+  [BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]: number
+  [BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2011]: number
+  [BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2047]: number
+}
 
-export type TimeHorizon = 1 | 15 | 30
-export type TimeHorizonRecord<T> = Record<TimeHorizon, T>
-
-export type Building = FireRisk<TimeHorizonRecord<number>>
+export type Building = Omit<MapGeoJSONFeature, 'properties'> & {
+  properties: BuildingProperties
+}
 
 export type Geography = {
-  name: string
-  buildingCount: number
-  risk: FireRisk<TimeHorizonRecord<{ average: number; data: number[] }>>
+  [GEOGRAPHY_ATTRIBUTE_KEYS.building_count]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.mean_wind_risk_2011]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.mean_wind_risk_2047]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.median_wind_risk_2011]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.median_wind_risk_2047]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.wind_risk_2011]: string // stringified number[]
+  [GEOGRAPHY_ATTRIBUTE_KEYS.wind_risk_2047]: string // stringified number[]
+  [GEOGRAPHY_ATTRIBUTE_KEYS.geoid]: string
+  [GEOGRAPHY_ATTRIBUTE_KEYS.county_name]: string
 }
 
 export type Suggestion = {
