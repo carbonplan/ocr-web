@@ -41,7 +41,6 @@ const Buildings = () => {
   }, [sidebarWidth])
 
   const colormap = useColormap(riskConfig.colormap, {
-    format: 'hex',
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 

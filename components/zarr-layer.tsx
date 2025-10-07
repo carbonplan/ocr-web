@@ -1,4 +1,4 @@
-import { useColormap } from '@/lib/colormaps'
+import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 // @ts-expect-error - carbonplan maps types not available
 import { MapProvider, Raster } from '@carbonplan/maps/core'
@@ -7,8 +7,7 @@ const ZarrLayer = () => {
   const map = useStore((state) => state.map)
   const riskConfig = useStore((state) => state.riskConfig)
   const colorLimits = useStore((state) => state.colorLimits)
-  const colormap = useColormap(riskConfig.colormap, {
-    format: 'rgb',
+  const colormap = useColormapRGB(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 
