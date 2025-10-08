@@ -124,6 +124,18 @@ const Buildings = () => {
     ] as ExpressionSpecification
   }, [theme])
 
+  const opacityExpression: ExpressionSpecification = useMemo(() => {
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      13,
+      0,
+      13.1,
+      1,
+    ] as ExpressionSpecification
+  }, [])
+
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
       if (!map || map.getZoom() <= 13) return
@@ -319,6 +331,7 @@ const Buildings = () => {
             'source-layer': LAYERS.buildings.layerName,
             paint: {
               'fill-color': colorExpression,
+              'fill-opacity': opacityExpression,
             },
           },
           'buildings',
@@ -357,6 +370,7 @@ const Buildings = () => {
                   0.3,
                 ],
               ],
+              'line-opacity': opacityExpression,
             },
           },
           'buildings',
