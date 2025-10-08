@@ -15,6 +15,7 @@ import { getRiskScore } from '@/lib/risk-utils'
 import RiskCalculation from './risk-calculation'
 import TimeHorizons from './time-horizons'
 import OtherFactors from './other-factors'
+import RegionalRisk from './regional-risk'
 
 const Results = () => {
   const timePeriod = useStore((state) => state.timePeriod)
@@ -90,6 +91,7 @@ const Results = () => {
       </Row>
       <RiskCalculation />
       <TimeHorizons />
+      <RegionalRisk />
       <OtherFactors />
     </>
   )

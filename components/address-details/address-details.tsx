@@ -1,15 +1,13 @@
 import { useEffect, useMemo } from 'react'
 import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Badge, Button, Row, Column, Table } from '@carbonplan/components'
+import { Button, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Left } from '@carbonplan/icons'
 import ScoreDetails from './score-details'
 import { useStore } from '@/lib/store'
-import { useShallow } from 'zustand/react/shallow'
 import { formatAddress } from '@/lib/address-utils'
-import { getRiskScore, getGeographyRisk, getCountyName } from '@/lib/risk-utils'
-import Histogram from './histogram'
+import { getRiskScore } from '@/lib/risk-utils'
 
 const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   const selectedLocation = useStore((state) => state.selectedLocation)
@@ -21,19 +19,6 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
   )
   const riskScore = useStore((state) =>
     getRiskScore(state.selectedBuilding, state.timePeriod),
-  )
-  const countyName = useStore((state) =>
-    getCountyName(state.activeGeographies.county),
-  )
-  const countyData = useStore(
-    useShallow((state) =>
-      getGeographyRisk(state.activeGeographies.county, state.timePeriod),
-    ),
-  )
-  const censusTractData = useStore(
-    useShallow((state) =>
-      getGeographyRisk(state.activeGeographies.censusTract, state.timePeriod),
-    ),
   )
 
   useEffect(() => {
@@ -114,79 +99,6 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
           <Box variant='sectionHeading'>About this score</Box>
           <ScoreDetails />
         </Column>
-        <Column start={1} width={4} variant='labelFieldContainer'>
-          <Box variant='sectionHeading'>Other factors</Box>
-          The risk described above does not account for a variety of factors
-          that each may drive the actual risk of structure loss due to fire up
-          or down.
-          <Table
-            columns={[4]}
-            start={[[1], [4]]}
-            width={[[3], [1]]}
-            data={[
-              [
-                'Building retrofit',
-                <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
-                  Lower
-                </Badge>,
-              ],
-              [
-                'Community emergency response',
-                <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
-                  Lower
-                </Badge>,
-              ],
-              [
-                'Previous fire',
-                <Badge key='lower' sx={{ textTransform: 'uppercase' }}>
-                  Lower
-                </Badge>,
-              ],
-              [
-                'Access limitations',
-                <Badge key='higher' sx={{ textTransform: 'uppercase' }}>
-                  Higher
-                </Badge>,
-              ],
-            ]}
-            index={false}
-            sx={{
-              mt: 3,
-              '& tr': {
-                py: 2,
-              },
-              '& td': {
-                fontFamily: 'mono',
-                letterSpacing: 'mono',
-                textTransform: 'uppercase',
-                fontSize: [2, 2, 2, 3],
-              },
-            }}
-          />
-        </Column>
-        {countyData && (
-          <Column start={1} width={4} variant='labelFieldContainer'>
-            <Box variant='sectionHeading'>Summary statistics</Box>
-            <Histogram
-              address={address}
-              region={`${countyName} County`}
-              geography='county'
-              score={riskScore}
-              data={countyData}
-            />
-          </Column>
-        )}
-        {censusTractData && (
-          <Column start={1} width={4} sx={{ mt: 2 }}>
-            <Histogram
-              address={address}
-              region={'the census tract'}
-              geography='tract'
-              score={riskScore}
-              data={censusTractData}
-            />
-          </Column>
-        )}
       </Row>
     </Column>
   )

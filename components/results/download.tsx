@@ -9,17 +9,14 @@ import { useStore } from '@/lib/store'
 import { getGeoid } from '@/lib/risk-utils'
 
 interface DownloadProps {
-  geography: 'tract' | 'county'
+  geography: 'censusTract' | 'county'
 }
 
 export const Download = ({ geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
-  const activeGeographies = useStore((state) => state.activeGeographies)
-
-  const activeGeographyId =
-    geography === 'tract'
-      ? getGeoid(activeGeographies.censusTract)
-      : getGeoid(activeGeographies.county)
+  const activeGeographyId = useStore((state) =>
+    getGeoid(state.activeGeographies[geography]),
+  )
 
   const handleDownload = (format: 'csv' | 'geojson') => {
     const url = `${DATA_URLS.downloads}${geography}/${format}/${activeGeographyId}.${format}`

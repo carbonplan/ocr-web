@@ -7,15 +7,34 @@ import {
 const ValueBadge = ({
   value,
   color,
+  unit = '%',
 }: {
-  value?: number | null
+  value?: string | number | null
   color?: string
-}) => (
-  <Badge
-    sx={{ fontSize: [1, 1, 1, 2], height: [21, 21, 21, 22], mb: '-5px', color }}
-  >
-    {typeof value === 'number' ? `${value.toFixed(2)}%` : <>&nbsp;%&nbsp;</>}
-  </Badge>
-)
+  unit?: string
+}) => {
+  let formattedValue
+  if (typeof value === 'number') {
+    formattedValue = value.toFixed(2)
+  } else if (typeof value === 'string') {
+    formattedValue = value
+  }
+  return (
+    <Badge
+      sx={{
+        fontSize: [1, 1, 1, 2],
+        height: [21, 21, 21, 22],
+        mb: '-5px',
+        color,
+      }}
+    >
+      {value == null ? (
+        <>&nbsp;{unit}&nbsp;</>
+      ) : (
+        `${formattedValue}${unit === '%' ? '%' : ''}`
+      )}
+    </Badge>
+  )
+}
 
 export default ValueBadge

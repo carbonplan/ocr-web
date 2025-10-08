@@ -10,11 +10,10 @@ import {
   AxisLabel,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
-import { Box, Flex } from 'theme-ui'
+import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
-import { Download } from './download'
 
 const BINS = [
   0, // true 0%
@@ -29,7 +28,7 @@ const BINS = [
 export const formatValue = (value: number) => {
   const abs = Math.abs(value)
   if (abs === 0) {
-    return 0
+    return '0'
   } else if (abs < 0.0001) {
     return format('.0e')(value)
   } else if (abs < 0.01) {
@@ -46,17 +45,15 @@ export const formatValue = (value: number) => {
 }
 
 const Histogram = ({
-  address,
-  region,
-  geography,
   score,
   data,
+  sx,
 }: {
   address: string
   region: string
-  geography: 'tract' | 'county'
-  score: number
+  score: number | null
   data: number[]
+  sx?: ThemeUIStyleObject
 }) => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
@@ -68,7 +65,7 @@ const Histogram = ({
   const scoreColor = useMemo(
     () =>
       getColorForRiskScore(
-        score,
+        score ?? null,
         colormap,
         colorLimits,
         riskConfig.binRatios,
@@ -114,22 +111,9 @@ const Histogram = ({
     }
   }, [data])
 
-  if (data.length !== BINS.length) {
-    return null
-  }
-
   return (
-    <Box>
-      <Box sx={{ mb: 2 }}>
-        <Box as='span' sx={{ color: scoreColor }}>
-          {address}
-        </Box>{' '}
-        compared to {region}
-      </Box>
-      <Flex sx={{ justifyContent: 'flex-end', mb: 2 }}>
-        <Download geography={geography} />
-      </Flex>
-      <Box sx={{ height: '250px', ml: -20 }}>
+    <Box sx={sx}>
+      <Box sx={{ height: '250px' }}>
         <Chart x={xRange} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
           <Ticks left />
           <Ticks bottom values={tickValues} />
@@ -149,20 +133,22 @@ const Histogram = ({
           <AxisLabel bottom units='%'>
             Risk of structure loss
           </AxisLabel>
-          <AxisLabel left>Number addresses</AxisLabel>
+          <AxisLabel left>Number buildings</AxisLabel>
           <Plot>
             <Bar
               width={0.75}
               data={plotData}
               color={data.map((_, i) => {
                 let isInBin = false
-                if (i === 0) {
-                  isInBin = score === 0
-                } else if (i === BINS.length - 1) {
-                  isInBin = score > BINS[i - 1]
-                } else {
-                  const prevBin = i === 1 ? 0.01 : BINS[i - 1] + 0.01
-                  isInBin = score >= prevBin && score <= BINS[i]
+                if (typeof score === 'number') {
+                  if (i === 0) {
+                    isInBin = score === 0
+                  } else if (i === BINS.length - 1) {
+                    isInBin = score > BINS[i - 1]
+                  } else {
+                    const prevBin = i === 1 ? 0.01 : BINS[i - 1] + 0.01
+                    isInBin = score >= prevBin && score <= BINS[i]
+                  }
                 }
                 return isInBin ? scoreColor : 'primary'
               })}
