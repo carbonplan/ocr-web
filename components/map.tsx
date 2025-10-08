@@ -30,8 +30,8 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const satellite = useStore((state) => state.satellite)
   const setMapLoading = useStore((state) => state.setMapLoading)
-  const [styleLoaded, setStyleLoaded] = useState(false)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const [styleLoaded, setStyleLoaded] = useState(false)
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
@@ -45,9 +45,10 @@ const MapComponent = () => {
     addProtocol('pmtiles', protocol.tile)
 
     const initialView = getMapViewFromQuery(router.query) || {
-      lat: 47.7,
-      lng: -121.3,
-      zoom: 8,
+      // Griffith Observatory, LA
+      lat: 34.118,
+      lng: -118.296,
+      zoom: 14.5,
     }
 
     const sources: Record<string, SourceSpecification> = {
@@ -107,6 +108,10 @@ const MapComponent = () => {
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
+      maxBounds: [
+        [-130, 10],
+        [-60, 65],
+      ],
       attributionControl: false,
       dragRotate: false,
       touchZoomRotate: false,
