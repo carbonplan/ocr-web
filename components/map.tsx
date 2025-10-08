@@ -17,6 +17,8 @@ import {
   SelectionMarker,
   GeographyLayer,
   WmsLayers,
+  SatelliteLayer,
+  HillshadeLayer,
   MapAttribution,
   useMapControlStyles,
 } from './'
@@ -28,7 +30,6 @@ const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
-  const satellite = useStore((state) => state.satellite)
   const setMapLoading = useStore((state) => state.setMapLoading)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const [styleLoaded, setStyleLoaded] = useState(false)
@@ -58,44 +59,7 @@ const MapComponent = () => {
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
-      satellite: {
-        type: 'raster',
-        tiles: [`/api/map/tiles/{z}/{x}/{y}?style=satellite.day`],
-        tileSize: 512,
-        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
-      },
-      hillshadeSource: {
-        type: 'raster-dem',
-        tiles: [`/api/map/tiles/{z}/{x}/{y}?style=dem`],
-        tileSize: 512,
-        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
-        maxzoom: 15,
-      },
     }
-
-    const layers: LayerSpecification[] = [
-      {
-        id: 'satellite',
-        type: 'raster',
-        source: 'satellite',
-        paint: {
-          'raster-saturation': -1,
-          'raster-contrast': -0.5,
-          'raster-opacity': 0.5,
-        },
-        layout: {
-          visibility: 'none',
-        },
-      },
-      {
-        id: 'hillshade',
-        type: 'hillshade',
-        source: 'hillshadeSource',
-        paint: {
-          'hillshade-exaggeration': 0.08,
-        },
-      },
-    ]
 
     const newMap = new Map({
       container: mapContainer.current,
@@ -104,7 +68,7 @@ const MapComponent = () => {
         glyphs:
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
-        layers: [...layers, ...mapLayers],
+        layers: mapLayers,
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
@@ -176,24 +140,6 @@ const MapComponent = () => {
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
   }, [mapLayers, map])
 
-  useEffect(() => {
-    if (!map) return
-    if (map.getLayer('satellite')) {
-      map.setLayoutProperty(
-        'satellite',
-        'visibility',
-        satellite ? 'visible' : 'none',
-      )
-    }
-    if (map.getLayer('water')) {
-      map.setLayoutProperty(
-        'water',
-        'visibility',
-        satellite ? 'none' : 'visible',
-      )
-    }
-  }, [satellite, map])
-
   return (
     <Box
       ref={mapContainer}
@@ -209,6 +155,8 @@ const MapComponent = () => {
       {map && styleLoaded && (
         <>
           <MapAttribution />
+          <SatelliteLayer />
+          <HillshadeLayer />
           <WmsLayers />
           <GeographyLayer
             config={LAYERS.counties}
