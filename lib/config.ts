@@ -1,4 +1,4 @@
-const DATA_VERSION = 'v0.4.0'
+const DATA_VERSION = 'v0.5.0'
 
 export const DATA_URLS = {
   vector: {
