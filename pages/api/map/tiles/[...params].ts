@@ -11,7 +11,7 @@ export default async function handler(
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
-  const { params } = req.query
+  const { params, style, size = 512 } = req.query
   const [z, x, y] = Array.isArray(params) ? params : []
 
   if (!z || !x || !y) {
@@ -23,7 +23,9 @@ export default async function handler(
     return res.status(500).json({ message: 'HERE API key not configured' })
   }
 
-  const url = `https://maps.hereapi.com/v3/base/mc/${z}/${x}/${y}/png8?style=satellite.day&apiKey=${apiKey}`
+  const format = style === 'dem' ? 'png' : 'png8'
+
+  const url = `https://maps.hereapi.com/v3/base/mc/${z}/${x}/${y}/${format}?style=${style}&size=${size}&apiKey=${apiKey}`
 
   try {
     const response = await fetch(url)

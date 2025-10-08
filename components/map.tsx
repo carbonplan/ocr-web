@@ -59,9 +59,16 @@ const MapComponent = () => {
       },
       satellite: {
         type: 'raster',
-        tiles: [`/api/map/tiles/{z}/{x}/{y}`],
-        tileSize: 256,
+        tiles: [`/api/map/tiles/{z}/{x}/{y}?style=satellite.day`],
+        tileSize: 512,
         attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
+      },
+      hillshadeSource: {
+        type: 'raster-dem',
+        tiles: [`/api/map/tiles/{z}/{x}/{y}?style=dem`],
+        tileSize: 512,
+        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
+        maxzoom: 15,
       },
     }
 
@@ -76,6 +83,14 @@ const MapComponent = () => {
         },
         layout: {
           visibility: 'none',
+        },
+      },
+      {
+        id: 'hillshade',
+        type: 'hillshade',
+        source: 'hillshadeSource',
+        paint: {
+          'hillshade-exaggeration': 0.08,
         },
       },
     ]
