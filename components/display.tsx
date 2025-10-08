@@ -13,9 +13,7 @@ const Display = () => {
 
   return (
     <>
-      <Box variant='sectionHeading' sx={{ mt: 5 }}>
-        Display
-      </Box>
+      <Box variant='sectionHeading'>Display</Box>
       <Row variant='labelFieldContainer' columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label'>
           Geography

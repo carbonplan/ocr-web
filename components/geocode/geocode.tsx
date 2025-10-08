@@ -315,7 +315,7 @@ const Geocode = ({
           </Column>
         </Row>
 
-        <SidebarDivider sx={{ mt: 3 }} />
+        <SidebarDivider sx={{ my: 3, mb: 0 }} />
       </Box>
       {isEditing && (
         <Menu

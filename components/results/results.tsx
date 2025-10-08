@@ -5,19 +5,18 @@ import {
   Row,
   Column,
   Badge,
-  Filter,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Right } from '@carbonplan/icons'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
-import TooltipWrapper from './tooltip'
 import { getRiskScore } from '@/lib/risk-utils'
+import RiskCalculation from './risk-calculation'
+import TimeHorizons from './time-horizons'
 
 const Results = () => {
   const timePeriod = useStore((state) => state.timePeriod)
-  const setTimePeriod = useStore((state) => state.setTimePeriod)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const colorLimits = useStore((state) => state.colorLimits)
@@ -42,11 +41,9 @@ const Results = () => {
   )
   return (
     <>
-      <Row columns={4} sx={{ mt: 3, alignItems: 'baseline' }}>
-        <Column start={1} width={4} variant='sectionHeading'>
-          Climate risk
-        </Column>
-      </Row>
+      <Box variant='sectionHeading' sx={{ mt: 3 }}>
+        Risk score
+      </Box>
       <Row
         columns={4}
         variant='labelFieldContainer'
@@ -90,50 +87,8 @@ const Results = () => {
           </Flex>
         </Column>
       </Row>
-      <Row columns={[3, 3, 4, 4]} variant='labelFieldContainer'>
-        <Column start={1} width={1} variant='label'>
-          Hazard
-        </Column>
-        <Column start={2} width={[2, 2, 3, 3]}>
-          <Filter
-            values={{ Fire: true }}
-            setValues={() => {}}
-            colors={{ Fire: 'red' }}
-          />
-        </Column>
-      </Row>
-      <Row columns={[3, 3, 4, 4]} variant='labelFieldContainer'>
-        <Column start={1} width={1} variant='label'>
-          Scenario
-        </Column>
-        <Column start={2} width={[2, 2, 3, 3]}>
-          <TooltipWrapper
-            tooltip='Current risk estimates are based on a climate circa 2003-2018 while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from 2020.'
-            sx={{ justifyContent: 'flex-start', gap: 2 }}
-          >
-            <Filter
-              values={{
-                current: timePeriod === 'current',
-                future: timePeriod === 'future',
-              }}
-              labels={{
-                current: 'Current',
-                future: 'Future',
-              }}
-              setValues={(values: Record<string, boolean>) => {
-                const selectedPeriod = Object.keys(values).find(
-                  (key) => values[key],
-                )
-                if (selectedPeriod === 'current') {
-                  setTimePeriod('current')
-                } else if (selectedPeriod === 'future') {
-                  setTimePeriod('future')
-                }
-              }}
-            />
-          </TooltipWrapper>
-        </Column>
-      </Row>
+      <RiskCalculation />
+      <TimeHorizons />
     </>
   )
 }
