@@ -14,6 +14,7 @@ import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import { getRiskScore } from '@/lib/risk-utils'
 import RiskCalculation from './risk-calculation'
 import TimeHorizons from './time-horizons'
+import OtherFactors from './other-factors'
 
 const Results = () => {
   const timePeriod = useStore((state) => state.timePeriod)
@@ -89,6 +90,7 @@ const Results = () => {
       </Row>
       <RiskCalculation />
       <TimeHorizons />
+      <OtherFactors />
     </>
   )
 }
