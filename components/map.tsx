@@ -78,7 +78,8 @@ const MapComponent = () => {
         type: 'raster',
         source: 'satellite',
         paint: {
-          'raster-saturation': -0.8,
+          'raster-saturation': -1,
+          'raster-contrast': -0.5,
           'raster-opacity': 0.5,
         },
         layout: {
@@ -177,6 +178,13 @@ const MapComponent = () => {
         'satellite',
         'visibility',
         satellite ? 'visible' : 'none',
+      )
+    }
+    if (map.getLayer('water')) {
+      map.setLayoutProperty(
+        'water',
+        'visibility',
+        satellite ? 'none' : 'visible',
       )
     }
   }, [satellite, map])
