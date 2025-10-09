@@ -13,10 +13,14 @@ const HillshadeLayer = () => {
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'raster-dem',
-        tiles: [`/api/map/tiles/{z}/{x}/{y}?style=dem`],
-        tileSize: 512,
-        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
-        maxzoom: 14,
+        tiles: [
+          'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+        ],
+        tileSize: 256,
+        attribution:
+          '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank">Mapzen terrain tiles</a>: USGS 3DEP, NASA SRTM, and other sources',
+        maxzoom: 15,
+        encoding: 'terrarium',
       })
     }
 
