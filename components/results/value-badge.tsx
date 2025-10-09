@@ -1,4 +1,5 @@
 import React from 'react'
+import { ThemeUIStyleObject } from 'theme-ui'
 import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
@@ -7,11 +8,13 @@ import {
 const ValueBadge = ({
   value,
   color,
+  sx,
   unit = '%',
 }: {
   value?: string | number | null
   color?: string
   unit?: string
+  sx?: ThemeUIStyleObject
 }) => {
   let formattedValue
   if (typeof value === 'number') {
@@ -26,6 +29,7 @@ const ValueBadge = ({
         height: [21, 21, 21, 22],
         mb: '-5px',
         color,
+        ...sx,
       }}
     >
       {value == null ? (
