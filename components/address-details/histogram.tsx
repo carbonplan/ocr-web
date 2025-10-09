@@ -10,10 +10,11 @@ import {
   AxisLabel,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
-import { Box } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import { Download } from './download'
 
 const BINS = [
   0, // true 0%
@@ -47,11 +48,13 @@ export const formatValue = (value: number) => {
 const Histogram = ({
   address,
   region,
+  geography,
   score,
   data,
 }: {
   address: string
   region: string
+  geography: 'tract' | 'county'
   score: number
   data: number[]
 }) => {
@@ -123,6 +126,9 @@ const Histogram = ({
         </Box>{' '}
         compared to {region}
       </Box>
+      <Flex sx={{ justifyContent: 'flex-end', mb: 2 }}>
+        <Download geography={geography} />
+      </Flex>
       <Box sx={{ height: '250px', ml: -20 }}>
         <Chart x={xRange} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
           <Ticks left />

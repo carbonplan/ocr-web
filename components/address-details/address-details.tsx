@@ -170,6 +170,7 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
             <Histogram
               address={address}
               region={`${countyName} County`}
+              geography='county'
               score={riskScore}
               data={countyData}
             />
@@ -180,6 +181,7 @@ const AddressDetails = ({ onCollapse }: { onCollapse?: () => void }) => {
             <Histogram
               address={address}
               region={'the census tract'}
+              geography='tract'
               score={riskScore}
               data={censusTractData}
             />

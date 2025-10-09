@@ -19,6 +19,9 @@ export const DATA_URLS = {
     usfsBase:
       'https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/RPS',
   },
+  downloads:
+    process.env.NEXT_PUBLIC_DOWNLOADS_URL ??
+    `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/per-region-analysis/`,
 }
 
 export const LAYERS = {
