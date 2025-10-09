@@ -40,10 +40,12 @@ type Store = {
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
+    binBoundaries: number[]
   }
   setColorLimits: (colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
+    binBoundaries: number[]
   }) => void
   mapLoading: boolean
   setMapLoading: (mapLoading: boolean) => void
@@ -87,8 +89,9 @@ export const useStore = create<Store>((set) => ({
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   colorLimits: {
-    type: 'continuous',
+    type: 'discrete',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
+    binBoundaries: [0.01, 0.1, 1, 2, 3, 5, 7, 10, 15, 20],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,

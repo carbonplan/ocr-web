@@ -30,7 +30,6 @@ const RiskScore = () => {
     riskScore,
     colormap,
     colorLimits,
-    riskConfig.binRatios,
     'primary',
   )
 

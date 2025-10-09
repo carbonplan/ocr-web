@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
-import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
+import { useColormap } from '@/lib/colormaps'
 import { getGeographyMedianRiskKey } from '@/lib/risk-utils'
 
 interface GeographyLayerProps {
@@ -50,10 +50,7 @@ const GeographyLayer = ({
     const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
-      const stepValues = calculateBinBoundaries(
-        colorLimits.bounds,
-        riskConfig.binRatios,
-      ).slice(1) // remove first value to shift to correct step
+      const stepValues = colorLimits.binBoundaries.slice(1) // remove first value to shift to correct step
 
       stepValues.forEach((value: number, index: number) => {
         if (index < colormap.length - 1) {
@@ -95,8 +92,8 @@ const GeographyLayer = ({
     medianRisk,
     colorLimits.type,
     colorLimits.bounds,
+    colorLimits.binBoundaries,
     theme,
-    riskConfig.binRatios,
     riskConfig.bounds.min,
   ])
 

@@ -2,22 +2,14 @@ import chroma from 'chroma-js'
 import { useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
 
-export const calculateBinBoundaries = (
-  [min, max]: [number, number],
-  ratios: readonly number[] = [0.1, 0.2, 0.5, 1],
-): number[] => {
-  const range = max - min
-  return [min, ...ratios.slice(0, -1).map((r) => min + r * range), max]
-}
-
 export const getColorForRiskScore = (
   score: number | null,
   colormap: string[],
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
+    binBoundaries: number[]
   },
-  binRatios: readonly number[] = [0.1, 0.2, 0.5, 1],
   fallbackColor: string = 'secondary',
 ): string => {
   if (score === null || score < colorLimits.bounds[0] || !colormap?.length) {
@@ -27,7 +19,7 @@ export const getColorForRiskScore = (
   const [min, max] = colorLimits.bounds
 
   if (colorLimits.type === 'discrete') {
-    const boundaries = calculateBinBoundaries([min, max], binRatios)
+    const boundaries = colorLimits.binBoundaries
 
     let binIndex = 0
     for (let i = 0; i < boundaries.length - 1; i++) {

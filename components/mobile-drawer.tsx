@@ -30,7 +30,6 @@ const MobileDrawer = () => {
     score,
     colormap,
     colorLimits,
-    riskConfig.binRatios,
     'primary',
   )
 
