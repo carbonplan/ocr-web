@@ -18,7 +18,7 @@ const HillshadeLayer = () => {
         ],
         tileSize: 256,
         attribution:
-          '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank">Mapzen terrain tiles</a>: USGS 3DEP, NASA SRTM, and other sources',
+          '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank">Mapzen</a>',
         maxzoom: 15,
         encoding: 'terrarium',
       })
