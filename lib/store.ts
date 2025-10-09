@@ -42,10 +42,12 @@ type Store = {
   colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
+    binBoundaries: number[]
   }
   setColorLimits: (colorLimits: {
     type: 'continuous' | 'discrete'
     bounds: [number, number]
+    binBoundaries: number[]
   }) => void
   mapLoading: boolean
   setMapLoading: (mapLoading: boolean) => void
@@ -93,8 +95,9 @@ export const useStore = create<Store>((set) => ({
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   colorLimits: {
-    type: 'continuous',
+    type: 'discrete',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
+    binBoundaries: [0.01, 0.1, 1, 2, 3, 5, 7, 10, 15, 20],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
@@ -104,7 +107,7 @@ export const useStore = create<Store>((set) => ({
     set({ reverseGeocodeLoading }),
   showAddressDetails: false,
   setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
-  advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
+  advancedMode: true,
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
   clearSelections: () =>
