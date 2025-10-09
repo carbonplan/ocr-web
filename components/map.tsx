@@ -19,6 +19,7 @@ import {
   WmsLayers,
   SatelliteLayer,
   HillshadeLayer,
+  ZarrLayer,
   MapAttribution,
   useMapControlStyles,
 } from './'
@@ -169,6 +170,7 @@ const MapComponent = () => {
             environmentUrl={DATA_URLS.vector.censusTracts}
           />
           <Buildings />
+          <ZarrLayer />
           <SelectionMarker />
         </>
       )}

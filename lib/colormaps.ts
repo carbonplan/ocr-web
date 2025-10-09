@@ -55,14 +55,13 @@ export const getColorForRiskScore = (
 
 export interface ColormapOptions {
   count?: number
-  format?: 'hex' | 'rgb'
   mode?: 'light' | 'dark'
 }
 
 export function generateFireRiskColormap(
   options: ColormapOptions = {},
 ): string[] {
-  const { count = 256, format = 'hex', mode = 'dark' } = options
+  const { count = 256, mode = 'dark' } = options
 
   const red = '#f57273'
   const orange = '#e39046'
@@ -98,11 +97,6 @@ export function generateFireRiskColormap(
 
   const scale = chroma.scale(ramp).mode('lab')
 
-  if (format === 'hex') {
-    return scale.colors(count, 'hex')
-  } else if (format === 'rgb') {
-    return scale.colors(count).map((c) => chroma(c).css())
-  }
   return scale.colors(count, 'hex')
 }
 
@@ -128,5 +122,18 @@ export function useColormap(
 
   return useMemo(() => {
     return generateColormap(name, { ...options, mode })
+  }, [name, options, mode])
+}
+
+export function useColormapRGB(
+  name: string,
+  options: Omit<ColormapOptions, 'mode'> = {},
+): [number, number, number][] {
+  const [colorMode] = useColorMode()
+  const mode = colorMode === 'dark' ? 'dark' : 'light'
+
+  return useMemo(() => {
+    const hexColors = generateColormap(name, { ...options, mode })
+    return hexColors.map((c) => chroma(c).rgb())
   }, [name, options, mode])
 }

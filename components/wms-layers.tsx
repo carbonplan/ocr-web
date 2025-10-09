@@ -8,6 +8,7 @@ import { DATA_URLS } from '@/lib/config'
 const WmsLayers = () => {
   const map = useStore((state) => state.map)
   const riskRaster = useStore((state) => state.riskRaster)
+  const rpsRaster = useStore((state) => state.rpsRaster)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
@@ -49,6 +50,23 @@ const WmsLayers = () => {
     return matrix
   }, [lightColormap, darkColormap, colorscaleRange])
 
+  const rpsMatrix = useMemo(() => {
+    const themes = ['light', 'dark']
+
+    const matrix = []
+    for (const themeType of themes) {
+      const colormap = themeType === 'light' ? lightColormap : darkColormap
+      const url = `${DATA_URLS.raster.usfsBase}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=RPS&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+      matrix.push({
+        id: `wms_rps_RPS_${themeType}`,
+        riskAttribute: 'RPS',
+        theme: themeType,
+        url,
+      })
+    }
+    return matrix
+  }, [lightColormap, darkColormap, colorscaleRange])
+
   const activeRiskLayerId = useMemo(() => {
     const year = timePeriod === 'current' ? '2011' : '2047'
     const riskAttribute = `wind_risk_${year}`
@@ -56,11 +74,17 @@ const WmsLayers = () => {
     return `wms_risk_${riskAttribute}_${currentTheme}`
   }, [timePeriod, colorMode])
 
+  const activeRpsLayerId = useMemo(() => {
+    const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
+    return `wms_rps_RPS_${currentTheme}`
+  }, [colorMode])
+
   // manage full url updates
   useEffect(() => {
     if (!map) return
 
-    riskMatrix.forEach((layer) => {
+    const allLayers = [...riskMatrix, ...rpsMatrix]
+    allLayers.forEach((layer) => {
       const existingSource = map.getSource(layer.id)
       if (!existingSource) {
         map.addSource(layer.id, {
@@ -96,20 +120,35 @@ const WmsLayers = () => {
         )
       }
     })
-  }, [map, riskMatrix])
+  }, [map, riskMatrix, rpsMatrix])
 
   // manage layer visibility
   useEffect(() => {
     if (!map) return
-    riskMatrix.forEach((layer) => {
+
+    const allLayers = [...riskMatrix, ...rpsMatrix]
+
+    allLayers.forEach((layer) => {
       if (map.getLayer(layer.id)) {
         map.setLayoutProperty(layer.id, 'visibility', 'none')
       }
     })
+
     if (riskRaster && activeRiskLayerId && map.getLayer(activeRiskLayerId)) {
       map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
     }
-  }, [riskRaster, activeRiskLayerId, map, riskMatrix])
+    if (rpsRaster && activeRpsLayerId && map.getLayer(activeRpsLayerId)) {
+      map.setLayoutProperty(activeRpsLayerId, 'visibility', 'visible')
+    }
+  }, [
+    riskRaster,
+    activeRiskLayerId,
+    rpsRaster,
+    activeRpsLayerId,
+    map,
+    riskMatrix,
+    rpsMatrix,
+  ])
 
   return null
 }

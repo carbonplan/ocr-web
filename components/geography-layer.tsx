@@ -33,7 +33,6 @@ const GeographyLayer = ({
   const avgRiskAttribute = getGeographyAverageRiskKey(timePeriod)
 
   const colormap = useColormap(riskConfig.colormap, {
-    format: 'hex',
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
 

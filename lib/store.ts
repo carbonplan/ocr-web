@@ -16,6 +16,8 @@ type Store = {
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
   setRiskRaster: (riskRaster: boolean) => void
+  rpsRaster: boolean
+  setRpsRaster: (rpsRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
   hoveredBuilding: Building | null
@@ -68,6 +70,8 @@ export const useStore = create<Store>((set) => ({
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
   setRiskRaster: (riskRaster) => set({ riskRaster }),
+  rpsRaster: false,
+  setRpsRaster: (rpsRaster) => set({ rpsRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
   hoveredBuilding: null,
