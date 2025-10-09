@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Box, Flex } from 'theme-ui'
 import {
   Badge,
@@ -23,11 +23,24 @@ const RiskScore = () => {
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
+  const colormap = useColormap()
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
   const riskScore = getRiskScore(displayBuilding, timePeriod)
-  const colormap = useColormap()
+  const integerScore = useMemo(() => {
+    if (typeof riskScore === 'number') {
+      return (
+        bins.findIndex((bin, i) =>
+          i === bins.length - 1 && riskScore >= bin
+            ? i
+            : riskScore >= bin && riskScore < bins[i + 1],
+        ) + 1
+      )
+    } else {
+      return null
+    }
+  }, [riskScore, bins])
   const scoreColor = useScoreColor(riskScore, 'muted')
 
   return (
@@ -45,7 +58,7 @@ const RiskScore = () => {
             flexShrink: 0,
           }}
         >
-          {displayBuilding ? riskScore?.toFixed(2) : '#'}
+          {displayBuilding ? integerScore : '#'}
         </Badge>
         <Box
           sx={{
@@ -59,7 +72,7 @@ const RiskScore = () => {
           {selectedBuilding && selectedLocation ? (
             <>
               {formatAddress(selectedLocation.address, true)} has a risk score
-              of TK out of 10
+              of {integerScore} out of 10
             </>
           ) : (
             'Select a building to view its fire risk'
@@ -70,7 +83,10 @@ const RiskScore = () => {
         <ValueBadge
           value='0'
           unit='#'
-          sx={{ backgroundColor: 'muted', color: 'secondary' }}
+          sx={{
+            backgroundColor: 'muted',
+            color: integerScore === 0 ? 'primary' : 'secondary',
+          }}
         />
         {Array(10)
           .fill(null)
@@ -101,6 +117,7 @@ const RiskScore = () => {
                       ? 'primary'
                       : 'secondary',
                   userSelect: 'none',
+                  transition: 'color 0.2s',
                 }}
               >
                 {bins[i]}%
