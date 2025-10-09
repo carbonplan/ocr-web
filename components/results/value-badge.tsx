@@ -29,7 +29,7 @@ const ValueBadge = ({
       }}
     >
       {value == null ? (
-        <>&nbsp;{unit}&nbsp;</>
+        <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
       ) : (
         `${formattedValue}${unit === '%' ? '%' : ''}`
       )}
