@@ -3,16 +3,17 @@ import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
-import { Down } from '@carbonplan/icons'
+import { Down, RotatingArrow } from '@carbonplan/icons'
 import { DATA_URLS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getGeoid } from '@/lib/risk-utils'
 
 interface DownloadProps {
   geography: 'censusTract' | 'county'
+  disabled?: boolean
 }
 
-export const Download = ({ geography }: DownloadProps) => {
+export const Download = ({ disabled, geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
   const activeGeographyId = useStore((state) =>
     getGeoid(state.activeGeographies[geography]),
@@ -27,18 +28,13 @@ export const Download = ({ geography }: DownloadProps) => {
   return (
     <Box sx={{ position: 'relative', display: 'inline-block' }}>
       <Button
-        prefix={<Down sx={{ mt: '-4px', height: 10 }} />}
         size='xs'
         onClick={() => setShowModal(!showModal)}
         inverted
-        sx={{
-          fontFamily: 'mono',
-          letterSpacing: 'mono',
-          fontSize: [0, 0, 0, 1],
-          textTransform: 'uppercase',
-        }}
+        suffix={<Down />}
+        sx={disabled ? { pointerEvents: 'none' } : undefined}
       >
-        Download {geography} data
+        Download region data
       </Button>
 
       {showModal && (
@@ -61,26 +57,37 @@ export const Download = ({ geography }: DownloadProps) => {
               border: '1px solid',
               borderColor: 'muted',
               px: 3,
-              py: 2,
-              width: 150,
+              pt: 2,
+              pb: 3,
+              width: '100%',
               zIndex: 10000,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             }}
           >
-            <Box sx={{ mb: 2, fontSize: 2, color: 'secondary' }}>
+            <Box
+              sx={{
+                mb: 2,
+                fontFamily: 'mono',
+                letterSpacing: 'mono',
+                textTransform: 'uppercase',
+                fontSize: 0,
+              }}
+            >
               Select format
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 3 }}
+            >
               <Button
                 size='xs'
-                prefix={<Down sx={{ mt: -1 }} />}
+                suffix={<RotatingArrow />}
                 onClick={() => handleDownload('csv')}
               >
                 CSV
               </Button>
               <Button
                 size='xs'
-                prefix={<Down sx={{ mt: -1 }} />}
+                suffix={<RotatingArrow />}
                 onClick={() => handleDownload('geojson')}
               >
                 GeoJSON

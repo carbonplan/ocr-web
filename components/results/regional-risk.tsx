@@ -1,20 +1,23 @@
-import { Box } from 'theme-ui'
+import { useEffect, useState } from 'react'
+import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Filter, Table } from '@carbonplan/components'
+import { Button, Filter, Table } from '@carbonplan/components'
+//@ts-expect-error - carbonplan icons types not available
+import { RotatingArrow } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 
-import ValueBadge from './value-badge'
-import { useStore } from '@/lib/store'
 import {
   getRiskScore,
   getGeographyRisk,
   getCountyName,
   getGeographyMedianRiskKey,
 } from '@/lib/risk-utils'
-import { useEffect, useState } from 'react'
-import Histogram, { formatValue } from './histogram'
+import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
+import { Download } from './download'
+import Histogram, { formatValue } from './histogram'
+import ValueBadge from './value-badge'
 
 type Geography = 'county' | 'censusTract'
 const RegionalRisk = () => {
@@ -118,7 +121,19 @@ const RegionalRisk = () => {
           },
         }}
       />
-      <Box sx={{ position: 'relative', mt: 3 }}>
+      <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
+        <Button
+          size='xs'
+          inverted
+          suffix={<RotatingArrow />}
+          disabled
+          sx={geography ? {} : { pointerEvents: 'none' }}
+        >
+          Show on map
+        </Button>
+        <Download geography={geography ?? 'county'} disabled={!geography} />
+      </Flex>
+      <Box sx={{ position: 'relative', mt: 4 }}>
         <Histogram
           address={
             selectedLocation?.address.houseNumber
