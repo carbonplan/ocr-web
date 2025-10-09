@@ -23,7 +23,10 @@ const Buildings = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
+  const setReverseGeocodeLoading = useStore(
+    (state) => state.setReverseGeocodeLoading,
+  )
+  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const { queryGeographiesAtPoint } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const isUserClick = useRef(false)
@@ -210,7 +213,6 @@ const Buildings = () => {
       if (!map) return
 
       clearSelections()
-      setShowAddressDetails(false)
 
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
@@ -262,11 +264,26 @@ const Buildings = () => {
             offset,
           })
           setSelectedCoordinates({ lat, lng })
-          setShowAddressDetails(true)
+          setReverseGeocodeLoading(true)
+          const fetchLocation = async () => {
+            try {
+              const response = await fetch(
+                `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
+              )
+              if (response.ok) {
+                const location = await response.json()
+                setSelectedLocation(location)
+              }
+            } catch (error) {
+              console.error('Error fetching location details:', error)
+            } finally {
+              setReverseGeocodeLoading(false)
+            }
+          }
+          fetchLocation()
         }
       } else {
         clearSelections()
-        setShowAddressDetails(false)
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
@@ -280,7 +297,8 @@ const Buildings = () => {
       clearSelections,
       setHoveredBuilding,
       queryGeographiesAtPoint,
-      setShowAddressDetails,
+      setReverseGeocodeLoading,
+      setSelectedLocation,
     ],
   )
 

@@ -1,14 +1,11 @@
 import React from 'react'
 import { Box, Flex } from 'theme-ui'
 import {
-  Button,
   Row,
   Column,
   Badge,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-//@ts-expect-error - carbonplan icons types not available
-import { Right } from '@carbonplan/icons'
 import { useStore } from '@/lib/store'
 import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
 import { getRiskScore } from '@/lib/risk-utils'
@@ -23,8 +20,6 @@ const Results = () => {
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
-  const showAddressDetails = useStore((state) => state.showAddressDetails)
-  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
@@ -56,32 +51,7 @@ const Results = () => {
             <Badge sx={{ color: scoreColor }}>
               {riskScore !== null ? `${riskScore.toFixed(2)}%` : '-----'}
             </Badge>
-            {selectedBuilding ? (
-              <Button
-                variant='label'
-                suffix={
-                  <Right
-                    sx={{
-                      mt: -1,
-                      transform: showAddressDetails
-                        ? 'scaleX(-1) rotate(45deg) '
-                        : 'rotate(45deg) scaleX(1)',
-                    }}
-                  />
-                }
-                inverted
-                size='xs'
-                onClick={() => setShowAddressDetails(!showAddressDetails)}
-                sx={{
-                  fontFamily: 'mono',
-                  fontSize: [2, 2, 2, 3],
-                  color: 'secondary',
-                  letterSpacing: 'smallcaps',
-                }}
-              >
-                About this score
-              </Button>
-            ) : (
+            {selectedBuilding ? null : (
               <Box sx={{ color: 'secondary' }}>
                 select a structure to view score
               </Box>

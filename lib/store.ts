@@ -49,8 +49,6 @@ type Store = {
   setMapLoading: (mapLoading: boolean) => void
   reverseGeocodeLoading: boolean
   setReverseGeocodeLoading: (reverseGeocodeLoading: boolean) => void
-  showAddressDetails: boolean
-  setShowAddressDetails: (showAddressDetails: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
   clearSelections: () => void
@@ -98,8 +96,6 @@ export const useStore = create<Store>((set) => ({
   reverseGeocodeLoading: false,
   setReverseGeocodeLoading: (reverseGeocodeLoading) =>
     set({ reverseGeocodeLoading }),
-  showAddressDetails: false,
-  setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),

@@ -35,7 +35,6 @@ const Geocode = ({
   const selectedLocation = useStore((state) => state.selectedLocation)
   const map = useStore((state) => state.map)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
   const index = useBreakpointIndex({ defaultIndex: 2 })
@@ -150,14 +149,13 @@ const Geocode = ({
 
   const clearSelectedLocation = useCallback(() => {
     clearSelections()
-    setShowAddressDetails(false)
     if (map) {
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
         sourceLayer: LAYERS.buildings.layerName,
       })
     }
-  }, [clearSelections, setShowAddressDetails, map])
+  }, [clearSelections, map])
 
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
@@ -185,7 +183,6 @@ const Geocode = ({
         // Highlight building after map movement completes
         if (location.address.houseNumber) {
           const handleMoveEnd = () => {
-            setShowAddressDetails(true)
             if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
               highlightBuildingAtLocation(
                 location.position.lng,
@@ -230,7 +227,6 @@ const Geocode = ({
 
   const handleDeselect = () => {
     clearSelections()
-    setShowAddressDetails(false)
     setSearchQuery('')
     setSelectedIndex(-1)
   }

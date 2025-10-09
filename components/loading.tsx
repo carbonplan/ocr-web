@@ -5,7 +5,6 @@ import { useStore } from '@/lib/store'
 import { Spinner } from 'theme-ui'
 
 export default function Loading() {
-  const showAddressDetails = useStore((state) => state.showAddressDetails)
   const isLoading = useStore(
     (state) => state.mapLoading || state.reverseGeocodeLoading,
   )
@@ -18,7 +17,7 @@ export default function Loading() {
       <SidebarAttachment
         expanded={true}
         side='left'
-        width={showAddressDetails ? 8 : 4}
+        width={4}
         sx={{ top: '16px' }}
       >
         <Spinner size={32} />
