@@ -7,7 +7,7 @@ import { Badge } from '@carbonplan/components'
 import { Search } from '@carbonplan/icons'
 import { Geocode, Results, Display } from '@/components'
 import { Drawer } from 'vaul'
-import { getColorForRiskScore, useColormap } from '@/lib/colormaps'
+import { useScoreColor } from '@/lib/colormaps'
 import { getRiskScore } from '@/lib/risk-utils'
 
 const MobileDrawer = () => {
@@ -18,17 +18,10 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const colorLimits = useStore((state) => state.colorLimits)
   const score = useStore((state) =>
     getRiskScore(state.selectedBuilding, state.timePeriod),
   )
-  const colormap = useColormap()
-  const scoreColor = getColorForRiskScore(
-    score,
-    colormap,
-    colorLimits,
-    'primary',
-  )
+  const scoreColor = useScoreColor(score, 'primary')
 
   useEffect(() => {
     if (selectedBuilding) {

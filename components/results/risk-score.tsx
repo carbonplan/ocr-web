@@ -5,7 +5,7 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
-import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import { useScoreColor } from '@/lib/colormaps'
 import { getRiskScore } from '@/lib/risk-utils'
 import { formatAddress } from '@/lib/address-utils'
 import ValueBadge from './value-badge'
@@ -15,20 +15,11 @@ const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
-  const colorLimits = useStore((state) => state.colorLimits)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
-  const colormap = useColormap()
-
   const riskScore = getRiskScore(displayBuilding, timePeriod)
-
-  const scoreColor = getColorForRiskScore(
-    riskScore,
-    colormap,
-    colorLimits,
-    'primary',
-  )
+  const scoreColor = useScoreColor(riskScore, 'primary')
 
   return (
     <>

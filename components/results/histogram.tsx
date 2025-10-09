@@ -12,8 +12,7 @@ import {
 } from '@carbonplan/charts'
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
-import { useStore } from '@/lib/store'
-import { useColormap, getColorForRiskScore } from '@/lib/colormaps'
+import { useScoreColor } from '@/lib/colormaps'
 
 const BINS = [
   0, // true 0%
@@ -55,15 +54,7 @@ const Histogram = ({
   data: number[]
   sx?: ThemeUIStyleObject
 }) => {
-  const colorLimits = useStore((state) => state.colorLimits)
-
-  const colormap = useColormap()
-
-  const scoreColor = useMemo(
-    () =>
-      getColorForRiskScore(score ?? null, colormap, colorLimits, 'secondary'),
-    [score, colormap, colorLimits],
-  )
+  const scoreColor = useScoreColor(score, 'secondary')
 
   const maxCount: number = useMemo(() => Math.max(...data), [data])
 
