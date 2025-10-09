@@ -34,6 +34,7 @@ const Buildings = () => {
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
   const sidebarWidthRef = useRef(sidebarWidth)
+  const colormap = useColormap({ format: 'hex' })
 
   // refs prevent stale state in event listeners
   useEffect(() => {
@@ -42,12 +43,6 @@ const Buildings = () => {
   useEffect(() => {
     sidebarWidthRef.current = sidebarWidth
   }, [sidebarWidth])
-
-  const colormap = useColormap(riskConfig.colormap, {
-    format: 'hex',
-    count:
-      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
-  })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']

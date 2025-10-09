@@ -56,11 +56,8 @@ const Histogram = ({
   sx?: ThemeUIStyleObject
 }) => {
   const colorLimits = useStore((state) => state.colorLimits)
-  const riskConfig = useStore((state) => state.riskConfig)
 
-  const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
-  })
+  const colormap = useColormap()
 
   const scoreColor = useMemo(
     () =>

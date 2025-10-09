@@ -18,14 +18,11 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const riskConfig = useStore((state) => state.riskConfig)
   const colorLimits = useStore((state) => state.colorLimits)
   const score = useStore((state) =>
     getRiskScore(state.selectedBuilding, state.timePeriod),
   )
-  const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
-  })
+  const colormap = useColormap()
   const scoreColor = getColorForRiskScore(
     score,
     colormap,

@@ -1,6 +1,7 @@
 import chroma from 'chroma-js'
 import { useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
+import { useStore } from './store'
 
 export const getColorForRiskScore = (
   score: number | null,
@@ -112,13 +113,17 @@ export function generateColormap(
 }
 
 export function useColormap(
-  name: string,
-  options: Omit<ColormapOptions, 'mode'> = {},
+  options?: Omit<ColormapOptions, 'mode' | 'count'>,
 ): string[] {
   const [colorMode] = useColorMode()
+  const riskConfig = useStore((state) => state.riskConfig)
+  const colorLimits = useStore((state) => state.colorLimits)
+
   const mode = colorMode === 'dark' ? 'dark' : 'light'
+  const count =
+    colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256
 
   return useMemo(() => {
-    return generateColormap(name, { ...options, mode })
-  }, [name, options, mode])
+    return generateColormap(riskConfig.colormap, { ...options, mode, count })
+  }, [riskConfig.colormap, options, mode, count])
 }

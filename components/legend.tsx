@@ -13,6 +13,7 @@ const Legend = () => {
   const setColorLimits = useStore((state) => state.setColorLimits)
   const advancedMode = useStore((state) => state.advancedMode)
   const isDiscrete = colorLimits.type === 'discrete'
+  const baseColormap = useColormap()
   const [boundariesInput, setBoundariesInput] = useState(
     colorLimits.binBoundaries.join(', '),
   )
@@ -20,10 +21,6 @@ const Legend = () => {
   useEffect(() => {
     setBoundariesInput(colorLimits.binBoundaries.join(', '))
   }, [colorLimits.binBoundaries])
-
-  const baseColormap = useColormap(riskConfig.colormap, {
-    count: isDiscrete ? colorLimits.binBoundaries.length : 256,
-  })
 
   // Generate tick values for discrete mode - one for each boundary
   const discreteTicks = isDiscrete

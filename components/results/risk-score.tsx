@@ -16,13 +16,10 @@ const RiskScore = () => {
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const colorLimits = useStore((state) => state.colorLimits)
-  const riskConfig = useStore((state) => state.riskConfig)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
-  const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
-  })
+  const colormap = useColormap()
 
   const riskScore = getRiskScore(displayBuilding, timePeriod)
 

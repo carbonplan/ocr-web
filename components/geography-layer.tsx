@@ -29,13 +29,9 @@ const GeographyLayer = ({
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+  const colormap = useColormap({ format: 'hex' })
 
   const medianRisk = getGeographyMedianRiskKey(timePeriod)
-
-  const colormap = useColormap(riskConfig.colormap, {
-    format: 'hex',
-    count: colorLimits.type === 'discrete' ? 5 : 256,
-  })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
