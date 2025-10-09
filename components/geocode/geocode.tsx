@@ -242,7 +242,7 @@ const Geocode = ({
           background: 'background',
           cursor: 'pointer',
           transition: 'background-color 0.15s',
-          zIndex: 1,
+          zIndex: 2,
           px: [4, 5, 5, 6],
           mx: [-4, -5, -5, -6],
           '&:hover': {

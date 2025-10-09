@@ -17,14 +17,13 @@ const ClimateSelector = () => {
 
   return (
     <Box
-      sx={{ width: '100%', position: 'sticky', top: -25 + 55.59, zIndex: 10 }}
+      sx={{ width: '100%', position: 'sticky', top: -25 + 55.59, zIndex: 9 }}
     >
       <Box
         sx={{
           background: 'background',
           cursor: 'pointer',
           transition: 'background-color 0.15s',
-          zIndex: 1,
           px: [4, 5, 5, 6],
           mx: [-4, -5, -5, -6],
           pt: 3,
