@@ -130,7 +130,7 @@ const Buildings = () => {
       ['zoom'],
       13,
       0,
-      13.1,
+      13.25,
       1,
     ] as ExpressionSpecification
   }, [])

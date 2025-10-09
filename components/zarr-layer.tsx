@@ -1,18 +1,17 @@
+import { useEffect, useState, useMemo } from 'react'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 // @ts-expect-error - carbonplan maps types not available
 import { MapProvider, Raster } from '@carbonplan/maps/core'
 
 const frag = (variable: string) => `
-  if (${variable} == fillValue) {
+  float value = ${variable};
+  if (value == fillValue || value > clim.y) {
     discard;
     return;
   }
-
-  float value = ${variable};
-
   if (value < clim.x) {
-    gl_FragColor = vec4(0.0);
+    discard;
     return;
   }
 
@@ -29,6 +28,25 @@ const ZarrLayer = () => {
   const colormap = useColormapRGB(riskConfig.colormap, {
     count: colorLimits.type === 'discrete' ? 5 : 256,
   })
+  const [zoom, setZoom] = useState(map?.getZoom() ?? 0)
+
+  useEffect(() => {
+    if (!map) return
+    const handleZoom = () => {
+      setZoom(map.getZoom())
+    }
+    setZoom(map.getZoom())
+    map.on('zoom', handleZoom)
+    return () => {
+      map.off('zoom', handleZoom)
+    }
+  }, [map])
+
+  const opacity = useMemo(() => {
+    if (zoom < 13) return 1
+    if (zoom >= 13.25) return 0
+    return 1 - (zoom - 13) / (13.25 - 13)
+  }, [zoom])
 
   return (
     <MapProvider map={map}>
@@ -42,6 +60,7 @@ const ZarrLayer = () => {
         variable={'USFS_RPS'}
         fillValue={NaN}
         frag={frag('USFS_RPS')}
+        opacity={opacity}
       />
     </MapProvider>
   )
