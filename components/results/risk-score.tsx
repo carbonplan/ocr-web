@@ -4,8 +4,15 @@ import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
+import {
+  Chart,
+  AxisLabel,
+  //@ts-expect-error - carbonplan charts types not available
+} from '@carbonplan/charts'
+import { mix } from '@theme-ui/color'
+import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
-import { useScoreColor } from '@/lib/colormaps'
+import { useColormap, useScoreColor } from '@/lib/colormaps'
 import { getRiskScore } from '@/lib/risk-utils'
 import { formatAddress } from '@/lib/address-utils'
 import ValueBadge from './value-badge'
@@ -15,11 +22,13 @@ const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
+  const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
 
   const displayBuilding = selectedBuilding || hoveredBuilding
 
   const riskScore = getRiskScore(displayBuilding, timePeriod)
-  const scoreColor = useScoreColor(riskScore, 'primary')
+  const colormap = useColormap()
+  const scoreColor = useScoreColor(riskScore, 'muted')
 
   return (
     <>
@@ -32,7 +41,7 @@ const RiskScore = () => {
             fontSize: [4, 4, 4, 5],
             width: [80, 80, 80, 150],
             height: [32, 32, 32, 40],
-            color: scoreColor,
+            backgroundColor: scoreColor,
             flexShrink: 0,
           }}
         >
@@ -57,7 +66,7 @@ const RiskScore = () => {
           )}
         </Box>
       </Flex>
-      <Flex sx={{ gap: 1, mt: 3, alignItems: 'flex-start' }}>
+      <Flex sx={{ gap: '2px', mt: 3, alignItems: 'flex-start' }}>
         <ValueBadge
           value='0'
           unit='#'
@@ -71,7 +80,7 @@ const RiskScore = () => {
                 sx={{
                   position: 'absolute',
                   height: `5px`,
-                  bottom: '-8px',
+                  bottom: '-10px',
                   left: '-2.5px',
                   borderColor: 'secondary',
                   borderStyle: 'solid',
@@ -82,22 +91,40 @@ const RiskScore = () => {
               <Box
                 sx={{
                   position: 'absolute',
-                  bottom: '-24px',
-                  left: '-8px',
+                  bottom: '-26px',
+                  left: `-${String(bins[i]).length * 4 + 4}px`,
                   fontSize: 0,
                   fontFamily: 'mono',
                   letterSpacing: 'mono',
-                  color: 'secondary',
+                  color:
+                    scoreColor === colormap[i] || scoreColor === colormap[i - 1]
+                      ? 'primary'
+                      : 'secondary',
                   userSelect: 'none',
                 }}
               >
-                TK
+                {bins[i]}%
               </Box>
 
-              <ValueBadge value={`${i + 1}`} unit='#' sx={{ width: '100%' }} />
+              <ValueBadge
+                value={`${i + 1}`}
+                unit='#'
+                sx={{
+                  width: '100%',
+                  color: mix('primary', 'background', 0.999 ** (i * i * i)),
+                  backgroundColor: colormap[i],
+                }}
+              />
             </Box>
           ))}
       </Flex>
+      <Box sx={{ width: '100%', mt: 6, pb: 1 }}>
+        <Chart x={[0, 1]} y={[0, 1]}>
+          <AxisLabel bottom units='%'>
+            Risk of loss
+          </AxisLabel>
+        </Chart>
+      </Box>
     </>
   )
 }
