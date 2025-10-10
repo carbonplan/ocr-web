@@ -3,10 +3,11 @@ import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import { Geocode, Results, Display } from '@/components'
 import { Drawer } from 'vaul'
+import ClimateSelector from './climate-selector'
 
 const MobileDrawer = () => {
   // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
-  const snapPoints = useMemo(() => ['135px', 0.54, 0.94, 0.94, 0.94], [])
+  const snapPoints = useMemo(() => ['140px', 0.54, 0.94, 0.94, 0.94], [])
 
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -94,6 +95,7 @@ const MobileDrawer = () => {
               <Box as={Drawer.Handle} sx={{ mt: 2 }} />
               <Box sx={{ px: 4 }}>
                 <Geocode />
+                <ClimateSelector />
               </Box>
             </Box>
 
