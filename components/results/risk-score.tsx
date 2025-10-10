@@ -1,10 +1,6 @@
 import React from 'react'
 import { Box, Flex, Grid } from 'theme-ui'
 import {
-  Badge,
-  //@ts-expect-error - carbonplan components types not available
-} from '@carbonplan/components'
-import {
   Chart,
   AxisLabel,
   //@ts-expect-error - carbonplan charts types not available
@@ -32,7 +28,10 @@ const RiskScore = () => {
         Risk score
       </Box>
       <Flex sx={{ gap: 3 }}>
-        <Badge
+        <ValueBadge
+          value={score}
+          unit='#'
+          color={color}
           sx={{
             fontSize: [4, 4, 4, 5],
             width: [80, 80, 80, 150],
@@ -40,9 +39,7 @@ const RiskScore = () => {
             backgroundColor: color,
             flexShrink: 0,
           }}
-        >
-          {displayBuilding ? score : '#'}
-        </Badge>
+        />
         <Box
           sx={{
             fontFamily: 'mono',
@@ -54,8 +51,8 @@ const RiskScore = () => {
         >
           {selectedBuilding && selectedLocation ? (
             <>
-              {formatAddress(selectedLocation.address, true)} has a risk score
-              of {score} out of 10
+              {formatAddress(selectedLocation.address, true) || 'This building'}{' '}
+              has a risk score of {score} out of 10
             </>
           ) : (
             'Select a building to view its fire risk'
