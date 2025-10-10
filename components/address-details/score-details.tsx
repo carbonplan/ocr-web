@@ -49,7 +49,6 @@ const ScoreDetails = () => {
     windRisk,
     colormap,
     colorLimits,
-    riskConfig.binRatios,
     'primary',
   )
 

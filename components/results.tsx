@@ -37,7 +37,6 @@ const Results = () => {
     riskScore,
     colormap,
     colorLimits,
-    riskConfig.binRatios,
     'primary',
   )
   return (

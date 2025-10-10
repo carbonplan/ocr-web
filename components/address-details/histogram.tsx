@@ -63,15 +63,8 @@ const Histogram = ({
   })
 
   const scoreColor = useMemo(
-    () =>
-      getColorForRiskScore(
-        score,
-        colormap,
-        colorLimits,
-        riskConfig.binRatios,
-        'secondary',
-      ),
-    [score, colormap, colorLimits, riskConfig.binRatios],
+    () => getColorForRiskScore(score, colormap, colorLimits, 'secondary'),
+    [score, colormap, colorLimits],
   )
 
   const maxCount: number = useMemo(() => Math.max(...data), [data])
