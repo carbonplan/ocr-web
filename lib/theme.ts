@@ -19,6 +19,14 @@ const customVariants = {
     textTransform: 'uppercase' as const,
     letterSpacing: 'smallcaps',
   },
+
+  description: {
+    fontFamily: 'mono',
+    letterSpacing: 'mono',
+    textTransform: 'uppercase',
+    fontSize: 1,
+    lineHeight: 1.2,
+  },
 }
 
 const theme = merge(baseTheme, customVariants as Partial<typeof baseTheme>)

@@ -40,15 +40,7 @@ const RiskScore = () => {
             flexShrink: 0,
           }}
         />
-        <Box
-          sx={{
-            fontFamily: 'mono',
-            letterSpacing: 'mono',
-            textTransform: 'uppercase',
-            fontSize: 1,
-            lineHeight: 1.2,
-          }}
-        >
+        <Box variant='description'>
           {selectedBuilding && selectedLocation ? (
             <>
               {formatAddress(selectedLocation.address, true) || 'This building'}{' '}

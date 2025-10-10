@@ -15,10 +15,6 @@ import ValueBadge from './value-badge'
 
 const sx = {
   label: {
-    fontSize: 1,
-    fontFamily: 'mono',
-    letterSpacing: 'mono',
-    textTransform: 'uppercase',
     mb: 1,
     position: 'relative',
   } as ThemeUIStyleObject,
@@ -49,7 +45,7 @@ const RiskCalculation = () => {
           wildfire.
         </Column>
         <Column start={1} width={1}>
-          <Box sx={sx.label}>
+          <Box variant='description' sx={sx.label}>
             Risk
             <br />
             of loss
@@ -58,7 +54,7 @@ const RiskCalculation = () => {
           <ValueBadge value={risk} />
         </Column>
         <Column start={2} width={1}>
-          <Box sx={sx.label}>
+          <Box variant='description' sx={sx.label}>
             Burn probability
             <Box
               sx={{
@@ -74,7 +70,9 @@ const RiskCalculation = () => {
           <ValueBadge value={bp} lowValue={bp === 0 && !!risk && risk > 0} />
         </Column>
         <Column start={3} width={1}>
-          <Box sx={sx.label}>Conditional risk</Box>
+          <Box variant='description' sx={sx.label}>
+            Conditional risk
+          </Box>
           <ValueBadge value={conditionalRisk} unit='#' />
         </Column>
       </Row>
