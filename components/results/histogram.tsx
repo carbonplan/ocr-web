@@ -12,7 +12,6 @@ import {
 } from '@carbonplan/charts'
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
-import { useScoreColor } from '@/lib/colormaps'
 
 const BINS = [
   0, // true 0%
@@ -44,18 +43,14 @@ export const formatValue = (value: number) => {
 }
 
 const Histogram = ({
-  score,
   data,
   sx,
 }: {
   address: string
   region: string
-  score: number | null
   data: number[]
   sx?: ThemeUIStyleObject
 }) => {
-  const scoreColor = useScoreColor(score, 'secondary')
-
   const maxCount: number = useMemo(() => Math.max(...data), [data])
 
   const { plotData, xRange, tickValues, tickLabelValues } = useMemo(() => {
@@ -117,24 +112,7 @@ const Histogram = ({
           </AxisLabel>
           <AxisLabel left>Number buildings</AxisLabel>
           <Plot>
-            <Bar
-              width={0.75}
-              data={plotData}
-              color={data.map((_, i) => {
-                let isInBin = false
-                if (typeof score === 'number') {
-                  if (i === 0) {
-                    isInBin = score === 0
-                  } else if (i === BINS.length - 1) {
-                    isInBin = score > BINS[i - 1]
-                  } else {
-                    const prevBin = i === 1 ? 0.01 : BINS[i - 1] + 0.01
-                    isInBin = score >= prevBin && score <= BINS[i]
-                  }
-                }
-                return isInBin ? scoreColor : 'primary'
-              })}
-            />
+            <Bar width={0.75} data={plotData} color='primary' />
           </Plot>
         </Chart>
       </Box>

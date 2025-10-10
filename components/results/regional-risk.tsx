@@ -6,34 +6,26 @@ import { Button, Filter, Table } from '@carbonplan/components'
 import { RotatingArrow } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 
-import {
-  getRiskScore,
-  getGeographyRisk,
-  getCountyName,
-  getGeographyMedianRiskKey,
-} from '@/lib/risk-utils'
+import { getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { Download } from './download'
 import Histogram, { formatValue } from './histogram'
 import ValueBadge from './value-badge'
+import { useScore } from '@/hooks/useScore'
 
 type Geography = 'county' | 'censusTract'
 const RegionalRisk = () => {
   const [geography, setGeography] = useState<Geography>()
-  const timePeriod = useStore((state) => state.timePeriod)
   const selectedLocation = useStore((state) => state.selectedLocation)
-  const riskScore = useStore((state) =>
-    getRiskScore(state.selectedBuilding, state.timePeriod),
-  )
-
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
   const activeGeography = useStore(
     useShallow((state) => geography && state.activeGeographies[geography]),
   )
+  const { score, color } = useScore(activeGeography ?? null, 'muted')
   const data = useStore(
     useShallow((state) =>
       geography
@@ -92,14 +84,7 @@ const RegionalRisk = () => {
               }
               unit='#'
             />,
-            <ValueBadge
-              key='median'
-              value={
-                activeGeography &&
-                activeGeography[getGeographyMedianRiskKey(timePeriod)]
-              }
-              unit='#'
-            />,
+            <ValueBadge key='median' value={score} unit='#' sx={{ color }} />,
           ],
         ]}
         index={false}
@@ -143,7 +128,6 @@ const RegionalRisk = () => {
           region={
             geography === 'county' ? `${countyName} County` : 'the census tract'
           }
-          score={riskScore}
           data={data}
           sx={geography ? undefined : { opacity: 0.1 }}
         />

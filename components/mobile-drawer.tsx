@@ -1,14 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-//@ts-expect-error - carbonplan components types not available
-import { Badge } from '@carbonplan/components'
-//@ts-expect-error - carbonplan icons types not available
-import { Search } from '@carbonplan/icons'
 import { Geocode, Results, Display } from '@/components'
 import { Drawer } from 'vaul'
-import { useScoreColor } from '@/lib/colormaps'
-import { getRiskScore } from '@/lib/risk-utils'
 
 const MobileDrawer = () => {
   // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
@@ -18,10 +12,6 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const score = useStore((state) =>
-    getRiskScore(state.selectedBuilding, state.timePeriod),
-  )
-  const scoreColor = useScoreColor(score, 'primary')
 
   useEffect(() => {
     if (selectedBuilding) {
@@ -103,17 +93,7 @@ const MobileDrawer = () => {
             >
               <Box as={Drawer.Handle} sx={{ mt: 2 }} />
               <Box sx={{ px: 4 }}>
-                <Geocode
-                  leftAccessory={
-                    score != null ? (
-                      <Badge sx={{ color: scoreColor }}>
-                        {score.toFixed(2)}%
-                      </Badge>
-                    ) : (
-                      <Search />
-                    )
-                  }
-                />
+                <Geocode />
               </Box>
             </Box>
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Box, Flex, Grid } from 'theme-ui'
 import {
   Badge,
@@ -12,13 +12,12 @@ import {
 import { mix } from '@theme-ui/color'
 import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
-import { useColormap, useScoreColor } from '@/lib/colormaps'
-import { getRiskScore } from '@/lib/risk-utils'
+import { useColormap } from '@/lib/colormaps'
 import { formatAddress } from '@/lib/address-utils'
 import ValueBadge from './value-badge'
+import { useScore } from '@/hooks/useScore'
 
 const RiskScore = () => {
-  const timePeriod = useStore((state) => state.timePeriod)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
@@ -26,22 +25,7 @@ const RiskScore = () => {
   const colormap = useColormap()
 
   const displayBuilding = selectedBuilding || hoveredBuilding
-
-  const riskScore = getRiskScore(displayBuilding, timePeriod)
-  const integerScore = useMemo(() => {
-    if (typeof riskScore === 'number') {
-      return (
-        bins.findIndex((bin, i) =>
-          i === bins.length - 1 && riskScore >= bin
-            ? i
-            : riskScore >= bin && riskScore < bins[i + 1],
-        ) + 1
-      )
-    } else {
-      return null
-    }
-  }, [riskScore, bins])
-  const scoreColor = useScoreColor(riskScore, 'muted')
+  const { score, color } = useScore(displayBuilding, 'muted')
 
   return (
     <>
@@ -54,11 +38,11 @@ const RiskScore = () => {
             fontSize: [4, 4, 4, 5],
             width: [80, 80, 80, 150],
             height: [32, 32, 32, 40],
-            backgroundColor: scoreColor,
+            backgroundColor: color,
             flexShrink: 0,
           }}
         >
-          {displayBuilding ? integerScore : '#'}
+          {displayBuilding ? score : '#'}
         </Badge>
         <Box
           sx={{
@@ -72,7 +56,7 @@ const RiskScore = () => {
           {selectedBuilding && selectedLocation ? (
             <>
               {formatAddress(selectedLocation.address, true)} has a risk score
-              of {integerScore} out of 10
+              of {score} out of 10
             </>
           ) : (
             'Select a building to view its fire risk'
@@ -85,7 +69,7 @@ const RiskScore = () => {
           unit='#'
           sx={{
             backgroundColor: 'muted',
-            color: integerScore === 0 ? 'primary' : 'secondary',
+            color: score === '0' ? 'primary' : 'secondary',
           }}
         />
         <Grid
@@ -120,15 +104,14 @@ const RiskScore = () => {
                     fontFamily: 'mono',
                     letterSpacing: 'mono',
                     color:
-                      scoreColor === colormap[i] ||
-                      scoreColor === colormap[i - 1]
+                      color === colormap[i] || color === colormap[i - 1]
                         ? 'primary'
                         : 'secondary',
                     userSelect: 'none',
                     transition: 'color 0.2s',
                   }}
                 >
-                  {bins[i]}%
+                  {bins[i]}%{i === bins.length - 1 ? '+' : ''}
                 </Box>
 
                 <ValueBadge
@@ -144,7 +127,7 @@ const RiskScore = () => {
             ))}
         </Grid>
       </Flex>
-      <Box sx={{ width: '100%', mt: 6, pb: 1 }}>
+      <Box sx={{ width: '100%', mt: '56px', pb: 1 }}>
         <Chart x={[0, 1]} y={[0, 1]}>
           <AxisLabel bottom units='%'>
             Risk of loss

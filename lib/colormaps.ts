@@ -2,7 +2,6 @@ import chroma from 'chroma-js'
 import { useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
 import { useStore } from './store'
-import { useShallow } from 'zustand/shallow'
 
 export interface ColormapOptions {
   count?: number
@@ -85,38 +84,4 @@ export function useColormap(
   return useMemo(() => {
     return generateColormap(colormap, { ...options, mode, count })
   }, [colormap, options, mode, count])
-}
-
-export const useScoreColor = (
-  score: number | null,
-  fallbackColor: string = 'secondary',
-  options?: Omit<ColormapOptions, 'mode' | 'count'>,
-) => {
-  const colormap = useColormap(options)
-  const isDiscrete = useStore((state) => state.colorLimits.type === 'discrete')
-  const boundaries = useStore(
-    useShallow((state) => state.colorLimits.binBoundaries),
-  )
-  const [min, max] = useStore(useShallow((state) => state.colorLimits.bounds))
-
-  if (score === null || score < min || !colormap?.length) {
-    return fallbackColor
-  }
-
-  if (isDiscrete) {
-    const binIndex = boundaries.findIndex((boundary, i) =>
-      i === boundaries.length - 1
-        ? i
-        : score >= boundary && score < boundaries[i + 1],
-    )
-
-    return colormap[binIndex]
-  } else {
-    const normalizedScore = Math.min(
-      Math.max((score - min) / (max - min), 0),
-      1,
-    )
-    const colormapIndex = Math.floor(normalizedScore * (colormap.length - 1))
-    return colormap[colormapIndex]
-  }
 }
