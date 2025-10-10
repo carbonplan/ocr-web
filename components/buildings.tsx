@@ -264,7 +264,7 @@ const Buildings = () => {
               ? [0, -window.innerHeight / 4]
               : [(sidebarWidthRef.current - 50) / 2, 0]
 
-          map.flyTo({
+          map.easeTo({
             center: [lng, lat],
             offset,
           })
