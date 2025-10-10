@@ -65,7 +65,7 @@ const RiskCalculation = () => {
               x
             </Box>
           </Box>
-          <ValueBadge value={bp} />
+          <ValueBadge value={bp} lowValue={bp === 0 && !!risk && risk > 0} />
         </Column>
         <Column start={3} width={1}>
           <Box sx={sx.label}>Conditional risk</Box>

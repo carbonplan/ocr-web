@@ -7,7 +7,7 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
-import { getAdjustedBurnProbability } from '@/lib/risk-utils'
+import { getAdjustedBurnProbability, getRiskScore } from '@/lib/risk-utils'
 import ValueBadge from './value-badge'
 
 const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
@@ -16,9 +16,13 @@ const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
     : null
 
 const TimeHorizons = () => {
+  const risk = useStore((state) =>
+    getRiskScore(state.selectedBuilding, state.timePeriod),
+  )
   const bp = useStore((state) =>
     getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
+  const isLowBp = bp === 0 && !!risk && risk > 0
 
   return (
     <>
@@ -38,9 +42,17 @@ const TimeHorizons = () => {
         data={[
           ['1 year', '15 years', '30 years'],
           [
-            <ValueBadge key={1} value={bp} />,
-            <ValueBadge key={15} value={getProbabilityOverHorizon(15, bp)} />,
-            <ValueBadge key={30} value={getProbabilityOverHorizon(30, bp)} />,
+            <ValueBadge key={1} value={bp} lowValue={isLowBp} />,
+            <ValueBadge
+              key={15}
+              value={getProbabilityOverHorizon(15, bp)}
+              lowValue={isLowBp}
+            />,
+            <ValueBadge
+              key={30}
+              value={getProbabilityOverHorizon(30, bp)}
+              lowValue={isLowBp}
+            />,
           ],
         ]}
         borderTop={false}
