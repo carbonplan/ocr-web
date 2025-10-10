@@ -28,7 +28,8 @@ const Results = () => {
   const displayBuilding = selectedBuilding || hoveredBuilding
 
   const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+    count:
+      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
   })
 
   const riskScore = getRiskScore(displayBuilding, timePeriod)
