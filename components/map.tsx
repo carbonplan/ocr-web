@@ -23,7 +23,7 @@ import {
   MapAttribution,
   useMapControlStyles,
 } from './'
-import { DATA_URLS, LAYERS } from '@/lib/config'
+import { DATA_URLS, LAYERS, USE_WMS_LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
 const MapComponent = () => {
@@ -158,7 +158,7 @@ const MapComponent = () => {
           <MapAttribution />
           <SatelliteLayer />
           <HillshadeLayer />
-          <WmsLayers />
+          {USE_WMS_LAYERS ? <WmsLayers /> : <ZarrLayer />}
           <GeographyLayer
             config={LAYERS.counties}
             geographyKey='county'
@@ -170,7 +170,6 @@ const MapComponent = () => {
             environmentUrl={DATA_URLS.vector.censusTracts}
           />
           <Buildings />
-          <ZarrLayer />
           <SelectionMarker />
         </>
       )}

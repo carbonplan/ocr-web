@@ -80,3 +80,7 @@ export const RISKS = {
     },
   },
 } as const
+
+export const USE_WMS_LAYERS =
+  typeof process.env.NEXT_PUBLIC_RISK_RASTER_URL !== 'undefined' &&
+  process.env.NEXT_PUBLIC_RISK_RASTER_URL !== ''
