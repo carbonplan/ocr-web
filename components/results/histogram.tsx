@@ -44,6 +44,7 @@ export const formatValue = (value: number) => {
 
 const Histogram = ({
   data,
+  region,
   sx,
 }: {
   address: string
@@ -90,7 +91,7 @@ const Histogram = ({
 
   return (
     <Box sx={sx}>
-      <Box sx={{ height: '250px' }}>
+      <Box sx={{ height: '200px' }}>
         <Chart x={xRange} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
           <Ticks left />
           <Ticks bottom values={tickValues} />
@@ -107,10 +108,11 @@ const Histogram = ({
           <TickLabels left format={formatValue} />
           <Grid horizontal />
           <Axis left bottom />
-          <AxisLabel bottom units='%'>
-            Risk of structure loss
+          <AxisLabel bottom arrow={false}>
+            Risk scores in {region}
           </AxisLabel>
           <AxisLabel left>Number buildings</AxisLabel>
+
           <Plot>
             <Bar width={0.75} data={plotData} color='primary' />
           </Plot>
