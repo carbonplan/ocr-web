@@ -22,6 +22,10 @@ const Legend = () => {
     setBoundariesInput(colorLimits.binBoundaries.join(', '))
   }, [colorLimits.binBoundaries])
 
+  if (!advancedMode) {
+    return null
+  }
+
   // Generate tick values for discrete mode - one for each boundary
   const discreteTicks = isDiscrete
     ? colorLimits.binBoundaries.map((_, i) => i)
