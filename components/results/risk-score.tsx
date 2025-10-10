@@ -12,6 +12,8 @@ import { formatAddress } from '@/lib/address-utils'
 import { useScore } from '@/hooks/useScore'
 import ValueBadge from './value-badge'
 
+const scoreHeight = [36, 36, 36, 45]
+
 const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
@@ -27,7 +29,7 @@ const RiskScore = () => {
       <Box variant='sectionHeading' sx={{ mt: 3 }}>
         Risk score
       </Box>
-      <Flex sx={{ gap: 3 }}>
+      <Flex sx={{ gap: 3, minHeight: scoreHeight }}>
         <ValueBadge
           value={score}
           unit='#'
@@ -35,7 +37,7 @@ const RiskScore = () => {
           sx={{
             fontSize: [4, 4, 4, 5],
             width: [80, 80, 80, 150],
-            height: [32, 32, 32, 40],
+            height: scoreHeight,
             backgroundColor: color,
             flexShrink: 0,
           }}
