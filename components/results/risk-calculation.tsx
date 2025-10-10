@@ -43,7 +43,7 @@ const RiskCalculation = () => {
   return (
     <>
       <Box variant='sectionHeading'>Calculating risk</Box>
-      <Row columns={3} variant='labelFieldContainer' sx={{ mt: 0 }}>
+      <Row columns={3} sx={{ mb: 0 }}>
         <Column start={1} width={3} sx={{ mb: 2 }}>
           Risk scores are based on an estimation of damage likelihood due to
           wildfire.

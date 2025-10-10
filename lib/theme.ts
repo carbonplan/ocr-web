@@ -19,11 +19,6 @@ const customVariants = {
     textTransform: 'uppercase' as const,
     letterSpacing: 'smallcaps',
   },
-
-  labelFieldContainer: {
-    my: 3,
-    fontSize: [1, 2, 2, 3],
-  },
 }
 
 const theme = merge(baseTheme, customVariants as Partial<typeof baseTheme>)

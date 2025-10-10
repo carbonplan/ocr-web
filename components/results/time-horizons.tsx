@@ -33,7 +33,7 @@ const TimeHorizons = () => {
   return (
     <>
       <Box variant='sectionHeading'>Burn probability over time</Box>
-      <Row columns={3} variant='labelFieldContainer' sx={{ mt: 0 }}>
+      <Row columns={3} sx={{ mb: 3 }}>
         <Column start={1} width={3}>
           Burn probability compounds year over year at every building. This
           means that risk of loss increases as a result. These probabilities
