@@ -4,7 +4,6 @@ import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-import { mix } from '@theme-ui/color'
 import chroma from 'chroma-js'
 
 const Wrapper = ({
@@ -39,6 +38,25 @@ const ValueBadge = ({
   } else if (typeof value === 'string') {
     formattedValue = value
   }
+
+  let colors: Partial<ThemeUIStyleObject> = {}
+  if (color) {
+    // For all colormap colors...
+    if (chroma.valid(color)) {
+      // Calculate text color
+      // const brightness = chroma(color).luminance()
+      // const textColor =
+      //   brightness > 0.1 && brightness < 0.85
+      //     ? 'background'
+      //     : mix('background', 'primary', brightness)
+      colors = {
+        backgroundColor: color,
+        color: 'background', // default to background color.
+      }
+    } else {
+      colors = { backgroundColor: color, color: 'primary' } // otherwise, use primary.
+    }
+  }
   return (
     <Wrapper lowValue={lowValue}>
       {lowValue && (
@@ -59,14 +77,7 @@ const ValueBadge = ({
           fontSize: [1, 1, 1, 2],
           height: [21, 21, 21, 22],
           mb: '-5px',
-          ...(color
-            ? {
-                backgroundColor: color,
-                color: chroma.valid(color)
-                  ? mix('background', 'primary', chroma(color).luminance())
-                  : 'primary',
-              }
-            : {}),
+          ...colors,
           ...sx,
         }}
       >
