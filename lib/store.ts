@@ -91,7 +91,7 @@ export const useStore = create<Store>((set) => ({
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   colorLimits: {
-    type: 'discrete',
+    type: 'continuous',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
     binBoundaries: [0.01, 0.1, 1, 2, 3, 5, 7, 10, 15, 20],
   },
@@ -103,7 +103,7 @@ export const useStore = create<Store>((set) => ({
     set({ reverseGeocodeLoading }),
   showAddressDetails: false,
   setShowAddressDetails: (showAddressDetails) => set({ showAddressDetails }),
-  advancedMode: true,
+  advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
   clearSelections: () =>
