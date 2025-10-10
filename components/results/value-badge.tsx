@@ -4,6 +4,8 @@ import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
+import { mix } from '@theme-ui/color'
+import chroma from 'chroma-js'
 
 const Wrapper = ({
   lowValue,
@@ -57,7 +59,14 @@ const ValueBadge = ({
           fontSize: [1, 1, 1, 2],
           height: [21, 21, 21, 22],
           mb: '-5px',
-          color,
+          ...(color
+            ? {
+                backgroundColor: color,
+                color: chroma.valid(color)
+                  ? mix('background', 'primary', chroma(color).luminance())
+                  : 'primary',
+              }
+            : {}),
           ...sx,
         }}
       >

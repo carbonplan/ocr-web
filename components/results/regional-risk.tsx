@@ -83,8 +83,15 @@ const RegionalRisk = () => {
                 )
               }
               unit='#'
+              sx={{ minWidth: '34px' }}
             />,
-            <ValueBadge key='median' value={score} unit='#' sx={{ color }} />,
+            <ValueBadge
+              key='median'
+              value={score}
+              unit='#'
+              color={color}
+              sx={{ minWidth: '34px' }}
+            />,
           ],
         ]}
         index={false}

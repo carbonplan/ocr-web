@@ -9,13 +9,12 @@ import {
   AxisLabel,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
-import { mix } from '@theme-ui/color'
 import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { formatAddress } from '@/lib/address-utils'
-import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
+import ValueBadge from './value-badge'
 
 const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -117,11 +116,8 @@ const RiskScore = () => {
                 <ValueBadge
                   value={`${i + 1}`}
                   unit='#'
-                  sx={{
-                    width: '100%',
-                    color: mix('primary', 'background', 0.999 ** (i * i * i)),
-                    backgroundColor: colormap[i],
-                  }}
+                  color={colormap[i]}
+                  sx={{ width: '100%' }}
                 />
               </Flex>
             ))}
