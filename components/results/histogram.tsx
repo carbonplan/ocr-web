@@ -91,7 +91,7 @@ const Histogram = ({
 
   return (
     <Box sx={sx}>
-      <Box sx={{ height: '200px' }}>
+      <Box sx={{ height: ['200px', '200px', '200px', '250px'] }}>
         <Chart x={xRange} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
           <Ticks left />
           <Ticks bottom values={tickValues} />
