@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Box, Flex } from 'theme-ui'
+import { Box, Flex, Grid } from 'theme-ui'
 import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
@@ -79,7 +79,7 @@ const RiskScore = () => {
           )}
         </Box>
       </Flex>
-      <Flex sx={{ gap: '2px', mt: 3, alignItems: 'flex-start' }}>
+      <Flex sx={{ gap: '2px', mt: 3, alignItems: 'flex-start', width: '100%' }}>
         <ValueBadge
           value='0'
           unit='#'
@@ -88,52 +88,61 @@ const RiskScore = () => {
             color: integerScore === 0 ? 'primary' : 'secondary',
           }}
         />
-        {Array(10)
-          .fill(null)
-          .map((el, i) => (
-            <Box key={i} sx={{ flexGrow: 1, position: 'relative' }}>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  height: `5px`,
-                  bottom: '-10px',
-                  left: '-2.5px',
-                  borderColor: 'secondary',
-                  borderStyle: 'solid',
-                  borderWidth: '0px',
-                  borderLeftWidth: '1px',
-                }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  bottom: '-26px',
-                  left: `-${String(bins[i]).length * 4 + 4}px`,
-                  fontSize: 0,
-                  fontFamily: 'mono',
-                  letterSpacing: 'mono',
-                  color:
-                    scoreColor === colormap[i] || scoreColor === colormap[i - 1]
-                      ? 'primary'
-                      : 'secondary',
-                  userSelect: 'none',
-                  transition: 'color 0.2s',
-                }}
-              >
-                {bins[i]}%
-              </Box>
+        <Grid
+          sx={{
+            flexGrow: 1,
+            gridTemplateColumns: 'repeat(10, 1fr)',
+            gridGap: '2px',
+          }}
+        >
+          {Array(10)
+            .fill(null)
+            .map((el, i) => (
+              <Flex key={i} sx={{ position: 'relative' }}>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    height: `5px`,
+                    bottom: '-12px',
+                    left: '-2.5px',
+                    borderColor: 'secondary',
+                    borderStyle: 'solid',
+                    borderWidth: '0px',
+                    borderLeftWidth: '1px',
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: '-28px',
+                    left: `-${String(bins[i]).length * 4 + 4}px`,
+                    fontSize: 0,
+                    fontFamily: 'mono',
+                    letterSpacing: 'mono',
+                    color:
+                      scoreColor === colormap[i] ||
+                      scoreColor === colormap[i - 1]
+                        ? 'primary'
+                        : 'secondary',
+                    userSelect: 'none',
+                    transition: 'color 0.2s',
+                  }}
+                >
+                  {bins[i]}%
+                </Box>
 
-              <ValueBadge
-                value={`${i + 1}`}
-                unit='#'
-                sx={{
-                  width: '100%',
-                  color: mix('primary', 'background', 0.999 ** (i * i * i)),
-                  backgroundColor: colormap[i],
-                }}
-              />
-            </Box>
-          ))}
+                <ValueBadge
+                  value={`${i + 1}`}
+                  unit='#'
+                  sx={{
+                    width: '100%',
+                    color: mix('primary', 'background', 0.999 ** (i * i * i)),
+                    backgroundColor: colormap[i],
+                  }}
+                />
+              </Flex>
+            ))}
+        </Grid>
       </Flex>
       <Box sx={{ width: '100%', mt: 6, pb: 1 }}>
         <Chart x={[0, 1]} y={[0, 1]}>
