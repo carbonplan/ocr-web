@@ -64,7 +64,10 @@ const ScoreBar = ({
                         height: `5px`,
                         bottom: '-12px',
                         left: '-2.5px',
-                        borderColor: 'secondary',
+                        color:
+                          color === colormap[i] || color === colormap[i - 1]
+                            ? 'primary'
+                            : 'secondary',
                         borderStyle: 'solid',
                         borderWidth: '0px',
                         borderLeftWidth: '1px',
