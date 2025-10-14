@@ -22,7 +22,8 @@ const RiskScore = () => {
       <Flex
         sx={{
           gap: 3,
-          alignItems: ['flex-start', 'flex-start', 'flex-start', 'center'],
+          alignItems: 'center',
+          height: 34,
         }}
       >
         <ValueBadge
@@ -37,7 +38,7 @@ const RiskScore = () => {
             flexShrink: 0,
           }}
         />
-        <Box variant='description'>
+        <Box variant='description' sx={{ mt: 1 }}>
           {selectedBuilding && selectedLocation ? (
             <>
               {formatAddress(selectedLocation.address, true) || 'This building'}{' '}
