@@ -20,15 +20,20 @@ const RiskScore = () => {
       <Box variant='sectionHeading' sx={{ mt: 3 }}>
         Risk score
       </Box>
-      <Flex sx={{ gap: 3 }}>
+      <Flex
+        sx={{
+          gap: 3,
+          alignItems: ['flex-start', 'flex-start', 'flex-start', 'center'],
+        }}
+      >
         <ValueBadge
           value={score}
           unit='#'
           color={color}
           sx={{
-            fontSize: [4, 4, 4, 5],
+            fontSize: 4,
             width: [80, 80, 80, 150],
-            height: [32, 32, 32, 40],
+            height: 32,
             backgroundColor: color,
             flexShrink: 0,
           }}
