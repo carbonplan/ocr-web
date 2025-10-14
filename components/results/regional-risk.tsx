@@ -10,7 +10,7 @@ import { getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { Download } from './download'
-import Histogram, { formatValue } from './histogram'
+import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
@@ -79,7 +79,7 @@ const RegionalRisk = () => {
               key='count'
               value={
                 activeGeography &&
-                formatValue(
+                formatBuildingCount(
                   activeGeography[GEOGRAPHY_ATTRIBUTE_KEYS.building_count],
                 )
               }

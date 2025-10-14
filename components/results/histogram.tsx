@@ -11,7 +11,7 @@ import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
 import ScoreBar from './score-bar'
 
-export const formatValue = (value: number) => {
+export const formatBuildingCount = (value: number) => {
   const abs = Math.abs(value)
   if (abs === 0) {
     return '0'
@@ -82,7 +82,7 @@ const Histogram = ({
               width={0.75}
               sx={{ color: getColorForBar(count, i, score) }}
             >
-              {formatValue(count)}
+              {formatBuildingCount(count)}
             </Label>
           ))}
           <Plot>
