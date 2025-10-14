@@ -90,13 +90,13 @@ const MobileDrawer = () => {
     getRiskScore(state.selectedBuilding, state.timePeriod),
   )
   const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+    count:
+      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
   })
   const scoreColor = getColorForRiskScore(
     score,
     colormap,
     colorLimits,
-    riskConfig.binRatios,
     'primary',
   )
 

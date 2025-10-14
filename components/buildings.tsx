@@ -4,7 +4,7 @@ import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { DATA_URLS, LAYERS } from '@/lib/config'
-import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
+import { useColormap } from '@/lib/colormaps'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
@@ -26,7 +26,6 @@ const Buildings = () => {
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const { queryGeographiesAtPoint } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
-  const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
@@ -41,8 +40,8 @@ const Buildings = () => {
   }, [sidebarWidth])
 
   const colormap = useColormap(riskConfig.colormap, {
-    format: 'hex',
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+    count:
+      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
   })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
@@ -63,14 +62,9 @@ const Buildings = () => {
     const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
-      const stepValues = calculateBinBoundaries(
-        colorLimits.bounds,
-        riskConfig.binRatios,
-      ).slice(1) // remove first value to shift to correct step
-
-      stepValues.forEach((value: number, index: number) => {
-        if (index < colormap.length - 1) {
-          steps.push(value, colormap[index + 1])
+      colorLimits.binBoundaries.forEach((value: number, index: number) => {
+        if (index < colormap.length) {
+          steps.push(value, colormap[index])
         }
       })
 
@@ -108,8 +102,8 @@ const Buildings = () => {
     riskAttribute,
     colorLimits.type,
     colorLimits.bounds,
+    colorLimits.binBoundaries,
     theme,
-    riskConfig.binRatios,
     riskConfig.bounds.min,
   ])
 
@@ -123,6 +117,18 @@ const Buildings = () => {
       get(theme, 'rawColors.secondary'),
     ] as ExpressionSpecification
   }, [theme])
+
+  const opacityExpression: ExpressionSpecification = useMemo(() => {
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      13,
+      1, // TODO modify when opposing fade in layer ready.
+      13.1,
+      1,
+    ] as ExpressionSpecification
+  }, [])
 
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
@@ -233,7 +239,6 @@ const Buildings = () => {
 
         const feature = features[0]
         const { lng, lat } = e.lngLat
-        isUserClick.current = true
 
         queryGeographiesAtPoint(lng, lat)
 
@@ -257,7 +262,7 @@ const Buildings = () => {
               ? [0, -window.innerHeight / 4]
               : [(sidebarWidthRef.current - 50) / 2, 0]
 
-          map.flyTo({
+          map.easeTo({
             center: [lng, lat],
             offset,
           })
@@ -319,6 +324,7 @@ const Buildings = () => {
             'source-layer': LAYERS.buildings.layerName,
             paint: {
               'fill-color': colorExpression,
+              'fill-opacity': opacityExpression,
             },
           },
           'buildings',
@@ -357,6 +363,7 @@ const Buildings = () => {
                   0.3,
                 ],
               ],
+              'line-opacity': opacityExpression,
             },
           },
           'buildings',

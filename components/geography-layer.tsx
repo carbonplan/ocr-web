@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
-import { calculateBinBoundaries, useColormap } from '@/lib/colormaps'
+import { useColormap } from '@/lib/colormaps'
 import { getGeographyAverageRiskKey } from '@/lib/risk-utils'
 
 interface GeographyLayerProps {
@@ -34,7 +34,8 @@ const GeographyLayer = ({
 
   const colormap = useColormap(riskConfig.colormap, {
     format: 'hex',
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+    count:
+      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
   })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
@@ -50,14 +51,9 @@ const GeographyLayer = ({
     const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
-      const stepValues = calculateBinBoundaries(
-        colorLimits.bounds,
-        riskConfig.binRatios,
-      ).slice(1) // remove first value to shift to correct step
-
-      stepValues.forEach((value: number, index: number) => {
-        if (index < colormap.length - 1) {
-          steps.push(value, colormap[index + 1])
+      colorLimits.binBoundaries.forEach((value: number, index: number) => {
+        if (index < colormap.length) {
+          steps.push(value, colormap[index])
         }
       })
 
@@ -95,8 +91,8 @@ const GeographyLayer = ({
     avgRiskAttribute,
     colorLimits.type,
     colorLimits.bounds,
+    colorLimits.binBoundaries,
     theme,
-    riskConfig.binRatios,
     riskConfig.bounds.min,
   ])
 

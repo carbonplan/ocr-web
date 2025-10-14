@@ -23,7 +23,7 @@ export default async function handler(
     return res.status(500).json({ message: 'HERE API key not configured' })
   }
 
-  const url = `https://maps.hereapi.com/v3/base/mc/${z}/${x}/${y}/png8?style=satellite.day&apiKey=${apiKey}`
+  const url = `https://maps.hereapi.com/v3/base/mc/${z}/${x}/${y}/png8?style=satellite.day&size=512&apiKey=${apiKey}`
 
   try {
     const response = await fetch(url)

@@ -62,19 +62,13 @@ const Histogram = ({
   const riskConfig = useStore((state) => state.riskConfig)
 
   const colormap = useColormap(riskConfig.colormap, {
-    count: colorLimits.type === 'discrete' ? 5 : 256,
+    count:
+      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
   })
 
   const scoreColor = useMemo(
-    () =>
-      getColorForRiskScore(
-        score,
-        colormap,
-        colorLimits,
-        riskConfig.binRatios,
-        'secondary',
-      ),
-    [score, colormap, colorLimits, riskConfig.binRatios],
+    () => getColorForRiskScore(score, colormap, colorLimits, 'secondary'),
+    [score, colormap, colorLimits],
   )
 
   const maxCount: number = useMemo(() => Math.max(...data), [data])

@@ -17,6 +17,8 @@ import {
   SelectionMarker,
   GeographyLayer,
   WmsLayers,
+  SatelliteLayer,
+  HillshadeLayer,
   MapAttribution,
   useMapControlStyles,
 } from './'
@@ -28,10 +30,9 @@ const MapComponent = () => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
-  const satellite = useStore((state) => state.satellite)
   const setMapLoading = useStore((state) => state.setMapLoading)
-  const [styleLoaded, setStyleLoaded] = useState(false)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const [styleLoaded, setStyleLoaded] = useState(false)
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
@@ -45,9 +46,10 @@ const MapComponent = () => {
     addProtocol('pmtiles', protocol.tile)
 
     const initialView = getMapViewFromQuery(router.query) || {
-      lat: 47.7,
-      lng: -121.3,
-      zoom: 8,
+      // Griffith Observatory, LA
+      lat: 34.053,
+      lng: -118.245,
+      zoom: 12.0,
     }
 
     const sources: Record<string, SourceSpecification> = {
@@ -57,28 +59,7 @@ const MapComponent = () => {
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
-      satellite: {
-        type: 'raster',
-        tiles: [`/api/map/tiles/{z}/{x}/{y}`],
-        tileSize: 256,
-        attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
-      },
     }
-
-    const layers: LayerSpecification[] = [
-      {
-        id: 'satellite',
-        type: 'raster',
-        source: 'satellite',
-        paint: {
-          'raster-saturation': -0.8,
-          'raster-opacity': 0.5,
-        },
-        layout: {
-          visibility: 'none',
-        },
-      },
-    ]
 
     const newMap = new Map({
       container: mapContainer.current,
@@ -87,10 +68,14 @@ const MapComponent = () => {
         glyphs:
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
-        layers: [...layers, ...mapLayers],
+        layers: mapLayers,
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
+      maxBounds: [
+        [-130, 10],
+        [-60, 65],
+      ],
       attributionControl: false,
       dragRotate: false,
       touchZoomRotate: false,
@@ -155,17 +140,6 @@ const MapComponent = () => {
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
   }, [mapLayers, map])
 
-  useEffect(() => {
-    if (!map) return
-    if (map.getLayer('satellite')) {
-      map.setLayoutProperty(
-        'satellite',
-        'visibility',
-        satellite ? 'visible' : 'none',
-      )
-    }
-  }, [satellite, map])
-
   return (
     <Box
       ref={mapContainer}
@@ -181,6 +155,8 @@ const MapComponent = () => {
       {map && styleLoaded && (
         <>
           <MapAttribution />
+          <SatelliteLayer />
+          <HillshadeLayer />
           <WmsLayers />
           <GeographyLayer
             config={LAYERS.counties}
