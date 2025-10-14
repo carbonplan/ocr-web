@@ -75,100 +75,83 @@ const Legend = () => {
         width: [200, 200, 340, 340],
       }}
     >
-      {advancedMode ? (
-        <Box>
-          <Flex
-            sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}
-          >
-            <Filter
-              values={{
-                continuous: !isDiscrete,
-                discrete: isDiscrete,
-              }}
-              setValues={(values: Record<string, boolean>) => {
-                const type = values.discrete ? 'discrete' : 'continuous'
-                setColorLimits({
-                  type,
-                  bounds: colorLimits.bounds,
-                  binBoundaries: colorLimits.binBoundaries,
-                })
-              }}
-            />
-            {!isDiscrete && (
-              <Flex
-                sx={{
-                  alignItems: 'baseline',
-                  gap: 1,
-                  fontSize: [1, 1, 1, 2],
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                0 -
-                <Input
-                  size='xs'
-                  type='number'
-                  min={0}
-                  max={100}
-                  step={10}
-                  sx={{
-                    fontSize: [1, 1, 1, 2],
-                    '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
-                      {
-                        opacity: 1,
-                      },
-                  }}
-                  value={colorLimits.bounds[1]}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const value = parseFloat(e.target.value)
-                    if (value < 1 || value > 100) return
-                    setColorLimits({
-                      type: colorLimits.type,
-                      bounds: [riskConfig.bounds.min, value],
-                      binBoundaries: colorLimits.binBoundaries,
-                    })
-                  }}
-                />
-              </Flex>
-            )}
-          </Flex>
-          {isDiscrete && (
+      <Box>
+        <Flex sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <Filter
+            values={{
+              continuous: !isDiscrete,
+              discrete: isDiscrete,
+            }}
+            setValues={(values: Record<string, boolean>) => {
+              const type = values.discrete ? 'discrete' : 'continuous'
+              setColorLimits({
+                type,
+                bounds: colorLimits.bounds,
+                binBoundaries: colorLimits.binBoundaries,
+              })
+            }}
+          />
+          {!isDiscrete && (
             <Flex
               sx={{
-                my: 2,
-                gap: 2,
+                alignItems: 'baseline',
+                gap: 1,
+                fontSize: [1, 1, 1, 2],
+                whiteSpace: 'nowrap',
               }}
             >
+              0 -
               <Input
                 size='xs'
-                value={boundariesInput}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setBoundariesInput(e.target.value)
-                }
+                type='number'
+                min={0}
+                max={100}
+                step={10}
                 sx={{
-                  flex: 1,
-                  fontSize: [0, 0, 1, 1],
+                  fontSize: [1, 1, 1, 2],
+                  '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
+                    {
+                      opacity: 1,
+                    },
+                }}
+                value={colorLimits.bounds[1]}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = parseFloat(e.target.value)
+                  if (value < 1 || value > 100) return
+                  setColorLimits({
+                    type: colorLimits.type,
+                    bounds: [riskConfig.bounds.min, value],
+                    binBoundaries: colorLimits.binBoundaries,
+                  })
                 }}
               />
-              <Button size='xs' onClick={handleApplyBoundaries}>
-                Apply
-              </Button>
             </Flex>
           )}
-        </Box>
-      ) : (
-        <Flex
-          sx={{
-            justifyContent: 'flex-end',
-            fontFamily: 'mono',
-            letterSpacing: 'mono',
-            textTransform: 'uppercase',
-            mb: 1,
-            fontSize: [0, 0, 1, 2],
-          }}
-        >
-          Risk of structure loss (%)
         </Flex>
-      )}
+        {isDiscrete && (
+          <Flex
+            sx={{
+              my: 2,
+              gap: 2,
+            }}
+          >
+            <Input
+              size='xs'
+              value={boundariesInput}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBoundariesInput(e.target.value)
+              }
+              sx={{
+                flex: 1,
+                fontSize: [0, 0, 1, 1],
+              }}
+            />
+            <Button size='xs' onClick={handleApplyBoundaries}>
+              Apply
+            </Button>
+          </Flex>
+        )}
+      </Box>
       <Flex
         sx={{
           width: '100%',
