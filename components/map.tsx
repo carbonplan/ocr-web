@@ -47,9 +47,9 @@ const MapComponent = () => {
 
     const initialView = getMapViewFromQuery(router.query) || {
       // Griffith Observatory, LA
-      lat: 34.118,
-      lng: -118.296,
-      zoom: 14.5,
+      lat: 34.053,
+      lng: -118.245,
+      zoom: 12.0,
     }
 
     const sources: Record<string, SourceSpecification> = {

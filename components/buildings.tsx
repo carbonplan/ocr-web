@@ -124,7 +124,7 @@ const Buildings = () => {
       ['linear'],
       ['zoom'],
       13,
-      1, // tk mondify when opposing fade in layer ready.
+      1, // TODO modify when opposing fade in layer ready.
       13.1,
       1,
     ] as ExpressionSpecification
