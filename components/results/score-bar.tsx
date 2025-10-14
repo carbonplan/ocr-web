@@ -1,4 +1,3 @@
-import React from 'react'
 import { Box, Flex, Grid, ThemeUIStyleObject } from 'theme-ui'
 import {
   Chart,

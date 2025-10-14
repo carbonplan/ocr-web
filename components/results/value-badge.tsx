@@ -1,4 +1,3 @@
-import React from 'react'
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import {
   Badge,

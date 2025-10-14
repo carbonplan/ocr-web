@@ -1,5 +1,3 @@
-import React from 'react'
-
 import RiskCalculation from './risk-calculation'
 import TimeHorizons from './time-horizons'
 import OtherFactors from './other-factors'

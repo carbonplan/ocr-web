@@ -1,4 +1,3 @@
-import React from 'react'
 import { Box, Flex } from 'theme-ui'
 
 import { useStore } from '@/lib/store'
