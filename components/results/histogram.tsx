@@ -33,9 +33,10 @@ export const formatValue = (value: number) => {
 const Histogram = ({
   data,
   region,
+  score,
   sx,
 }: {
-  address: string
+  score: string | null
   region: string
   data: number[]
   sx?: ThemeUIStyleObject
@@ -69,6 +70,7 @@ const Histogram = ({
               verticalAlign='bottom'
               align='center'
               width={0.75}
+              sx={{ color: String(i) === score ? 'primary' : 'secondary' }}
             >
               {formatValue(count)}
             </Label>
@@ -77,7 +79,9 @@ const Histogram = ({
             <Bar
               width={0.75}
               data={data.map((count, i) => [i + 0.5, count])}
-              color='primary'
+              color={data.map((count, i) =>
+                String(i) === score ? 'primary' : 'secondary',
+              )}
             />
           </Plot>
         </Chart>

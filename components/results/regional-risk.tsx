@@ -8,7 +8,6 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
-import { formatAddress } from '@/lib/address-utils'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { Download } from './download'
 import Histogram, { formatValue } from './histogram'
@@ -19,6 +18,7 @@ type Geography = 'county' | 'censusTract'
 const RegionalRisk = () => {
   const [geography, setGeography] = useState<Geography>()
   const selectedLocation = useStore((state) => state.selectedLocation)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
@@ -26,6 +26,7 @@ const RegionalRisk = () => {
     useShallow((state) => geography && state.activeGeographies[geography]),
   )
   const { score, color } = useScore(activeGeography ?? null, 'muted')
+  const { score: buildingScore } = useScore(selectedBuilding)
   const data = useStore(
     useShallow((state) =>
       geography
@@ -127,15 +128,11 @@ const RegionalRisk = () => {
       </Flex>
       <Box sx={{ position: 'relative', mt: 4 }}>
         <Histogram
-          address={
-            selectedLocation?.address.houseNumber
-              ? formatAddress(selectedLocation.address, true)
-              : 'Selected building'
-          }
           region={
             geography === 'county' ? `${countyName} County` : 'the census tract'
           }
           data={data}
+          score={buildingScore}
           sx={geography ? undefined : { opacity: 0.1 }}
         />
         {!geography && (
