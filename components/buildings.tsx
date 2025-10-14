@@ -38,9 +38,6 @@ const Buildings = () => {
 
   // refs prevent stale state in event listeners
   useEffect(() => {
-    indexRef.current = index
-  }, [index])
-  useEffect(() => {
     sidebarWidthRef.current = sidebarWidth
   }, [sidebarWidth])
 
@@ -246,9 +243,7 @@ const Buildings = () => {
           )
 
           const offset: [number, number] =
-            indexRef.current < 2
-              ? [0, -window.innerHeight / 4]
-              : [(sidebarWidthRef.current - 50) / 2, 0]
+            indexRef.current < 2 ? [0, -window.innerHeight / 4] : [0, 0]
 
           map.flyTo({
             center: [lng, lat],

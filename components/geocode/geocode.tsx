@@ -30,7 +30,6 @@ const Geocode = () => {
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const map = useStore((state) => state.map)
-  const sidebarWidth = useStore((state) => state.sidebarWidth)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
   const index = useBreakpointIndex({ defaultIndex: 2 })
@@ -166,8 +165,6 @@ const Geocode = () => {
         let offset: [number, number]
         if (index < 2) {
           offset = [0, -window.innerHeight / 4]
-        } else if (location.address.houseNumber) {
-          offset = [(sidebarWidth - 50) / 2, 0]
         } else offset = [0, 0]
 
         map.flyTo({
