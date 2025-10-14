@@ -8,20 +8,11 @@ import {
   TickLabels,
   Axis,
   AxisLabel,
+  Label,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
-
-const BINS = [
-  0, // true 0%
-  5, // 0.01-5
-  10, // 5-10
-  15, // 10-15
-  20, // 15-20
-  25, // 20-2%
-  100, // 25+
-]
 
 export const formatValue = (value: number) => {
   const abs = Math.abs(value)
@@ -54,67 +45,37 @@ const Histogram = ({
 }) => {
   const maxCount: number = useMemo(() => Math.max(...data), [data])
 
-  const { plotData, xRange, tickValues, tickLabelValues } = useMemo(() => {
-    const binWidth = BINS[2] - BINS[1]
-    const halfBinWidth = binWidth / 2
-
-    const positions = BINS.map((bin, i) => {
-      if (i === 0) {
-        return -halfBinWidth
-      } else if (i === BINS.length - 1) {
-        return BINS[i - 1] + halfBinWidth
-      } else {
-        const prevBin = BINS[i - 1]
-        const currentBin = BINS[i]
-        return (prevBin + currentBin) / 2
-      }
-    })
-
-    const minPosition = Math.min(...positions)
-    const maxPosition = Math.max(...positions)
-    const padding = halfBinWidth
-
-    const ticks = BINS.slice(0, -1)
-
-    const tickLabels = [positions[0], ...BINS.slice(1, -1)]
-
-    return {
-      plotData: data.map((count, i) => [positions[i], count]),
-      xRange: [minPosition - padding, maxPosition + padding] as [
-        number,
-        number,
-      ],
-      tickValues: ticks,
-      tickLabelValues: tickLabels,
-    }
-  }, [data])
-
   return (
     <Box sx={sx}>
       <Box sx={{ height: '200px' }}>
-        <Chart x={xRange} y={[0, maxCount * 1.1]} padding={{ left: 60 }}>
+        <Chart
+          x={[-1, 11]}
+          y={[0, maxCount * 1.2]}
+          padding={{ left: 60, bottom: 22, top: 10 }}
+        >
           <Ticks left />
-          <Ticks bottom values={tickValues} />
-          <TickLabels
-            bottom
-            values={tickLabelValues}
-            format={(d: number) => {
-              if (d === tickLabelValues[0]) return '0%'
-              if (d === BINS[BINS.length - 2])
-                return `${BINS[BINS.length - 2]}%+`
-              return `${d}%`
-            }}
-          />
+          <Ticks bottom values={data.map((b, i) => i)} />
+          <TickLabels bottom values={data.map((b, i) => i)} />
           <TickLabels left format={formatValue} />
           <Grid horizontal />
           <Axis left bottom />
-          <AxisLabel bottom arrow={false}>
-            Risk scores in {region}
+          <AxisLabel left units='#'>
+            Buildings
           </AxisLabel>
-          <AxisLabel left>Number buildings</AxisLabel>
-
+          <Label
+            x={10.5}
+            y={maxCount * 1.2}
+            sx={{ color: 'primary' }}
+            align='right'
+          >
+            Risk scores in {region}
+          </Label>
           <Plot>
-            <Bar width={0.75} data={plotData} color='primary' />
+            <Bar
+              width={0.75}
+              data={data.map((count, i) => [i, count])}
+              color='primary'
+            />
           </Plot>
         </Chart>
       </Box>
