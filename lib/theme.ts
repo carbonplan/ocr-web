@@ -9,6 +9,7 @@ const customVariants = {
     textTransform: 'uppercase' as const,
     fontSize: [2, 3, 3, 4],
     mb: 2,
+    mt: 5,
   },
 
   label: {
@@ -19,9 +20,12 @@ const customVariants = {
     letterSpacing: 'smallcaps',
   },
 
-  labelFieldContainer: {
-    my: 3,
-    fontSize: [1, 2, 2, 3],
+  description: {
+    fontFamily: 'mono',
+    letterSpacing: 'mono',
+    textTransform: 'uppercase',
+    fontSize: 1,
+    lineHeight: 1.2,
   },
 }
 

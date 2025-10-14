@@ -3,7 +3,7 @@ import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
-import { getGeographyAverageRiskKey } from '@/lib/risk-utils'
+import { getGeographyMedianRiskKey } from '@/lib/risk-utils'
 
 interface GeographyLayerProps {
   config: {
@@ -29,21 +29,16 @@ const GeographyLayer = ({
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
+  const colormap = useColormap({ format: 'hex' })
 
-  const avgRiskAttribute = getGeographyAverageRiskKey(timePeriod)
-
-  const colormap = useColormap(riskConfig.colormap, {
-    format: 'hex',
-    count:
-      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
-  })
+  const medianRisk = getGeographyMedianRiskKey(timePeriod)
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
-      ['<', ['to-number', ['get', avgRiskAttribute]], riskConfig.bounds.min],
+      ['<', ['to-number', ['get', medianRisk]], riskConfig.bounds.min],
       get(theme, 'rawColors.muted'),
       expr,
     ]
@@ -59,7 +54,7 @@ const GeographyLayer = ({
 
       return [
         'step',
-        ['to-number', ['get', avgRiskAttribute]],
+        ['to-number', ['get', medianRisk]],
         colormap[0],
         ...steps,
       ] as ExpressionSpecification
@@ -78,7 +73,7 @@ const GeographyLayer = ({
       return [
         'interpolate',
         ['linear'],
-        ['to-number', ['get', avgRiskAttribute]],
+        ['to-number', ['get', medianRisk]],
         ...stops,
       ] as ExpressionSpecification
     }
@@ -88,7 +83,7 @@ const GeographyLayer = ({
     ) as ExpressionSpecification
   }, [
     colormap,
-    avgRiskAttribute,
+    medianRisk,
     colorLimits.type,
     colorLimits.bounds,
     colorLimits.binBoundaries,

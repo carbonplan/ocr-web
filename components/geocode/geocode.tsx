@@ -17,11 +17,7 @@ import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
 
-const Geocode = ({
-  leftAccessory = null,
-}: {
-  leftAccessory?: React.ReactNode | null
-}) => {
+const Geocode = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
@@ -34,8 +30,6 @@ const Geocode = ({
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const map = useStore((state) => state.map)
-  const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
   const index = useBreakpointIndex({ defaultIndex: 2 })
@@ -150,14 +144,13 @@ const Geocode = ({
 
   const clearSelectedLocation = useCallback(() => {
     clearSelections()
-    setShowAddressDetails(false)
     if (map) {
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
         sourceLayer: LAYERS.buildings.layerName,
       })
     }
-  }, [clearSelections, setShowAddressDetails, map])
+  }, [clearSelections, map])
 
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
@@ -172,8 +165,6 @@ const Geocode = ({
         let offset: [number, number]
         if (index < 2) {
           offset = [0, -window.innerHeight / 4]
-        } else if (location.address.houseNumber) {
-          offset = [(sidebarWidth - 50) / 2, 0]
         } else offset = [0, 0]
 
         map.easeTo({
@@ -185,7 +176,6 @@ const Geocode = ({
         // Highlight building after map movement completes
         if (location.address.houseNumber) {
           const handleMoveEnd = () => {
-            setShowAddressDetails(true)
             if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
               highlightBuildingAtLocation(
                 location.position.lng,
@@ -230,7 +220,6 @@ const Geocode = ({
 
   const handleDeselect = () => {
     clearSelections()
-    setShowAddressDetails(false)
     setSearchQuery('')
     setSelectedIndex(-1)
   }
@@ -246,7 +235,7 @@ const Geocode = ({
           background: 'background',
           cursor: 'pointer',
           transition: 'background-color 0.15s',
-          zIndex: 1,
+          zIndex: 2,
           px: [4, 5, 5, 6],
           mx: [-4, -5, -5, -6],
           '&:hover': {
@@ -263,7 +252,7 @@ const Geocode = ({
         <SidebarDivider sx={{ mb: 3 }} />
         <Row columns={4}>
           <Column start={1} width={1}>
-            {leftAccessory ?? <Box variant='label'>Address</Box>}
+            {<Box variant='label'>Address</Box>}
           </Column>
           <Column start={2} width={3}>
             <Flex sx={{ gap: 1 }}>
@@ -315,7 +304,7 @@ const Geocode = ({
           </Column>
         </Row>
 
-        <SidebarDivider sx={{ mt: 3 }} />
+        <SidebarDivider sx={{ my: 3, mb: 0 }} />
       </Box>
       {isEditing && (
         <Menu

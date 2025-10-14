@@ -4,15 +4,13 @@ import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar } from '@carbonplan/layouts'
 import { Display, Geocode, Results } from '../components'
-import { AddressDetails, SidebarSidecar } from './address-details'
 import Intro from './intro'
+import ClimateSelector from './climate-selector'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
-  const showAddressDetails = useStore((state) => state.showAddressDetails)
-  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
 
   useEffect(() => {
     const updateSidebarWidth = () => {
@@ -38,14 +36,11 @@ const SidebarComponent = () => {
         <div ref={sidebarRef}>
           <Intro />
           <Geocode />
+          <ClimateSelector />
           <Results />
           <Display />
         </div>
       </Sidebar>
-
-      <SidebarSidecar visible={showAddressDetails}>
-        <AddressDetails onCollapse={() => setShowAddressDetails(false)} />
-      </SidebarSidecar>
     </Box>
   )
 }
