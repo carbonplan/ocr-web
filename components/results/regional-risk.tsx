@@ -120,7 +120,11 @@ const RegionalRisk = () => {
           inverted
           suffix={<RotatingArrow />}
           disabled
-          sx={geography ? {} : { pointerEvents: 'none' }}
+          sx={
+            geography && false // TODO: remove when behavior is implemented
+              ? {}
+              : { pointerEvents: 'none', color: 'muted' }
+          }
         >
           Show on map
         </Button>

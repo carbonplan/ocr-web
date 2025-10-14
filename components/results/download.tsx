@@ -32,7 +32,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
         onClick={() => setShowModal(!showModal)}
         inverted
         suffix={<Down />}
-        sx={disabled ? { pointerEvents: 'none' } : undefined}
+        sx={disabled ? { pointerEvents: 'none', color: 'muted' } : undefined}
       >
         Download region data
       </Button>
