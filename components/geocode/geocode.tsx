@@ -17,11 +17,7 @@ import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
 
-const Geocode = ({
-  leftAccessory = null,
-}: {
-  leftAccessory?: React.ReactNode | null
-}) => {
+const Geocode = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
@@ -259,7 +255,7 @@ const Geocode = ({
         <SidebarDivider sx={{ mb: 3 }} />
         <Row columns={4}>
           <Column start={1} width={1}>
-            {leftAccessory ?? <Box variant='label'>Address</Box>}
+            {<Box variant='label'>Address</Box>}
           </Column>
           <Column start={2} width={3}>
             <Flex sx={{ gap: 1 }}>
