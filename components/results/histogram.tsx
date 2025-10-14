@@ -30,6 +30,16 @@ export const formatValue = (value: number) => {
   }
 }
 
+const getColorForBar = (count: number, index: number, score: string | null) => {
+  if (String(index) === score) {
+    return 'primary'
+  } else if (count === 0) {
+    return 'muted'
+  } else {
+    return 'secondary'
+  }
+}
+
 const Histogram = ({
   data,
   region,
@@ -70,7 +80,7 @@ const Histogram = ({
               verticalAlign='bottom'
               align='center'
               width={0.75}
-              sx={{ color: String(i) === score ? 'primary' : 'secondary' }}
+              sx={{ color: getColorForBar(count, i, score) }}
             >
               {formatValue(count)}
             </Label>
@@ -78,10 +88,14 @@ const Histogram = ({
           <Plot>
             <Bar
               width={0.75}
-              data={data.map((count, i) => [i + 0.5, count])}
-              color={data.map((count, i) =>
-                String(i) === score ? 'primary' : 'secondary',
-              )}
+              data={data.map((count, i) => [
+                i + 0.5,
+                count === 0
+                  ? 0
+                  : // Bump rendered size to ensure bar visibility
+                    Math.max(count, maxCount / 200),
+              ])}
+              color={data.map((count, i) => getColorForBar(count, i, score))}
             />
           </Plot>
         </Chart>
