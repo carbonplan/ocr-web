@@ -26,7 +26,6 @@ const Buildings = () => {
   const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
   const { queryGeographiesAtPoint } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
-  const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
@@ -240,7 +239,6 @@ const Buildings = () => {
 
         const feature = features[0]
         const { lng, lat } = e.lngLat
-        isUserClick.current = true
 
         queryGeographiesAtPoint(lng, lat)
 
