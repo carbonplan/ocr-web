@@ -4,31 +4,28 @@ import {
   Chart,
   Grid,
   Plot,
-  Ticks,
-  TickLabels,
-  Axis,
-  AxisLabel,
   Label,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
+import ScoreBar from './score-bar'
 
 export const formatValue = (value: number) => {
   const abs = Math.abs(value)
   if (abs === 0) {
     return '0'
-  } else if (abs < 0.0001) {
-    return format('.0e')(value)
-  } else if (abs < 0.01) {
-    return format('.2')(value)
-  } else if (abs < 1) {
-    return format('.2f')(value)
-  } else if (abs < 10) {
-    return format('.1f')(value)
-  } else if (abs < 10000) {
+  } else if (abs < 1000) {
+    // e.g., 6, 464, etc.
     return format('.0f')(value)
+  } else if (abs < 100000) {
+    // e.g., 5.4K, 32K, etc.
+    return format('0.2s')(value)
+  } else if (abs < 1000000) {
+    // e.g., 194K
+    return format('0.3s')(value)
   } else {
+    // e.g., 2.7M
     return format('0.2s')(value)
   }
 }
@@ -47,37 +44,44 @@ const Histogram = ({
 
   return (
     <Box sx={sx}>
-      <Box sx={{ height: '200px' }}>
+      <Box
+        sx={{
+          fontFamily: 'mono',
+          letterSpacing: 'mono',
+          textTransform: 'uppercase',
+          fontSize: [0, 0, 0, 1],
+        }}
+      >
+        Risk scores in {region}
+      </Box>
+      <Box sx={{ height: '175px', pb: '30px' }}>
         <Chart
-          x={[-1, 11]}
-          y={[0, maxCount * 1.2]}
-          padding={{ left: 60, bottom: 22, top: 10 }}
+          x={[0, 11]}
+          y={[1, maxCount * 1.1]}
+          padding={{ left: 0, bottom: 0, top: 10 }}
         >
-          <Ticks left />
-          <Ticks bottom values={data.map((b, i) => i)} />
-          <TickLabels bottom values={data.map((b, i) => i)} />
-          <TickLabels left format={formatValue} />
           <Grid horizontal />
-          <Axis left bottom />
-          <AxisLabel left units='#'>
-            Buildings
-          </AxisLabel>
-          <Label
-            x={10.5}
-            y={maxCount * 1.2}
-            sx={{ color: 'primary' }}
-            align='right'
-          >
-            Risk scores in {region}
-          </Label>
+          {data.map((count, i) => (
+            <Label
+              key={i}
+              x={i + 0.5}
+              y={count}
+              verticalAlign='bottom'
+              align='center'
+              width={0.75}
+            >
+              {formatValue(count)}
+            </Label>
+          ))}
           <Plot>
             <Bar
               width={0.75}
-              data={data.map((count, i) => [i, count])}
+              data={data.map((count, i) => [i + 0.5, count])}
               color='primary'
             />
           </Plot>
         </Chart>
+        <ScoreBar sx={{ mt: '8px' }} />
       </Box>
     </Box>
   )
