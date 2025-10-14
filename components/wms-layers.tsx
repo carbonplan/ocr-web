@@ -5,28 +5,49 @@ import { useStore } from '../lib/store'
 import { generateColormap } from '@/lib/colormaps'
 import { DATA_URLS } from '@/lib/config'
 
+const epsilon = 1e-9
+
 const WmsLayers = () => {
   const map = useStore((state) => state.map)
   const riskRaster = useStore((state) => state.riskRaster)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-
   const [colorMode] = useColorMode()
 
   const colorscaleRange = useMemo(() => {
-    const epsilon = 1e-9
     const [min, max] = colorLimits.bounds
     return `${min - epsilon},${max}`
   }, [colorLimits])
 
+  const binsParam = useMemo(() => {
+    if (
+      colorLimits.type === 'discrete' &&
+      colorLimits.binBoundaries.length > 0
+    ) {
+      // replace first value with epsilon corrected value
+      const correctedBinBoundaries = colorLimits.binBoundaries.map(
+        (value, index) => (index === 0 ? value - epsilon : value),
+      )
+      return `&bins=${correctedBinBoundaries.join(',')}`
+    }
+    return ''
+  }, [colorLimits])
+
+  const count = useMemo(() => {
+    if (colorLimits.type === 'discrete') {
+      return colorLimits.binBoundaries.length
+    }
+    return 30
+  }, [colorLimits])
+
   const lightColormap = useMemo(
-    () => generateColormap(riskConfig.colormap, { count: 30, mode: 'light' }),
-    [riskConfig.colormap],
+    () => generateColormap(riskConfig.colormap, { count, mode: 'light' }),
+    [riskConfig.colormap, count],
   )
   const darkColormap = useMemo(
-    () => generateColormap(riskConfig.colormap, { count: 30, mode: 'dark' }),
-    [riskConfig.colormap],
+    () => generateColormap(riskConfig.colormap, { count, mode: 'dark' }),
+    [riskConfig.colormap, count],
   )
 
   const riskMatrix = useMemo(() => {
@@ -37,7 +58,7 @@ const WmsLayers = () => {
     for (const themeType of themes) {
       const colormap = themeType === 'light' ? lightColormap : darkColormap
       for (const attr of riskAttributes) {
-        const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
+        const url = `${DATA_URLS.raster.risk}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}${binsParam}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
         matrix.push({
           id: `wms_risk_${attr}_${themeType}`,
           riskAttribute: attr,
@@ -47,11 +68,11 @@ const WmsLayers = () => {
       }
     }
     return matrix
-  }, [lightColormap, darkColormap, colorscaleRange])
+  }, [lightColormap, darkColormap, colorscaleRange, binsParam])
 
   const activeRiskLayerId = useMemo(() => {
-    const year = timePeriod === 'current' ? '2011' : '2047'
-    const riskAttribute = `wind_risk_${year}`
+    const riskAttribute =
+      timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
     const currentTheme = colorMode === 'dark' ? 'dark' : 'light'
     return `wms_risk_${riskAttribute}_${currentTheme}`
   }, [timePeriod, colorMode])

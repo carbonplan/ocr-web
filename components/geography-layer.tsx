@@ -46,11 +46,9 @@ const GeographyLayer = ({
     const makeDiscrete = (): ExpressionSpecification => {
       const steps: (string | number)[] = []
 
-      const stepValues = colorLimits.binBoundaries.slice(1) // remove first value to shift to correct step
-
-      stepValues.forEach((value: number, index: number) => {
-        if (index < colormap.length - 1) {
-          steps.push(value, colormap[index + 1])
+      colorLimits.binBoundaries.forEach((value: number, index: number) => {
+        if (index < colormap.length) {
+          steps.push(value, colormap[index])
         }
       })
 

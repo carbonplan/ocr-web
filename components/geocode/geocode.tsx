@@ -167,7 +167,7 @@ const Geocode = () => {
           offset = [0, -window.innerHeight / 4]
         } else offset = [0, 0]
 
-        map.flyTo({
+        map.easeTo({
           center: [location.position.lng, location.position.lat],
           zoom: location.address.houseNumber ? 16 : 12,
           offset,

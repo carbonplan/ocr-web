@@ -29,7 +29,6 @@ const Buildings = () => {
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const { queryGeographiesAtPoint } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
-  const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
@@ -114,6 +113,18 @@ const Buildings = () => {
       get(theme, 'rawColors.secondary'),
     ] as ExpressionSpecification
   }, [theme])
+
+  const opacityExpression: ExpressionSpecification = useMemo(() => {
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      13,
+      1, // TODO modify when opposing fade in layer ready.
+      13.1,
+      1,
+    ] as ExpressionSpecification
+  }, [])
 
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
@@ -221,7 +232,6 @@ const Buildings = () => {
 
         const feature = features[0]
         const { lng, lat } = e.lngLat
-        isUserClick.current = true
 
         queryGeographiesAtPoint(lng, lat)
 
@@ -243,7 +253,7 @@ const Buildings = () => {
           const offset: [number, number] =
             indexRef.current < 2 ? [0, -window.innerHeight / 4] : [0, 0]
 
-          map.flyTo({
+          map.easeTo({
             center: [lng, lat],
             offset,
           })
@@ -321,6 +331,7 @@ const Buildings = () => {
             'source-layer': LAYERS.buildings.layerName,
             paint: {
               'fill-color': colorExpression,
+              'fill-opacity': opacityExpression,
             },
           },
           'buildings',
@@ -359,6 +370,7 @@ const Buildings = () => {
                   0.3,
                 ],
               ],
+              'line-opacity': opacityExpression,
             },
           },
           'buildings',
