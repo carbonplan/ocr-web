@@ -71,9 +71,9 @@ const RegionalRisk = () => {
       <Table
         columns={3}
         start={[1, 2]}
-        width={[1, 1]}
+        width={[1, 2]}
         data={[
-          ['Structures', 'Median risk'],
+          ['Structures', 'Median risk score'],
           [
             <ValueBadge
               key='count'
