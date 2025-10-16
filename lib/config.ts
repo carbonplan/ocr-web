@@ -1,4 +1,4 @@
-const DATA_VERSION = 'v0.5.0'
+const DATA_VERSION = 'v0.6.0'
 
 export const DATA_URLS = {
   vector: {
@@ -19,6 +19,9 @@ export const DATA_URLS = {
     usfsBase:
       'https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/RPS',
   },
+  downloads:
+    process.env.NEXT_PUBLIC_DOWNLOADS_URL ??
+    `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/per-region-analysis/`,
 }
 
 export const LAYERS = {
@@ -73,7 +76,6 @@ export const GEOGRAPHY_ATTRIBUTE_KEYS = {
 export const RISKS = {
   fire: {
     colormap: 'fire-risk',
-    binRatios: [0.1, 0.2, 0.5, 1],
     bounds: {
       min: 0.01,
       max: 25,

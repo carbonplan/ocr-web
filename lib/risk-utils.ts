@@ -19,13 +19,13 @@ export const getGeographyRiskKey: (
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
-export const getGeographyAverageRiskKey: (
+export const getGeographyMedianRiskKey: (
   timePeriod: ScenarioKey,
 ) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
   const key =
-    timePeriod === 'current' ? 'mean_wind_risk_2011' : 'mean_wind_risk_2047'
+    timePeriod === 'current' ? 'median_wind_risk_2011' : 'median_wind_risk_2047'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
@@ -51,6 +51,11 @@ export const getRiskScore = (
 export const getCountyName = (geography: Geography | null): string | null => {
   if (!geography) return null
   return (geography[GEOGRAPHY_ATTRIBUTE_KEYS.county_name] as string) ?? null
+}
+
+export const getGeoid = (geography: Geography | null): string | null => {
+  if (!geography) return null
+  return (geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid] as string) ?? null
 }
 
 export const getBurnProbabilityUsfs = (

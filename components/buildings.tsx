@@ -23,27 +23,22 @@ const Buildings = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const setShowAddressDetails = useStore((state) => state.setShowAddressDetails)
+  const setReverseGeocodeLoading = useStore(
+    (state) => state.setReverseGeocodeLoading,
+  )
+  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const { queryGeographiesAtPoint } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
-  const isUserClick = useRef(false)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
   const sidebarWidthRef = useRef(sidebarWidth)
+  const colormap = useColormap({ format: 'hex' })
 
   // refs prevent stale state in event listeners
   useEffect(() => {
-    indexRef.current = index
-  }, [index])
-  useEffect(() => {
     sidebarWidthRef.current = sidebarWidth
   }, [sidebarWidth])
-
-  const colormap = useColormap(riskConfig.colormap, {
-    count:
-      colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256,
-  })
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
@@ -125,8 +120,8 @@ const Buildings = () => {
       ['linear'],
       ['zoom'],
       13,
-      0,
-      13.25,
+      1, // TODO modify when opposing fade in layer ready.
+      13.1,
       1,
     ] as ExpressionSpecification
   }, [])
@@ -216,9 +211,6 @@ const Buildings = () => {
     async (e: MapMouseEvent) => {
       if (!map) return
 
-      clearSelections()
-      setShowAddressDetails(false)
-
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
       })
@@ -240,7 +232,6 @@ const Buildings = () => {
 
         const feature = features[0]
         const { lng, lat } = e.lngLat
-        isUserClick.current = true
 
         queryGeographiesAtPoint(lng, lat)
 
@@ -260,20 +251,33 @@ const Buildings = () => {
           )
 
           const offset: [number, number] =
-            indexRef.current < 2
-              ? [0, -window.innerHeight / 4]
-              : [(sidebarWidthRef.current - 50) / 2, 0]
+            indexRef.current < 2 ? [0, -window.innerHeight / 4] : [0, 0]
 
           map.easeTo({
             center: [lng, lat],
             offset,
           })
           setSelectedCoordinates({ lat, lng })
-          setShowAddressDetails(true)
+          setReverseGeocodeLoading(true)
+          const fetchLocation = async () => {
+            try {
+              const response = await fetch(
+                `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
+              )
+              if (response.ok) {
+                const location = await response.json()
+                setSelectedLocation(location)
+              }
+            } catch (error) {
+              console.error('Error fetching location details:', error)
+            } finally {
+              setReverseGeocodeLoading(false)
+            }
+          }
+          fetchLocation()
         }
       } else {
         clearSelections()
-        setShowAddressDetails(false)
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
@@ -287,7 +291,8 @@ const Buildings = () => {
       clearSelections,
       setHoveredBuilding,
       queryGeographiesAtPoint,
-      setShowAddressDetails,
+      setReverseGeocodeLoading,
+      setSelectedLocation,
     ],
   )
 

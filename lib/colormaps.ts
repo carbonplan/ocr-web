@@ -1,57 +1,7 @@
 import chroma from 'chroma-js'
 import { useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
-
-export const calculateBinBoundaries = (
-  [min, max]: [number, number],
-  ratios: readonly number[] = [0.1, 0.2, 0.5, 1],
-): number[] => {
-  const range = max - min
-  return [min, ...ratios.slice(0, -1).map((r) => min + r * range), max]
-}
-
-export const getColorForRiskScore = (
-  score: number | null,
-  colormap: string[],
-  colorLimits: {
-    type: 'continuous' | 'discrete'
-    bounds: [number, number]
-  },
-  binRatios: readonly number[] = [0.1, 0.2, 0.5, 1],
-  fallbackColor: string = 'secondary',
-): string => {
-  if (score === null || score < colorLimits.bounds[0] || !colormap?.length) {
-    return fallbackColor
-  }
-
-  const [min, max] = colorLimits.bounds
-
-  if (colorLimits.type === 'discrete') {
-    const boundaries = calculateBinBoundaries([min, max], binRatios)
-
-    let binIndex = 0
-    for (let i = 0; i < boundaries.length - 1; i++) {
-      if (score >= boundaries[i] && score < boundaries[i + 1]) {
-        binIndex = i
-        break
-      }
-      if (i === boundaries.length - 2 && score >= boundaries[i + 1]) {
-        binIndex = i + 1
-        break
-      }
-    }
-
-    binIndex = Math.min(binIndex, colormap.length - 1)
-    return colormap[binIndex]
-  } else {
-    const normalizedScore = Math.min(
-      Math.max((score - min) / (max - min), 0),
-      1,
-    )
-    const colormapIndex = Math.floor(normalizedScore * (colormap.length - 1))
-    return colormap[colormapIndex]
-  }
-}
+import { useStore } from './store'
 
 export interface ColormapOptions {
   count?: number
@@ -114,15 +64,20 @@ export function generateColormap(
 }
 
 export function useColormap(
-  name: string,
-  options: Omit<ColormapOptions, 'mode'> = {},
+  options?: Omit<ColormapOptions, 'mode' | 'count'>,
 ): string[] {
   const [colorMode] = useColorMode()
+  const colormap = useStore((state) => state.riskConfig.colormap)
+  const count = useStore((state) =>
+    state.colorLimits.type === 'discrete'
+      ? state.colorLimits.binBoundaries.length
+      : 256,
+  )
   const mode = colorMode === 'dark' ? 'dark' : 'light'
 
   return useMemo(() => {
-    return generateColormap(name, { ...options, mode })
-  }, [name, options, mode])
+    return generateColormap(colormap, { ...options, mode, count })
+  }, [colormap, options, mode, count])
 }
 
 export function useColormapRGB(

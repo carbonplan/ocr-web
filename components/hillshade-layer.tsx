@@ -25,7 +25,6 @@ const HillshadeLayer = () => {
     }
 
     if (!map.getLayer(layerId)) {
-      const firstLayerId = map.getStyle().layers?.[0]?.id
       map.addLayer(
         {
           id: layerId,
@@ -35,7 +34,7 @@ const HillshadeLayer = () => {
             'hillshade-exaggeration': 0.08,
           },
         },
-        firstLayerId,
+        'landcover',
       )
     }
   }, [map])
