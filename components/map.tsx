@@ -158,7 +158,8 @@ const MapComponent = () => {
           <MapAttribution />
           <SatelliteLayer />
           <HillshadeLayer />
-          {USE_WMS_LAYERS ? <WmsLayers /> : <ZarrLayer />}
+          <WmsLayers />
+          <ZarrLayer />
           <GeographyLayer
             config={LAYERS.counties}
             geographyKey='county'

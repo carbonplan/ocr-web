@@ -91,6 +91,7 @@ const ZarrLayer = () => {
   }, [map])
 
   const opacity = useMemo(() => {
+    return 1
     if (zoom < 13) return 1
     if (zoom >= 13.25) return 0
     return 1 - (zoom - 13) / (13.25 - 13)
@@ -99,7 +100,7 @@ const ZarrLayer = () => {
   const fragShader = useMemo(
     () =>
       createFragShader(
-        'USFS_RPS',
+        'wind_risk_2011',
         colorLimits.type === 'discrete',
         colorLimits.binBoundaries,
         colormapCount,
@@ -114,9 +115,9 @@ const ZarrLayer = () => {
         clim={colorLimits.bounds}
         mode={'texture'}
         source={
-          'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/pyr/single_var_clipped_11_512.zarr'
+          'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/ndpyramid/combined_12_512.zarr'
         }
-        variable={'USFS_RPS'}
+        variable={'wind_risk_2011'}
         fillValue={NaN}
         frag={fragShader}
         opacity={opacity}
