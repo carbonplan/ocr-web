@@ -21,7 +21,7 @@ export const DATA_URLS = {
   },
   downloads:
     process.env.NEXT_PUBLIC_DOWNLOADS_URL ??
-    `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/per-region-analysis/`,
+    `TK?environment=production&version=${DATA_VERSION}`,
 }
 
 export const LAYERS = {

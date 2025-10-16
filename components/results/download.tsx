@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Box } from 'theme-ui'
+import { Box, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
@@ -13,16 +13,53 @@ interface DownloadProps {
   disabled?: boolean
 }
 
+const DownloadButton = ({
+  label,
+  loading,
+  onClick,
+}: {
+  label: string
+  loading: boolean
+  onClick: () => void
+}) => {
+  return (
+    <Button
+      size='xs'
+      suffix={loading ? <Spinner sx={{ mt: -1 }} /> : <RotatingArrow />}
+      disabled={loading}
+      onClick={onClick}
+      sx={{
+        color: loading ? 'secondary' : 'primary',
+        '&:disabled': { pointerEvents: 'none' },
+      }}
+    >
+      {label}
+    </Button>
+  )
+}
+
 export const Download = ({ disabled, geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
+  const [loading, setLoading] = useState({ csv: false, geojson: false })
   const activeGeographyId = useStore((state) =>
     getGeoid(state.activeGeographies[geography]),
   )
 
-  const handleDownload = (format: 'csv' | 'geojson') => {
-    const url = `${DATA_URLS.downloads}${geography}/${format}/${activeGeographyId}.${format}`
-    window.open(url, '_blank')
-    setShowModal(false)
+  const handleClick = async (format: 'csv' | 'geojson') => {
+    const url = `${DATA_URLS.downloads}&geography=${geography}&format=${format}&geoid=${activeGeographyId}`
+    setLoading((prev) => ({ ...prev, [format]: true }))
+    try {
+      const res = await fetch(url)
+      const payload = await res.json()
+      if (!payload?.url) {
+        throw Error('Error generating download')
+      }
+      window.open(payload.url, '_blank')
+      setLoading((prev) => ({ ...prev, [format]: false }))
+      setShowModal(false)
+    } catch {
+      setLoading((prev) => ({ ...prev, [format]: false }))
+    }
   }
 
   return (
@@ -78,20 +115,16 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
             <Box
               sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 3 }}
             >
-              <Button
-                size='xs'
-                suffix={<RotatingArrow />}
-                onClick={() => handleDownload('csv')}
-              >
-                CSV
-              </Button>
-              <Button
-                size='xs'
-                suffix={<RotatingArrow />}
-                onClick={() => handleDownload('geojson')}
-              >
-                GeoJSON
-              </Button>
+              <DownloadButton
+                label='CSV'
+                loading={loading.csv}
+                onClick={() => handleClick('csv')}
+              />
+              <DownloadButton
+                label='GeoJSON'
+                loading={loading.geojson}
+                onClick={() => handleClick('geojson')}
+              />
             </Box>
           </Box>
         </>
