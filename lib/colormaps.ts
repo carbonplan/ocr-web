@@ -12,9 +12,25 @@ export function generateFireRiskColormap(
   options: ColormapOptions = {},
 ): string[] {
   const { count = 10, mode = 'dark' } = options
+
+  const red = chroma('#f57273')
+  const orange = chroma('#e39046')
+  const yellow = chroma('#d4c05e')
+
+  const first = chroma.mix(red, chroma('#1b1e23'), 0.6, 'lab').hex()
+  const mid = orange.hex()
+  const end = yellow.brighten(2).hex()
+
+  const anchors = [first, mid, end]
+  const colors = chroma
+    .bezier(anchors)
+    .scale()
+    .correctLightness(true)
+    .colors(count, 'hex')
+
+  // temp testing:
   // original pallette created: https://gka.github.io/palettes/#/10|s|4a2528,d55a5d,fbfdab|ffffe0,ff005e,93003a|1|1
   // https://gka.github.io/palettes/#/10|s|542c24,ff0000,ffffb2|ffffe0,ff005e,93003a|1|1
-
   return [
     '#542c24',
     '#7e3322',
@@ -28,20 +44,6 @@ export function generateFireRiskColormap(
     '#ffffb2',
   ]
 
-  const red = chroma('#f57273')
-  const orange = chroma('#e39046')
-  const yellow = chroma('#d4c05e')
-
-  const first = chroma.mix(red, chroma('#1b1e23'), 0.6, 'lab').hex()
-  const mid = orange
-  const end = yellow.brighten(2)
-
-  const anchors = [first, mid, end]
-  const colors = chroma
-    .bezier(anchors)
-    .scale()
-    .correctLightness(true)
-    .colors(count, 'hex')
   return mode === 'dark' ? colors : [...colors].reverse()
 }
 
