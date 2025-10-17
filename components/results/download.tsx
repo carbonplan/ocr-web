@@ -6,7 +6,7 @@ import { Button } from '@carbonplan/components'
 import { Down, RotatingArrow } from '@carbonplan/icons'
 import { DATA_URLS, DATA_VERSION } from '@/lib/config'
 import { useStore } from '@/lib/store'
-import { getGeoid } from '@/lib/risk-utils'
+import { getCountyName, getGeoid } from '@/lib/risk-utils'
 
 interface DownloadProps {
   geography: 'censusTract' | 'county'
@@ -46,9 +46,16 @@ const REGION_TYPES = {
 export const Download = ({ disabled, geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState({ csv: false, geojson: false })
-  const activeGeographyId = useStore((state) =>
+  const geoid = useStore((state) =>
     getGeoid(state.activeGeographies[geography]),
   )
+  const countyName = useStore((state) =>
+    getCountyName(state.activeGeographies.county),
+  )
+  const filename =
+    geography === 'county'
+      ? `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
+      : `Census-Tract-${geoid}`
 
   const handleClick = async (format: 'csv' | 'geojson') => {
     setLoading((prev) => ({ ...prev, [format]: true }))
@@ -60,7 +67,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
           environment: 'qa', // TODO: move to env variable
           dataset_version: DATA_VERSION,
           data_format: format,
-          geoid: activeGeographyId,
+          geoid: geoid,
           region_type: REGION_TYPES[geography],
         }),
       })
@@ -68,7 +75,14 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
       if (!payload?.url) {
         throw Error('Error generating download')
       }
-      window.open(payload.url, '_blank')
+
+      const a = document.createElement('a')
+      a.href = payload.url
+      a.download = `${filename}.${format}` // explicitly trigger download and suggest filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+
       setLoading((prev) => ({ ...prev, [format]: false }))
       setShowModal(false)
     } catch {
