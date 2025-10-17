@@ -13,10 +13,30 @@ export function generateFireRiskColormap(
 ): string[] {
   const { count = 10, mode = 'dark' } = options
   // original pallette created: https://gka.github.io/palettes/#/10|s|4a2528,d55a5d,fbfdab|ffffe0,ff005e,93003a|1|1
-  const start = '#4a2528'
-  const mid = '#d55a5d'
-  const end = '#fbfdab'
-  const anchors = [start, mid, end]
+  // https://gka.github.io/palettes/#/10|s|542c24,ff0000,ffffb2|ffffe0,ff005e,93003a|1|1
+
+  return [
+    '#542c24',
+    '#7e3322',
+    '#a13e25',
+    '#bf502c',
+    '#d86638',
+    '#ec8149',
+    '#fb9e5e',
+    '#ffbf78',
+    '#ffdf94',
+    '#ffffb2',
+  ]
+
+  const red = chroma('#f57273')
+  const orange = chroma('#e39046')
+  const yellow = chroma('#d4c05e')
+
+  const first = chroma.mix(red, chroma('#1b1e23'), 0.6, 'lab').hex()
+  const mid = orange
+  const end = yellow.brighten(2)
+
+  const anchors = [first, mid, end]
   const colors = chroma
     .bezier(anchors)
     .scale()

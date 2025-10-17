@@ -91,7 +91,7 @@ const ZarrLayer = () => {
   }, [map])
 
   const opacity = useMemo(() => {
-    return 1
+    // return 1
     if (zoom < 13) return 1
     if (zoom >= 13.25) return 0
     return 1 - (zoom - 13) / (13.25 - 13)
