@@ -33,7 +33,7 @@ const MapAttribution = () => {
   useEffect(() => {
     if (!map) return
     const attributionControl = new AttributionControl({ compact: true })
-    map.addControl(attributionControl, 'bottom-left')
+    map.addControl(attributionControl, 'bottom-right')
     return () => {
       map.removeControl(attributionControl)
     }
