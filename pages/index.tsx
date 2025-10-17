@@ -11,6 +11,7 @@ import {
   MobileDrawer,
   Intro,
   Loading,
+  MapLayers,
 } from '../components'
 // @ts-expect-error - carbonplan auth types not available
 import { withAuth } from '@carbonplan/auth'
@@ -129,6 +130,7 @@ const Index = () => {
         <Sidebar />
         <MobileDrawer />
         <Loading />
+        <MapLayers />
         <Map />
         <Legend />
       </Box>
