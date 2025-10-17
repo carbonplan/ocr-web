@@ -1,4 +1,4 @@
-const DATA_VERSION = 'v0.6.0'
+export const DATA_VERSION = 'v0.6.0'
 
 export const DATA_URLS = {
   vector: {
@@ -21,7 +21,7 @@ export const DATA_URLS = {
   },
   downloads:
     process.env.NEXT_PUBLIC_DOWNLOADS_URL ??
-    `TK?environment=production&version=${DATA_VERSION}`,
+    `https://wywisai6r4dyxoib6aq2j2ewiy0sdsdg.lambda-url.us-west-2.on.aws/export`,
 }
 
 export const LAYERS = {

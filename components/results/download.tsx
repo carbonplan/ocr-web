@@ -4,7 +4,7 @@ import { Box, Spinner } from 'theme-ui'
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Down, RotatingArrow } from '@carbonplan/icons'
-import { DATA_URLS } from '@/lib/config'
+import { DATA_URLS, DATA_VERSION } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getGeoid } from '@/lib/risk-utils'
 
@@ -38,6 +38,11 @@ const DownloadButton = ({
   )
 }
 
+const REGION_TYPES = {
+  county: 'county',
+  censusTract: 'tract',
+}
+
 export const Download = ({ disabled, geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState({ csv: false, geojson: false })
@@ -46,15 +51,24 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
   )
 
   const handleClick = async (format: 'csv' | 'geojson') => {
-    const url = `${DATA_URLS.downloads}&geography=${geography}&format=${format}&geoid=${activeGeographyId}`
     setLoading((prev) => ({ ...prev, [format]: true }))
     try {
-      const res = await fetch(url)
+      const res = await fetch(DATA_URLS.downloads, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          environment: 'qa', // TODO: move to env variable
+          dataset_version: DATA_VERSION,
+          data_format: format,
+          geoid: activeGeographyId,
+          region_type: REGION_TYPES[geography],
+        }),
+      })
       const payload = await res.json()
-      if (!payload?.url) {
+      if (!payload?.s3_path) {
         throw Error('Error generating download')
       }
-      window.open(payload.url, '_blank')
+      window.open(payload.s3_path, '_blank')
       setLoading((prev) => ({ ...prev, [format]: false }))
       setShowModal(false)
     } catch {
