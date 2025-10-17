@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Box, Container, IconButton } from 'theme-ui'
+import { Box, Container, IconButton, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
@@ -14,9 +14,13 @@ import {
 } from '../components'
 // @ts-expect-error - carbonplan auth types not available
 import { withAuth } from '@carbonplan/auth'
+import { useStore } from '@/lib/store'
 
 const Index = () => {
   const [showIntro, setShowIntro] = useState(true)
+  const isLoading = useStore(
+    (state) => state.mapLoading || state.reverseGeocodeLoading,
+  )
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -54,6 +58,15 @@ const Index = () => {
         <Container>
           <Header
             menuItems={[
+              <Spinner
+                key='spinner'
+                size={28}
+                sx={{
+                  display: isLoading
+                    ? ['inherit', 'inherit', 'none', 'none']
+                    : 'none',
+                }}
+              />,
               <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
               <IconButton
                 key='info'

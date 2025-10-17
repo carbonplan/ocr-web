@@ -25,15 +25,5 @@ export default function Loading() {
     )
   }
 
-  return (
-    <Spinner
-      size={32}
-      sx={{
-        position: 'absolute',
-        zIndex: 1000,
-        ml: 3,
-        mt: 6,
-      }}
-    />
-  )
+  return null
 }
