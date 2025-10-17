@@ -65,10 +65,10 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
         }),
       })
       const payload = await res.json()
-      if (!payload?.s3_path) {
+      if (!payload?.url) {
         throw Error('Error generating download')
       }
-      window.open(payload.s3_path, '_blank')
+      window.open(payload.url, '_blank')
       setLoading((prev) => ({ ...prev, [format]: false }))
       setShowModal(false)
     } catch {
