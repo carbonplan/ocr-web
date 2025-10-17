@@ -11,6 +11,7 @@ const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
+  const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
     const updateSidebarWidth = () => {
@@ -38,7 +39,7 @@ const SidebarComponent = () => {
           <Geocode />
           <ClimateSelector />
           <Results />
-          <Display />
+          {advancedMode && <Display />}
         </div>
       </Sidebar>
     </Box>
