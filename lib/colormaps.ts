@@ -11,43 +11,18 @@ export interface ColormapOptions {
 export function generateFireRiskColormap(
   options: ColormapOptions = {},
 ): string[] {
-  const { count = 256, mode = 'dark' } = options
-
-  const red = '#f57273'
-  const orange = '#e39046'
-
-  let start: chroma.Color
-  if (mode === 'dark') {
-    start = chroma('#1b1e23').brighten(0)
-  } else {
-    start = chroma('#FFFFFF').darken(0)
-  }
-
-  let ramp: chroma.Color[]
-
-  if (mode === 'dark') {
-    ramp = [
-      chroma.mix(red, start, 0.5, 'lab'),
-      chroma(red).darken(1),
-      chroma.mix(orange, red, 0.5, 'lab'),
-      chroma(orange),
-      chroma(orange).brighten(1),
-      chroma(orange).brighten(2),
-    ]
-  } else {
-    ramp = [
-      chroma(orange).brighten(2),
-      chroma(orange).brighten(1),
-      chroma(orange),
-      chroma.mix(orange, red, 0.5, 'lab'),
-      chroma(red).darken(1),
-      chroma(red).darken(1.5),
-    ]
-  }
-
-  const scale = chroma.scale(ramp).mode('lab')
-
-  return scale.colors(count, 'hex')
+  const { count = 10, mode = 'dark' } = options
+  // original pallette created: https://gka.github.io/palettes/#/10|s|4a2528,d55a5d,fbfdab|ffffe0,ff005e,93003a|1|1
+  const start = '#4a2528'
+  const mid = '#d55a5d'
+  const end = '#fbfdab'
+  const anchors = [start, mid, end]
+  const colors = chroma
+    .bezier(anchors)
+    .scale()
+    .correctLightness(true)
+    .colors(count, 'hex')
+  return mode === 'dark' ? colors : [...colors].reverse()
 }
 
 export function generateColormap(
@@ -63,15 +38,13 @@ export function generateColormap(
   }
 }
 
-export function useColormap(
-  options?: Omit<ColormapOptions, 'mode' | 'count'>,
-): string[] {
+export function useColormap(options?: ColormapOptions): string[] {
   const [colorMode] = useColorMode()
   const colormap = useStore((state) => state.riskConfig.colormap)
   const count = useStore((state) =>
     state.colorLimits.type === 'discrete'
       ? state.colorLimits.binBoundaries.length
-      : 256,
+      : (options?.count ?? 256),
   )
   const mode = colorMode === 'dark' ? 'dark' : 'light'
 

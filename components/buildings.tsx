@@ -33,7 +33,7 @@ const Buildings = () => {
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
   const sidebarWidthRef = useRef(sidebarWidth)
-  const colormap = useColormap({ format: 'hex' })
+  const colormap = useColormap()
 
   // refs prevent stale state in event listeners
   useEffect(() => {
