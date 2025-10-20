@@ -16,16 +16,10 @@ const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
 
 const TimeHorizons = () => {
   const risk = useStore((state) =>
-    getRiskScore(
-      state.selectedBuilding || state.hoveredBuilding,
-      state.timePeriod,
-    ),
+    getRiskScore(state.selectedBuilding, state.timePeriod),
   )
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(
-      state.selectedBuilding || state.hoveredBuilding,
-      state.timePeriod,
-    ),
+    getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
   const isLowBp = bp === 0 && !!risk && risk > 0
 

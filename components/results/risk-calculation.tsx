@@ -20,19 +20,13 @@ const sx = {
 }
 const RiskCalculation = () => {
   const risk = useStore((state) =>
-    getRiskScore(
-      state.selectedBuilding || state.hoveredBuilding,
-      state.timePeriod,
-    ),
+    getRiskScore(state.selectedBuilding, state.timePeriod),
   )
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(
-      state.selectedBuilding || state.hoveredBuilding,
-      state.timePeriod,
-    ),
+    getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
   const conditionalRisk = useStore((state) =>
-    getConditionalRiskUsfs(state.selectedBuilding || state.hoveredBuilding),
+    getConditionalRiskUsfs(state.selectedBuilding),
   )
 
   return (

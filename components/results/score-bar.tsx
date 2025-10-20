@@ -18,12 +18,10 @@ const ScoreBar = ({
   sx?: ThemeUIStyleObject
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
   const colormap = useColormap()
 
-  const displayBuilding = selectedBuilding || hoveredBuilding
-  const { score, color } = useScore(displayBuilding, 'muted')
+  const { score, color } = useScore(selectedBuilding, 'muted')
 
   return (
     <>

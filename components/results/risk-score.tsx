@@ -10,12 +10,10 @@ const scoreHeight = [34, 34, 34, 45]
 
 const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
-  const displayBuilding = selectedBuilding || hoveredBuilding
-  const { score, color } = useScore(displayBuilding, 'muted')
+  const { score, color } = useScore(selectedBuilding, 'muted')
 
   return (
     <>

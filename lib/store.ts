@@ -18,8 +18,6 @@ type Store = {
   setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
-  hoveredBuilding: Building | null
-  setHoveredBuilding: (building: Building | null) => void
   activeGeographies: { county: Geography | null; censusTract: Geography | null }
   setActiveGeographies: (activeGeographies: {
     county: Geography | null
@@ -70,8 +68,6 @@ export const useStore = create<Store>((set) => ({
   setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
-  hoveredBuilding: null,
-  setHoveredBuilding: (building) => set({ hoveredBuilding: building }),
   activeGeographies: {
     county: null,
     censusTract: null,
