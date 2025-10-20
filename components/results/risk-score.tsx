@@ -6,6 +6,8 @@ import { useScore } from '@/hooks/useScore'
 import ValueBadge from './value-badge'
 import ScoreBar from './score-bar'
 
+const scoreHeight = [34, 34, 34, 45]
+
 const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
@@ -22,8 +24,7 @@ const RiskScore = () => {
       <Flex
         sx={{
           gap: 3,
-          alignItems: 'center',
-          height: 34,
+          alignItems: 'flex-end',
         }}
       >
         <ValueBadge
@@ -31,15 +32,18 @@ const RiskScore = () => {
           unit='#'
           color={color}
           sx={{
-            fontSize: 4,
-            width: [80, 80, 80, 150],
-            height: 32,
+            fontSize: [4, 4, 4, 5],
+            width: [80, 80, 80, 100],
+            height: scoreHeight,
             backgroundColor: color,
             flexShrink: 0,
           }}
         />
-        <Box variant='description' sx={{ mt: 1 }}>
-          {selectedBuilding && selectedLocation ? (
+        <Box
+          sx={{
+            lineHeight: 1,
+          }}
+        >
             <>
               {formatAddress(selectedLocation.address, true) || 'This building'}{' '}
               has a risk score of {score} out of 10
