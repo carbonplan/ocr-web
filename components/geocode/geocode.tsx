@@ -33,6 +33,7 @@ const Geocode = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
   const index = useBreakpointIndex({ defaultIndex: 2 })
+  const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,6 +72,13 @@ const Geocode = () => {
       setErrorMessage('')
     }
   }, [searchQuery])
+
+  useEffect(() => {
+    if (reverseGeocodeLoading) {
+      // show loading placeholder
+      setSearchQuery('')
+    }
+  }, [reverseGeocodeLoading])
 
   useEffect(() => {
     if (debouncedQuery.trim() && searchQuery.trim() && isEditing) {
@@ -264,7 +272,9 @@ const Geocode = () => {
                 }
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsEditing(true)}
-                placeholder={'enter search term'}
+                placeholder={
+                  reverseGeocodeLoading ? 'loading...' : 'enter search term'
+                }
                 sx={{
                   mt: '2px',
                   flexGrow: 1,

@@ -12,6 +12,7 @@ const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
+  const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
   const displayBuilding = selectedBuilding || hoveredBuilding
   const { score, color } = useScore(displayBuilding, 'muted')
@@ -44,10 +45,13 @@ const RiskScore = () => {
             lineHeight: 1,
           }}
         >
+          {selectedBuilding && selectedLocation && !reverseGeocodeLoading ? (
             <>
               {formatAddress(selectedLocation.address, true) || 'This building'}{' '}
               has a risk score of {score} out of 10
             </>
+          ) : reverseGeocodeLoading ? (
+            <Box sx={{ color: 'secondary' }}>Loading address...</Box>
           ) : (
             'Select a building to view its fire risk'
           )}
