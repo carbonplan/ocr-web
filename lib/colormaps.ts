@@ -1,6 +1,6 @@
 import chroma from 'chroma-js'
 import { useMemo } from 'react'
-import { useColorMode } from 'theme-ui'
+import { useColorMode, useThemeUI } from 'theme-ui'
 import { useStore } from './store'
 
 export interface ColormapOptions {
@@ -13,36 +13,14 @@ export function generateFireRiskColormap(
 ): string[] {
   const { count = 10, mode = 'dark' } = options
 
-  const red = chroma('#f57273')
-  const orange = chroma('#e39046')
-  const yellow = chroma('#d4c05e')
-
-  const first = chroma.mix(red, chroma('#1b1e23'), 0.6, 'lab').hex()
-  const mid = orange.hex()
-  const end = yellow.brighten(2).hex()
-
-  const anchors = [first, mid, end]
+  const red = '#f57273'
+  const orange = '#e39046'
+  const first = chroma.mix(red, chroma('#1b1e23'), 0.5, 'lab').hex()
   const colors = chroma
-    .bezier(anchors)
+    .bezier([first, red, 'ef6200', orange, 'fdff88'])
     .scale()
     .correctLightness(true)
     .colors(count, 'hex')
-
-  // temp testing:
-  // original pallette created: https://gka.github.io/palettes/#/10|s|4a2528,d55a5d,fbfdab|ffffe0,ff005e,93003a|1|1
-  // https://gka.github.io/palettes/#/10|s|542c24,ff0000,ffffb2|ffffe0,ff005e,93003a|1|1
-  return [
-    '#542c24',
-    '#7e3322',
-    '#a13e25',
-    '#bf502c',
-    '#d86638',
-    '#ec8149',
-    '#fb9e5e',
-    '#ffbf78',
-    '#ffdf94',
-    '#ffffb2',
-  ]
 
   return mode === 'dark' ? colors : [...colors].reverse()
 }
