@@ -255,7 +255,7 @@ const Geocode = () => {
             {<Box variant='label'>Address</Box>}
           </Column>
           <Column start={2} width={3}>
-            <Flex sx={{ gap: 1 }}>
+            <Flex>
               <Input
                 ref={inputRef}
                 value={searchQuery}
@@ -288,6 +288,10 @@ const Geocode = () => {
                   onClick={handleDeselect}
                   inverted
                   aria-label='Clear address'
+                  sx={{
+                    pl: ['8px', '8px', '8px', '14px'],
+                    mr: ['-24px', '-24px', '-24px', '-34px'],
+                  }}
                 >
                   <X
                     id='close'
