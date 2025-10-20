@@ -36,6 +36,7 @@ const SelectionMarker = () => {
   const map = useStore((state) => state.map)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
   const markerPoint = useMemo(() => {
     if (selectedBuilding && selectedBuilding.geometry) {
@@ -92,7 +93,8 @@ const SelectionMarker = () => {
     !selectedLocation ||
     !markerPoint ||
     !addressString ||
-    !container
+    !container ||
+    reverseGeocodeLoading
   ) {
     return null
   }
