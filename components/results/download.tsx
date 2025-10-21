@@ -68,7 +68,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          environment: 'staging', // TODO: move to env variable
+          environment: process.env.NEXT_PUBLIC_OCR_ENV ?? 'production',
           dataset_version: DATA_VERSION,
           data_format: format,
           geoid: geoid,
