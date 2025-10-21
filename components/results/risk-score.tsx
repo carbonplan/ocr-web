@@ -41,6 +41,7 @@ const RiskScore = () => {
         <Box
           sx={{
             lineHeight: 1,
+            mb: '-7px',
           }}
         >
           {selectedBuilding && selectedLocation && !reverseGeocodeLoading ? (
