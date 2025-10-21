@@ -4,7 +4,7 @@ import { Table } from '@carbonplan/components'
 
 const OtherFactors = () => {
   return (
-    <>
+    <Box sx={{ mt: '52px' }}>
       <Box variant='sectionHeading'>Other factors</Box>
       The risk described above does not account for a variety of factors that
       each may drive the actual risk of loss due to fire up or down.
@@ -46,7 +46,7 @@ const OtherFactors = () => {
           },
         }}
       />
-    </>
+    </Box>
   )
 }
 

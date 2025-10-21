@@ -56,7 +56,7 @@ const RiskScore = () => {
           )}
         </Box>
       </Flex>
-      <ScoreBar sx={{ mt: 3 }} labels />
+      <ScoreBar sx={{ mt: 3 }} labels axisLabel />
     </>
   )
 }
