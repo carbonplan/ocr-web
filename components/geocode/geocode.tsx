@@ -299,8 +299,8 @@ const Geocode = () => {
                   inverted
                   aria-label='Clear address'
                   sx={{
-                    pl: ['8px', '8px', '8px', '14px'],
-                    mr: ['-24px', '-24px', '-24px', '-34px'],
+                    pl: ['6px', '6px', '8px', '14px'],
+                    mr: ['-12px', '-12px', '-24px', '-34px'],
                   }}
                 >
                   <X
