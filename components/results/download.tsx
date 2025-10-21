@@ -45,7 +45,7 @@ const REGION_TYPES = {
 
 export const Download = ({ disabled, geography }: DownloadProps) => {
   const [showModal, setShowModal] = useState(false)
-  const [loading, setLoading] = useState({ csv: false, geojson: false })
+  const [loading, setLoading] = useState({ csv: false, gpkg: false })
   const geoid = useStore((state) =>
     getGeoid(state.activeGeographies[geography]),
   )
@@ -57,14 +57,14 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
       ? `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
       : `Census-Tract-${geoid}`
 
-  const handleClick = async (format: 'csv' | 'geojson') => {
+  const handleClick = async (format: 'csv' | 'gpkg') => {
     setLoading((prev) => ({ ...prev, [format]: true }))
     try {
       const res = await fetch(DATA_URLS.downloads, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          environment: 'qa', // TODO: move to env variable
+          environment: 'staging', // TODO: move to env variable
           dataset_version: DATA_VERSION,
           data_format: format,
           geoid: geoid,
@@ -140,18 +140,16 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
             >
               Select format
             </Box>
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', gap: 2, ml: 3 }}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <DownloadButton
                 label='CSV'
                 loading={loading.csv}
                 onClick={() => handleClick('csv')}
               />
               <DownloadButton
-                label='GeoJSON'
-                loading={loading.geojson}
-                onClick={() => handleClick('geojson')}
+                label='GPKG'
+                loading={loading.gpkg}
+                onClick={() => handleClick('gpkg')}
               />
             </Box>
           </Box>
