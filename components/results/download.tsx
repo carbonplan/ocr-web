@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Box, Spinner } from 'theme-ui'
+import { Flex, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
-import { Down, RotatingArrow } from '@carbonplan/icons'
+import { Down } from '@carbonplan/icons'
 import { DATA_URLS, DATA_VERSION } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getCountyName, getGeoid } from '@/lib/risk-utils'
@@ -16,20 +16,25 @@ interface DownloadProps {
 const DownloadButton = ({
   label,
   loading,
+  disabled,
   onClick,
 }: {
   label: string
   loading: boolean
+  disabled?: boolean
   onClick: () => void
 }) => {
   return (
     <Button
       size='xs'
-      suffix={loading ? <Spinner sx={{ mt: -1 }} /> : <RotatingArrow />}
-      disabled={loading}
+      suffix={loading ? <Spinner sx={{ mt: -1 }} /> : <Down sx={{ mt: -1 }} />}
+      disabled={loading || disabled}
       onClick={onClick}
       sx={{
-        color: loading ? 'secondary' : 'primary',
+        color: loading ? 'secondary' : disabled ? 'muted' : 'secondary',
+        '&:hover': {
+          color: loading ? 'secondary' : disabled ? 'muted' : 'primary',
+        },
         '&:disabled': { pointerEvents: 'none' },
       }}
     >
@@ -44,7 +49,6 @@ const REGION_TYPES = {
 }
 
 export const Download = ({ disabled, geography }: DownloadProps) => {
-  const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState({ csv: false, gpkg: false })
   const geoid = useStore((state) =>
     getGeoid(state.activeGeographies[geography]),
@@ -84,77 +88,25 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
       document.body.removeChild(a)
 
       setLoading((prev) => ({ ...prev, [format]: false }))
-      setShowModal(false)
     } catch {
       setLoading((prev) => ({ ...prev, [format]: false }))
     }
   }
 
   return (
-    <Box sx={{ position: 'relative', display: 'inline-block' }}>
-      <Button
-        size='xs'
-        onClick={() => setShowModal(!showModal)}
-        inverted
-        suffix={<Down />}
-        sx={disabled ? { pointerEvents: 'none', color: 'muted' } : undefined}
-      >
-        Download region data
-      </Button>
-
-      {showModal && (
-        <>
-          <Box
-            onClick={() => setShowModal(false)}
-            sx={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 10000,
-            }}
-          />
-          <Box
-            onClick={(e) => e.stopPropagation()}
-            sx={{
-              position: 'absolute',
-              top: 'calc(100% + 8px)',
-              left: 0,
-              bg: 'background',
-              border: '1px solid',
-              borderColor: 'muted',
-              px: 3,
-              pt: 2,
-              pb: 3,
-              width: '100%',
-              zIndex: 10000,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            }}
-          >
-            <Box
-              sx={{
-                mb: 2,
-                fontFamily: 'mono',
-                letterSpacing: 'mono',
-                textTransform: 'uppercase',
-                fontSize: 0,
-              }}
-            >
-              Select format
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <DownloadButton
-                label='CSV'
-                loading={loading.csv}
-                onClick={() => handleClick('csv')}
-              />
-              <DownloadButton
-                label='GPKG'
-                loading={loading.gpkg}
-                onClick={() => handleClick('gpkg')}
-              />
-            </Box>
-          </Box>
-        </>
-      )}
-    </Box>
+    <Flex sx={{ gap: 3 }}>
+      <DownloadButton
+        label='CSV'
+        loading={loading.csv}
+        disabled={disabled}
+        onClick={() => handleClick('csv')}
+      />
+      <DownloadButton
+        label='GPKG'
+        loading={loading.gpkg}
+        disabled={disabled}
+        onClick={() => handleClick('gpkg')}
+      />
+    </Flex>
   )
 }
