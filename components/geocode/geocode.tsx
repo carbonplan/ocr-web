@@ -33,6 +33,7 @@ const Geocode = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
   const index = useBreakpointIndex({ defaultIndex: 2 })
+  const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,6 +72,13 @@ const Geocode = () => {
       setErrorMessage('')
     }
   }, [searchQuery])
+
+  useEffect(() => {
+    if (reverseGeocodeLoading) {
+      // show loading placeholder
+      setSearchQuery('')
+    }
+  }, [reverseGeocodeLoading])
 
   useEffect(() => {
     if (debouncedQuery.trim() && searchQuery.trim() && isEditing) {
@@ -255,7 +263,7 @@ const Geocode = () => {
             {<Box variant='label'>Address</Box>}
           </Column>
           <Column start={2} width={3}>
-            <Flex sx={{ gap: 1 }}>
+            <Flex>
               <Input
                 ref={inputRef}
                 value={searchQuery}
@@ -264,7 +272,9 @@ const Geocode = () => {
                 }
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsEditing(true)}
-                placeholder={'enter search term'}
+                placeholder={
+                  reverseGeocodeLoading ? 'loading...' : 'enter search term'
+                }
                 sx={{
                   mt: '2px',
                   flexGrow: 1,
@@ -288,6 +298,10 @@ const Geocode = () => {
                   onClick={handleDeselect}
                   inverted
                   aria-label='Clear address'
+                  sx={{
+                    pl: ['6px', '6px', '8px', '14px'],
+                    mr: ['-12px', '-12px', '-24px', '-34px'],
+                  }}
                 >
                   <X
                     id='close'

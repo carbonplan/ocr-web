@@ -14,7 +14,6 @@ const Buildings = () => {
   const map = useStore((state) => state.map)
   const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
-  const setHoveredBuilding = useStore((state) => state.setHoveredBuilding)
   const setSelectedCoordinates = useStore(
     (state) => state.setSelectedCoordinates,
   )
@@ -150,7 +149,6 @@ const Buildings = () => {
           }
 
           if (feature.id && feature.properties) {
-            setHoveredBuilding(feature as Building)
             hoveredFeatureId.current = feature.id
 
             map.setFeatureState(
@@ -174,11 +172,10 @@ const Buildings = () => {
             { hovered: false },
           )
           hoveredFeatureId.current = null
-          setHoveredBuilding(null)
         }
       }
     },
-    [map, setHoveredBuilding],
+    [map],
   )
 
   const handleBuildingEnter = useCallback(() => {
@@ -202,10 +199,8 @@ const Buildings = () => {
       hoveredFeatureId.current = null
     }
 
-    setHoveredBuilding(null)
-
     map.getCanvas().style.cursor = ''
-  }, [map, setHoveredBuilding])
+  }, [map])
 
   const handleMapClick = useCallback(
     async (e: MapMouseEvent) => {
@@ -228,7 +223,6 @@ const Buildings = () => {
           )
           hoveredFeatureId.current = null
         }
-        setHoveredBuilding(null)
 
         const feature = features[0]
         const { lng, lat } = e.lngLat
@@ -289,7 +283,6 @@ const Buildings = () => {
       setSelectedBuilding,
       setSelectedCoordinates,
       clearSelections,
-      setHoveredBuilding,
       queryGeographiesAtPoint,
       setReverseGeocodeLoading,
       setSelectedLocation,

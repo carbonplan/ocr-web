@@ -1,7 +1,8 @@
-import { Box, ThemeUIStyleObject } from 'theme-ui'
+import { Box } from 'theme-ui'
 import {
   Column,
   Row,
+  Table,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
@@ -12,69 +13,106 @@ import {
 } from '@/lib/risk-utils'
 import ValueBadge from './value-badge'
 
-const sx = {
-  label: {
-    mb: 1,
-    position: 'relative',
-  } as ThemeUIStyleObject,
-}
 const RiskCalculation = () => {
   const risk = useStore((state) =>
-    getRiskScore(
-      state.selectedBuilding || state.hoveredBuilding,
-      state.timePeriod,
-    ),
+    getRiskScore(state.selectedBuilding, state.timePeriod),
   )
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(
-      state.selectedBuilding || state.hoveredBuilding,
-      state.timePeriod,
-    ),
+    getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
   const conditionalRisk = useStore((state) =>
-    getConditionalRiskUsfs(state.selectedBuilding || state.hoveredBuilding),
+    getConditionalRiskUsfs(state.selectedBuilding),
   )
+  const isLowBp = bp === 0 && !!risk && risk > 0
 
   return (
     <>
       <Box variant='sectionHeading'>Calculating risk</Box>
-      <Row columns={3} sx={{ mb: 0 }}>
-        <Column start={1} width={3} sx={{ mb: 2 }}>
+      <Row columns={3} sx={{ mb: 3 }}>
+        <Column start={1} width={3}>
           Risk scores are based on an estimation of damage likelihood due to
           wildfire.
         </Column>
-        <Column start={1} width={1}>
-          <Box variant='description' sx={sx.label}>
-            Risk
-            <br />
-            of loss
-            <Box sx={{ position: 'absolute', top: '12px', left: '80%' }}>=</Box>
-          </Box>
-          <ValueBadge value={risk} />
-        </Column>
-        <Column start={2} width={1}>
-          <Box variant='description' sx={sx.label}>
-            Burn probability
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '12px',
-                left: '105%',
-                textTransform: 'none',
-              }}
-            >
-              x
-            </Box>
-          </Box>
-          <ValueBadge value={bp} lowValue={bp === 0 && !!risk && risk > 0} />
-        </Column>
-        <Column start={3} width={1}>
-          <Box variant='description' sx={sx.label}>
-            Conditional risk
-          </Box>
-          <ValueBadge value={conditionalRisk} unit='#' />
-        </Column>
       </Row>
+      <Table
+        columns={3}
+        start={[1, 2, 3]}
+        width={[1, 1, 1]}
+        data={[
+          [
+            <Box key='rol' sx={{ whiteSpace: 'nowrap' }}>
+              Risk{' '}
+              <Box
+                as='br'
+                sx={{ display: ['block', 'block', 'block', 'none'] }}
+              />{' '}
+              of loss
+            </Box>,
+            <Box key='bp' sx={{ whiteSpace: 'nowrap' }}>
+              Burn
+              <Box
+                as='br'
+                sx={{ display: ['block', 'block', 'block', 'none'] }}
+              />{' '}
+              probability
+            </Box>,
+            <Box key='cr' sx={{ whiteSpace: 'nowrap' }}>
+              Conditional
+              <Box
+                as='br'
+                sx={{ display: ['block', 'block', 'block', 'none'] }}
+              />{' '}
+              risk
+            </Box>,
+          ],
+          [
+            <Box key='rol' sx={{ position: 'relative' }}>
+              <ValueBadge value={risk} />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: ['80%', '60%', '75%', '70%'],
+                  top: '50%',
+                  transform: 'translate(50%, -50%)',
+                }}
+              >
+                =
+              </Box>
+            </Box>,
+            <Box key='bp' sx={{ position: 'relative' }}>
+              <ValueBadge value={bp} lowValue={isLowBp} />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: ['80%', '60%', '75%', '70%'],
+                  transform: 'translate(50%, -50%)',
+                }}
+              >
+                x
+              </Box>
+            </Box>,
+            <ValueBadge key='cr' value={conditionalRisk} unit='#' />,
+          ],
+        ]}
+        borderTop={false}
+        index={false}
+        sx={{
+          '& tr:first-of-type td': {
+            fontSize: 1,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+            color: 'secondary',
+          },
+          '& tr:first-of-type': {
+            py: 1,
+          },
+          '& tr:last-of-type': {
+            py: 2,
+          },
+        }}
+      />
     </>
   )
 }
