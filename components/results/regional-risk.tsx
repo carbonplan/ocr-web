@@ -46,6 +46,16 @@ const RegionalRisk = () => {
     }
   }, [geography, selectedLocation])
 
+  const getRegionName = () => {
+    if (geography === 'county') {
+      return `${countyName ?? ''} County`
+    }
+    if (geography === 'censusTract') {
+      return 'the census tract'
+    }
+    return 'the census block'
+  }
+
   return (
     <>
       <Box variant='sectionHeading'>Risk in the region</Box>
@@ -134,13 +144,7 @@ const RegionalRisk = () => {
       </Flex>
       <Box sx={{ position: 'relative', mt: 4 }}>
         <Histogram
-          region={
-            geography === 'county'
-              ? `${countyName} County`
-              : geography === 'censusTract'
-                ? 'the census tract'
-                : 'the census block'
-          }
+          region={getRegionName()}
           data={data}
           score={buildingScore}
           sx={geography ? undefined : { opacity: 0.1 }}
