@@ -7,9 +7,10 @@ import { Down } from '@carbonplan/icons'
 import { DATA_URLS, DATA_VERSION } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getCountyName, getGeoid } from '@/lib/risk-utils'
+import { GeographyKey } from '@/types/location'
 
 interface DownloadProps {
-  geography: 'censusTract' | 'county'
+  geography: GeographyKey
   disabled?: boolean
 }
 
@@ -43,9 +44,10 @@ const DownloadButton = ({
   )
 }
 
-const REGION_TYPES = {
+const REGION_TYPES: Record<GeographyKey, string> = {
   county: 'county',
   censusTract: 'tract',
+  censusBlock: 'block',
 }
 
 export const Download = ({ disabled, geography }: DownloadProps) => {
@@ -56,10 +58,14 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
-  const filename =
-    geography === 'county'
-      ? `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
-      : `Census-Tract-${geoid}`
+  let filename: string
+  if (geography === 'county') {
+    filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
+  } else if (geography === 'censusTract') {
+    filename = `Census-Tract-${geoid}`
+  } else {
+    filename = `Census-Block-${geoid}`
+  }
 
   const handleClick = async (format: 'csv' | 'gpkg') => {
     setLoading((prev) => ({ ...prev, [format]: true }))

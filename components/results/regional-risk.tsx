@@ -9,14 +9,14 @@ import { useShallow } from 'zustand/react/shallow'
 import { getGeographyRisk, getCountyName } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
+import { GeographyKey } from '@/types/location'
 import { Download } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
-type Geography = 'county' | 'censusTract'
 const RegionalRisk = () => {
-  const [geography, setGeography] = useState<Geography>()
+  const [geography, setGeography] = useState<GeographyKey>()
   const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const countyName = useStore((state) =>
@@ -53,16 +53,18 @@ const RegionalRisk = () => {
         values={{
           county: geography === 'county',
           censusTract: geography === 'censusTract',
+          censusBlock: geography === 'censusBlock',
         }}
         labels={{
           county: 'County',
           censusTract: 'Census tract',
+          censusBlock: 'Census block',
         }}
-        setValues={(obj: Record<Geography, boolean>) =>
+        setValues={(obj: Record<GeographyKey, boolean>) =>
           selectedLocation
             ? setGeography(
-                (Object.keys(obj) as Geography[]).find(
-                  (k: Geography) => obj[k],
+                (Object.keys(obj) as GeographyKey[]).find(
+                  (k: GeographyKey) => obj[k],
                 ),
               )
             : null
@@ -133,7 +135,11 @@ const RegionalRisk = () => {
       <Box sx={{ position: 'relative', mt: 4 }}>
         <Histogram
           region={
-            geography === 'county' ? `${countyName} County` : 'the census tract'
+            geography === 'county'
+              ? `${countyName} County`
+              : geography === 'censusTract'
+                ? 'the census tract'
+                : 'the census block'
           }
           data={data}
           score={buildingScore}
