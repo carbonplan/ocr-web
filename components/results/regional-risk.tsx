@@ -55,6 +55,7 @@ const RegionalRisk = () => {
     }
     return 'the census block'
   }
+  console.log(data)
 
   return (
     <>
@@ -147,9 +148,9 @@ const RegionalRisk = () => {
           region={getRegionName()}
           data={data}
           score={buildingScore}
-          sx={geography ? undefined : { opacity: 0.1 }}
+          sx={geography && data.length > 0 ? undefined : { opacity: 0.1 }}
         />
-        {!geography && (
+        {(!geography || data.length === 0) && (
           <Box
             sx={{
               position: 'absolute',
@@ -160,7 +161,9 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            Select a region from the options above to view risk distribution
+            {geography && data.length === 0
+              ? 'No data available'
+              : 'Select a structure to view regional risk distribution'}
           </Box>
         )}
       </Box>
