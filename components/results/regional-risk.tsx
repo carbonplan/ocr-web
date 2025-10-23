@@ -55,7 +55,6 @@ const RegionalRisk = () => {
     }
     return 'the census block'
   }
-  console.log(data)
 
   return (
     <>
