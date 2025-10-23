@@ -4,6 +4,7 @@ import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { getGeographyMedianRiskKey } from '@/lib/risk-utils'
+import { GeographyKey } from '@/types/location'
 
 interface GeographyLayerProps {
   config: {
@@ -14,7 +15,7 @@ interface GeographyLayerProps {
       line: string
     }
   }
-  geographyKey: 'county' | 'censusTract'
+  geographyKey: GeographyKey
   environmentUrl: string
 }
 

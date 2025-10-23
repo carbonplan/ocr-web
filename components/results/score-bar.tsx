@@ -12,18 +12,18 @@ import ValueBadge from './value-badge'
 
 const ScoreBar = ({
   labels,
+  axisLabel,
   sx,
 }: {
   labels?: boolean
+  axisLabel?: boolean
   sx?: ThemeUIStyleObject
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const hoveredBuilding = useStore((state) => state.hoveredBuilding)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
   const colormap = useColormap()
 
-  const displayBuilding = selectedBuilding || hoveredBuilding
-  const { score, color } = useScore(displayBuilding, 'muted')
+  const { score, color } = useScore(selectedBuilding, 'muted')
 
   return (
     <>
@@ -103,7 +103,7 @@ const ScoreBar = ({
             ))}
         </Grid>
       </Flex>
-      {labels && (
+      {axisLabel && (
         <Box sx={{ width: '100%', mt: '56px', pb: 1 }}>
           <Chart x={[0, 1]} y={[0, 1]}>
             <AxisLabel bottom units='%'>

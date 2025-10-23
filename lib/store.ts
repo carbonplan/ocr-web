@@ -20,18 +20,27 @@ type Store = {
   setRpsRaster: (rpsRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
-  hoveredBuilding: Building | null
-  setHoveredBuilding: (building: Building | null) => void
-  activeGeographies: { county: Geography | null; censusTract: Geography | null }
+  activeGeographies: {
+    county: Geography | null
+    censusTract: Geography | null
+    censusBlock: Geography | null
+  }
   setActiveGeographies: (activeGeographies: {
     county: Geography | null
     censusTract: Geography | null
+    censusBlock: Geography | null
   }) => void
-  geographies: { building: boolean; county: boolean; censusTract: boolean }
+  geographies: {
+    building: boolean
+    county: boolean
+    censusTract: boolean
+    censusBlock: boolean
+  }
   setGeographies: (geographies: {
     building: boolean
     county: boolean
     censusTract: boolean
+    censusBlock: boolean
   }) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
@@ -74,17 +83,21 @@ export const useStore = create<Store>((set) => ({
   setRpsRaster: (rpsRaster) => set({ rpsRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) => set({ selectedBuilding: building }),
-  hoveredBuilding: null,
-  setHoveredBuilding: (building) => set({ hoveredBuilding: building }),
   activeGeographies: {
     county: null,
     censusTract: null,
+    censusBlock: null,
   },
-  setActiveGeographies: ({ county, censusTract }) =>
+  setActiveGeographies: ({ county, censusTract, censusBlock }) =>
     set({
-      activeGeographies: { county, censusTract },
+      activeGeographies: { county, censusTract, censusBlock },
     }),
-  geographies: { building: true, county: false, censusTract: false },
+  geographies: {
+    building: true,
+    county: false,
+    censusTract: false,
+    censusBlock: false,
+  },
   setGeographies: (geographies) => set({ geographies }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
@@ -111,6 +124,6 @@ export const useStore = create<Store>((set) => ({
       selectedLocation: null,
       selectedBuilding: null,
       selectedCoordinates: null,
-      activeGeographies: { county: null, censusTract: null },
+      activeGeographies: { county: null, censusTract: null, censusBlock: null },
     }),
 }))

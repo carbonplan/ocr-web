@@ -99,7 +99,7 @@ const Histogram = ({
             />
           </Plot>
         </Chart>
-        <ScoreBar sx={{ mt: '8px' }} />
+        <ScoreBar labels sx={{ mt: '8px' }} />
       </Box>
     </Box>
   )

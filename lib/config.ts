@@ -1,4 +1,4 @@
-const DATA_VERSION = 'v0.6.0'
+export const DATA_VERSION = 'v0.8.0'
 
 export const DATA_URLS = {
   vector: {
@@ -11,6 +11,9 @@ export const DATA_URLS = {
     censusTracts:
       process.env.NEXT_PUBLIC_CENSUS_TRACT_URL ??
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/tracts.pmtiles`,
+    censusBlocks:
+      process.env.NEXT_PUBLIC_CENSUS_BLOCK_URL ??
+      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/blocks.pmtiles`,
   },
   raster: {
     risk:
@@ -22,9 +25,7 @@ export const DATA_URLS = {
   zarr:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
     `https://carbonplan-ocr.s3.us-west-2.amazonaws.com/output/fire-risk/pyramid/production/${DATA_VERSION}/pyramid.zarr`,
-  downloads:
-    process.env.NEXT_PUBLIC_DOWNLOADS_URL ??
-    `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/per-region-analysis/`,
+  downloads: `https://wywisai6r4dyxoib6aq2j2ewiy0sdsdg.lambda-url.us-west-2.on.aws/export`,
 }
 
 export const LAYERS = {
@@ -52,6 +53,14 @@ export const LAYERS = {
       line: 'risk-census-tracts-line',
     },
   },
+  censusBlocks: {
+    layerName: 'risk',
+    sourceId: 'census-blocks',
+    layerIds: {
+      fill: 'risk-census-blocks-fill',
+      line: 'risk-census-blocks-line',
+    },
+  },
 } as const
 
 export const BUILDING_ATTRIBUTE_KEYS = {
@@ -73,7 +82,8 @@ export const GEOGRAPHY_ATTRIBUTE_KEYS = {
   wind_risk_2011: '5',
   wind_risk_2047: '6',
   geoid: '7',
-  county_name: '8',
+  bbox: '8',
+  county_name: '9',
 } as const
 
 export const RISKS = {

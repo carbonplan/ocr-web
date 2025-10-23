@@ -25,6 +25,9 @@ export const useBuildingUtils = () => {
       const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
         layers: [LAYERS.censusTracts.layerIds.fill],
       })
+      const blockFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+        layers: [LAYERS.censusBlocks.layerIds.fill],
+      })
 
       setActiveGeographies({
         censusTract:
@@ -34,6 +37,10 @@ export const useBuildingUtils = () => {
         county:
           countyFeatures.length > 0
             ? (countyFeatures[0].properties as Geography)
+            : null,
+        censusBlock:
+          blockFeatures.length > 0
+            ? (blockFeatures[0].properties as Geography)
             : null,
       })
     },
