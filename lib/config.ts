@@ -79,7 +79,8 @@ export const GEOGRAPHY_ATTRIBUTE_KEYS = {
   wind_risk_2011: '5',
   wind_risk_2047: '6',
   geoid: '7',
-  county_name: '8',
+  bbox: '8',
+  county_name: '9',
 } as const
 
 export const RISKS = {
