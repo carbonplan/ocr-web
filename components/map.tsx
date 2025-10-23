@@ -168,6 +168,11 @@ const MapComponent = () => {
             geographyKey='censusTract'
             environmentUrl={DATA_URLS.vector.censusTracts}
           />
+          <GeographyLayer
+            config={LAYERS.censusBlocks}
+            geographyKey='censusBlock'
+            environmentUrl={DATA_URLS.vector.censusBlocks}
+          />
           <Buildings />
           <SelectionMarker />
         </>
