@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Filter, Table } from '@carbonplan/components'
@@ -6,7 +5,11 @@ import { Button, Filter, Table } from '@carbonplan/components'
 import { RotatingArrow } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 
-import { getGeographyRisk, getCountyName } from '@/lib/risk-utils'
+import {
+  getGeographyRisk,
+  getCountyName,
+  getBoundingBox,
+} from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { GeographyKey } from '@/types/location'
@@ -16,44 +19,54 @@ import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
 const RegionalRisk = () => {
-  const [geography, setGeography] = useState<GeographyKey>()
   const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const map = useStore((state) => state.map)
+  const selectedGeographyLevel = useStore(
+    (state) => state.selectedGeographyLevel,
+  )
+  const setSelectedGeographyLevel = useStore(
+    (state) => state.setSelectedGeographyLevel,
+  )
+  const activeGeographies = useStore(
+    useShallow((state) => state.activeGeographies),
+  )
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
-  const activeGeography = useStore(
-    useShallow((state) => geography && state.activeGeographies[geography]),
-  )
+  const activeGeography = activeGeographies[selectedGeographyLevel]
   const { score, color } = useScore(activeGeography ?? null, 'muted')
   const { score: buildingScore } = useScore(selectedBuilding)
   const data = useStore(
-    useShallow((state) =>
-      geography
-        ? (getGeographyRisk(
-            state.activeGeographies[geography],
-            state.timePeriod,
-          ) ?? [])
-        : [],
+    useShallow(
+      (state) =>
+        getGeographyRisk(
+          state.activeGeographies[selectedGeographyLevel],
+          state.timePeriod,
+        ) ?? [],
     ),
   )
 
-  useEffect(() => {
-    if (!!selectedLocation && !geography) {
-      setGeography('county')
-    } else if (!selectedLocation && geography) {
-      setGeography(undefined)
-    }
-  }, [geography, selectedLocation])
-
   const getRegionName = () => {
-    if (geography === 'county') {
+    if (selectedGeographyLevel === 'county') {
       return `${countyName ?? ''} County`
     }
-    if (geography === 'censusTract') {
+    if (selectedGeographyLevel === 'censusTract') {
       return 'the census tract'
     }
     return 'the census block'
+  }
+
+  const handleShowOnMap = () => {
+    if (map && activeGeography) {
+      const bbox = getBoundingBox(activeGeography)
+      if (bbox) {
+        map.fitBounds(bbox, {
+          padding: 100,
+          duration: 500,
+        })
+      }
+    }
   }
 
   return (
@@ -61,25 +74,42 @@ const RegionalRisk = () => {
       <Box variant='sectionHeading'>Risk in the region</Box>
       <Filter
         values={{
-          county: geography === 'county',
-          censusTract: geography === 'censusTract',
-          censusBlock: geography === 'censusBlock',
+          county: selectedGeographyLevel === 'county',
+          censusTract: selectedGeographyLevel === 'censusTract',
+          censusBlock: selectedGeographyLevel === 'censusBlock',
         }}
         labels={{
           county: 'County',
           censusTract: 'Census tract',
           censusBlock: 'Census block',
         }}
-        setValues={(obj: Record<GeographyKey, boolean>) =>
-          selectedLocation
-            ? setGeography(
-                (Object.keys(obj) as GeographyKey[]).find(
-                  (k: GeographyKey) => obj[k],
-                ),
-              )
-            : null
-        }
+        setValues={(obj: Record<GeographyKey, boolean>) => {
+          if (!selectedLocation) return
+          const selected = (Object.keys(obj) as GeographyKey[]).find(
+            (k: GeographyKey) => obj[k],
+          ) as GeographyKey
+          if (selected) {
+            setSelectedGeographyLevel(selected)
+          }
+        }}
+        disabled={!selectedLocation}
+        sx={{
+          button: {
+            borderColor: !selectedLocation ? 'secondary' : 'primary',
+            color: !selectedLocation ? 'secondary' : 'primary',
+          },
+        }}
       />
+      <Button
+        size='xs'
+        inverted
+        suffix={<RotatingArrow />}
+        onClick={handleShowOnMap}
+        disabled={!selectedLocation}
+        sx={{ mt: 2 }}
+      >
+        Show on map
+      </Button>
       <Table
         columns={3}
         start={[1, 2]}
@@ -126,30 +156,22 @@ const RegionalRisk = () => {
           },
         }}
       />
-      <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
-        <Button
-          size='xs'
-          inverted
-          suffix={<RotatingArrow />}
-          disabled
-          sx={
-            geography && false // TODO: remove when behavior is implemented
-              ? {}
-              : { pointerEvents: 'none', color: 'muted' }
-          }
-        >
-          Show on map
-        </Button>
-        <Download geography={geography ?? 'county'} disabled={!geography} />
+      <Flex sx={{ justifyContent: 'flex-end', mt: 2 }}>
+        <Download
+          geography={selectedGeographyLevel}
+          disabled={!selectedLocation}
+        />
       </Flex>
-      <Box sx={{ position: 'relative', mt: 4 }}>
+      <Box sx={{ position: 'relative', mt: 2 }}>
         <Histogram
           region={getRegionName()}
           data={data}
           score={buildingScore}
-          sx={geography && data.length > 0 ? undefined : { opacity: 0.1 }}
+          sx={
+            selectedLocation && data.length > 0 ? undefined : { opacity: 0.1 }
+          }
         />
-        {(!geography || data.length === 0) && (
+        {(!selectedLocation || data.length === 0) && (
           <Box
             sx={{
               position: 'absolute',
@@ -160,7 +182,7 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {geography && data.length === 0
+            {selectedLocation && data.length === 0
               ? 'No data available'
               : 'Select a structure to view regional risk distribution'}
           </Box>

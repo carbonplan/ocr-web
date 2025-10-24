@@ -52,16 +52,19 @@ const REGION_TYPES: Record<GeographyKey, string> = {
 
 export const Download = ({ disabled, geography }: DownloadProps) => {
   const [loading, setLoading] = useState({ csv: false, gpkg: false })
+  const selectedGeographyLevel = useStore(
+    (state) => state.selectedGeographyLevel,
+  )
   const geoid = useStore((state) =>
-    getGeoid(state.activeGeographies[geography]),
+    getGeoid(state.activeGeographies[selectedGeographyLevel]),
   )
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
   let filename: string
-  if (geography === 'county') {
+  if (selectedGeographyLevel === 'county') {
     filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
-  } else if (geography === 'censusTract') {
+  } else if (selectedGeographyLevel === 'censusTract') {
     filename = `Census-Tract-${geoid}`
   } else {
     filename = `Census-Block-${geoid}`

@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import { Location, Building, Geography, Coordinates } from '../types/location'
+import {
+  Location,
+  Building,
+  Geography,
+  Coordinates,
+  GeographyKey,
+} from '../types/location'
 import { RISKS } from './config'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
@@ -28,13 +34,15 @@ type Store = {
     censusTract: Geography | null
     censusBlock: Geography | null
   }) => void
-  geographies: {
+  selectedGeographyLevel: GeographyKey
+  setSelectedGeographyLevel: (level: GeographyKey) => void
+  layerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
     censusBlock: boolean
   }
-  setGeographies: (geographies: {
+  setLayerVisibility: (layerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
@@ -88,13 +96,15 @@ export const useStore = create<Store>((set) => ({
     set({
       activeGeographies: { county, censusTract, censusBlock },
     }),
-  geographies: {
+  selectedGeographyLevel: 'county',
+  setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
+  layerVisibility: {
     building: true,
     county: false,
     censusTract: false,
     censusBlock: false,
   },
-  setGeographies: (geographies) => set({ geographies }),
+  setLayerVisibility: (layerVisibility) => set({ layerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
