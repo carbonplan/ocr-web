@@ -1,9 +1,9 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useColorMode } from 'theme-ui'
 import { RasterTileSource } from 'maplibre-gl'
 import { useStore } from '../lib/store'
 import { generateColormap } from '@/lib/colormaps'
-import { DATA_URLS } from '@/lib/config'
+import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
 
 const epsilon = 1e-9
 
@@ -119,18 +119,46 @@ const WmsLayers = () => {
     })
   }, [map, riskMatrix])
 
-  // manage layer visibility
+  const previousVisibilityRef = useRef(false)
+
   useEffect(() => {
     if (!map) return
-    riskMatrix.forEach((layer) => {
-      if (map.getLayer(layer.id)) {
-        map.setLayoutProperty(layer.id, 'visibility', 'none')
+    const [zoomThreshold] = RASTER_ZOOM_THRESHOLD
+
+    const updateVisibility = (showWmsLayers: boolean) => {
+      riskMatrix.forEach((layer) => {
+        if (map.getLayer(layer.id)) {
+          map.setLayoutProperty(layer.id, 'visibility', 'none')
+        }
+      })
+
+      if (
+        riskRaster &&
+        showWmsLayers &&
+        activeRiskLayerId &&
+        map.getLayer(activeRiskLayerId)
+      ) {
+        map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
       }
-    })
-    if (riskRaster && activeRiskLayerId && map.getLayer(activeRiskLayerId)) {
-      map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
     }
-  }, [riskRaster, activeRiskLayerId, map, riskMatrix])
+
+    const handleZoom = () => {
+      const showWmsLayers = map.getZoom() >= zoomThreshold
+
+      if (previousVisibilityRef.current !== showWmsLayers) {
+        previousVisibilityRef.current = showWmsLayers
+        updateVisibility(showWmsLayers)
+      }
+    }
+
+    previousVisibilityRef.current = map.getZoom() >= zoomThreshold
+    updateVisibility(previousVisibilityRef.current)
+
+    map.on('zoom', handleZoom)
+    return () => {
+      map.off('zoom', handleZoom)
+    }
+  }, [map, riskMatrix, riskRaster, activeRiskLayerId])
 
   return null
 }

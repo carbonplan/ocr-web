@@ -1,9 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
-// @ts-expect-error - carbonplan maps types not available
 import { MapProvider, Raster } from '@carbonplan/maps/core'
-import { DATA_URLS } from '@/lib/config'
+import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
@@ -22,8 +21,19 @@ const ZarrLayer = () => {
 
   useEffect(() => {
     if (!map) return
+    const [zoomStart, zoomEnd] = RASTER_ZOOM_THRESHOLD
     const handleZoom = () => {
-      setZoom(map.getZoom())
+      const newZoom = map.getZoom()
+      setZoom((prevZoom) => {
+        // Only update if we're in the transition zone or crossing into/out of it
+        const inTransition = newZoom >= zoomStart && newZoom < zoomEnd
+        const wasInTransition = prevZoom >= zoomStart && prevZoom < zoomEnd
+
+        if (inTransition || wasInTransition) {
+          return newZoom
+        }
+        return prevZoom
+      })
     }
     setZoom(map.getZoom())
     map.on('zoom', handleZoom)
@@ -33,10 +43,10 @@ const ZarrLayer = () => {
   }, [map])
 
   const opacity = useMemo(() => {
-    // return 1
-    if (zoom < 13) return 1
-    if (zoom >= 13.25) return 0
-    return 1 - (zoom - 13) / (13.25 - 13)
+    const [zoomStart, zoomEnd] = RASTER_ZOOM_THRESHOLD
+    if (zoom < zoomStart) return 1
+    if (zoom >= zoomEnd) return 0
+    return 1 - (zoom - zoomStart) / (zoomEnd - zoomStart)
   }, [zoom])
 
   const fragShader = useMemo(() => {
@@ -90,7 +100,7 @@ const ZarrLayer = () => {
         binIndex = ${lastBinIndex}.0;
       }
 
-      float rescaled = (binIndex + 0.5) / ${colormapCount}.0; // +0.5 to center the bin and avoid potential interpolation.
+      float rescaled = binIndex / ${colormapCount}.0; 
       gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
       gl_FragColor.a = opacity;
       gl_FragColor.rgb *= gl_FragColor.a;
