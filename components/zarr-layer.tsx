@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
+// @ts-expect-error missing types for carbonplan maps
 import { MapProvider, Raster } from '@carbonplan/maps/core'
 import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
 
