@@ -23,7 +23,7 @@ import {
   MapAttribution,
   useMapControlStyles,
 } from './'
-import { DATA_URLS, LAYERS, USE_WMS_LAYERS } from '@/lib/config'
+import { DATA_URLS, LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
 const MapComponent = () => {
