@@ -107,7 +107,7 @@ const ZarrLayer = () => {
       <Raster
         colormap={colormap}
         clim={colorLimits.bounds}
-        source={DATA_URLS.zarr}
+        source={DATA_URLS.raster.zarr}
         variable={riskAttribute}
         fillValue={9.969209968386869e36}
         frag={fragShader}

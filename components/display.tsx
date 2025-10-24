@@ -8,11 +8,8 @@ const Display = () => {
   const setSatellite = useStore((state) => state.setSatellite)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
-  const rpsRaster = useStore((state) => state.rpsRaster)
-  const setRpsRaster = useStore((state) => state.setRpsRaster)
   const geographies = useStore((state) => state.geographies)
   const setGeographies = useStore((state) => state.setGeographies)
-  const advancedMode = useStore((state) => state.advancedMode)
 
   return (
     <>
@@ -47,32 +44,10 @@ const Display = () => {
           Raw data
         </Column>
         <Column start={2} width={[2, 2, 3, 3]}>
-          {advancedMode ? (
-            <Filter
-              multiSelect
-              values={{
-                ocr: riskRaster,
-                usfs: rpsRaster,
-              }}
-              setValues={(values: Record<string, boolean>) => {
-                if (values.ocr === riskRaster) {
-                  setRiskRaster(false)
-                } else {
-                  setRiskRaster(values.ocr)
-                }
-                if (values.usfs === rpsRaster) {
-                  setRpsRaster(false)
-                } else {
-                  setRpsRaster(values.usfs)
-                }
-              }}
-            />
-          ) : (
-            <Toggle
-              value={riskRaster}
-              onClick={() => setRiskRaster(!riskRaster)}
-            />
-          )}
+          <Toggle
+            value={riskRaster}
+            onClick={() => setRiskRaster(!riskRaster)}
+          />
         </Column>
       </Row>
       <Row sx={{ my: 3 }} columns={[3, 3, 4, 4]}>
