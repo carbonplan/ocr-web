@@ -79,6 +79,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
           data_format: format,
           geoid: geoid,
           region_type: REGION_TYPES[geography],
+          file_name: `${filename}.${format}`,
         }),
       })
       const payload = await res.json()
