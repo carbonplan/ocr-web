@@ -1,6 +1,6 @@
 import chroma from 'chroma-js'
 import { useMemo } from 'react'
-import { useColorMode, useThemeUI } from 'theme-ui'
+import { useColorMode } from 'theme-ui'
 import { useStore } from './store'
 
 export interface ColormapOptions {
