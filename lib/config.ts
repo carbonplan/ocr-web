@@ -7,7 +7,7 @@ export const DATA_URLS = {
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/buildings.pmtiles`,
     regions:
       process.env.NEXT_PUBLIC_REGIONS_URL ??
-      'https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles',
+      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles`,
   },
   raster: {
     risk:
