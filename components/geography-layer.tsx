@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
@@ -27,7 +27,9 @@ const GeographyLayer = ({
 }: GeographyLayerProps) => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const layerVisibility = useStore((state) => state.layerVisibility)
+  const geographyLayerVisibility = useStore(
+    (state) => state.geographyLayerVisibility,
+  )
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
@@ -36,9 +38,9 @@ const GeographyLayer = ({
   )
   const activeGeographies = useStore((state) => state.activeGeographies)
   const colormap = useColormap({ format: 'hex' })
+  const previousGeoidRef = useRef<string | null>(null)
 
   const highlightLayerId = `${config.layerIds.line}-highlight`
-
   const medianRisk = getGeographyMedianRiskKey(timePeriod)
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
@@ -107,6 +109,7 @@ const GeographyLayer = ({
         map.addSource(config.sourceId, {
           type: 'vector',
           url: `pmtiles://${environmentUrl}`,
+          promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
         })
       }
 
@@ -119,7 +122,7 @@ const GeographyLayer = ({
             'source-layer': config.layerName,
             paint: {
               'fill-color': colorExpression,
-              'fill-opacity': layerVisibility[geographyKey] ? 1 : 0,
+              'fill-opacity': geographyLayerVisibility[geographyKey] ? 1 : 0,
             },
           },
           'landcover',
@@ -134,7 +137,7 @@ const GeographyLayer = ({
             source: config.sourceId,
             'source-layer': config.layerName,
             paint: {
-              'line-opacity': layerVisibility[geographyKey] ? 1 : 0,
+              'line-opacity': geographyLayerVisibility[geographyKey] ? 1 : 0,
               'line-color': get(theme, 'rawColors.secondary'),
               'line-width': [
                 'interpolate',
@@ -151,7 +154,6 @@ const GeographyLayer = ({
         )
       }
 
-      // Add highlight layer for selected geography
       if (!map.getLayer(highlightLayerId)) {
         map.addLayer(
           {
@@ -160,11 +162,15 @@ const GeographyLayer = ({
             source: config.sourceId,
             'source-layer': config.layerName,
             paint: {
-              'line-opacity': 0,
+              'line-opacity': [
+                'case',
+                ['boolean', ['feature-state', 'selected'], false],
+                1,
+                0,
+              ],
               'line-color': get(theme, 'rawColors.primary'),
-              'line-width': 1,
+              'line-width': 2,
             },
-            filter: ['==', ['get', GEOGRAPHY_ATTRIBUTE_KEYS.geoid], ''],
           },
           'address_label',
         )
@@ -197,27 +203,25 @@ const GeographyLayer = ({
         console.error(`Error removing ${geographyKey} layers:`, error)
       }
     }
-  }, [map, highlightLayerId])
+  }, [map])
 
   useEffect(() => {
-    // Update color expression when variable selection changes
     if (!map || !map.getLayer(config.layerIds.fill)) return
     map.setPaintProperty(config.layerIds.fill, 'fill-color', colorExpression)
   }, [map, colorExpression, config.layerIds.fill])
 
   useEffect(() => {
-    // Update opacity based on geography selection
     if (!map || !map.getLayer(config.layerIds.fill)) return
     map.setPaintProperty(
       config.layerIds.fill,
       'fill-opacity',
-      layerVisibility[geographyKey] ? 1 : 0,
+      geographyLayerVisibility[geographyKey] ? 1 : 0,
     )
     if (map.getLayer(config.layerIds.line)) {
       map.setPaintProperty(
         config.layerIds.line,
         'line-opacity',
-        layerVisibility[geographyKey] ? 1 : 0,
+        geographyLayerVisibility[geographyKey] ? 1 : 0,
       )
       map.setPaintProperty(
         config.layerIds.line,
@@ -227,7 +231,7 @@ const GeographyLayer = ({
     }
   }, [
     map,
-    layerVisibility,
+    geographyLayerVisibility,
     geographyKey,
     theme,
     config.layerIds.fill,
@@ -235,29 +239,43 @@ const GeographyLayer = ({
   ])
 
   useEffect(() => {
-    // Update highlight layer based on selected geography
-    if (!map || !map.getLayer(highlightLayerId)) return
+    if (!map || !map.getSource(config.sourceId)) return
 
     const isSelected = selectedGeographyLevel === geographyKey
     const activeGeography = activeGeographies[geographyKey]
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
 
+    if (previousGeoidRef.current) {
+      map.removeFeatureState(
+        {
+          source: config.sourceId,
+          sourceLayer: config.layerName,
+          id: previousGeoidRef.current,
+        },
+        'selected',
+      )
+    }
+
     if (isSelected && geoid) {
-      map.setFilter(highlightLayerId, [
-        '==',
-        ['get', GEOGRAPHY_ATTRIBUTE_KEYS.geoid],
-        geoid,
-      ])
-      map.setPaintProperty(highlightLayerId, 'line-opacity', 1)
+      map.setFeatureState(
+        {
+          source: config.sourceId,
+          sourceLayer: config.layerName,
+          id: geoid,
+        },
+        { selected: true },
+      )
+      previousGeoidRef.current = geoid
     } else {
-      map.setPaintProperty(highlightLayerId, 'line-opacity', 0)
+      previousGeoidRef.current = null
     }
   }, [
     map,
     selectedGeographyLevel,
     activeGeographies,
     geographyKey,
-    highlightLayerId,
+    config.sourceId,
+    config.layerName,
   ])
 
   return null

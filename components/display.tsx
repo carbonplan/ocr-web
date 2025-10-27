@@ -8,8 +8,12 @@ const Display = () => {
   const setSatellite = useStore((state) => state.setSatellite)
   const riskRaster = useStore((state) => state.riskRaster)
   const setRiskRaster = useStore((state) => state.setRiskRaster)
-  const layerVisibility = useStore((state) => state.layerVisibility)
-  const setLayerVisibility = useStore((state) => state.setLayerVisibility)
+  const geographyLayerVisibility = useStore(
+    (state) => state.geographyLayerVisibility,
+  )
+  const setGeographyLayerVisibility = useStore(
+    (state) => state.setGeographyLayerVisibility,
+  )
 
   return (
     <>
@@ -20,7 +24,7 @@ const Display = () => {
         </Column>
         <Column start={2} width={[2, 2, 3, 3]}>
           <Filter
-            values={layerVisibility}
+            values={geographyLayerVisibility}
             labels={{
               building: 'Building',
               county: 'County',
@@ -29,7 +33,7 @@ const Display = () => {
             }}
             multiSelect
             setValues={(values: Record<string, boolean>) => {
-              setLayerVisibility({
+              setGeographyLayerVisibility({
                 building: true,
                 county: values.county,
                 censusTract: values.censusTract,

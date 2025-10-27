@@ -36,13 +36,13 @@ type Store = {
   }) => void
   selectedGeographyLevel: GeographyKey
   setSelectedGeographyLevel: (level: GeographyKey) => void
-  layerVisibility: {
+  geographyLayerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
     censusBlock: boolean
   }
-  setLayerVisibility: (layerVisibility: {
+  setGeographyLayerVisibility: (geographyLayerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
@@ -98,13 +98,14 @@ export const useStore = create<Store>((set) => ({
     }),
   selectedGeographyLevel: 'county',
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
-  layerVisibility: {
+  geographyLayerVisibility: {
     building: true,
     county: false,
     censusTract: false,
     censusBlock: false,
   },
-  setLayerVisibility: (layerVisibility) => set({ layerVisibility }),
+  setGeographyLayerVisibility: (geographyLayerVisibility) =>
+    set({ geographyLayerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
