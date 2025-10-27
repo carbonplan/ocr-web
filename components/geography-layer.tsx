@@ -16,14 +16,9 @@ interface GeographyLayerProps {
     }
   }
   geographyKey: GeographyKey
-  environmentUrl: string
 }
 
-const GeographyLayer = ({
-  config,
-  geographyKey,
-  environmentUrl,
-}: GeographyLayerProps) => {
+const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const geographies = useStore((state) => state.geographies)
@@ -96,13 +91,6 @@ const GeographyLayer = ({
     if (!map) return
 
     const initializeLayers = () => {
-      if (!map.getSource(config.sourceId)) {
-        map.addSource(config.sourceId, {
-          type: 'vector',
-          url: `pmtiles://${environmentUrl}`,
-        })
-      }
-
       if (!map.getLayer(config.layerIds.fill)) {
         map.addLayer(
           {
@@ -160,9 +148,6 @@ const GeographyLayer = ({
         }
         if (map.getLayer(config.layerIds.line)) {
           map.removeLayer(config.layerIds.line)
-        }
-        if (map.getSource(config.sourceId)) {
-          map.removeSource(config.sourceId)
         }
       } catch (error) {
         console.error(`Error removing ${geographyKey} layers:`, error)

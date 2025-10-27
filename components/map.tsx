@@ -59,6 +59,10 @@ const MapComponent = () => {
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
+      regions: {
+        type: 'vector',
+        url: `pmtiles://${DATA_URLS.vector.regions}`,
+      },
     }
 
     const newMap = new Map({
@@ -158,20 +162,14 @@ const MapComponent = () => {
           <SatelliteLayer />
           <HillshadeLayer />
           <WmsLayers />
-          <GeographyLayer
-            config={LAYERS.counties}
-            geographyKey='county'
-            environmentUrl={DATA_URLS.vector.counties}
-          />
+          <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}
             geographyKey='censusTract'
-            environmentUrl={DATA_URLS.vector.censusTracts}
           />
           <GeographyLayer
             config={LAYERS.censusBlocks}
             geographyKey='censusBlock'
-            environmentUrl={DATA_URLS.vector.censusBlocks}
           />
           <Buildings />
           <SelectionMarker />

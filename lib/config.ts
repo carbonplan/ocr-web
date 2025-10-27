@@ -5,15 +5,9 @@ export const DATA_URLS = {
     buildings:
       process.env.NEXT_PUBLIC_BUILDING_URL ??
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/buildings.pmtiles`,
-    counties:
-      process.env.NEXT_PUBLIC_COUNTY_URL ??
-      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/counties.pmtiles`,
-    censusTracts:
-      process.env.NEXT_PUBLIC_CENSUS_TRACT_URL ??
-      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/tracts.pmtiles`,
-    censusBlocks:
-      process.env.NEXT_PUBLIC_CENSUS_BLOCK_URL ??
-      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/blocks.pmtiles`,
+    regions:
+      process.env.NEXT_PUBLIC_REGIONS_URL ??
+      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles`,
   },
   raster: {
     risk:
@@ -35,24 +29,24 @@ export const LAYERS = {
     },
   },
   counties: {
-    layerName: 'risk',
-    sourceId: 'counties',
+    layerName: 'counties',
+    sourceId: 'regions',
     layerIds: {
       fill: 'risk-counties-fill',
       line: 'risk-counties-line',
     },
   },
   censusTracts: {
-    layerName: 'risk',
-    sourceId: 'census-tracts',
+    layerName: 'tracts',
+    sourceId: 'regions',
     layerIds: {
       fill: 'risk-census-tracts-fill',
       line: 'risk-census-tracts-line',
     },
   },
   censusBlocks: {
-    layerName: 'risk',
-    sourceId: 'census-blocks',
+    layerName: 'blocks',
+    sourceId: 'regions',
     layerIds: {
       fill: 'risk-census-blocks-fill',
       line: 'risk-census-blocks-line',
