@@ -169,7 +169,7 @@ const GeographyLayer = ({
                 0,
               ],
               'line-color': get(theme, 'rawColors.primary'),
-              'line-width': 2,
+              'line-width': 1,
             },
           },
           'address_label',
