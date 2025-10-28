@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
+import { useSpring } from 'react-spring'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 // @ts-expect-error missing types for carbonplan maps
@@ -20,37 +21,30 @@ const ZarrLayer = () => {
   const riskAttribute = useMemo(() => {
     return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   }, [timePeriod])
-  const [zoom, setZoom] = useState(map?.getZoom() ?? 0)
+
+  const [targetOpacity, setTargetOpacity] = useState(1)
+  const [opacity, setOpacity] = useState(1)
+
+  useSpring({
+    opacity: targetOpacity,
+    config: { duration: 300 },
+    onChange: ({ value }) => {
+      setOpacity(value.opacity)
+    },
+  })
 
   useEffect(() => {
     if (!map) return
-    const [zoomStart, zoomEnd] = RASTER_ZOOM_THRESHOLD
+    const [zoomThreshold] = RASTER_ZOOM_THRESHOLD
     const handleZoom = () => {
-      const newZoom = map.getZoom()
-      setZoom((prevZoom) => {
-        // Only update if we're in the transition zone or crossing into/out of it
-        const inTransition = newZoom >= zoomStart && newZoom < zoomEnd
-        const wasInTransition = prevZoom >= zoomStart && prevZoom < zoomEnd
-
-        if (inTransition || wasInTransition) {
-          return newZoom
-        }
-        return prevZoom
-      })
+      setTargetOpacity(map.getZoom() < zoomThreshold ? 1 : 0)
     }
-    setZoom(map.getZoom())
+    setTargetOpacity(map.getZoom() < zoomThreshold ? 1 : 0)
     map.on('zoom', handleZoom)
     return () => {
       map.off('zoom', handleZoom)
     }
   }, [map])
-
-  const opacity = useMemo(() => {
-    const [zoomStart, zoomEnd] = RASTER_ZOOM_THRESHOLD
-    if (zoom < zoomStart) return 1
-    if (zoom >= zoomEnd) return 0
-    return 1 - (zoom - zoomStart) / (zoomEnd - zoomStart)
-  }, [zoom])
 
   const fragShader = useMemo(() => {
     if (colorLimits.type === 'continuous') {
