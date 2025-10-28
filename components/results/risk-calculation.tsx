@@ -1,7 +1,5 @@
 import { Box } from 'theme-ui'
 import {
-  Column,
-  Row,
   Table,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
@@ -28,12 +26,10 @@ const RiskCalculation = () => {
   return (
     <>
       <Box variant='sectionHeading'>Calculating risk</Box>
-      <Row columns={3} sx={{ mb: 3 }}>
-        <Column start={1} width={3}>
-          Risk scores are based on an estimation of damage likelihood due to
-          wildfire.
-        </Column>
-      </Row>
+      <Box variant='description' sx={{ mb: 3 }}>
+        Risk scores are based on an estimation of damage likelihood due to
+        wildfire.
+      </Box>
       <Table
         columns={3}
         start={[1, 2, 3]}
