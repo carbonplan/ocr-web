@@ -12,7 +12,7 @@ export const formatAddress = (address: Address, shortForm?: boolean) => {
 
   const cityState = []
   if (address.city) cityState.push(address.city)
-  if (address.state) cityState.push(address.state)
+  if (address.stateCode) cityState.push(address.stateCode)
   if (cityState.length === 0) {
     return base
   } else if (!base) {
