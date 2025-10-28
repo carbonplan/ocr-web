@@ -258,11 +258,11 @@ const Geocode = () => {
         }}
       >
         <SidebarDivider sx={{ mb: 3 }} />
-        <Row columns={4}>
-          <Column start={1} width={1}>
-            {<Box variant='label'>Address</Box>}
+        <Row columns={[6, 8, 4, 4]}>
+          <Column start={[1]} width={1}>
+            <Box variant='label'>Address</Box>
           </Column>
-          <Column start={2} width={3}>
+          <Column start={[3, 2, 2, 2]} width={[4, 7, 3, 3]}>
             <Flex>
               <Input
                 ref={inputRef}
@@ -276,7 +276,7 @@ const Geocode = () => {
                   reverseGeocodeLoading ? 'loading...' : 'enter search term'
                 }
                 sx={{
-                  mt: '2px',
+                  mt: '1px',
                   flexGrow: 1,
                   fontFamily: 'mono',
                   fontSize: [2, 2, 2, 3],
@@ -298,10 +298,7 @@ const Geocode = () => {
                   onClick={handleDeselect}
                   inverted
                   aria-label='Clear address'
-                  sx={{
-                    pl: ['6px', '6px', '8px', '14px'],
-                    mr: ['-12px', '-12px', '-24px', '-34px'],
-                  }}
+                  sx={{ mr: ['-10px', '-12px', '-14px', '-17px'] }}
                 >
                   <X
                     id='close'
