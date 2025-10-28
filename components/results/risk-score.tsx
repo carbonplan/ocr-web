@@ -17,7 +17,7 @@ const RiskScore = () => {
   let content: string | ReactNode = 'Select a building to view its fire risk'
 
   if (reverseGeocodeLoading) {
-    // use default
+    content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
   } else if (selectedBuilding && selectedLocation) {
     content = formatAddress(selectedLocation.address) || 'Selected building'
   }
