@@ -109,7 +109,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
         onClick={() => handleClick('csv')}
       />
       <DownloadButton
-        label='GPKG'
+        label='GeoPackage'
         loading={loading.gpkg}
         disabled={disabled}
         onClick={() => handleClick('gpkg')}
