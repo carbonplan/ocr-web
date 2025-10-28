@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 
 import { useStore } from '@/lib/store'
@@ -8,19 +8,29 @@ import ValueBadge from './value-badge'
 import ScoreBar from './score-bar'
 
 const RiskScore = () => {
+  const ref = useRef<HTMLDivElement>()
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
+  const [abbreviate, setAbbreviate] = useState(false)
 
   const { score, color } = useScore(selectedBuilding, 'muted')
 
-  let content: string | ReactNode = 'Select a building to view its fire risk'
+  let content: string | ReactNode = abbreviate
+    ? 'Select a building to view risk'
+    : 'Select a building to view its fire risk'
 
   if (reverseGeocodeLoading) {
     content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
   } else if (selectedBuilding && selectedLocation) {
-    content = formatAddress(selectedLocation.address) || 'Selected building'
+    content =
+      formatAddress(selectedLocation.address, abbreviate) || 'Selected building'
   }
+
+  useEffect(() => {
+    const shouldAbbreviate = !!ref.current && ref.current.clientHeight > 22
+    setAbbreviate(shouldAbbreviate)
+  }, [reverseGeocodeLoading, selectedBuilding, selectedLocation])
 
   return (
     <>
@@ -40,7 +50,9 @@ const RiskScore = () => {
             flexShrink: 0,
           }}
         />
-        <Box sx={{ mt: '10px', variant: 'description' }}>{content}</Box>
+        <Box ref={ref} sx={{ mt: '10px', variant: 'description' }}>
+          {content}
+        </Box>
       </Flex>
       <ScoreBar labels axisLabel />
     </>
