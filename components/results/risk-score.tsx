@@ -7,8 +7,6 @@ import { useScore } from '@/hooks/useScore'
 import ValueBadge from './value-badge'
 import ScoreBar from './score-bar'
 
-const scoreHeight = [34, 34, 34, 45]
-
 const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
@@ -19,7 +17,7 @@ const RiskScore = () => {
   let content: string | ReactNode = 'Select a building to view its fire risk'
 
   if (reverseGeocodeLoading) {
-    // content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
+    // use default
   } else if (selectedBuilding && selectedLocation) {
     content = formatAddress(selectedLocation.address) || 'Selected building'
   }
@@ -29,22 +27,20 @@ const RiskScore = () => {
       <Box variant='sectionHeading' sx={{ mt: 3, mb: 2 }}>
         Risk score
       </Box>
-      <Flex sx={{ gap: 3 }}>
+      <Flex sx={{ gap: 3, mb: 3 }}>
         <ValueBadge
           value={score}
           unit='#'
           color={color}
           sx={{
-            fontSize: [4, 4, 4, 5],
+            fontSize: [4, 4, 4, 4],
             width: [80, 80, 80, 100],
-            height: scoreHeight,
+            height: 34,
             backgroundColor: color,
             flexShrink: 0,
           }}
         />
-        <Box sx={{ height: '44px', mt: '10px', variant: 'description' }}>
-          {content}
-        </Box>
+        <Box sx={{ mt: '10px', variant: 'description' }}>{content}</Box>
       </Flex>
       <ScoreBar labels axisLabel />
     </>
