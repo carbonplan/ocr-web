@@ -5,6 +5,13 @@ import { useStore } from '@/lib/store'
 import { MapProvider, Raster } from '@carbonplan/maps/core'
 import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
 
+const discard = `
+  if (value == fillValue || value > clim.y || value < clim.x) {
+    discard;
+    return;
+  }
+`
+
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
   const colorLimits = useStore((state) => state.colorLimits)
@@ -46,18 +53,10 @@ const ZarrLayer = () => {
   }, [zoom])
 
   const fragShader = useMemo(() => {
-    if (colorLimits.type !== 'discrete') {
+    if (colorLimits.type === 'continuous') {
       return `
         float value = ${riskAttribute};
-        if (value == fillValue || value > clim.y) {
-          discard;
-          return;
-        }
-        if (value < clim.x) {
-          discard;
-          return;
-        }
-
+        ${discard}
         float rescaled = (value - clim.x) / (clim.y - clim.x);
         gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
         gl_FragColor.a = opacity;
@@ -78,35 +77,21 @@ const ZarrLayer = () => {
       })
       .join('')
 
-    const lastBinIndex = Math.min(boundaries.length - 1, colormapCount - 1)
+    const lastBinIndex = boundaries.length - 1
 
     return `
       float value = ${riskAttribute};
-      if (value == fillValue || value > clim.y) {
-        discard;
-        return;
-      }
-      if (value < clim.x) {
-        discard;
-        return;
-      }
-
+      ${discard}
       float binIndex = 0.0;
       ${binConditions} else {
         binIndex = ${lastBinIndex}.0;
       }
-
-      float rescaled = binIndex / ${colormapCount}.0; 
+      float rescaled = binIndex / ${boundaries.length}.0; 
       gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
       gl_FragColor.a = opacity;
       gl_FragColor.rgb *= gl_FragColor.a;
     `
-  }, [
-    colorLimits.type,
-    colorLimits.binBoundaries,
-    colormapCount,
-    riskAttribute,
-  ])
+  }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
 
   return (
     <MapProvider map={map}>
