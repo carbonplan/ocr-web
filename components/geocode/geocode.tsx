@@ -52,7 +52,7 @@ const Geocode = () => {
 
   useEffect(() => {
     if (selectedLocation) {
-      setSearchQuery(formatAddress(selectedLocation.address))
+      setSearchQuery(formatAddress(selectedLocation.address, true))
     } else {
       setSearchQuery('')
     }
