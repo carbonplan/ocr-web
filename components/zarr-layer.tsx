@@ -7,13 +7,8 @@ import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
-  const riskConfig = useStore((state) => state.riskConfig)
   const colorLimits = useStore((state) => state.colorLimits)
-  const colormapCount =
-    colorLimits.type === 'discrete' ? colorLimits.binBoundaries.length : 256
-  const colormap = useColormapRGB(riskConfig.colormap, {
-    count: colormapCount,
-  })
+  const colormap = useColormapRGB()
   const timePeriod = useStore((state) => state.timePeriod)
   const riskAttribute = useMemo(() => {
     return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'

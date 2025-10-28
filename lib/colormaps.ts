@@ -54,14 +54,11 @@ export function useColormap(options?: ColormapOptions): string[] {
 }
 
 export function useColormapRGB(
-  name: string,
-  options: Omit<ColormapOptions, 'mode'> = {},
+  options?: ColormapOptions,
 ): [number, number, number][] {
-  const [colorMode] = useColorMode()
-  const mode = colorMode === 'dark' ? 'dark' : 'light'
+  const hexColors = useColormap(options)
 
   return useMemo(() => {
-    const hexColors = generateColormap(name, { ...options, mode })
     return hexColors.map((c) => chroma(c).rgb())
-  }, [name, options, mode])
+  }, [hexColors])
 }
