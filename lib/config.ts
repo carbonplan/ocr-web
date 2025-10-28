@@ -94,4 +94,4 @@ export const RISKS = {
   },
 } as const
 
-export const RASTER_ZOOM_THRESHOLD = [12, 12.25]
+export const RASTER_ZOOM_THRESHOLD = 12

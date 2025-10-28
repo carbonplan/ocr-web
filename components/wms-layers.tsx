@@ -123,8 +123,6 @@ const WmsLayers = () => {
 
   useEffect(() => {
     if (!map) return
-    const [zoomThreshold] = RASTER_ZOOM_THRESHOLD
-
     const updateVisibility = (showWmsLayers: boolean) => {
       riskMatrix.forEach((layer) => {
         if (map.getLayer(layer.id)) {
@@ -143,7 +141,7 @@ const WmsLayers = () => {
     }
 
     const handleZoom = () => {
-      const showWmsLayers = map.getZoom() >= zoomThreshold
+      const showWmsLayers = map.getZoom() >= RASTER_ZOOM_THRESHOLD
 
       if (previousVisibilityRef.current !== showWmsLayers) {
         previousVisibilityRef.current = showWmsLayers
@@ -151,7 +149,7 @@ const WmsLayers = () => {
       }
     }
 
-    previousVisibilityRef.current = map.getZoom() >= zoomThreshold
+    previousVisibilityRef.current = map.getZoom() >= RASTER_ZOOM_THRESHOLD
     updateVisibility(previousVisibilityRef.current)
 
     map.on('zoom', handleZoom)

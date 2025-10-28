@@ -35,11 +35,10 @@ const ZarrLayer = () => {
 
   useEffect(() => {
     if (!map) return
-    const [zoomThreshold] = RASTER_ZOOM_THRESHOLD
     const handleZoom = () => {
-      setTargetOpacity(map.getZoom() < zoomThreshold ? 1 : 0)
+      setTargetOpacity(map.getZoom() < RASTER_ZOOM_THRESHOLD ? 1 : 0)
     }
-    setTargetOpacity(map.getZoom() < zoomThreshold ? 1 : 0)
+    setTargetOpacity(map.getZoom() < RASTER_ZOOM_THRESHOLD ? 1 : 0)
     map.on('zoom', handleZoom)
     return () => {
       map.off('zoom', handleZoom)
