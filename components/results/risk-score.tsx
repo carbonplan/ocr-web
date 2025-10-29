@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 
 import { useStore } from '@/lib/store'
@@ -27,7 +27,7 @@ const RiskScore = () => {
       formatAddress(selectedLocation.address, abbreviate) || 'Selected building'
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const shouldAbbreviate = !!ref.current && ref.current.clientHeight > 22
     setAbbreviate(shouldAbbreviate)
   }, [reverseGeocodeLoading, selectedBuilding, selectedLocation])
