@@ -17,7 +17,7 @@ const RiskScore = () => {
   const { score, color } = useScore(selectedBuilding, 'muted')
 
   let content: string | ReactNode = abbreviate
-    ? 'Select a building to view risk'
+    ? 'Select a building'
     : 'Select a building to view its fire risk'
 
   if (reverseGeocodeLoading) {
