@@ -1,3 +1,4 @@
+import { ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 
 import { useStore } from '@/lib/store'
@@ -6,57 +7,54 @@ import { useScore } from '@/hooks/useScore'
 import ValueBadge from './value-badge'
 import ScoreBar from './score-bar'
 
-const scoreHeight = [34, 34, 34, 45]
-
 const RiskScore = () => {
+  const ref = useRef<HTMLDivElement>()
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
+  const [abbreviate, setAbbreviate] = useState(false)
 
   const { score, color } = useScore(selectedBuilding, 'muted')
 
+  let content: string | ReactNode = abbreviate
+    ? 'Select a building'
+    : 'Select a building to view its fire risk'
+
+  if (reverseGeocodeLoading) {
+    content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
+  } else if (selectedBuilding && selectedLocation) {
+    content =
+      formatAddress(selectedLocation.address, abbreviate) || 'Selected building'
+  }
+
+  useLayoutEffect(() => {
+    const shouldAbbreviate = !!ref.current && ref.current.clientHeight > 22
+    setAbbreviate(shouldAbbreviate)
+  }, [reverseGeocodeLoading, selectedBuilding, selectedLocation])
+
   return (
     <>
-      <Box variant='sectionHeading' sx={{ mt: 3 }}>
+      <Box variant='sectionHeading' sx={{ mt: 3, mb: 2 }}>
         Risk score
       </Box>
-      <Flex
-        sx={{
-          gap: 3,
-          alignItems: 'flex-end',
-        }}
-      >
+      <Flex sx={{ gap: 3, mb: 3 }}>
         <ValueBadge
           value={score}
           unit='#'
           color={color}
           sx={{
-            fontSize: [4, 4, 4, 5],
+            fontSize: [4, 4, 4, 4],
             width: [80, 80, 80, 100],
-            height: scoreHeight,
+            height: 34,
             backgroundColor: color,
             flexShrink: 0,
           }}
         />
-        <Box
-          sx={{
-            lineHeight: 1,
-            mb: '-6px',
-          }}
-        >
-          {selectedBuilding && selectedLocation && !reverseGeocodeLoading ? (
-            <>
-              {formatAddress(selectedLocation.address, true) || 'This building'}{' '}
-              has a risk score of {score} out of 10
-            </>
-          ) : reverseGeocodeLoading ? (
-            <Box sx={{ color: 'secondary' }}>Loading address...</Box>
-          ) : (
-            'Select a building to view its fire risk'
-          )}
+        <Box ref={ref} sx={{ mt: '10px', variant: 'description' }}>
+          {content}
         </Box>
       </Flex>
-      <ScoreBar sx={{ mt: 3 }} labels axisLabel />
+      <ScoreBar labels axisLabel />
     </>
   )
 }

@@ -1,14 +1,23 @@
 import { Address } from '@/types/location'
 
 export const formatAddress = (address: Address, shortForm?: boolean) => {
-  const parts = []
-  if (address.houseNumber) parts.push(address.houseNumber)
-  if (address.street) parts.push(address.street)
-  const cityState = []
-  if (!shortForm) {
-    if (address.city) cityState.push(address.city)
-    if (address.state) cityState.push(address.state)
-    if (cityState.length > 0) parts.push(cityState.join(', '))
+  const shortFormElements = []
+  if (address.houseNumber) shortFormElements.push(address.houseNumber)
+  if (address.street) shortFormElements.push(address.street)
+
+  const base = shortFormElements.join(' ')
+  if (shortForm) {
+    return base
   }
-  return parts.join(' ')
+
+  const cityState = []
+  if (address.city) cityState.push(address.city)
+  if (address.stateCode) cityState.push(address.stateCode)
+  if (cityState.length === 0) {
+    return base
+  } else if (!base) {
+    return cityState.join(', ')
+  } else {
+    return [base, ...cityState].join(', ')
+  }
 }
