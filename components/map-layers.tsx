@@ -3,7 +3,8 @@ import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
-import { Button, Expander, Toggle } from '@carbonplan/components'
+import { Expander, Toggle } from '@carbonplan/components'
+import { alpha } from '@theme-ui/color'
 import { useStore } from '@/lib/store'
 import { useState } from 'react'
 
@@ -15,53 +16,65 @@ const LayersSelector = () => {
   const setRiskRaster = useStore((state) => state.setRiskRaster)
 
   return (
-    <Flex
-      sx={{
-        flexDirection: 'column',
-        gap: 2,
-      }}
-    >
+    <Flex sx={{ flexDirection: 'column' }}>
       {expanded && (
-        <Flex sx={{ flexDirection: 'column', gap: 2 }}>
-          <Flex sx={{ gap: 2 }}>
+        <Flex
+          sx={{
+            flexDirection: 'column',
+            gap: 2,
+            px: 2,
+            pt: 2,
+            backgroundColor: alpha('background', 0.7),
+            borderRadius: '10px 10px 10px 0px',
+          }}
+        >
+          <Flex sx={{ gap: 2 }} as='label' variant='description'>
             <Toggle
               value={riskRaster}
               onClick={() => setRiskRaster(!riskRaster)}
             />
-            <Box variant='description' sx={{ mt: '1px' }}>
+            <Box
+              sx={{ mt: '1px', color: riskRaster ? 'primary' : 'secondary' }}
+            >
               Raw data
             </Box>
           </Flex>
-          <Flex sx={{ gap: 2 }}>
+          <Flex sx={{ gap: 2 }} as='label' variant='description'>
             <Toggle
               value={satellite}
               onClick={() => setSatellite(!satellite)}
             />
-            <Box variant='description' sx={{ mt: '1px' }}>
+            <Box sx={{ mt: '1px', color: satellite ? 'primary' : 'secondary' }}>
               Satellite
             </Box>
           </Flex>
         </Flex>
       )}
 
-      <Button
-        size='xs'
-        onClick={() => setExpanded(!expanded)}
-        suffix={
-          <Expander
-            id='expander'
-            value={expanded}
-            sx={{ mt: '-6px', width: '10px', p: 0 }}
-          />
-        }
+      <Flex
         sx={{
-          variant: 'description',
-          '&:hover svg': { stroke: 'primary', fill: 'primary' },
+          width: 'fit-content',
+          px: 2,
+          backgroundColor: alpha('background', 0.7),
+          borderRadius: expanded ? '0px 0px 10px 10px' : '10px',
+          gap: 2,
+          alignItems: 'center',
+          cursor: 'pointer',
+          transition: '.2s color',
+          userSelect: 'none',
+          '&:hover': { color: 'secondary' },
+          '&:hover svg': { stroke: 'secondary' },
         }}
-        inverted
+        as='label'
       >
-        Map layers
-      </Button>
+        <Box variant='description'>Map layers</Box>
+        <Expander
+          id='expander'
+          onClick={() => setExpanded(!expanded)}
+          value={expanded}
+          sx={{ stroke: 'primary', mt: '-1px', width: '10px', p: 0 }}
+        />
+      </Flex>
     </Flex>
   )
 }
@@ -75,7 +88,7 @@ export default function MapLayers() {
         expanded={true}
         side='left'
         width={4}
-        sx={{ bottom: '12px' }}
+        sx={{ bottom: '8px' }}
       >
         <LayersSelector />
       </SidebarAttachment>
