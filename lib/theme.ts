@@ -21,11 +21,9 @@ const customVariants = {
   },
 
   description: {
-    fontFamily: 'mono',
-    letterSpacing: 'mono',
-    textTransform: 'uppercase',
-    fontSize: 1,
-    lineHeight: 1.2,
+    fontFamily: 'body',
+    letterSpacing: 'body',
+    fontSize: [2, 2, 2, 3],
   },
 }
 

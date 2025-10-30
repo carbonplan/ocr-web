@@ -17,14 +17,9 @@ interface GeographyLayerProps {
     }
   }
   geographyKey: GeographyKey
-  environmentUrl: string
 }
 
-const GeographyLayer = ({
-  config,
-  geographyKey,
-  environmentUrl,
-}: GeographyLayerProps) => {
+const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const geographyLayerVisibility = useStore(
@@ -108,14 +103,6 @@ const GeographyLayer = ({
     if (!map) return
 
     const initializeLayers = () => {
-      if (!map.getSource(config.sourceId)) {
-        map.addSource(config.sourceId, {
-          type: 'vector',
-          url: `pmtiles://${environmentUrl}`,
-          promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
-        })
-      }
-
       if (!map.getLayer(config.layerIds.fill)) {
         map.addLayer(
           {
