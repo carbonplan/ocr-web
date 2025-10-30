@@ -36,6 +36,9 @@ const GeographyLayer = ({
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
+  const showGeographyHighlight = useStore(
+    (state) => state.showGeographyHighlight,
+  )
   const activeGeographies = useStore((state) => state.activeGeographies)
   const colormap = useColormap({ format: 'hex' })
   const previousGeoidRef = useRef<string | null>(null)
@@ -256,7 +259,7 @@ const GeographyLayer = ({
       )
     }
 
-    if (isSelected && geoid) {
+    if (isSelected && geoid && showGeographyHighlight) {
       map.setFeatureState(
         {
           source: config.sourceId,
@@ -276,6 +279,7 @@ const GeographyLayer = ({
     geographyKey,
     config.sourceId,
     config.layerName,
+    showGeographyHighlight,
   ])
 
   return null

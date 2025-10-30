@@ -36,6 +36,8 @@ type Store = {
   }) => void
   selectedGeographyLevel: GeographyKey
   setSelectedGeographyLevel: (level: GeographyKey) => void
+  showGeographyHighlight: boolean
+  setShowGeographyHighlight: (show: boolean) => void
   geographyLayerVisibility: {
     building: boolean
     county: boolean
@@ -98,6 +100,8 @@ export const useStore = create<Store>((set) => ({
     }),
   selectedGeographyLevel: 'county',
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
+  showGeographyHighlight: false,
+  setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
   geographyLayerVisibility: {
     building: true,
     county: false,
@@ -132,5 +136,6 @@ export const useStore = create<Store>((set) => ({
       selectedBuilding: null,
       selectedCoordinates: null,
       activeGeographies: { county: null, censusTract: null, censusBlock: null },
+      showGeographyHighlight: false,
     }),
 }))

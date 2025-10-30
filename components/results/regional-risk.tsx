@@ -4,6 +4,8 @@ import { Button, Filter, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { RotatingArrow } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
+import { useCallback, useEffect, useRef } from 'react'
+import { LngLatBounds } from 'maplibre-gl'
 
 import {
   getGeographyRisk,
@@ -28,6 +30,8 @@ const RegionalRisk = () => {
   const setSelectedGeographyLevel = useStore(
     (state) => state.setSelectedGeographyLevel,
   )
+  const showOnMap = useStore((state) => state.showGeographyHighlight)
+  const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
@@ -47,6 +51,8 @@ const RegionalRisk = () => {
     ),
   )
 
+  const previousBoundsRef = useRef<LngLatBounds | null>(null)
+
   const getRegionName = () => {
     if (selectedGeographyLevel === 'county') {
       return `${countyName ?? ''} County`
@@ -57,7 +63,7 @@ const RegionalRisk = () => {
     return 'the census block'
   }
 
-  const handleShowOnMap = () => {
+  const fitBoundsToGeography = useCallback(() => {
     if (map && activeGeography) {
       const bbox = getBoundingBox(activeGeography)
       if (bbox) {
@@ -67,7 +73,36 @@ const RegionalRisk = () => {
         })
       }
     }
+  }, [map, activeGeography])
+
+  const handleShowRegionChange = () => {
+    const newValue = !showOnMap
+    setShowOnMap(newValue)
+    if (!map) return
+    if (newValue) {
+      if (!previousBoundsRef.current) {
+        previousBoundsRef.current = map.getBounds()
+      }
+      fitBoundsToGeography()
+    } else if (previousBoundsRef.current) {
+      map.fitBounds(previousBoundsRef.current, {
+        duration: 500,
+      })
+      previousBoundsRef.current = null
+    }
   }
+
+  useEffect(() => {
+    if (showOnMap && map) {
+      fitBoundsToGeography()
+    }
+  }, [selectedGeographyLevel, showOnMap, fitBoundsToGeography, map])
+
+  useEffect(() => {
+    if (!selectedLocation) {
+      previousBoundsRef.current = null
+    }
+  }, [selectedLocation])
 
   return (
     <>
@@ -100,16 +135,6 @@ const RegionalRisk = () => {
           },
         }}
       />
-      <Button
-        size='xs'
-        inverted
-        suffix={<RotatingArrow />}
-        onClick={handleShowOnMap}
-        disabled={!selectedLocation}
-        sx={{ mt: 2 }}
-      >
-        Show on map
-      </Button>
       <Table
         columns={3}
         start={[1, 2]}
@@ -140,7 +165,7 @@ const RegionalRisk = () => {
         index={false}
         borderTop={false}
         sx={{
-          mt: 3,
+          mt: 2,
           '& tr': {
             py: 2,
           },
@@ -156,7 +181,16 @@ const RegionalRisk = () => {
           },
         }}
       />
-      <Flex sx={{ justifyContent: 'flex-end', mt: 2 }}>
+      <Flex sx={{ justifyContent: 'space-between', my: 3 }}>
+        <Button
+          size='xs'
+          inverted={!showOnMap}
+          suffix={<RotatingArrow />}
+          onClick={handleShowRegionChange}
+          disabled={!selectedLocation}
+        >
+          {showOnMap ? 'Hide region' : 'Show region'}
+        </Button>
         <Download
           geography={selectedGeographyLevel}
           disabled={!selectedLocation}
