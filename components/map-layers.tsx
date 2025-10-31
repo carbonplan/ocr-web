@@ -30,10 +30,11 @@ const LayersSelector = () => {
       sx={{
         alignItems: 'center',
         minHeight: '24px',
-        flexDirection: 'column',
+        flexDirection: ['column-reverse', 'column-reverse', 'column', 'column'],
         borderRadius: '12px',
         backgroundColor: 'hinted',
         px: 2,
+        gap: 1,
       }}
     >
       {expanded && (
@@ -41,8 +42,8 @@ const LayersSelector = () => {
           sx={{
             flexDirection: 'column',
             gap: 2,
-            mt: 2,
-            mb: 1,
+            mt: [0, 0, 2, 2],
+            mb: [2, 2, 0, 0],
           }}
         >
           <Flex sx={{ gap: 2 }} as='label' variant='description'>
@@ -124,7 +125,8 @@ export default function MapLayers() {
       sx={{
         position: 'absolute',
         zIndex: 1,
-        bottom: '137px',
+        top: '60px',
+        right: '10px',
         ml: 3,
         mb: 2,
       }}
