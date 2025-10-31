@@ -9,11 +9,6 @@ import { useStore } from '@/lib/store'
 import { getCountyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
 
-interface DownloadProps {
-  geography: GeographyKey
-  disabled?: boolean
-}
-
 const DownloadButton = ({
   label,
   loading,
@@ -50,8 +45,9 @@ const REGION_TYPES: Record<GeographyKey, string> = {
   censusBlock: 'block',
 }
 
-export const Download = ({ disabled, geography }: DownloadProps) => {
+export const Download = () => {
   const [loading, setLoading] = useState({ csv: false, gpkg: false })
+  const disabled = !useStore((state) => state.selectedLocation)
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -81,7 +77,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
           dataset_version: DATA_VERSION,
           data_format: format,
           geoid: geoid,
-          region_type: REGION_TYPES[geography],
+          region_type: REGION_TYPES[selectedGeographyLevel],
           file_name: `${filename}.${format}`,
         }),
       })

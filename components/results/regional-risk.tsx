@@ -191,10 +191,7 @@ const RegionalRisk = () => {
         >
           {showOnMap ? 'Hide region' : 'Show region'}
         </Button>
-        <Download
-          geography={selectedGeographyLevel}
-          disabled={!selectedLocation}
-        />
+        <Download />
       </Flex>
       <Box sx={{ position: 'relative', mt: 2 }}>
         <Histogram
