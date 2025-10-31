@@ -94,9 +94,7 @@ const MapComponent = () => {
     }
 
     const handleLoadingOn = () => {
-      if (!newMap.isStyleLoaded()) {
-        setMapLoading(true)
-      }
+      setMapLoading(true)
     }
 
     const handleLoadingOff = () => {
@@ -107,7 +105,7 @@ const MapComponent = () => {
       setStyleLoaded(true)
     }
 
-    newMap.on('sourcedata', handleLoadingOn)
+    newMap.on('dataloading', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
     newMap.on('moveend', handleMoveEnd)
     newMap.once('styledata', handleStyleLoad)
@@ -115,7 +113,7 @@ const MapComponent = () => {
     setMap(newMap)
 
     return () => {
-      newMap.off('sourcedata', handleLoadingOn)
+      newMap.off('dataloading', handleLoadingOn)
       newMap.off('idle', handleLoadingOff)
       newMap.off('moveend', handleMoveEnd)
       newMap.remove()
