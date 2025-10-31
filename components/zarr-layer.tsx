@@ -89,7 +89,6 @@ const ZarrLayer = () => {
   return (
     <MapProvider map={map}>
       <Raster
-        key={`${colorLimits.type}-${colorLimits.binBoundaries.join(',')}-${riskAttribute}`} // TODO: remove key once maps changes land
         colormap={colormap}
         clim={colorLimits.bounds}
         source={DATA_URLS.raster.zarr}
