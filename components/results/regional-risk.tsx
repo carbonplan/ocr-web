@@ -2,7 +2,7 @@ import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Filter, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
-import { RotatingArrow } from '@carbonplan/icons'
+import { RotatingArrow, X } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 import { useCallback, useEffect, useRef } from 'react'
 import { LngLatBounds } from 'maplibre-gl'
@@ -185,7 +185,7 @@ const RegionalRisk = () => {
         <Button
           size='xs'
           inverted={!showOnMap}
-          suffix={<RotatingArrow />}
+          suffix={showOnMap ? <X /> : <RotatingArrow />}
           onClick={handleShowRegionChange}
           disabled={!selectedLocation}
         >
