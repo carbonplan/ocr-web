@@ -18,6 +18,7 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
         bottom: [135, 135, 'unset', 'unset'],
         bg: 'hinted',
         color: 'primary',
+        display: 'flex',
         '& a': { color: 'primary' },
         '& .maplibregl-ctrl-attrib-button': {
           bg: 'hinted',

@@ -10,6 +10,7 @@ import EyeCheckbox from './eye-checkbox'
 
 const sx = {
   label: {
+    fontSize: [0, 0, 1, 1],
     mt: '1px',
     transition: '0.2s color',
     '&:hover': { color: 'primary' },
@@ -27,8 +28,10 @@ const LayersSelector = () => {
   return (
     <Flex
       sx={{
+        alignItems: 'center',
+        minHeight: '24px',
         flexDirection: 'column',
-        borderRadius: '10px',
+        borderRadius: '12px',
         backgroundColor: 'hinted',
         px: 2,
       }}
@@ -86,7 +89,9 @@ const LayersSelector = () => {
         }}
         as='label'
       >
-        <Box variant='description'>Map layers</Box>
+        <Box variant='description' sx={{ fontSize: [0, 0, 1, 1] }}>
+          Map layers
+        </Box>
         <Expander
           id='expander'
           onClick={() => setExpanded(!expanded)}
@@ -107,7 +112,7 @@ export default function MapLayers() {
         expanded={true}
         side='left'
         width={4}
-        sx={{ bottom: '8px' }}
+        sx={{ bottom: '10px' }}
       >
         <LayersSelector />
       </SidebarAttachment>
@@ -119,7 +124,7 @@ export default function MapLayers() {
       sx={{
         position: 'absolute',
         zIndex: 1,
-        bottom: '140px',
+        bottom: '137px',
         ml: 3,
         mb: 2,
       }}
