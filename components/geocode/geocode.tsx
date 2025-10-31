@@ -171,7 +171,7 @@ const Geocode = () => {
 
       if (map && location) {
         let offset: [number, number]
-        if (index <= 2) {
+        if (index < 2) {
           offset = [0, -window.innerHeight / 4]
         } else offset = [0, 0]
 

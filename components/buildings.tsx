@@ -245,7 +245,7 @@ const Buildings = () => {
           )
 
           const offset: [number, number] =
-            indexRef.current <= 2 ? [0, -window.innerHeight / 4] : [0, 0]
+            indexRef.current < 2 ? [0, -window.innerHeight / 4] : [0, 0]
 
           map.easeTo({
             center: [lng, lat],
