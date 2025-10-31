@@ -165,7 +165,7 @@ const RegionalRisk = () => {
         index={false}
         borderTop={false}
         sx={{
-          mt: 2,
+          mt: 3,
           '& tr': {
             py: 2,
           },
@@ -181,7 +181,7 @@ const RegionalRisk = () => {
           },
         }}
       />
-      <Flex sx={{ justifyContent: 'space-between', my: 3 }}>
+      <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
         <Button
           size='xs'
           inverted={!showOnMap}
@@ -193,7 +193,7 @@ const RegionalRisk = () => {
         </Button>
         <Download />
       </Flex>
-      <Box sx={{ position: 'relative', mt: 2 }}>
+      <Box sx={{ position: 'relative', mt: 4 }}>
         <Histogram
           region={getRegionName()}
           data={data}
