@@ -186,9 +186,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
         if (map.getLayer(highlightLayerId)) {
           map.removeLayer(highlightLayerId)
         }
-        if (map.getSource(config.sourceId)) {
-          map.removeSource(config.sourceId)
-        }
       } catch (error) {
         console.error(`Error removing ${geographyKey} layers:`, error)
       }
