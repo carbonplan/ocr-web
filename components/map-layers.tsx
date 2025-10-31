@@ -5,7 +5,6 @@ import { useBreakpointIndex } from '@theme-ui/match-media'
 import { SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
 import { Expander } from '@carbonplan/components'
-import { alpha } from '@theme-ui/color'
 import { useStore } from '@/lib/store'
 import EyeCheckbox from './eye-checkbox'
 
@@ -30,7 +29,7 @@ const LayersSelector = () => {
       sx={{
         flexDirection: 'column',
         borderRadius: '10px',
-        backgroundColor: alpha('background', 0.7),
+        backgroundColor: 'hinted',
         px: 2,
       }}
     >
