@@ -121,8 +121,8 @@ const RegionalRisk = () => {
         setValues={(obj: Record<GeographyKey, boolean>) => {
           if (!selectedLocation) return
           const selected = (Object.keys(obj) as GeographyKey[]).find(
-            (k: GeographyKey) => obj[k],
-          ) as GeographyKey
+            (k) => obj[k],
+          )
           if (selected) {
             setSelectedGeographyLevel(selected)
           }
