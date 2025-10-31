@@ -1,12 +1,22 @@
+import { useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
-import { Expander, Toggle } from '@carbonplan/components'
+import { Expander } from '@carbonplan/components'
 import { alpha } from '@theme-ui/color'
 import { useStore } from '@/lib/store'
-import { useState } from 'react'
+import EyeCheckbox from './eye-checkbox'
+
+const sx = {
+  label: {
+    mt: '1px',
+    transition: '0.2s color',
+    '&:hover': { color: 'primary' },
+    cursor: 'pointer',
+  },
+}
 
 const LayersSelector = () => {
   const [expanded, setExpanded] = useState(false)
@@ -16,35 +26,48 @@ const LayersSelector = () => {
   const setRiskRaster = useStore((state) => state.setRiskRaster)
 
   return (
-    <Flex sx={{ flexDirection: 'column' }}>
+    <Flex
+      sx={{
+        flexDirection: 'column',
+        borderRadius: '10px',
+        backgroundColor: alpha('background', 0.7),
+        px: 2,
+      }}
+    >
       {expanded && (
         <Flex
           sx={{
             flexDirection: 'column',
             gap: 2,
-            px: 2,
-            pt: 2,
-            backgroundColor: alpha('background', 0.7),
-            borderRadius: '10px 10px 10px 0px',
+            mt: 2,
+            mb: 1,
           }}
         >
           <Flex sx={{ gap: 2 }} as='label' variant='description'>
-            <Toggle
-              value={riskRaster}
-              onClick={() => setRiskRaster(!riskRaster)}
+            <EyeCheckbox
+              checked={riskRaster}
+              onChange={(e) => setRiskRaster(e.target.checked)}
             />
             <Box
-              sx={{ mt: '1px', color: riskRaster ? 'primary' : 'secondary' }}
+              sx={{
+                ...sx.label,
+                color: riskRaster ? 'primary' : 'secondary',
+              }}
             >
               Raw data
             </Box>
           </Flex>
           <Flex sx={{ gap: 2 }} as='label' variant='description'>
-            <Toggle
-              value={satellite}
-              onClick={() => setSatellite(!satellite)}
+            <EyeCheckbox
+              checked={satellite}
+              onChange={(e) => setSatellite(e.target.checked)}
             />
-            <Box sx={{ mt: '1px', color: satellite ? 'primary' : 'secondary' }}>
+            <Box
+              sx={{
+                ...sx.label,
+                color: satellite ? 'primary' : 'secondary',
+              }}
+            >
               Satellite
             </Box>
           </Flex>
@@ -54,9 +77,6 @@ const LayersSelector = () => {
       <Flex
         sx={{
           width: 'fit-content',
-          px: 2,
-          backgroundColor: alpha('background', 0.7),
-          borderRadius: expanded ? '0px 0px 10px 10px' : '10px',
           gap: 2,
           alignItems: 'center',
           cursor: 'pointer',
