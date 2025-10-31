@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useSpring } from 'react-spring'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
@@ -15,6 +15,8 @@ const discard = `
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
+  const riskRaster = useStore((state) => state.riskRaster)
+  const setRiskRaster = useStore((state) => state.setRiskRaster)
   const colorLimits = useStore((state) => state.colorLimits)
   const colormap = useColormapRGB()
   const timePeriod = useStore((state) => state.timePeriod)
@@ -22,8 +24,9 @@ const ZarrLayer = () => {
     return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   }, [timePeriod])
 
-  const [targetOpacity, setTargetOpacity] = useState(1)
-  const [opacity, setOpacity] = useState(1)
+  const [targetOpacity, setTargetOpacity] = useState(0)
+  const [opacity, setOpacity] = useState(0)
+  const previousZoom = useRef<number | undefined>(undefined)
 
   useSpring({
     opacity: targetOpacity,
@@ -35,15 +38,42 @@ const ZarrLayer = () => {
 
   useEffect(() => {
     if (!map) return
+
     const handleZoom = () => {
-      setTargetOpacity(map.getZoom() < RASTER_ZOOM_THRESHOLD ? 1 : 0)
+      const currentZoom = map.getZoom()
+      const prevZoom = previousZoom.current
+
+      let newRiskRaster = riskRaster // prevent stale state
+      if (prevZoom === undefined) {
+        newRiskRaster = currentZoom < RASTER_ZOOM_THRESHOLD
+        setRiskRaster(newRiskRaster)
+      } else if (
+        currentZoom < RASTER_ZOOM_THRESHOLD &&
+        prevZoom >= RASTER_ZOOM_THRESHOLD
+      ) {
+        newRiskRaster = true
+        setRiskRaster(true)
+      } else if (
+        currentZoom >= RASTER_ZOOM_THRESHOLD &&
+        prevZoom < RASTER_ZOOM_THRESHOLD
+      ) {
+        newRiskRaster = false
+        setRiskRaster(false)
+      }
+
+      setTargetOpacity(
+        newRiskRaster && currentZoom < RASTER_ZOOM_THRESHOLD ? 1 : 0,
+      )
+
+      previousZoom.current = currentZoom
     }
-    setTargetOpacity(map.getZoom() < RASTER_ZOOM_THRESHOLD ? 1 : 0)
+
+    handleZoom()
     map.on('zoom', handleZoom)
     return () => {
       map.off('zoom', handleZoom)
     }
-  }, [map])
+  }, [map, riskRaster, setRiskRaster])
 
   const fragShader = useMemo(() => {
     if (colorLimits.type === 'continuous') {
