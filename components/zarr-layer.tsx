@@ -20,6 +20,7 @@ const ZarrLayer = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const colormap = useColormapRGB()
   const timePeriod = useStore((state) => state.timePeriod)
+  const setZarrLoading = useStore((state) => state.setZarrLoading)
   const riskAttribute = useMemo(() => {
     return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   }, [timePeriod])
@@ -126,6 +127,7 @@ const ZarrLayer = () => {
         fillValue={9.969209968386869e36}
         frag={fragShader}
         opacity={opacity}
+        setLoading={setZarrLoading}
       />
     </MapProvider>
   )
