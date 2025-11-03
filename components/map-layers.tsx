@@ -9,6 +9,12 @@ import { useStore } from '@/lib/store'
 import EyeCheckbox from './eye-checkbox'
 
 const sx = {
+  text: {
+    fontFamily: 'mono',
+    letterSpacing: 'mono',
+    textTransform: 'uppercase',
+    lineHeight: 1.2,
+  } as const,
   label: {
     fontSize: [0, 0, 1, 1],
     mt: '1px',
@@ -29,6 +35,7 @@ const LayersSelector = () => {
     <Flex
       sx={{
         alignItems: 'center',
+        justifyContent: 'flex-end',
         minHeight: '24px',
         flexDirection: ['column-reverse', 'column-reverse', 'column', 'column'],
         borderRadius: '12px',
@@ -46,13 +53,14 @@ const LayersSelector = () => {
             mb: [2, 2, 0, 0],
           }}
         >
-          <Flex sx={{ gap: 2 }} as='label' variant='description'>
+          <Flex sx={{ gap: 2 }} as='label'>
             <EyeCheckbox
               checked={riskRaster}
               onChange={(e) => setRiskRaster(e.target.checked)}
             />
             <Box
               sx={{
+                ...sx.text,
                 ...sx.label,
                 color: riskRaster ? 'primary' : 'secondary',
               }}
@@ -60,13 +68,14 @@ const LayersSelector = () => {
               Raw data
             </Box>
           </Flex>
-          <Flex sx={{ gap: 2 }} as='label' variant='description'>
+          <Flex sx={{ gap: 2 }} as='label'>
             <EyeCheckbox
               checked={satellite}
               onChange={(e) => setSatellite(e.target.checked)}
             />
             <Box
               sx={{
+                ...sx.text,
                 ...sx.label,
                 color: satellite ? 'primary' : 'secondary',
               }}
@@ -90,9 +99,7 @@ const LayersSelector = () => {
         }}
         as='label'
       >
-        <Box variant='description' sx={{ fontSize: [0, 0, 1, 1] }}>
-          Map layers
-        </Box>
+        <Box sx={{ ...sx.text, fontSize: [0, 0, 1, 1] }}>Map layers</Box>
         <Expander
           id='expander'
           onClick={() => setExpanded(!expanded)}
