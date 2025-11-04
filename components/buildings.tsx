@@ -3,6 +3,7 @@ import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { useBreakpointIndex } from '@theme-ui/match-media'
@@ -22,11 +23,8 @@ const Buildings = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
-  const setReverseGeocodeLoading = useStore(
-    (state) => state.setReverseGeocodeLoading,
-  )
-  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const { queryGeographiesAtPoint } = useBuildingUtils()
+  const { fetchAddress } = useReverseGeocode()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const index = useBreakpointIndex({ defaultIndex: 2 })
@@ -255,23 +253,7 @@ const Buildings = () => {
             offset,
           })
           setSelectedCoordinates({ lat, lng })
-          setReverseGeocodeLoading(true)
-          const fetchLocation = async () => {
-            try {
-              const response = await fetch(
-                `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
-              )
-              if (response.ok) {
-                const location = await response.json()
-                setSelectedLocation(location)
-              }
-            } catch (error) {
-              console.error('Error fetching location details:', error)
-            } finally {
-              setReverseGeocodeLoading(false)
-            }
-          }
-          fetchLocation()
+          fetchAddress(lat, lng)
         }
       } else {
         clearSelections()
@@ -287,8 +269,7 @@ const Buildings = () => {
       setSelectedCoordinates,
       clearSelections,
       queryGeographiesAtPoint,
-      setReverseGeocodeLoading,
-      setSelectedLocation,
+      fetchAddress,
     ],
   )
 
