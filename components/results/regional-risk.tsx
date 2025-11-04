@@ -57,10 +57,11 @@ const RegionalRisk = () => {
     if (selectedGeographyLevel === 'county') {
       return `${countyName ?? ''} County`
     }
+    const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
     if (selectedGeographyLevel === 'censusTract') {
-      return 'the census tract'
+      return geoid ? `census tract (${geoid})` : 'the census tract'
     }
-    return 'the census block'
+    return geoid ? `census block (${geoid})` : 'the census block'
   }
 
   const fitBoundsToGeography = useCallback(() => {
