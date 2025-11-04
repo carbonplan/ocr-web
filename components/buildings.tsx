@@ -32,7 +32,7 @@ const Buildings = () => {
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const indexRef = useRef(index)
   const sidebarWidthRef = useRef(sidebarWidth)
-  const colormap = useColormap({ format: 'hex' })
+  const colormap = useColormap()
 
   // refs prevent stale state in event listeners
   useEffect(() => {
@@ -245,7 +245,7 @@ const Buildings = () => {
           )
 
           const offset: [number, number] =
-            indexRef.current <= 2 ? [0, -window.innerHeight / 4] : [0, 0]
+            indexRef.current < 2 ? [0, -window.innerHeight / 4] : [0, 0]
 
           map.easeTo({
             center: [lng, lat],

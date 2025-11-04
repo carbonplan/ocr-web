@@ -68,6 +68,8 @@ type Store = {
   }) => void
   mapLoading: boolean
   setMapLoading: (mapLoading: boolean) => void
+  zarrLoading: boolean
+  setZarrLoading: (zarrLoading: boolean) => void
   reverseGeocodeLoading: boolean
   setReverseGeocodeLoading: (reverseGeocodeLoading: boolean) => void
   advancedMode: boolean
@@ -124,6 +126,8 @@ export const useStore = create<Store>((set) => ({
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
   setMapLoading: (mapLoading) => set({ mapLoading }),
+  zarrLoading: false,
+  setZarrLoading: (zarrLoading) => set({ zarrLoading }),
   reverseGeocodeLoading: false,
   setReverseGeocodeLoading: (reverseGeocodeLoading) =>
     set({ reverseGeocodeLoading }),

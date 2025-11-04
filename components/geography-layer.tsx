@@ -35,8 +35,9 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     (state) => state.showGeographyHighlight,
   )
   const activeGeographies = useStore((state) => state.activeGeographies)
-  const colormap = useColormap({ format: 'hex' })
   const previousGeoidRef = useRef<string | null>(null)
+
+  const colormap = useColormap()
 
   const highlightLayerId = `${config.layerIds.line}-highlight`
   const medianRisk = getGeographyMedianRiskKey(timePeriod)

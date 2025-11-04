@@ -6,7 +6,8 @@ import { Spinner } from 'theme-ui'
 
 export default function Loading() {
   const isLoading = useStore(
-    (state) => state.mapLoading || state.reverseGeocodeLoading,
+    (state) =>
+      state.mapLoading || state.zarrLoading || state.reverseGeocodeLoading,
   )
   const index = useBreakpointIndex({ defaultIndex: 2 })
 
@@ -25,15 +26,5 @@ export default function Loading() {
     )
   }
 
-  return (
-    <Spinner
-      size={32}
-      sx={{
-        position: 'absolute',
-        zIndex: 1000,
-        ml: 3,
-        mt: 6,
-      }}
-    />
-  )
+  return null
 }

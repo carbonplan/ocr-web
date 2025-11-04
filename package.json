@@ -16,6 +16,7 @@
     "@carbonplan/components": "13.1.1",
     "@carbonplan/icons": "^2.0.0",
     "@carbonplan/layouts": "^5.1.0",
+    "@carbonplan/maps": "^3.6.0",
     "@carbonplan/prettier": "^1.2.0",
     "@carbonplan/theme": "^8.1.0",
     "@emotion/react": "^11.14.0",
@@ -32,6 +33,7 @@
     "react": "^18.3.1",
     "react-animate-height": "^3.2.3",
     "react-dom": "^18.3.1",
+    "react-spring": "^10.0.3",
     "theme-ui": "0.15.5",
     "vaul": "^1.1.2",
     "zustand": "^5.0.3"
