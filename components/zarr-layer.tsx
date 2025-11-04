@@ -47,23 +47,21 @@ const ZarrLayer = () => {
       let newRiskRaster = riskRaster // prevent stale state
       if (prevZoom === undefined) {
         newRiskRaster = currentZoom < RASTER_ZOOM_THRESHOLD
-        setRiskRaster(newRiskRaster)
       } else if (
         currentZoom < RASTER_ZOOM_THRESHOLD &&
         prevZoom >= RASTER_ZOOM_THRESHOLD
       ) {
         newRiskRaster = true
-        setRiskRaster(true)
       } else if (
         currentZoom >= RASTER_ZOOM_THRESHOLD &&
         prevZoom < RASTER_ZOOM_THRESHOLD
       ) {
         newRiskRaster = false
-        setRiskRaster(false)
       }
 
+      setRiskRaster(newRiskRaster)
       setTargetOpacity(
-        newRiskRaster && currentZoom < RASTER_ZOOM_THRESHOLD ? 1 : 0,
+        newRiskRaster ? 1 : 0,
       )
 
       previousZoom.current = currentZoom
