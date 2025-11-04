@@ -32,7 +32,7 @@ const ZarrLayer = () => {
 
   useSpring({
     opacity: riskRaster ? 1 : 0,
-    config: { duration: 1000 },
+    config: { duration: 500 },
     onChange: ({ value }) => {
       setDisplayOpacity(value.opacity)
     },
