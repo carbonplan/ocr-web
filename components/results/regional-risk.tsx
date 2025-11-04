@@ -51,6 +51,7 @@ const RegionalRisk = () => {
   )
 
   const previousBoundsRef = useRef<LngLatBounds | null>(null)
+  const previousBuildingIDRef = useRef<string | null>(null)
 
   const getRegionName = () => {
     if (selectedGeographyLevel === 'county') {
@@ -92,15 +93,33 @@ const RegionalRisk = () => {
   }
 
   useEffect(() => {
-    if (showOnMap) {
+    if (showOnMap && previousBuildingIDRef.current === selectedBuilding?.id) {
       fitBoundsToGeography()
     }
-  }, [showOnMap, fitBoundsToGeography])
+  }, [
+    showOnMap,
+    selectedGeographyLevel,
+    fitBoundsToGeography,
+    selectedBuilding,
+  ])
 
   useEffect(() => {
-    previousBoundsRef.current = null
-    setShowOnMap(false)
-  }, [selectedBuilding, setShowOnMap])
+    if (!map || !selectedBuilding) return
+
+    if (selectedBuilding?.id !== previousBuildingIDRef.current) {
+      if (!showOnMap) {
+        previousBoundsRef.current = map.getBounds()
+      } else {
+        // Wait for easeTo from building click to complete
+        const handleMoveEnd = () => {
+          previousBoundsRef.current = map.getBounds()
+          map.off('moveend', handleMoveEnd)
+        }
+        map.once('moveend', handleMoveEnd)
+      }
+      previousBuildingIDRef.current = selectedBuilding.id ?? null
+    }
+  }, [selectedBuilding, map, showOnMap])
 
   return (
     <>

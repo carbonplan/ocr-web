@@ -205,7 +205,6 @@ const Buildings = () => {
   const handleMapClick = useCallback(
     async (e: MapMouseEvent) => {
       if (!map) return
-      clearSelections()
 
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildings.layerIds.fill],
