@@ -21,7 +21,6 @@ import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
 const RegionalRisk = () => {
-  const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const map = useStore((state) => state.map)
   const selectedGeographyLevel = useStore(
@@ -93,16 +92,15 @@ const RegionalRisk = () => {
   }
 
   useEffect(() => {
-    if (showOnMap && map) {
+    if (showOnMap) {
       fitBoundsToGeography()
     }
-  }, [selectedGeographyLevel, showOnMap, fitBoundsToGeography, map])
+  }, [showOnMap, fitBoundsToGeography])
 
   useEffect(() => {
-    if (!selectedLocation) {
-      previousBoundsRef.current = null
-    }
-  }, [selectedLocation])
+    previousBoundsRef.current = null
+    setShowOnMap(false)
+  }, [selectedBuilding, setShowOnMap])
 
   return (
     <>
@@ -119,7 +117,7 @@ const RegionalRisk = () => {
           censusBlock: 'Census block',
         }}
         setValues={(obj: Record<GeographyKey, boolean>) => {
-          if (!selectedLocation) return
+          if (!selectedBuilding) return
           const selected = (Object.keys(obj) as GeographyKey[]).find(
             (k) => obj[k],
           )
@@ -127,11 +125,12 @@ const RegionalRisk = () => {
             setSelectedGeographyLevel(selected)
           }
         }}
-        disabled={!selectedLocation}
+        disabled={!selectedBuilding}
         sx={{
           button: {
-            borderColor: !selectedLocation ? 'secondary' : 'primary',
-            color: !selectedLocation ? 'secondary' : 'primary',
+            borderColor: !selectedBuilding ? 'secondary' : 'primary',
+            color: !selectedBuilding ? 'secondary' : 'primary',
+            cursor: !selectedBuilding ? 'default' : 'pointer',
           },
         }}
       />
@@ -187,7 +186,14 @@ const RegionalRisk = () => {
           inverted={!showOnMap}
           suffix={showOnMap ? <X /> : <RotatingArrow />}
           onClick={handleShowRegionChange}
-          disabled={!selectedLocation}
+          disabled={!selectedBuilding}
+          sx={{
+            '&:disabled': {
+              cursor: 'default',
+              pointerEvents: 'none',
+              color: 'muted',
+            },
+          }}
         >
           {showOnMap ? 'Hide region' : 'Show region'}
         </Button>
@@ -199,10 +205,10 @@ const RegionalRisk = () => {
           data={data}
           score={buildingScore}
           sx={
-            selectedLocation && data.length > 0 ? undefined : { opacity: 0.1 }
+            selectedBuilding && data.length > 0 ? undefined : { opacity: 0.1 }
           }
         />
-        {(!selectedLocation || data.length === 0) && (
+        {(!selectedBuilding || data.length === 0) && (
           <Box
             sx={{
               position: 'absolute',
@@ -213,7 +219,7 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {selectedLocation && data.length === 0
+            {selectedBuilding && data.length === 0
               ? 'No data available'
               : 'Select a structure to view regional risk distribution'}
           </Box>
