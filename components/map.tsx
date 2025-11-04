@@ -66,13 +66,11 @@ const MapComponent = () => {
 
     const mapViewParams = getMapViewFromQuery(router.query)
 
-    const initialView = mapViewParams
-      ? mapViewParams
-      : {
-          lat: 34.101,
-          lng: -117.792,
-          zoom: 8.0,
-        }
+    const initialView = getMapViewFromQuery(router.query) || {
+      lat: 34.101,
+      lng: -117.792,
+      zoom: 8.0,
+    }
 
     const sources: Record<string, SourceSpecification> = {
       basemap: {
