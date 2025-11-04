@@ -25,7 +25,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
-  const colormap = useColormap({ format: 'hex' })
+  const colormap = useColormap()
 
   const medianRisk = getGeographyMedianRiskKey(timePeriod)
 

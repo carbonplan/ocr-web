@@ -10,11 +10,12 @@ export const DATA_URLS = {
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles`,
   },
   raster: {
-    risk:
+    png:
       process.env.NEXT_PUBLIC_RISK_RASTER_URL ??
       `https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/production-${DATA_VERSION}`,
-    usfsBase:
-      'https://el2xugp6jtpzbkdvfsr7bkddaa0npisd.lambda-url.us-west-2.on.aws/datasets/RPS',
+    zarr:
+      process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
+      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/pyramid/production/${DATA_VERSION}/pyramid.zarr`,
   },
   downloads: `https://wywisai6r4dyxoib6aq2j2ewiy0sdsdg.lambda-url.us-west-2.on.aws/export`,
 }
@@ -86,3 +87,5 @@ export const RISKS = {
     },
   },
 } as const
+
+export const RASTER_ZOOM_THRESHOLD = 12
