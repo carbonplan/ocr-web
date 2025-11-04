@@ -25,17 +25,24 @@ const ZarrLayer = () => {
     return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   }, [timePeriod])
 
-  const [targetOpacity, setTargetOpacity] = useState(0)
-  const [opacity, setOpacity] = useState(0)
+  const [displayOpacity, setDisplayOpacity] = useState(0)
+  const [transitioning, setTransitioning] = useState(false)
   const previousZoom = useRef<number | undefined>(undefined)
+  const previousRiskRaster = useRef<boolean | undefined>(undefined)
 
   useSpring({
-    opacity: targetOpacity,
-    config: { duration: 300 },
+    opacity: riskRaster ? 1 : 0,
+    config: { duration: 1000 },
     onChange: ({ value }) => {
-      setOpacity(value.opacity)
+      setDisplayOpacity(value.opacity)
     },
   })
+
+  let opacity = displayOpacity
+  if (!transitioning) {
+    // snap to opacity immediately if not transitioning
+    opacity = riskRaster ? 1 : 0
+  }
 
   useEffect(() => {
     if (!map) return
@@ -44,7 +51,11 @@ const ZarrLayer = () => {
       const currentZoom = map.getZoom()
       const prevZoom = previousZoom.current
 
+      let triggerTransition = false
       let newRiskRaster = riskRaster // prevent stale state
+      if (riskRaster !== previousRiskRaster.current) {
+        setTransitioning(false)
+      }
       if (prevZoom === undefined) {
         newRiskRaster = currentZoom < RASTER_ZOOM_THRESHOLD
       } else if (
@@ -52,19 +63,20 @@ const ZarrLayer = () => {
         prevZoom >= RASTER_ZOOM_THRESHOLD
       ) {
         newRiskRaster = true
+        triggerTransition = true
       } else if (
         currentZoom >= RASTER_ZOOM_THRESHOLD &&
         prevZoom < RASTER_ZOOM_THRESHOLD
       ) {
         newRiskRaster = false
+        triggerTransition = true
       }
 
       setRiskRaster(newRiskRaster)
-      setTargetOpacity(
-        newRiskRaster ? 1 : 0,
-      )
+      setTransitioning((prev) => prev || triggerTransition)
 
       previousZoom.current = currentZoom
+      previousRiskRaster.current = newRiskRaster
     }
 
     handleZoom()
