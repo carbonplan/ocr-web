@@ -11,6 +11,7 @@ import {
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { Box } from 'theme-ui'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import {
@@ -41,11 +42,19 @@ const MapComponent = () => {
   const setMapLoading = useStore((state) => state.setMapLoading)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const [styleLoaded, setStyleLoaded] = useState(false)
+  const index = useBreakpointIndex({ defaultIndex: 2 })
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
   const { highlightBuildingAtLocation } = useBuildingUtils()
   const { fetchAddress } = useReverseGeocode()
+
+  useEffect(() => {
+    if (!map) return
+    const padding =
+      index < 2 ? { bottom: window.innerHeight / 2 } : { bottom: 0 }
+    map.setPadding(padding)
+  }, [map, index])
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -55,16 +64,11 @@ const MapComponent = () => {
     const protocol = new Protocol()
     addProtocol('pmtiles', protocol.tile)
 
-    const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
     const mapViewParams = getMapViewFromQuery(router.query)
 
-    const initialView = selectionCoordinates
-      ? {
-          lat: selectionCoordinates.lat,
-          lng: selectionCoordinates.lng,
-          zoom: 16,
-        }
-      : mapViewParams || {
+    const initialView = mapViewParams
+      ? mapViewParams
+      : {
           lat: 34.101,
           lng: -117.792,
           zoom: 8.0,
@@ -143,6 +147,19 @@ const MapComponent = () => {
       setStyleLoaded(false)
     }
   }, [router.isReady])
+
+  useEffect(() => {
+    if (!map) return
+    if (!router.isReady) return
+
+    const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
+    if (!selectionCoordinates) return
+
+    map.jumpTo({
+      center: [selectionCoordinates.lng, selectionCoordinates.lat],
+      zoom: 16,
+    })
+  }, [map, router.isReady, router.query])
 
   useEffect(() => {
     if (!map) return
