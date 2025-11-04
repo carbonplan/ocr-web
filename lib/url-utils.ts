@@ -41,6 +41,8 @@ export function getMapViewFromQuery(
 export function updateMapViewUrl(params: MapViewParams): void {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
+  if (url.searchParams.has('selected')) return
+
   url.searchParams.set('lat', params.lat.toFixed(5))
   url.searchParams.set('lng', params.lng.toFixed(5))
   url.searchParams.set('zoom', params.zoom.toFixed(2))
@@ -89,9 +91,12 @@ export function getSelectionCoordinatesFromQuery(
 export function updateSelectedBuildingUrl(params: SelectionCoordinates): void {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
+  url.searchParams.delete('lat')
+  url.searchParams.delete('lng')
+  url.searchParams.delete('zoom')
   url.searchParams.set(
     'selected',
-    `${params.lat.toFixed(5)},${params.lng.toFixed(5)}`,
+    `${params.lat.toFixed(6)},${params.lng.toFixed(6)}`,
   )
   window.history.replaceState(
     null,

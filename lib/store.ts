@@ -5,6 +5,7 @@ import { RISKS } from './config'
 import {
   clearSelectedBuildingUrl,
   updateSelectedBuildingUrl,
+  updateMapViewUrl,
 } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
@@ -71,7 +72,7 @@ type Store = {
   clearSelections: () => void
 }
 
-export const useStore = create<Store>((set) => ({
+export const useStore = create<Store>((set, get) => ({
   map: null,
   setMap: (map) => set({ map }),
   selectedLocation: null,
@@ -127,6 +128,16 @@ export const useStore = create<Store>((set) => ({
     set((state) => ({ advancedMode: !state.advancedMode })),
   clearSelections: () => {
     clearSelectedBuildingUrl()
+    const { map } = get()
+    if (map) {
+      const center = map.getCenter()
+      const zoom = map.getZoom()
+      updateMapViewUrl({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: zoom,
+      })
+    }
     set({
       selectedLocation: null,
       selectedBuilding: null,

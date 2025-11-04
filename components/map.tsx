@@ -55,12 +55,20 @@ const MapComponent = () => {
     const protocol = new Protocol()
     addProtocol('pmtiles', protocol.tile)
 
-    const initialView = getMapViewFromQuery(router.query) || {
-      // Griffith Observatory, LA
-      lat: 34.101,
-      lng: -117.792,
-      zoom: 8.0,
-    }
+    const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
+    const mapViewParams = getMapViewFromQuery(router.query)
+
+    const initialView = selectionCoordinates
+      ? {
+          lat: selectionCoordinates.lat,
+          lng: selectionCoordinates.lng,
+          zoom: 16,
+        }
+      : mapViewParams || {
+          lat: 34.101,
+          lng: -117.792,
+          zoom: 8.0,
+        }
 
     const sources: Record<string, SourceSpecification> = {
       basemap: {
