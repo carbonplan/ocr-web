@@ -13,6 +13,7 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
     if (selectedBuilding) {
@@ -72,7 +73,7 @@ const MobileDrawer = () => {
             left: 0,
             right: 0,
             height: '100%',
-            zIndex: 1,
+            zIndex: 2,
           }}
         >
           <Flex
@@ -89,7 +90,7 @@ const MobileDrawer = () => {
                 position: 'sticky',
                 top: 0,
                 bg: 'background',
-                zIndex: 1,
+                zIndex: 2,
               }}
             >
               <Box as={Drawer.Handle} sx={{ mt: 2 }} />
@@ -110,7 +111,7 @@ const MobileDrawer = () => {
               }}
             >
               <Results />
-              <Display />
+              {advancedMode && <Display />}
             </Box>
           </Flex>
         </Drawer.Content>

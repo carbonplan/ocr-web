@@ -18,6 +18,7 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
         bottom: [135, 135, 'unset', 'unset'],
         bg: 'hinted',
         color: 'primary',
+        display: 'flex',
         '& a': { color: 'primary' },
         '& .maplibregl-ctrl-attrib-button': {
           bg: 'hinted',
@@ -33,7 +34,7 @@ const MapAttribution = () => {
   useEffect(() => {
     if (!map) return
     const attributionControl = new AttributionControl({ compact: true })
-    map.addControl(attributionControl, 'bottom-left')
+    map.addControl(attributionControl, 'bottom-right')
     return () => {
       map.removeControl(attributionControl)
     }

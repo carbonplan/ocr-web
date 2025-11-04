@@ -1,7 +1,5 @@
 import { Box } from 'theme-ui'
 import {
-  Column,
-  Row,
   Table,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
@@ -26,14 +24,11 @@ const TimeHorizons = () => {
   return (
     <>
       <Box variant='sectionHeading'>Burn probability over time</Box>
-      <Row columns={3} sx={{ mb: 3 }}>
-        <Column start={1} width={3}>
-          Burn probability compounds year over year at every building. This
-          means that risk of loss increases as a result. These probabilities
-          also become less certain when compounded and considered at larger
-          timescales.
-        </Column>
-      </Row>
+      <Box variant='description' sx={{ mb: 3 }}>
+        Burn probability compounds year over year at every building. This means
+        that risk of loss increases as a result. These probabilities also become
+        less certain when compounded and considered at larger timescales.
+      </Box>
       <Table
         columns={3}
         start={[1, 2, 3]}
