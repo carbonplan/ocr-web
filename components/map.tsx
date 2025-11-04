@@ -23,7 +23,7 @@ import {
   MapAttribution,
   useMapControlStyles,
 } from './'
-import { DATA_URLS, LAYERS } from '@/lib/config'
+import { DATA_URLS, GEOGRAPHY_ATTRIBUTE_KEYS, LAYERS } from '@/lib/config'
 import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
 
 const MapComponent = () => {
@@ -63,6 +63,7 @@ const MapComponent = () => {
       regions: {
         type: 'vector',
         url: `pmtiles://${DATA_URLS.vector.regions}`,
+        promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
       },
     }
 

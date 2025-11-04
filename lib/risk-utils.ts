@@ -88,3 +88,18 @@ export const getConditionalRiskUsfs = (
   if (!building) return null
   return building.properties[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
 }
+
+export const getBoundingBox = (
+  geography: Geography | null,
+): [number, number, number, number] | null => {
+  if (!geography) return null
+  const bboxString = geography[GEOGRAPHY_ATTRIBUTE_KEYS.bbox]
+  if (!bboxString) return null
+  const bbox = JSON.parse(bboxString as string) as [
+    number,
+    number,
+    number,
+    number,
+  ]
+  return bbox
+}

@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Filter, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
-import { RotatingArrow } from '@carbonplan/icons'
+import { RotatingArrow, X } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
+import { useCallback, useEffect, useRef } from 'react'
+import { LngLatBounds } from 'maplibre-gl'
 
-import { getGeographyRisk, getCountyName } from '@/lib/risk-utils'
+import {
+  getGeographyRisk,
+  getCountyName,
+  getBoundingBox,
+} from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { GeographyKey } from '@/types/location'
@@ -16,69 +21,137 @@ import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
 const RegionalRisk = () => {
-  const [geography, setGeography] = useState<GeographyKey>()
-  const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const map = useStore((state) => state.map)
+  const selectedGeographyLevel = useStore(
+    (state) => state.selectedGeographyLevel,
+  )
+  const setSelectedGeographyLevel = useStore(
+    (state) => state.setSelectedGeographyLevel,
+  )
+  const showOnMap = useStore((state) => state.showGeographyHighlight)
+  const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
+  const activeGeographies = useStore(
+    useShallow((state) => state.activeGeographies),
+  )
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
-  const activeGeography = useStore(
-    useShallow((state) => geography && state.activeGeographies[geography]),
-  )
+  const activeGeography = activeGeographies[selectedGeographyLevel]
   const { score, color } = useScore(activeGeography ?? null, 'muted')
   const { score: buildingScore } = useScore(selectedBuilding)
   const data = useStore(
-    useShallow((state) =>
-      geography
-        ? (getGeographyRisk(
-            state.activeGeographies[geography],
-            state.timePeriod,
-          ) ?? [])
-        : [],
+    useShallow(
+      (state) =>
+        getGeographyRisk(
+          state.activeGeographies[selectedGeographyLevel],
+          state.timePeriod,
+        ) ?? [],
     ),
   )
 
-  useEffect(() => {
-    if (!!selectedLocation && !geography) {
-      setGeography('county')
-    } else if (!selectedLocation && geography) {
-      setGeography(undefined)
-    }
-  }, [geography, selectedLocation])
+  const previousBoundsRef = useRef<LngLatBounds | null>(null)
+  const previousBuildingIDRef = useRef<string | null>(null)
 
   const getRegionName = () => {
-    if (geography === 'county') {
+    if (selectedGeographyLevel === 'county') {
       return `${countyName ?? ''} County`
     }
-    if (geography === 'censusTract') {
+    if (selectedGeographyLevel === 'censusTract') {
       return 'the census tract'
     }
     return 'the census block'
   }
+
+  const fitBoundsToGeography = useCallback(() => {
+    if (map && activeGeography) {
+      const bbox = getBoundingBox(activeGeography)
+      if (bbox) {
+        map.fitBounds(bbox, {
+          padding: 100,
+          duration: 500,
+        })
+      }
+    }
+  }, [map, activeGeography])
+
+  const handleShowRegionChange = () => {
+    const newValue = !showOnMap
+    setShowOnMap(newValue)
+    if (!map) return
+    if (newValue) {
+      if (!previousBoundsRef.current) {
+        previousBoundsRef.current = map.getBounds()
+      }
+      fitBoundsToGeography()
+    } else if (previousBoundsRef.current) {
+      map.fitBounds(previousBoundsRef.current, {
+        duration: 500,
+      })
+      previousBoundsRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    if (showOnMap && previousBuildingIDRef.current === selectedBuilding?.id) {
+      fitBoundsToGeography()
+    }
+  }, [
+    showOnMap,
+    selectedGeographyLevel,
+    fitBoundsToGeography,
+    selectedBuilding,
+  ])
+
+  useEffect(() => {
+    if (!map || !selectedBuilding) return
+
+    if (selectedBuilding?.id !== previousBuildingIDRef.current) {
+      if (!showOnMap) {
+        previousBoundsRef.current = map.getBounds()
+      } else {
+        // Wait for easeTo from building click to complete
+        const handleMoveEnd = () => {
+          previousBoundsRef.current = map.getBounds()
+          map.off('moveend', handleMoveEnd)
+        }
+        map.once('moveend', handleMoveEnd)
+      }
+      previousBuildingIDRef.current = selectedBuilding.id ?? null
+    }
+  }, [selectedBuilding, map, showOnMap])
 
   return (
     <>
       <Box variant='sectionHeading'>Risk in the region</Box>
       <Filter
         values={{
-          county: geography === 'county',
-          censusTract: geography === 'censusTract',
-          censusBlock: geography === 'censusBlock',
+          county: selectedGeographyLevel === 'county',
+          censusTract: selectedGeographyLevel === 'censusTract',
+          censusBlock: selectedGeographyLevel === 'censusBlock',
         }}
         labels={{
           county: 'County',
           censusTract: 'Census tract',
           censusBlock: 'Census block',
         }}
-        setValues={(obj: Record<GeographyKey, boolean>) =>
-          selectedLocation
-            ? setGeography(
-                (Object.keys(obj) as GeographyKey[]).find(
-                  (k: GeographyKey) => obj[k],
-                ),
-              )
-            : null
-        }
+        setValues={(obj: Record<GeographyKey, boolean>) => {
+          if (!selectedBuilding) return
+          const selected = (Object.keys(obj) as GeographyKey[]).find(
+            (k) => obj[k],
+          )
+          if (selected) {
+            setSelectedGeographyLevel(selected)
+          }
+        }}
+        disabled={!selectedBuilding}
+        sx={{
+          button: {
+            borderColor: !selectedBuilding ? 'secondary' : 'primary',
+            color: !selectedBuilding ? 'secondary' : 'primary',
+            cursor: !selectedBuilding ? 'default' : 'pointer',
+          },
+        }}
       />
       <Table
         columns={3}
@@ -129,27 +202,32 @@ const RegionalRisk = () => {
       <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
         <Button
           size='xs'
-          inverted
-          suffix={<RotatingArrow />}
-          disabled
-          sx={
-            geography && false // TODO: remove when behavior is implemented
-              ? {}
-              : { pointerEvents: 'none', color: 'muted' }
-          }
+          inverted={!showOnMap}
+          suffix={showOnMap ? <X /> : <RotatingArrow />}
+          onClick={handleShowRegionChange}
+          disabled={!selectedBuilding}
+          sx={{
+            '&:disabled': {
+              cursor: 'default',
+              pointerEvents: 'none',
+              color: 'muted',
+            },
+          }}
         >
-          Show on map
+          {showOnMap ? 'Hide region' : 'Show region'}
         </Button>
-        <Download geography={geography ?? 'county'} disabled={!geography} />
+        <Download />
       </Flex>
       <Box sx={{ position: 'relative', mt: 4 }}>
         <Histogram
           region={getRegionName()}
           data={data}
           score={buildingScore}
-          sx={geography && data.length > 0 ? undefined : { opacity: 0.1 }}
+          sx={
+            selectedBuilding && data.length > 0 ? undefined : { opacity: 0.1 }
+          }
         />
-        {(!geography || data.length === 0) && (
+        {(!selectedBuilding || data.length === 0) && (
           <Box
             sx={{
               position: 'absolute',
@@ -160,7 +238,7 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {geography && data.length === 0
+            {selectedBuilding && data.length === 0
               ? 'No data available'
               : 'Select a structure to view regional risk distribution'}
           </Box>
