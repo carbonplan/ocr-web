@@ -6,6 +6,7 @@ import {
   removeProtocol,
   LayerSpecification,
   SourceSpecification,
+  MapSourceDataEvent,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
@@ -24,7 +25,12 @@ import {
   useMapControlStyles,
 } from './'
 import { DATA_URLS, LAYERS } from '@/lib/config'
-import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
+import {
+  getMapViewFromQuery,
+  updateMapViewUrl,
+  getSelectionCoordinatesFromQuery,
+} from '@/lib/url-utils'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 
 const MapComponent = () => {
   const router = useRouter()
@@ -33,10 +39,12 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const setMapLoading = useStore((state) => state.setMapLoading)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const [styleLoaded, setStyleLoaded] = useState(false)
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
+  const { highlightBuildingAtLocation } = useBuildingUtils()
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -142,6 +150,50 @@ const MapComponent = () => {
     }
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
   }, [mapLayers, map])
+
+  useEffect(() => {
+    if (!map || !router.isReady) return
+
+    const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
+    if (!selectionCoordinates) return
+
+    const restoreSelection = async () => {
+      try {
+        const locationResponse = await fetch(
+          `/api/geocode/reverse?lat=${selectionCoordinates.lat}&lng=${selectionCoordinates.lng}`,
+        )
+        const location = await locationResponse.json()
+        setSelectedLocation(location)
+        if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
+          highlightBuildingAtLocation(
+            selectionCoordinates.lng,
+            selectionCoordinates.lat,
+          )
+        } else {
+          const handleSourceData = (e: MapSourceDataEvent) => {
+            if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
+              map.off('sourcedata', handleSourceData)
+              highlightBuildingAtLocation(
+                selectionCoordinates.lng,
+                selectionCoordinates.lat,
+              )
+            }
+          }
+          map.on('sourcedata', handleSourceData)
+        }
+      } catch (error) {
+        console.error('Error restoring selected building:', error)
+      }
+    }
+
+    restoreSelection()
+  }, [
+    map,
+    router.isReady,
+    router.query,
+    setSelectedLocation,
+    highlightBuildingAtLocation,
+  ])
 
   return (
     <Box

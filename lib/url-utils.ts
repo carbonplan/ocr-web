@@ -50,3 +50,63 @@ export function updateMapViewUrl(params: MapViewParams): void {
     `${url.pathname}?${url.searchParams.toString()}`,
   )
 }
+
+export type SelectionCoordinates = {
+  lat: number
+  lng: number
+}
+
+export function getSelectionCoordinatesFromQuery(
+  query: NextRouter['query'],
+): SelectionCoordinates | null {
+  const { selected } = query
+
+  if (!selected || typeof selected !== 'string') return null
+
+  const parts = selected.split(',')
+  if (parts.length !== 2) return null
+
+  const parsedLat = parseFloat(parts[0])
+  const parsedLng = parseFloat(parts[1])
+
+  if (
+    isNaN(parsedLat) ||
+    isNaN(parsedLng) ||
+    parsedLat < -90 ||
+    parsedLat > 90 ||
+    parsedLng < -180 ||
+    parsedLng > 180
+  ) {
+    return null
+  }
+
+  return {
+    lat: parsedLat,
+    lng: parsedLng,
+  }
+}
+
+export function updateSelectedBuildingUrl(params: SelectionCoordinates): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  url.searchParams.set(
+    'selected',
+    `${params.lat.toFixed(5)},${params.lng.toFixed(5)}`,
+  )
+  window.history.replaceState(
+    null,
+    '',
+    `${url.pathname}?${url.searchParams.toString()}`,
+  )
+}
+
+export function clearSelectedBuildingUrl(): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  url.searchParams.delete('selected')
+  window.history.replaceState(
+    null,
+    '',
+    `${url.pathname}?${url.searchParams.toString()}`,
+  )
+}
