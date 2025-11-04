@@ -47,10 +47,9 @@ const MapComponent = () => {
     addProtocol('pmtiles', protocol.tile)
 
     const initialView = getMapViewFromQuery(router.query) || {
-      // Griffith Observatory, LA
-      lat: 34.101,
-      lng: -117.792,
-      zoom: 8.0,
+      lat: 34.089,
+      lng: -118.254,
+      zoom: 10.84,
     }
 
     const sources: Record<string, SourceSpecification> = {
