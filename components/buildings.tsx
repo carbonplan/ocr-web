@@ -38,6 +38,9 @@ const Buildings = () => {
   useEffect(() => {
     sidebarWidthRef.current = sidebarWidth
   }, [sidebarWidth])
+  useEffect(() => {
+    indexRef.current = index
+  }, [index])
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
