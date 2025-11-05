@@ -11,7 +11,7 @@ import { X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
-import { LAYERS } from '@/lib/config'
+import { GEOGRAPHY_AUTOSELECT_ZOOM, LAYERS } from '@/lib/config'
 import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
@@ -30,8 +30,10 @@ const Geocode = () => {
   const selectedLocation = useStore((state) => state.selectedLocation)
   const map = useStore((state) => state.map)
   const clearSelections = useStore((state) => state.clearSelections)
-  const { highlightBuildingAtLocation } = useBuildingUtils()
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
+
+  const { highlightBuildingAtLocation, queryGeographiesAtPoint } =
+    useBuildingUtils()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,6 +153,11 @@ const Geocode = () => {
   const clearSelectedLocation = useCallback(() => {
     clearSelections()
     if (map) {
+      const center = map.getCenter()
+      const zoom = map.getZoom()
+      if (zoom >= GEOGRAPHY_AUTOSELECT_ZOOM) {
+        queryGeographiesAtPoint(center.lng, center.lat)
+      }
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
         sourceLayer: LAYERS.buildings.layerName,

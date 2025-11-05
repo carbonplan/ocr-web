@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import {
   Map,
@@ -14,6 +14,7 @@ import { Box } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import {
   Buildings,
   SelectionMarker,
@@ -25,13 +26,17 @@ import {
   MapAttribution,
   useMapControlStyles,
 } from './'
-import { DATA_URLS, GEOGRAPHY_ATTRIBUTE_KEYS, LAYERS } from '@/lib/config'
+import {
+  DATA_URLS,
+  GEOGRAPHY_ATTRIBUTE_KEYS,
+  LAYERS,
+  GEOGRAPHY_AUTOSELECT_ZOOM,
+} from '@/lib/config'
 import {
   getMapViewFromQuery,
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
 } from '@/lib/url-utils'
-import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 
 const MapComponent = () => {
@@ -40,15 +45,34 @@ const MapComponent = () => {
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
   const setMapLoading = useStore((state) => state.setMapLoading)
+  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
-  const { highlightBuildingAtLocation } = useBuildingUtils()
+  const { highlightBuildingAtLocation, queryGeographiesAtPoint } =
+    useBuildingUtils()
   const { fetchAddress } = useReverseGeocode()
+
+  const updateGeographies = useCallback(() => {
+    if (!map) return
+    const center = map.getCenter()
+    const zoom = map.getZoom()
+
+    if (zoom >= GEOGRAPHY_AUTOSELECT_ZOOM) {
+      queryGeographiesAtPoint(center.lng, center.lat)
+    } else {
+      setActiveGeographies({
+        county: null,
+        censusTract: null,
+        censusBlock: null,
+      })
+    }
+  }, [map, queryGeographiesAtPoint, setActiveGeographies])
 
   useEffect(() => {
     if (!map) return
@@ -106,16 +130,6 @@ const MapComponent = () => {
       pitchWithRotate: false,
     })
 
-    const handleMoveEnd = () => {
-      const center = newMap.getCenter()
-      const zoom = newMap.getZoom()
-      updateMapViewUrl({
-        lat: center.lat,
-        lng: center.lng,
-        zoom: zoom,
-      })
-    }
-
     const handleLoadingOn = () => {
       setMapLoading(true)
     }
@@ -130,7 +144,6 @@ const MapComponent = () => {
 
     newMap.on('dataloading', handleLoadingOn)
     newMap.on('idle', handleLoadingOff)
-    newMap.on('moveend', handleMoveEnd)
     newMap.once('styledata', handleStyleLoad)
 
     setMap(newMap)
@@ -138,7 +151,6 @@ const MapComponent = () => {
     return () => {
       newMap.off('dataloading', handleLoadingOn)
       newMap.off('idle', handleLoadingOff)
-      newMap.off('moveend', handleMoveEnd)
       newMap.remove()
       removeProtocol('pmtiles')
       setMap(null)
@@ -158,6 +170,44 @@ const MapComponent = () => {
       zoom: 16,
     })
   }, [map, router.isReady, router.query])
+
+  useEffect(() => {
+    if (!map || !styleLoaded) return
+    const handleMoveEnd = () => {
+      const center = map.getCenter()
+      const zoom = map.getZoom()
+      updateMapViewUrl({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: zoom,
+      })
+      if (!selectedBuilding) {
+        updateGeographies()
+      }
+    }
+    map.on('moveend', handleMoveEnd)
+    return () => {
+      map.off('moveend', handleMoveEnd)
+    }
+  }, [map, styleLoaded, selectedBuilding, updateGeographies])
+
+  // initial region query
+  useEffect(() => {
+    if (!map) return
+    const handleIdle = () => {
+      const layerExists = map.getLayer(LAYERS.counties.layerIds.fill)
+      const sourceLoaded = map.isSourceLoaded('regions')
+
+      if (layerExists && sourceLoaded) {
+        map.off('idle', handleIdle)
+        updateGeographies()
+      }
+    }
+    map.on('idle', handleIdle)
+    return () => {
+      map.off('idle', handleIdle)
+    }
+  }, [map, updateGeographies])
 
   useEffect(() => {
     if (!map) return
@@ -190,6 +240,7 @@ const MapComponent = () => {
           fetchAddress(lat, lng)
         } else {
           clearSelections()
+          updateGeographies()
         }
       }
     }
@@ -201,6 +252,7 @@ const MapComponent = () => {
     highlightBuildingAtLocation,
     fetchAddress,
     clearSelections,
+    updateGeographies,
   ])
 
   return (

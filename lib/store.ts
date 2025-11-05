@@ -157,8 +157,13 @@ export const useStore = create<Store>((set, get) => ({
       selectedLocation: null,
       selectedBuilding: null,
       selectedCoordinates: null,
-      activeGeographies: { county: null, censusTract: null, censusBlock: null },
+      activeGeographies: {
+        county: null,
+        censusTract: null,
+        censusBlock: null,
+      },
       showGeographyHighlight: false,
+      selectedGeographyLevel: 'county',
     })
   },
 }))
