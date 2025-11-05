@@ -76,7 +76,7 @@ const ScoreBar = ({
                       sx={{
                         position: 'absolute',
                         bottom: '-28px',
-                        left: `-${String(bins[i]).length * 6.5}px`,
+                        left: `-${String(bins[i]).length * 4.5}px`,
                         fontSize: 0,
                         fontFamily: 'mono',
                         letterSpacing: 'mono',
@@ -88,7 +88,8 @@ const ScoreBar = ({
                         transition: 'color 0.2s',
                       }}
                     >
-                      {bins[i]}%{i === bins.length - 1 ? '+' : ''}
+                      {String(bins[i]).replace(/^0(?=\.)/, '')}%
+                      {i === bins.length - 1 ? '+' : ''}
                     </Box>
                   </>
                 )}
