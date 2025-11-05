@@ -127,6 +127,7 @@ const RegionalRisk = () => {
     <>
       <Box variant='sectionHeading'>Risk in the region</Box>
       <Filter
+        variant='filter'
         values={{
           county: selectedGeographyLevel === 'county',
           censusTract: selectedGeographyLevel === 'censusTract',
