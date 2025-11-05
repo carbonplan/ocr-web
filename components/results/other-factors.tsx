@@ -1,15 +1,18 @@
 import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Table } from '@carbonplan/components'
+import TooltipWrapper from '../tooltip'
 
 const OtherFactors = () => {
   return (
-    <Box sx={{ mt: '52px' }}>
-      <Box variant='sectionHeading'>Other factors</Box>
-      <Box variant='description'>
-        The risk described above does not account for a variety of factors that
-        each may drive the actual risk of loss due to fire up or down.
-      </Box>
+    <Box sx={{ mt: '20px' }}>
+      <TooltipWrapper
+        tooltip='The risk described above does not account for a variety of factors that
+        each may drive the actual risk of loss due to fire up or down.'
+        sx={{ justifyContent: 'flex-start', gap: 3, alignItems: 'baseline' }}
+      >
+        <Box variant='sectionHeading'>Other factors</Box>
+      </TooltipWrapper>
       <Table
         columns={3}
         start={[1, 3]}
@@ -24,7 +27,7 @@ const OtherFactors = () => {
         index={false}
         borderTop={false}
         sx={{
-          mt: 3,
+          mt: 2,
           '& tr': {
             py: 2,
           },
