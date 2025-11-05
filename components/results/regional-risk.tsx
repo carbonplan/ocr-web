@@ -58,10 +58,11 @@ const RegionalRisk = () => {
       return `${countyName ?? ''} County`
     }
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+    // Extract 4-digit identifiers based on https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
     if (selectedGeographyLevel === 'censusTract') {
-      return geoid ? `census tract (${geoid})` : 'the census tract'
+      return geoid ? `Census Tract ${geoid.slice(5, 9)}` : 'the census tract'
     }
-    return geoid ? `census block (${geoid})` : 'the census block'
+    return geoid ? `Census Block ${geoid.slice(11)}` : 'the census block'
   }
 
   const fitBoundsToGeography = useCallback(() => {
