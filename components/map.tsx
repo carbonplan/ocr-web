@@ -41,6 +41,7 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const setMapLoading = useStore((state) => state.setMapLoading)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const clearSelections = useStore((state) => state.clearSelections)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
 
@@ -178,35 +179,27 @@ const MapComponent = () => {
 
     const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
     if (!selectionCoordinates) return
+    const { lat, lng } = selectionCoordinates
 
-    if (
-      map.getSource(LAYERS.buildings.sourceId) &&
-      map.isSourceLoaded(LAYERS.buildings.sourceId)
-    ) {
-      highlightBuildingAtLocation(
-        selectionCoordinates.lng,
-        selectionCoordinates.lat,
-      )
-    } else {
-      const handleSourceData = (e: MapSourceDataEvent) => {
-        if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
-          map.off('sourcedata', handleSourceData)
-          highlightBuildingAtLocation(
-            selectionCoordinates.lng,
-            selectionCoordinates.lat,
-          )
+    const handleSourceData = (e: MapSourceDataEvent) => {
+      if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
+        map.off('sourcedata', handleSourceData)
+        const found = highlightBuildingAtLocation(lng, lat)
+        if (found) {
+          fetchAddress(lat, lng)
+        } else {
+          clearSelections()
         }
       }
-      map.on('sourcedata', handleSourceData)
     }
-
-    fetchAddress(selectionCoordinates.lat, selectionCoordinates.lng)
+    map.on('sourcedata', handleSourceData)
   }, [
     map,
     router.isReady,
     router.query,
     highlightBuildingAtLocation,
     fetchAddress,
+    clearSelections,
   ])
 
   return (
