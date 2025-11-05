@@ -1,4 +1,4 @@
-import { Box, ThemeUIStyleObject } from 'theme-ui'
+import { Box, ThemeUIStyleObject, useThemeUI } from 'theme-ui'
 import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
@@ -31,6 +31,7 @@ const ValueBadge = ({
   lowValue?: boolean
   sx?: ThemeUIStyleObject
 }) => {
+  const { theme } = useThemeUI()
   let formattedValue
   if (typeof value === 'number') {
     formattedValue = lowValue ? 0.01 : value.toFixed(2)
@@ -42,15 +43,15 @@ const ValueBadge = ({
   if (color) {
     // For all colormap colors...
     if (chroma.valid(color)) {
-      // Calculate text color
-      // const brightness = chroma(color).luminance()
-      // const textColor =
-      //   brightness > 0.1 && brightness < 0.85
-      //     ? 'background'
-      //     : mix('background', 'primary', brightness)
+      // Use secondary when background fails to contrast with color (lightmode-only)
+      const contrast = chroma.contrast(
+        color,
+        theme.rawColors?.background as string,
+      )
+      const textColor = contrast > 2 ? 'background' : 'secondary'
       colors = {
         backgroundColor: color,
-        color: 'background', // default to background color.
+        color: textColor,
       }
     } else {
       colors = { backgroundColor: color, color: 'primary' } // otherwise, use primary.
