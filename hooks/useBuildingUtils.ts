@@ -48,12 +48,12 @@ export const useBuildingUtils = () => {
   )
 
   const highlightBuildingAtLocation = useCallback(
-    (lng: number, lat: number) => {
+    (lng: number, lat: number): boolean => {
       if (
         !map?.getSource(LAYERS.buildings.sourceId) ||
         !map?.getLayer(LAYERS.buildings.layerIds.fill)
       ) {
-        return
+        return false
       }
 
       map.removeFeatureState({
@@ -100,8 +100,10 @@ export const useBuildingUtils = () => {
             },
             { selected: true },
           )
+          return true
         }
       }
+      return false
     },
     [map, setSelectedBuilding, queryGeographiesAtPoint, setSelectedCoordinates],
   )

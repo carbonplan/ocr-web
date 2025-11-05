@@ -6,10 +6,12 @@ import {
   removeProtocol,
   LayerSpecification,
   SourceSpecification,
+  MapSourceDataEvent,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
 import { Box } from 'theme-ui'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import {
@@ -24,7 +26,13 @@ import {
   useMapControlStyles,
 } from './'
 import { DATA_URLS, GEOGRAPHY_ATTRIBUTE_KEYS, LAYERS } from '@/lib/config'
-import { getMapViewFromQuery, updateMapViewUrl } from '@/lib/url-utils'
+import {
+  getMapViewFromQuery,
+  updateMapViewUrl,
+  getSelectionCoordinatesFromQuery,
+} from '@/lib/url-utils'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 
 const MapComponent = () => {
   const router = useRouter()
@@ -33,10 +41,21 @@ const MapComponent = () => {
   const setMap = useStore((state) => state.setMap)
   const setMapLoading = useStore((state) => state.setMapLoading)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
+  const clearSelections = useStore((state) => state.clearSelections)
   const [styleLoaded, setStyleLoaded] = useState(false)
+  const index = useBreakpointIndex({ defaultIndex: 2 })
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
+  const { highlightBuildingAtLocation } = useBuildingUtils()
+  const { fetchAddress } = useReverseGeocode()
+
+  useEffect(() => {
+    if (!map) return
+    const padding =
+      index < 2 ? { bottom: window.innerHeight / 2 } : { bottom: 0 }
+    map.setPadding(padding)
+  }, [map, index])
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {
@@ -129,6 +148,19 @@ const MapComponent = () => {
 
   useEffect(() => {
     if (!map) return
+    if (!router.isReady) return
+
+    const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
+    if (!selectionCoordinates) return
+
+    map.jumpTo({
+      center: [selectionCoordinates.lng, selectionCoordinates.lat],
+      zoom: 16,
+    })
+  }, [map, router.isReady, router.query])
+
+  useEffect(() => {
+    if (!map) return
     const currentStyle = map.getStyle()
     if (!currentStyle) return
     const newStyle = { ...currentStyle }
@@ -142,6 +174,34 @@ const MapComponent = () => {
     }
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
   }, [mapLayers, map])
+
+  useEffect(() => {
+    if (!map || !router.isReady) return
+
+    const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
+    if (!selectionCoordinates) return
+    const { lat, lng } = selectionCoordinates
+
+    const handleSourceData = (e: MapSourceDataEvent) => {
+      if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
+        map.off('sourcedata', handleSourceData)
+        const found = highlightBuildingAtLocation(lng, lat)
+        if (found) {
+          fetchAddress(lat, lng)
+        } else {
+          clearSelections()
+        }
+      }
+    }
+    map.on('sourcedata', handleSourceData)
+  }, [
+    map,
+    router.isReady,
+    router.query,
+    highlightBuildingAtLocation,
+    fetchAddress,
+    clearSelections,
+  ])
 
   return (
     <Box

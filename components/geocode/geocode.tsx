@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import { MapSourceDataEvent } from 'maplibre-gl'
-import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
@@ -32,7 +31,6 @@ const Geocode = () => {
   const map = useStore((state) => state.map)
   const clearSelections = useStore((state) => state.clearSelections)
   const { highlightBuildingAtLocation } = useBuildingUtils()
-  const index = useBreakpointIndex({ defaultIndex: 2 })
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
   useEffect(() => {
@@ -170,15 +168,9 @@ const Geocode = () => {
       setSelectedLocation(location)
 
       if (map && location) {
-        let offset: [number, number]
-        if (index < 2) {
-          offset = [0, -window.innerHeight / 4]
-        } else offset = [0, 0]
-
         map.easeTo({
           center: [location.position.lng, location.position.lat],
           zoom: location.address.houseNumber ? 16 : 12,
-          offset,
         })
 
         // Highlight building after map movement completes

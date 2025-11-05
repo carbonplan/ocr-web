@@ -8,6 +8,11 @@ import {
   GeographyKey,
 } from '../types/location'
 import { RISKS } from './config'
+import {
+  clearSelectedBuildingUrl,
+  updateSelectedBuildingUrl,
+  updateMapViewUrl,
+} from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
@@ -77,14 +82,16 @@ type Store = {
   clearSelections: () => void
 }
 
-export const useStore = create<Store>((set) => ({
+export const useStore = create<Store>((set, get) => ({
   map: null,
   setMap: (map) => set({ map }),
   selectedLocation: null,
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   selectedCoordinates: null,
-  setSelectedCoordinates: (coordinates) =>
-    set({ selectedCoordinates: coordinates }),
+  setSelectedCoordinates: (coordinates) => {
+    updateSelectedBuildingUrl(coordinates)
+    set({ selectedCoordinates: coordinates })
+  },
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
@@ -134,12 +141,24 @@ export const useStore = create<Store>((set) => ({
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
-  clearSelections: () =>
+  clearSelections: () => {
+    clearSelectedBuildingUrl()
+    const { map } = get()
+    if (map) {
+      const center = map.getCenter()
+      const zoom = map.getZoom()
+      updateMapViewUrl({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: zoom,
+      })
+    }
     set({
       selectedLocation: null,
       selectedBuilding: null,
       selectedCoordinates: null,
       activeGeographies: { county: null, censusTract: null, censusBlock: null },
       showGeographyHighlight: false,
-    }),
+    })
+  },
 }))
