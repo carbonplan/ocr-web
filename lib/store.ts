@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import { Location, Building, Geography, Coordinates } from '../types/location'
+import {
+  Location,
+  Building,
+  Geography,
+  Coordinates,
+  GeographyKey,
+} from '../types/location'
 import { RISKS } from './config'
 import {
   clearSelectedBuildingUrl,
@@ -33,13 +39,17 @@ type Store = {
     censusTract: Geography | null
     censusBlock: Geography | null
   }) => void
-  geographies: {
+  selectedGeographyLevel: GeographyKey
+  setSelectedGeographyLevel: (level: GeographyKey) => void
+  showGeographyHighlight: boolean
+  setShowGeographyHighlight: (show: boolean) => void
+  geographyLayerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
     censusBlock: boolean
   }
-  setGeographies: (geographies: {
+  setGeographyLayerVisibility: (geographyLayerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
@@ -97,13 +107,18 @@ export const useStore = create<Store>((set, get) => ({
     set({
       activeGeographies: { county, censusTract, censusBlock },
     }),
-  geographies: {
+  selectedGeographyLevel: 'county',
+  setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
+  showGeographyHighlight: false,
+  setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
+  geographyLayerVisibility: {
     building: true,
     county: false,
     censusTract: false,
     censusBlock: false,
   },
-  setGeographies: (geographies) => set({ geographies }),
+  setGeographyLayerVisibility: (geographyLayerVisibility) =>
+    set({ geographyLayerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
@@ -143,6 +158,7 @@ export const useStore = create<Store>((set, get) => ({
       selectedBuilding: null,
       selectedCoordinates: null,
       activeGeographies: { county: null, censusTract: null, censusBlock: null },
+      showGeographyHighlight: false,
     })
   },
 }))

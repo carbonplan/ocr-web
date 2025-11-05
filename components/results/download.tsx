@@ -9,11 +9,6 @@ import { useStore } from '@/lib/store'
 import { getCountyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
 
-interface DownloadProps {
-  geography: GeographyKey
-  disabled?: boolean
-}
-
 const DownloadButton = ({
   label,
   loading,
@@ -50,18 +45,22 @@ const REGION_TYPES: Record<GeographyKey, string> = {
   censusBlock: 'block',
 }
 
-export const Download = ({ disabled, geography }: DownloadProps) => {
+export const Download = () => {
   const [loading, setLoading] = useState({ csv: false, gpkg: false })
+  const disabled = !useStore((state) => state.selectedLocation)
+  const selectedGeographyLevel = useStore(
+    (state) => state.selectedGeographyLevel,
+  )
   const geoid = useStore((state) =>
-    getGeoid(state.activeGeographies[geography]),
+    getGeoid(state.activeGeographies[selectedGeographyLevel]),
   )
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
   let filename: string
-  if (geography === 'county') {
+  if (selectedGeographyLevel === 'county') {
     filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
-  } else if (geography === 'censusTract') {
+  } else if (selectedGeographyLevel === 'censusTract') {
     filename = `Census-Tract-${geoid}`
   } else {
     filename = `Census-Block-${geoid}`
@@ -78,7 +77,7 @@ export const Download = ({ disabled, geography }: DownloadProps) => {
           dataset_version: DATA_VERSION,
           data_format: format,
           geoid: geoid,
-          region_type: REGION_TYPES[geography],
+          region_type: REGION_TYPES[selectedGeographyLevel],
           file_name: `${filename}.${format}`,
         }),
       })

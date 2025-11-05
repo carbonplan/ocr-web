@@ -25,7 +25,7 @@ import {
   MapAttribution,
   useMapControlStyles,
 } from './'
-import { DATA_URLS, LAYERS } from '@/lib/config'
+import { DATA_URLS, GEOGRAPHY_ATTRIBUTE_KEYS, LAYERS } from '@/lib/config'
 import {
   getMapViewFromQuery,
   updateMapViewUrl,
@@ -66,9 +66,9 @@ const MapComponent = () => {
     addProtocol('pmtiles', protocol.tile)
 
     const initialView = getMapViewFromQuery(router.query) || {
-      lat: 34.101,
-      lng: -117.792,
-      zoom: 8.0,
+      lat: 34.089,
+      lng: -118.254,
+      zoom: 10.84,
     }
 
     const sources: Record<string, SourceSpecification> = {
@@ -81,6 +81,7 @@ const MapComponent = () => {
       regions: {
         type: 'vector',
         url: `pmtiles://${DATA_URLS.vector.regions}`,
+        promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
       },
     }
 
