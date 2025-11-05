@@ -37,6 +37,7 @@ const ClimateSelector = () => {
           sx={{ justifyContent: 'flex-start', gap: 2 }}
         >
           <Filter
+            variant='filter'
             values={{
               current: timePeriod === 'current',
               future: timePeriod === 'future',

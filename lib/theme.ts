@@ -25,6 +25,15 @@ const customVariants = {
     letterSpacing: 'body',
     fontSize: [2, 2, 2, 3],
   },
+
+  filter: {
+    button: {
+      mr: 3,
+      '&:last-child': {
+        mr: 0,
+      },
+    },
+  },
 }
 
 const theme = merge(baseTheme, customVariants as Partial<typeof baseTheme>)
