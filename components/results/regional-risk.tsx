@@ -109,16 +109,11 @@ const RegionalRisk = () => {
     if (!map || !selectedBuilding) return
 
     if (selectedBuilding?.id !== previousBuildingIDRef.current) {
-      if (!showOnMap) {
+      // Wait for easeTo from building click to complete
+      const handleMoveEnd = () => {
         previousBoundsRef.current = map.getBounds()
-      } else {
-        // Wait for easeTo from building click to complete
-        const handleMoveEnd = () => {
-          previousBoundsRef.current = map.getBounds()
-          map.off('moveend', handleMoveEnd)
-        }
-        map.once('moveend', handleMoveEnd)
       }
+      map.once('moveend', handleMoveEnd)
       previousBuildingIDRef.current = selectedBuilding.id ?? null
     }
   }, [selectedBuilding, map, showOnMap])
