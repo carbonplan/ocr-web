@@ -35,6 +35,8 @@ const getColorForBar = (count: number, index: number, score: string | null) => {
     return 'primary'
   } else if (count === 0) {
     return 'muted'
+  } else if (score == null) {
+    return 'primary'
   } else {
     return 'secondary'
   }
