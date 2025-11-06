@@ -11,6 +11,7 @@ const OtherFactors = () => {
         each may drive the actual risk of loss due to fire up or down.'
         sx={{ justifyContent: 'flex-start', gap: 2, alignItems: 'baseline' }}
         buttonSx={{ position: 'relative', top: '1px' }}
+        tooltipSx={{ mt: -1, mb: 3 }}
       >
         <Box variant='sectionHeading'>Other factors</Box>
       </TooltipWrapper>

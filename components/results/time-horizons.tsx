@@ -37,6 +37,7 @@ const TimeHorizons = () => {
           position: 'relative',
           top: '1px',
         }}
+        tooltipSx={{ mt: -1, mb: 3 }}
       >
         <Box variant='sectionHeading'>Burn probability over time</Box>
       </TooltipWrapper>

@@ -58,6 +58,7 @@ interface TooltipWrapperProps {
   color?: string
   sx?: ThemeUIStyleObject
   buttonSx?: ThemeUIStyleObject
+  tooltipSx?: ThemeUIStyleObject
 }
 
 const TooltipWrapper = ({
@@ -68,6 +69,7 @@ const TooltipWrapper = ({
   sx,
   buttonSx,
   disabled = false,
+  tooltipSx,
 }: TooltipWrapperProps) => {
   const [expanded, setExpanded] = useState(false)
   return (
@@ -92,7 +94,9 @@ const TooltipWrapper = ({
         height={expanded ? 'auto' : 0}
         easing={'linear'}
       >
-        <Box sx={{ my: 1, fontSize: [1, 1, 1, 2], color }}>{tooltip}</Box>
+        <Box sx={{ my: 1, fontSize: [1, 1, 1, 2], color, ...tooltipSx }}>
+          {tooltip}
+        </Box>
       </AnimateHeight>
     </>
   )
