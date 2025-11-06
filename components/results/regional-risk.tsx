@@ -70,7 +70,7 @@ const RegionalRisk = () => {
   }
 
   const fitBoundsToGeography = useCallback(() => {
-    if (map && activeGeography && selectedBuilding) {
+    if (map && activeGeography) {
       const bbox = getBoundingBox(activeGeography)
       if (bbox) {
         map.fitBounds(bbox, {
@@ -79,18 +79,18 @@ const RegionalRisk = () => {
         })
       }
     }
-  }, [map, activeGeography, selectedBuilding])
+  }, [map, activeGeography])
 
   const handleShowRegionChange = () => {
     const newValue = !showOnMap
     setShowOnMap(newValue)
-    if (!map || !selectedBuilding) return
+    if (!map) return
     if (newValue) {
-      if (!previousBoundsRef.current) {
+      if (!previousBoundsRef.current && selectedBuilding) {
         previousBoundsRef.current = map.getBounds()
       }
       fitBoundsToGeography()
-    } else if (previousBoundsRef.current) {
+    } else if (previousBoundsRef.current && selectedBuilding) {
       map.fitBounds(previousBoundsRef.current, {
         duration: 500,
       })
@@ -99,20 +99,20 @@ const RegionalRisk = () => {
   }
 
   useEffect(() => {
-    if (showOnMap && previousBuildingIDRef.current === selectedBuilding?.id) {
+    if (showOnMap) {
       fitBoundsToGeography()
     }
-  }, [
-    showOnMap,
-    selectedGeographyLevel,
-    fitBoundsToGeography,
-    selectedBuilding,
-  ])
+    // exclude fitBoundsToGeography from deps to avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOnMap, selectedGeographyLevel])
 
   useEffect(() => {
-    if (!map || !selectedBuilding) return
+    if (!map) return
 
-    if (selectedBuilding?.id !== previousBuildingIDRef.current) {
+    if (
+      selectedBuilding &&
+      selectedBuilding.id !== previousBuildingIDRef.current
+    ) {
       const handleMoveEnd = () => {
         previousBoundsRef.current = map.getBounds()
       }
