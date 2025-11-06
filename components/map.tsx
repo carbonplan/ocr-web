@@ -19,10 +19,9 @@ import {
   Buildings,
   SelectionMarker,
   GeographyLayer,
-  WmsLayers,
   SatelliteLayer,
   HillshadeLayer,
-  ZarrLayer,
+  RasterLayer,
   MapAttribution,
   useMapControlStyles,
 } from './'
@@ -274,8 +273,7 @@ const MapComponent = () => {
           <MapAttribution />
           <SatelliteLayer />
           <HillshadeLayer />
-          <WmsLayers />
-          <ZarrLayer />
+          <RasterLayer />
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

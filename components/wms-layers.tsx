@@ -1,15 +1,14 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
 import { RasterTileSource } from 'maplibre-gl'
 import { useStore } from '../lib/store'
 import { generateColormap } from '@/lib/colormaps'
-import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
+import { DATA_URLS } from '@/lib/config'
 
 const epsilon = 1e-9
 
 const WmsLayers = () => {
   const map = useStore((state) => state.map)
-  const riskRaster = useStore((state) => state.riskRaster)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
@@ -81,6 +80,8 @@ const WmsLayers = () => {
   useEffect(() => {
     if (!map) return
 
+    const addedLayerIds: string[] = []
+
     riskMatrix.forEach((layer) => {
       const existingSource = map.getSource(layer.id)
       if (!existingSource) {
@@ -116,47 +117,35 @@ const WmsLayers = () => {
           'satellite',
         )
       }
+      addedLayerIds.push(layer.id)
     })
-  }, [map, riskMatrix])
 
-  const previousVisibilityRef = useRef(false)
+    // Cleanup: remove layers and sources when component unmounts
+    return () => {
+      addedLayerIds.forEach((layerId) => {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId)
+        }
+        if (map.getSource(layerId)) {
+          map.removeSource(layerId)
+        }
+      })
+    }
+  }, [map, riskMatrix])
 
   useEffect(() => {
     if (!map) return
-    const updateVisibility = (showWmsLayers: boolean) => {
-      riskMatrix.forEach((layer) => {
-        if (map.getLayer(layer.id)) {
-          map.setLayoutProperty(layer.id, 'visibility', 'none')
-        }
-      })
 
-      if (
-        riskRaster &&
-        showWmsLayers &&
-        activeRiskLayerId &&
-        map.getLayer(activeRiskLayerId)
-      ) {
-        map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
+    riskMatrix.forEach((layer) => {
+      if (map.getLayer(layer.id)) {
+        map.setLayoutProperty(layer.id, 'visibility', 'none')
       }
+    })
+
+    if (activeRiskLayerId && map.getLayer(activeRiskLayerId)) {
+      map.setLayoutProperty(activeRiskLayerId, 'visibility', 'visible')
     }
-
-    const handleZoom = () => {
-      const showWmsLayers = map.getZoom() >= RASTER_ZOOM_THRESHOLD
-
-      if (previousVisibilityRef.current !== showWmsLayers) {
-        previousVisibilityRef.current = showWmsLayers
-        updateVisibility(showWmsLayers)
-      }
-    }
-
-    previousVisibilityRef.current = map.getZoom() >= RASTER_ZOOM_THRESHOLD
-    updateVisibility(previousVisibilityRef.current)
-
-    map.on('zoom', handleZoom)
-    return () => {
-      map.off('zoom', handleZoom)
-    }
-  }, [map, riskMatrix, riskRaster, activeRiskLayerId])
+  }, [map, riskMatrix, activeRiskLayerId])
 
   return null
 }
