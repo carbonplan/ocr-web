@@ -7,24 +7,32 @@ import ZarrLayer from './zarr-layer'
 const RasterLayer = () => {
   const map = useStore((state) => state.map)
   const riskRaster = useStore((state) => state.riskRaster)
-  const [currentZoom, setCurrentZoom] = useState<number | undefined>(undefined)
+  const [isAboveThreshold, setIsAboveThreshold] = useState<boolean | undefined>(
+    undefined,
+  )
 
   const shouldShowZarr = useMemo(() => {
-    if (currentZoom === undefined) return false
-    return riskRaster && currentZoom < RASTER_ZOOM_THRESHOLD
-  }, [riskRaster, currentZoom])
+    if (isAboveThreshold === undefined) return false
+    return riskRaster && !isAboveThreshold
+  }, [riskRaster, isAboveThreshold])
 
   const shouldShowWms = useMemo(() => {
-    if (currentZoom === undefined) return false
-    return riskRaster && currentZoom >= RASTER_ZOOM_THRESHOLD
-  }, [riskRaster, currentZoom])
+    if (isAboveThreshold === undefined) return false
+    return riskRaster && isAboveThreshold
+  }, [riskRaster, isAboveThreshold])
 
   useEffect(() => {
     if (!map) return
 
     const handleZoom = () => {
       const zoom = map.getZoom()
-      setCurrentZoom(zoom)
+      const aboveThreshold = zoom >= RASTER_ZOOM_THRESHOLD
+      if (
+        isAboveThreshold === undefined ||
+        aboveThreshold !== isAboveThreshold
+      ) {
+        setIsAboveThreshold(aboveThreshold)
+      }
     }
 
     handleZoom()
@@ -32,7 +40,7 @@ const RasterLayer = () => {
     return () => {
       map.off('zoom', handleZoom)
     }
-  }, [map])
+  }, [map, isAboveThreshold])
 
   if (!riskRaster) {
     return null
@@ -47,4 +55,3 @@ const RasterLayer = () => {
 }
 
 export default RasterLayer
-
