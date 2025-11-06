@@ -26,7 +26,12 @@ const Buildings = () => {
   const { fetchAddress } = useReverseGeocode()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
+  const selectedBuildingRef = useRef<Building | null>(null)
   const colormap = useColormap()
+
+  useEffect(() => {
+    selectedBuildingRef.current = selectedBuilding
+  }, [selectedBuilding])
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
@@ -239,7 +244,7 @@ const Buildings = () => {
           setSelectedCoordinates({ lat, lng })
           fetchAddress(lat, lng)
         }
-      } else if (selectedBuilding) {
+      } else if (selectedBuildingRef.current) {
         clearSelections()
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
@@ -254,7 +259,6 @@ const Buildings = () => {
       clearSelections,
       queryGeographiesAtPoint,
       fetchAddress,
-      selectedBuilding,
     ],
   )
 
@@ -273,7 +277,7 @@ const Buildings = () => {
   }, [selectedBuilding, map])
 
   useEffect(() => {
-    // initialize layers
+    // initialize layers and listeners
     if (!map) return
 
     const initializeLayers = () => {
@@ -346,29 +350,6 @@ const Buildings = () => {
       map.on('load', initializeLayers)
     }
 
-    return () => {
-      try {
-        if (!map) return
-
-        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
-          map.removeLayer(LAYERS.buildings.layerIds.fill)
-        }
-        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
-          map.removeLayer(LAYERS.buildings.layerIds.line)
-        }
-        if (map.getSource(LAYERS.buildings.sourceId)) {
-          map.removeSource(LAYERS.buildings.sourceId)
-        }
-      } catch (error) {
-        console.error('Error removing buildings layers:', error)
-      }
-    }
-  }, [map, colorExpression, lineColorExpression, opacityExpression])
-
-  useEffect(() => {
-    // attach event listeners
-    if (!map) return
-
     map.on('click', handleMapClick)
     map.on('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
     map.on('mousemove', LAYERS.buildings.layerIds.fill, handleBuildingMouseMove)
@@ -394,17 +375,21 @@ const Buildings = () => {
           LAYERS.buildings.layerIds.fill,
           handleBuildingLeave,
         )
+
+        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
+          map.removeLayer(LAYERS.buildings.layerIds.fill)
+        }
+        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
+          map.removeLayer(LAYERS.buildings.layerIds.line)
+        }
+        if (map.getSource(LAYERS.buildings.sourceId)) {
+          map.removeSource(LAYERS.buildings.sourceId)
+        }
       } catch (error) {
-        console.error('Error removing buildings event listeners:', error)
+        console.error('Error removing buildings layers:', error)
       }
     }
-  }, [
-    map,
-    handleMapClick,
-    handleBuildingEnter,
-    handleBuildingLeave,
-    handleBuildingMouseMove,
-  ])
+  }, [map])
 
   useEffect(() => {
     // update color expression when variable selection changes
