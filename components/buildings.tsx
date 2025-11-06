@@ -239,7 +239,7 @@ const Buildings = () => {
           setSelectedCoordinates({ lat, lng })
           fetchAddress(lat, lng)
         }
-      } else {
+      } else if (selectedBuilding) {
         clearSelections()
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
@@ -254,6 +254,7 @@ const Buildings = () => {
       clearSelections,
       queryGeographiesAtPoint,
       fetchAddress,
+      selectedBuilding,
     ],
   )
 
