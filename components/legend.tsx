@@ -78,6 +78,7 @@ const Legend = () => {
       <Box>
         <Flex sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
           <Filter
+            variant='filter'
             values={{
               continuous: !isDiscrete,
               discrete: isDiscrete,

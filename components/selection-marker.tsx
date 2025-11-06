@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Marker } from 'maplibre-gl'
 import { Box, Flex } from 'theme-ui'
-//@ts-expect-error - carbonplan components types not available
-import { Badge } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import { Building } from '@/types/location'
@@ -73,7 +71,7 @@ const SelectionMarker = () => {
     markerRef.current = new Marker({
       element: container,
       anchor: 'bottom',
-      offset: [0, -2],
+      offset: [0, -3],
     })
       .setLngLat(markerPoint)
       .addTo(map)
@@ -106,13 +104,32 @@ const SelectionMarker = () => {
         alignItems: 'center',
       }}
     >
-      <Badge>{addressString}</Badge>
+      <Flex
+        sx={{
+          alignItems: 'center',
+          fontFamily: 'mono',
+          letterSpacing: 'mono',
+          fontSize: 2,
+          bg: 'hinted',
+          px: 2,
+          height: '28px',
+          borderRadius: '14px',
+          border: `1px solid`,
+          borderColor: 'secondary',
+        }}
+      >
+        {addressString}
+      </Flex>
       <Box
         sx={{
-          borderLeft: '8px solid transparent',
-          borderRight: '8px solid transparent',
-          borderTop: `8px solid`,
-          borderTopColor: 'muted',
+          width: '10px',
+          height: '10px',
+          bg: 'hinted',
+          transform: 'rotate(45deg)',
+          mt: '-5px',
+          borderRight: '1px solid',
+          borderBottom: '1px solid',
+          borderColor: 'secondary',
         }}
       />
     </Flex>,

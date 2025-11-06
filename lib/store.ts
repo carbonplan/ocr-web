@@ -129,7 +129,7 @@ export const useStore = create<Store>((set, get) => ({
   colorLimits: {
     type: 'discrete',
     bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
-    binBoundaries: [0.01, 0.1, 1, 2, 3, 5, 7, 10, 15, 20],
+    binBoundaries: [0.003, 0.015, 0.02, 0.03, 0.04, 0.06, 0.1, 0.15, 0.3, 0.6],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,

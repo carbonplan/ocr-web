@@ -35,13 +35,15 @@ const LayersSelector = () => {
     <Flex
       sx={{
         alignItems: 'center',
-        justifyContent: 'flex-end',
+        justifyContent: expanded ? 'flex-end' : 'center',
         minHeight: '24px',
         flexDirection: ['column-reverse', 'column-reverse', 'column', 'column'],
         borderRadius: '12px',
         backgroundColor: 'hinted',
         px: 2,
         gap: 1,
+        border: `1px solid`,
+        borderColor: 'secondary',
       }}
     >
       {expanded && (
@@ -104,7 +106,7 @@ const LayersSelector = () => {
           id='expander'
           onClick={() => setExpanded(!expanded)}
           value={expanded}
-          sx={{ stroke: 'primary', mt: '-1px', width: '10px', p: 0 }}
+          sx={{ stroke: 'primary', width: '10px', p: 0 }}
         />
       </Flex>
     </Flex>
