@@ -27,11 +27,17 @@ const ZarrLayer = () => {
 
   const [displayOpacity, setDisplayOpacity] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
+  const [currentZoom, setCurrentZoom] = useState<number | undefined>(undefined)
   const previousZoom = useRef<number | undefined>(undefined)
   const previousRiskRaster = useRef<boolean | undefined>(undefined)
 
+  const shouldShowRaster = useMemo(() => {
+    if (currentZoom === undefined) return false
+    return riskRaster && currentZoom < RASTER_ZOOM_THRESHOLD
+  }, [riskRaster, currentZoom])
+
   useSpring({
-    opacity: riskRaster ? 1 : 0,
+    opacity: shouldShowRaster ? 1 : 0,
     config: { duration: 500 },
     onChange: ({ value }) => {
       setDisplayOpacity(value.opacity)
@@ -41,7 +47,7 @@ const ZarrLayer = () => {
   let opacity = displayOpacity
   if (!transitioning) {
     // snap to opacity immediately if not transitioning
-    opacity = riskRaster ? 1 : 0
+    opacity = shouldShowRaster ? 1 : 0
   }
 
   useEffect(() => {
@@ -50,6 +56,8 @@ const ZarrLayer = () => {
     const handleZoom = () => {
       const currentZoom = map.getZoom()
       const prevZoom = previousZoom.current
+
+      setCurrentZoom(currentZoom)
 
       let triggerTransition = false
       let newRiskRaster = riskRaster // prevent stale state
