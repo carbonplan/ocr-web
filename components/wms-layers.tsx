@@ -120,7 +120,6 @@ const WmsLayers = () => {
       addedLayerIds.push(layer.id)
     })
 
-    // Cleanup: remove layers and sources when component unmounts
     return () => {
       addedLayerIds.forEach((layerId) => {
         if (map.getLayer(layerId)) {
