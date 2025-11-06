@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 // @ts-expect-error missing types for carbonplan maps
@@ -62,6 +62,12 @@ const ZarrLayer = () => {
       gl_FragColor.rgb *= gl_FragColor.a;
     `
   }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
+
+  useEffect(() => {
+    return () => {
+      setZarrLoading(false)
+    }
+  }, [setZarrLoading])
 
   return (
     <MapProvider map={map}>
