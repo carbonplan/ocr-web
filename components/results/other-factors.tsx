@@ -5,7 +5,7 @@ import TooltipWrapper from '../tooltip'
 
 const factors = [
   {
-    name: 'Fire-resistant construction and maintenance',
+    name: 'Fire-resistant construction',
     impact: 'Lower',
     resources: [
       'https://wildfirerisk.org/reduce-risk/ignition-resistant-homes/',
@@ -64,33 +64,40 @@ const OtherFactors = () => {
   const tableData = [
     ['Factor', 'Risk impact'],
     ...factors.map((factor) => {
-      const factorCell = (
-        <>
-          <Box>{factor.name}</Box>
-          {factor.resources.length > 0 && (
-            <Box sx={{ fontSize: 0, color: 'secondary' }}>
-              Resources:{' '}
-              {factor.resources.map((url, index) => (
-                <Box key={url} as='span'>
-                  <Link
-                    href={url}
-                    target='_blank'
-                    sx={{
-                      color: 'secondary',
-                      textDecoration: 'none',
-                      '&:hover': {
-                        color: 'primary',
-                      },
-                    }}
-                  >
-                    [{index + 1}]{' '}
-                  </Link>
+      const factorCell =
+        factor.resources.length > 0 ? (
+          <Box>
+            <TooltipWrapper
+              tooltip={
+                <Box>
+                  Resources:{' '}
+                  {factor.resources.map((url, index) => (
+                    <Box key={url} as='span'>
+                      <Link
+                        href={url}
+                        target='_blank'
+                        sx={{
+                          color: 'secondary',
+                          textDecoration: 'none',
+                          '&:hover': {
+                            color: 'primary',
+                          },
+                        }}
+                      >
+                        [{index + 1}]{' '}
+                      </Link>
+                    </Box>
+                  ))}
                 </Box>
-              ))}
-            </Box>
-          )}
-        </>
-      )
+              }
+              sx={{ display: 'inline-flex', gap: 2 }}
+            >
+              {factor.name}
+            </TooltipWrapper>
+          </Box>
+        ) : (
+          <Box>{factor.name}</Box>
+        )
       return [factorCell, factor.impact]
     }),
   ]

@@ -53,7 +53,7 @@ export const Tooltip = ({
 interface TooltipWrapperProps {
   children: React.ReactNode
   disabled?: boolean
-  tooltip: string
+  tooltip: string | React.ReactNode
   mt?: number
   color?: string
   sx?: ThemeUIStyleObject
