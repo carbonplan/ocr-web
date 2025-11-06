@@ -1,6 +1,8 @@
-import { Box, Link } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Table } from '@carbonplan/components'
+import { Button, Table } from '@carbonplan/components'
+//@ts-expect-error - carbonplan icons types not available
+import { RotatingArrow } from '@carbonplan/icons'
 import TooltipWrapper from '../tooltip'
 
 const factors = [
@@ -8,35 +10,68 @@ const factors = [
     name: 'Fire-resistant construction',
     impact: 'Lower',
     resources: [
-      'https://wildfirerisk.org/reduce-risk/ignition-resistant-homes/',
-      'https://www.nfpa.org/education-and-research/wildfire/preparing-homes-for-wildfire',
-      'https://cpaw.headwaterseconomics.org/wp-content/uploads/2022/08/2022HE-OwnYourZoneHouse-R3_CPAW.pdf',
+      {
+        label: 'Ignition-resistant homes',
+        url: 'https://wildfirerisk.org/reduce-risk/ignition-resistant-homes/',
+      },
+      {
+        label: 'Preparing homes',
+        url: 'https://www.nfpa.org/education-and-research/wildfire/preparing-homes-for-wildfire',
+      },
+      {
+        label: 'Exterior home protection',
+        url: 'https://cpaw.headwaterseconomics.org/wp-content/uploads/2022/08/2022HE-OwnYourZoneHouse-R3_CPAW.pdf',
+      },
     ],
   },
   {
     name: 'Community mitigation',
     impact: 'Lower',
     resources: [
-      'https://www.nfpa.org/education-and-research/policy-and-action/outthink-wildfire',
-      'https://www.iafc.org/docs/default-source/pdf/wild_cwppleadrsguide.pdf',
-      'https://fireadaptednetwork.org/resources/fac-assessment-tool/',
-      'https://wildfirerisk.org/reduce-risk/land-use-planning/',
+      {
+        label: 'Action policies',
+        url: 'https://www.nfpa.org/education-and-research/policy-and-action/outthink-wildfire',
+      },
+      {
+        label: 'International Association of Fire Chiefs',
+        url: 'https://www.iafc.org/docs/default-source/pdf/wild_cwppleadrsguide.pdf',
+      },
+      {
+        label: 'Fire Adapted Communities',
+        url: 'https://fireadaptednetwork.org/resources/fac-assessment-tool/',
+      },
+      {
+        label: 'Land use planning',
+        url: 'https://wildfirerisk.org/reduce-risk/land-use-planning/',
+      },
     ],
   },
   {
     name: 'Community emergency response',
     impact: 'Lower',
     resources: [
-      'https://wildfirerisk.org/reduce-risk/evacuation-readiness/',
-      'https://wildfirerisk.org/reduce-risk/wildfire-response',
+      {
+        label: 'Evacuation readiness',
+        url: 'https://wildfirerisk.org/reduce-risk/evacuation-readiness/',
+      },
+      {
+        label: 'Wildfire response',
+        url: 'https://wildfirerisk.org/reduce-risk/wildfire-response',
+      },
     ],
   },
   {
     name: 'Fires in the last ~5 years',
     impact: 'Lower',
     resources: [
-      'https://www.fs.usda.gov/managing-land/prescribed-fire',
-      'https://cires.colorado.edu/news/fewer-forest-fires-burn-north-america-today-past-and-thats-bad-thing',
+      {
+        label: 'Prescribed fire',
+        url: 'https://www.fs.usda.gov/managing-land/prescribed-fire',
+      },
+      {
+        label: 'Wildfires',
+        url: 'https://cires.colorado.edu/news/fewer-forest-fires-burn-north-america-today-past-and-thats-bad-thing',
+      },
     ],
   },
   {
@@ -47,15 +82,26 @@ const factors = [
   {
     name: 'Value of resources at risk',
     impact: 'Higher',
-    resources: ['https://hazards.fema.gov/nri/expected-annual-loss'],
+    resources: [
+      {
+        label: 'Expected Annual Loss',
+        url: 'https://hazards.fema.gov/nri/expected-annual-loss',
+      },
+    ],
   },
   {
     name: 'Ignition patterns',
     impact: 'Either',
     resources: [
-      'https://wildfirerisk.org/reduce-risk/prevent-ignitions/',
-      'https://dnr.wa.gov/wildfire-resources/wildfire-prevention',
-      'https://smokeybear.com',
+      {
+        label: 'Preventing ignitions',
+        url: 'https://wildfirerisk.org/reduce-risk/prevent-ignitions/',
+      },
+      {
+        label: 'Wildfire prevention',
+        url: 'https://dnr.wa.gov/wildfire-resources/wildfire-prevention',
+      },
+      { label: 'Smokey Bear', url: 'https://smokeybear.com' },
     ],
   },
 ]
@@ -70,24 +116,27 @@ const OtherFactors = () => {
             <TooltipWrapper
               tooltip={
                 <Box>
-                  Resources:{' '}
-                  {factor.resources.map((url, index) => (
-                    <Box key={url} as='span'>
-                      <Link
+                  <Flex
+                    sx={{ mt: 2, flexWrap: 'wrap', columnGap: 3, rowGap: 2 }}
+                  >
+                    {factor.resources.map(({ label, url }) => (
+                      <Button
+                        key={url}
                         href={url}
+                        size='xs'
                         target='_blank'
+                        suffix={<RotatingArrow />}
                         sx={{
                           color: 'secondary',
-                          textDecoration: 'none',
                           '&:hover': {
                             color: 'primary',
                           },
                         }}
                       >
-                        [{index + 1}]{' '}
-                      </Link>
-                    </Box>
-                  ))}
+                        {label}
+                      </Button>
+                    ))}
+                  </Flex>
                 </Box>
               }
               sx={{ display: 'inline-flex', gap: 2 }}
