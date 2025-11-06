@@ -29,8 +29,6 @@ const ZarrLayer = () => {
         ${discard}
         float rescaled = (value - clim.x) / (clim.y - clim.x);
         gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
-        gl_FragColor.a = opacity;
-        gl_FragColor.rgb *= gl_FragColor.a;
       `
     }
 
@@ -58,8 +56,6 @@ const ZarrLayer = () => {
       }
       float rescaled = binIndex / ${boundaries.length}.0; 
       gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
-      gl_FragColor.a = opacity;
-      gl_FragColor.rgb *= gl_FragColor.a;
     `
   }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
 
