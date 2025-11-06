@@ -54,8 +54,10 @@ const MapComponent = () => {
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
-  const { highlightBuildingAtLocation, queryGeographiesAtPoint } =
-    useBuildingUtils()
+  const queryGeographiesAtPoint = useStore(
+    (state) => state.queryGeographiesAtPoint,
+  )
+  const { highlightBuildingAtLocation } = useBuildingUtils()
   const { fetchAddress } = useReverseGeocode()
 
   const updateGeographies = useCallback(() => {

@@ -2,9 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
-import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { useReverseGeocode } from '@/hooks/useReverseGeocode'
-import { DATA_URLS, GEOGRAPHY_AUTOSELECT_ZOOM, LAYERS } from '@/lib/config'
+import { DATA_URLS, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
@@ -18,10 +17,12 @@ const Buildings = () => {
     (state) => state.setSelectedCoordinates,
   )
   const clearSelections = useStore((state) => state.clearSelections)
+  const queryGeographiesAtPoint = useStore(
+    (state) => state.queryGeographiesAtPoint,
+  )
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
-  const { queryGeographiesAtPoint } = useBuildingUtils()
   const { fetchAddress } = useReverseGeocode()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
@@ -240,11 +241,6 @@ const Buildings = () => {
         }
       } else {
         clearSelections()
-        const center = map.getCenter()
-        const zoom = map.getZoom()
-        if (zoom >= GEOGRAPHY_AUTOSELECT_ZOOM) {
-          queryGeographiesAtPoint(center.lng, center.lat)
-        }
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,
           sourceLayer: LAYERS.buildings.layerName,
