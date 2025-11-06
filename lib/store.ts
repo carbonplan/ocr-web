@@ -7,7 +7,7 @@ import {
   Coordinates,
   GeographyKey,
 } from '../types/location'
-import { RISKS } from './config'
+import { GEOGRAPHY_AUTOSELECT_ZOOM, LAYERS, RISKS } from './config'
 import {
   clearSelectedBuildingUrl,
   updateSelectedBuildingUrl,
@@ -79,6 +79,7 @@ type Store = {
   setReverseGeocodeLoading: (reverseGeocodeLoading: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
+  queryGeographiesAtPoint: (lng: number, lat: number) => void
   clearSelections: () => void
 }
 
@@ -141,9 +142,52 @@ export const useStore = create<Store>((set, get) => ({
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
-  clearSelections: () => {
-    clearSelectedBuildingUrl()
+  queryGeographiesAtPoint: (lng: number, lat: number) => {
     const { map } = get()
+    if (!map) return
+
+    const countyFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+      layers: [LAYERS.counties.layerIds.fill],
+    })
+    const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+      layers: [LAYERS.censusTracts.layerIds.fill],
+    })
+    const blockFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+      layers: [LAYERS.censusBlocks.layerIds.fill],
+    })
+
+    set({
+      activeGeographies: {
+        censusTract:
+          tractFeatures.length > 0
+            ? (tractFeatures[0].properties as Geography)
+            : null,
+        county:
+          countyFeatures.length > 0
+            ? (countyFeatures[0].properties as Geography)
+            : null,
+        censusBlock:
+          blockFeatures.length > 0
+            ? (blockFeatures[0].properties as Geography)
+            : null,
+      },
+    })
+  },
+  clearSelections: () => {
+    set({
+      selectedLocation: null,
+      selectedBuilding: null,
+      selectedCoordinates: null,
+      activeGeographies: {
+        county: null,
+        censusTract: null,
+        censusBlock: null,
+      },
+      showGeographyHighlight: false,
+      selectedGeographyLevel: 'county',
+    })
+    clearSelectedBuildingUrl()
+    const { map, queryGeographiesAtPoint } = get()
     if (map) {
       const center = map.getCenter()
       const zoom = map.getZoom()
@@ -152,13 +196,9 @@ export const useStore = create<Store>((set, get) => ({
         lng: center.lng,
         zoom: zoom,
       })
+      if (zoom >= GEOGRAPHY_AUTOSELECT_ZOOM) {
+        queryGeographiesAtPoint(center.lng, center.lat)
+      }
     }
-    set({
-      selectedLocation: null,
-      selectedBuilding: null,
-      selectedCoordinates: null,
-      activeGeographies: { county: null, censusTract: null, censusBlock: null },
-      showGeographyHighlight: false,
-    })
   },
 }))

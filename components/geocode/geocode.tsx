@@ -30,8 +30,9 @@ const Geocode = () => {
   const selectedLocation = useStore((state) => state.selectedLocation)
   const map = useStore((state) => state.map)
   const clearSelections = useStore((state) => state.clearSelections)
-  const { highlightBuildingAtLocation } = useBuildingUtils()
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
+
+  const { highlightBuildingAtLocation } = useBuildingUtils()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

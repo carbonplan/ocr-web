@@ -47,7 +47,6 @@ const REGION_TYPES: Record<GeographyKey, string> = {
 
 export const Download = () => {
   const [loading, setLoading] = useState({ csv: false, gpkg: false })
-  const disabled = !useStore((state) => state.selectedLocation)
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -57,6 +56,8 @@ export const Download = () => {
   const countyName = useStore((state) =>
     getCountyName(state.activeGeographies.county),
   )
+  const activeGeographies = useStore((state) => state.activeGeographies)
+  const disabled = !activeGeographies[selectedGeographyLevel]
   let filename: string
   if (selectedGeographyLevel === 'county') {
     filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`

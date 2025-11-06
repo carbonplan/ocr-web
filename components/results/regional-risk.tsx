@@ -1,10 +1,10 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Filter, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { RotatingArrow, X } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
-import { useCallback, useEffect, useRef } from 'react'
 import { LngLatBounds } from 'maplibre-gl'
 
 import {
@@ -13,7 +13,10 @@ import {
   getBoundingBox,
 } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
-import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
+import {
+  GEOGRAPHY_ATTRIBUTE_KEYS,
+  GEOGRAPHY_AUTOSELECT_ZOOM,
+} from '@/lib/config'
 import { GeographyKey } from '@/types/location'
 import { Download } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
@@ -38,6 +41,8 @@ const RegionalRisk = () => {
     getCountyName(state.activeGeographies.county),
   )
   const activeGeography = activeGeographies[selectedGeographyLevel]
+  const [zoom, setZoom] = useState(0)
+
   const { score, color } = useScore(activeGeography ?? null, 'muted')
   const { score: buildingScore } = useScore(selectedBuilding)
   const data = useStore(
@@ -82,11 +87,11 @@ const RegionalRisk = () => {
     setShowOnMap(newValue)
     if (!map) return
     if (newValue) {
-      if (!previousBoundsRef.current) {
+      if (!previousBoundsRef.current && selectedBuilding) {
         previousBoundsRef.current = map.getBounds()
       }
       fitBoundsToGeography()
-    } else if (previousBoundsRef.current) {
+    } else if (previousBoundsRef.current && selectedBuilding) {
       map.fitBounds(previousBoundsRef.current, {
         duration: 500,
       })
@@ -95,21 +100,20 @@ const RegionalRisk = () => {
   }
 
   useEffect(() => {
-    if (showOnMap && previousBuildingIDRef.current === selectedBuilding?.id) {
+    if (showOnMap) {
       fitBoundsToGeography()
     }
-  }, [
-    showOnMap,
-    selectedGeographyLevel,
-    fitBoundsToGeography,
-    selectedBuilding,
-  ])
+    // exclude fitBoundsToGeography from deps to avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOnMap, selectedGeographyLevel])
 
   useEffect(() => {
-    if (!map || !selectedBuilding) return
+    if (!map) return
 
-    if (selectedBuilding?.id !== previousBuildingIDRef.current) {
-      // Wait for easeTo from building click to complete
+    if (
+      selectedBuilding &&
+      selectedBuilding.id !== previousBuildingIDRef.current
+    ) {
       const handleMoveEnd = () => {
         previousBoundsRef.current = map.getBounds()
       }
@@ -117,6 +121,17 @@ const RegionalRisk = () => {
       previousBuildingIDRef.current = selectedBuilding.id ?? null
     }
   }, [selectedBuilding, map, showOnMap])
+
+  useEffect(() => {
+    if (!map) return
+    const handleMoveEnd = () => {
+      setZoom(map.getZoom())
+    }
+    map.on('moveend', handleMoveEnd)
+    return () => {
+      map.off('moveend', handleMoveEnd)
+    }
+  }, [map])
 
   return (
     <>
@@ -134,21 +149,12 @@ const RegionalRisk = () => {
           censusBlock: 'Census block',
         }}
         setValues={(obj: Record<GeographyKey, boolean>) => {
-          if (!selectedBuilding) return
           const selected = (Object.keys(obj) as GeographyKey[]).find(
             (k) => obj[k],
           )
           if (selected) {
             setSelectedGeographyLevel(selected)
           }
-        }}
-        disabled={!selectedBuilding}
-        sx={{
-          button: {
-            borderColor: !selectedBuilding ? 'secondary' : 'primary',
-            color: !selectedBuilding ? 'secondary' : 'primary',
-            cursor: !selectedBuilding ? 'default' : 'pointer',
-          },
         }}
       />
       <Table
@@ -203,7 +209,7 @@ const RegionalRisk = () => {
           inverted={!showOnMap}
           suffix={showOnMap ? <X /> : <RotatingArrow />}
           onClick={handleShowRegionChange}
-          disabled={!selectedBuilding}
+          disabled={!activeGeography}
           sx={{
             '&:disabled': {
               cursor: 'default',
@@ -221,11 +227,9 @@ const RegionalRisk = () => {
           region={getRegionName()}
           data={data}
           score={buildingScore}
-          sx={
-            selectedBuilding && data.length > 0 ? undefined : { opacity: 0.1 }
-          }
+          sx={data.length > 0 ? undefined : { opacity: 0.1 }}
         />
-        {(!selectedBuilding || data.length === 0) && (
+        {!data.length && (
           <Box
             sx={{
               position: 'absolute',
@@ -236,9 +240,9 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {selectedBuilding && data.length === 0
-              ? 'No data available'
-              : 'Select a structure to view regional risk distribution'}
+            {zoom < GEOGRAPHY_AUTOSELECT_ZOOM && !selectedBuilding
+              ? 'Zoom in to view regional risk distribution'
+              : 'No data available'}
           </Box>
         )}
       </Box>

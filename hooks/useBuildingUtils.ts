@@ -2,49 +2,16 @@ import { useCallback } from 'react'
 import { centerOfMass, distance } from '@turf/turf'
 import { LAYERS } from '@/lib/config'
 import { useStore } from '@/lib/store'
-import { Building, Geography } from '@/types/location'
+import { Building } from '@/types/location'
 
 export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
+  const queryGeographiesAtPoint = useStore(
+    (state) => state.queryGeographiesAtPoint,
+  )
   const setSelectedCoordinates = useStore(
     (state) => state.setSelectedCoordinates,
-  )
-
-  const queryGeographiesAtPoint = useCallback(
-    (lng: number, lat: number) => {
-      if (!map) return
-
-      const countyFeatures = map.queryRenderedFeatures(
-        map.project([lng, lat]),
-        {
-          layers: [LAYERS.counties.layerIds.fill],
-        },
-      )
-      const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-        layers: [LAYERS.censusTracts.layerIds.fill],
-      })
-      const blockFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-        layers: [LAYERS.censusBlocks.layerIds.fill],
-      })
-
-      setActiveGeographies({
-        censusTract:
-          tractFeatures.length > 0
-            ? (tractFeatures[0].properties as Geography)
-            : null,
-        county:
-          countyFeatures.length > 0
-            ? (countyFeatures[0].properties as Geography)
-            : null,
-        censusBlock:
-          blockFeatures.length > 0
-            ? (blockFeatures[0].properties as Geography)
-            : null,
-      })
-    },
-    [map, setActiveGeographies],
   )
 
   const highlightBuildingAtLocation = useCallback(
@@ -109,7 +76,6 @@ export const useBuildingUtils = () => {
   )
 
   return {
-    queryGeographiesAtPoint,
     highlightBuildingAtLocation,
   }
 }
