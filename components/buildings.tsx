@@ -273,7 +273,7 @@ const Buildings = () => {
   }, [selectedBuilding, map])
 
   useEffect(() => {
-    // initialize layers and listeners
+    // initialize layers
     if (!map) return
 
     const initializeLayers = () => {
@@ -346,6 +346,29 @@ const Buildings = () => {
       map.on('load', initializeLayers)
     }
 
+    return () => {
+      try {
+        if (!map) return
+
+        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
+          map.removeLayer(LAYERS.buildings.layerIds.fill)
+        }
+        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
+          map.removeLayer(LAYERS.buildings.layerIds.line)
+        }
+        if (map.getSource(LAYERS.buildings.sourceId)) {
+          map.removeSource(LAYERS.buildings.sourceId)
+        }
+      } catch (error) {
+        console.error('Error removing buildings layers:', error)
+      }
+    }
+  }, [map, colorExpression, lineColorExpression, opacityExpression])
+
+  useEffect(() => {
+    // attach event listeners
+    if (!map) return
+
     map.on('click', handleMapClick)
     map.on('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
     map.on('mousemove', LAYERS.buildings.layerIds.fill, handleBuildingMouseMove)
@@ -371,21 +394,17 @@ const Buildings = () => {
           LAYERS.buildings.layerIds.fill,
           handleBuildingLeave,
         )
-
-        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
-          map.removeLayer(LAYERS.buildings.layerIds.fill)
-        }
-        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
-          map.removeLayer(LAYERS.buildings.layerIds.line)
-        }
-        if (map.getSource(LAYERS.buildings.sourceId)) {
-          map.removeSource(LAYERS.buildings.sourceId)
-        }
       } catch (error) {
-        console.error('Error removing buildings layers:', error)
+        console.error('Error removing buildings event listeners:', error)
       }
     }
-  }, [map])
+  }, [
+    map,
+    handleMapClick,
+    handleBuildingEnter,
+    handleBuildingLeave,
+    handleBuildingMouseMove,
+  ])
 
   useEffect(() => {
     // update color expression when variable selection changes
