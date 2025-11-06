@@ -10,6 +10,7 @@ import {
   getRiskScore,
 } from '@/lib/risk-utils'
 import ValueBadge from './value-badge'
+import TooltipWrapper from '../tooltip'
 
 const RiskCalculation = () => {
   const risk = useStore((state) =>
@@ -25,11 +26,16 @@ const RiskCalculation = () => {
 
   return (
     <>
-      <Box variant='sectionHeading'>Calculating risk</Box>
-      <Box variant='description' sx={{ mb: 3 }}>
-        Risk scores are based on an estimation of damage likelihood due to
-        wildfire.
-      </Box>
+      <TooltipWrapper
+        tooltip='Risk scores are based on an estimation of damage likelihood due to
+        wildfire.'
+        sx={{ justifyContent: 'flex-start', gap: 2, alignItems: 'baseline' }}
+        buttonSx={{ position: 'relative', top: '1px' }}
+        tooltipSx={{ mt: -1, mb: 3 }}
+      >
+        <Box variant='sectionHeading'>Calculating risk</Box>
+      </TooltipWrapper>
+
       <Table
         columns={3}
         start={[1, 2, 3]}
@@ -94,6 +100,7 @@ const RiskCalculation = () => {
         borderTop={false}
         index={false}
         sx={{
+          mt: 2,
           '& tr:first-of-type td': {
             fontSize: 1,
             fontFamily: 'mono',

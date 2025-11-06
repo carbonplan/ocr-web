@@ -6,6 +6,7 @@ import {
 import { useStore } from '@/lib/store'
 import { getAdjustedBurnProbability, getRiskScore } from '@/lib/risk-utils'
 import ValueBadge from './value-badge'
+import TooltipWrapper from '../tooltip'
 
 const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
   typeof prob === 'number'
@@ -23,12 +24,23 @@ const TimeHorizons = () => {
 
   return (
     <>
-      <Box variant='sectionHeading'>Burn probability over time</Box>
-      <Box variant='description' sx={{ mb: 3 }}>
-        Burn probability compounds year over year at every building. This means
+      <TooltipWrapper
+        tooltip='Burn probability compounds year over year at every building. This means
         that risk of loss increases as a result. These probabilities also become
-        less certain when compounded and considered at larger timescales.
-      </Box>
+        less certain when compounded and considered at larger timescales.'
+        sx={{
+          justifyContent: 'flex-start',
+          gap: 2,
+          alignItems: 'baseline',
+        }}
+        buttonSx={{
+          position: 'relative',
+          top: '1px',
+        }}
+        tooltipSx={{ mt: -1, mb: 3 }}
+      >
+        <Box variant='sectionHeading'>Burn probability over time</Box>
+      </TooltipWrapper>
       <Table
         columns={3}
         start={[1, 2, 3]}
@@ -52,6 +64,7 @@ const TimeHorizons = () => {
         borderTop={false}
         index={false}
         sx={{
+          mt: 2,
           '& tr:first-of-type td': {
             fontSize: 1,
             fontFamily: 'mono',

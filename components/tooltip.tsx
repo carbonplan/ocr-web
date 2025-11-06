@@ -53,10 +53,12 @@ export const Tooltip = ({
 interface TooltipWrapperProps {
   children: React.ReactNode
   disabled?: boolean
-  tooltip: string
+  tooltip: string | React.ReactNode
   mt?: number
   color?: string
   sx?: ThemeUIStyleObject
+  buttonSx?: ThemeUIStyleObject
+  tooltipSx?: ThemeUIStyleObject
 }
 
 const TooltipWrapper = ({
@@ -65,7 +67,9 @@ const TooltipWrapper = ({
   mt = 0,
   color = 'secondary',
   sx,
+  buttonSx,
   disabled = false,
+  tooltipSx,
 }: TooltipWrapperProps) => {
   const [expanded, setExpanded] = useState(false)
   return (
@@ -82,7 +86,7 @@ const TooltipWrapper = ({
           disabled={disabled}
           expanded={expanded}
           setExpanded={setExpanded}
-          sx={{ mt: mt, flexShrink: 0 }}
+          sx={{ mt: mt, flexShrink: 0, ...buttonSx }}
         />
       </Flex>
       <AnimateHeight
@@ -90,7 +94,9 @@ const TooltipWrapper = ({
         height={expanded ? 'auto' : 0}
         easing={'linear'}
       >
-        <Box sx={{ my: 1, fontSize: [1, 1, 1, 2], color }}>{tooltip}</Box>
+        <Box sx={{ my: 1, fontSize: [1, 1, 1, 2], color, ...tooltipSx }}>
+          {tooltip}
+        </Box>
       </AnimateHeight>
     </>
   )
