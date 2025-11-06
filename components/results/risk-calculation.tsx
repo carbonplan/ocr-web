@@ -29,7 +29,8 @@ const RiskCalculation = () => {
       <TooltipWrapper
         tooltip='Risk scores are based on an estimation of damage likelihood due to
         wildfire.'
-        sx={{ justifyContent: 'flex-start', gap: 3, alignItems: 'baseline' }}
+        sx={{ justifyContent: 'flex-start', gap: 2, alignItems: 'baseline' }}
+        buttonSx={{ position: 'relative', top: '1px' }}
       >
         <Box variant='sectionHeading'>Calculating risk</Box>
       </TooltipWrapper>

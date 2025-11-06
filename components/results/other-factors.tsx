@@ -9,7 +9,8 @@ const OtherFactors = () => {
       <TooltipWrapper
         tooltip='The risk described above does not account for a variety of factors that
         each may drive the actual risk of loss due to fire up or down.'
-        sx={{ justifyContent: 'flex-start', gap: 3, alignItems: 'baseline' }}
+        sx={{ justifyContent: 'flex-start', gap: 2, alignItems: 'baseline' }}
+        buttonSx={{ position: 'relative', top: '1px' }}
       >
         <Box variant='sectionHeading'>Other factors</Box>
       </TooltipWrapper>

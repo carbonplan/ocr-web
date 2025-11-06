@@ -30,8 +30,12 @@ const TimeHorizons = () => {
         less certain when compounded and considered at larger timescales.'
         sx={{
           justifyContent: 'flex-start',
-          gap: 3,
+          gap: 2,
           alignItems: 'baseline',
+        }}
+        buttonSx={{
+          position: 'relative',
+          top: '1px',
         }}
       >
         <Box variant='sectionHeading'>Burn probability over time</Box>

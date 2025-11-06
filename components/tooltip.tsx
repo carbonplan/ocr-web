@@ -57,6 +57,7 @@ interface TooltipWrapperProps {
   mt?: number
   color?: string
   sx?: ThemeUIStyleObject
+  buttonSx?: ThemeUIStyleObject
 }
 
 const TooltipWrapper = ({
@@ -65,6 +66,7 @@ const TooltipWrapper = ({
   mt = 0,
   color = 'secondary',
   sx,
+  buttonSx,
   disabled = false,
 }: TooltipWrapperProps) => {
   const [expanded, setExpanded] = useState(false)
@@ -82,7 +84,7 @@ const TooltipWrapper = ({
           disabled={disabled}
           expanded={expanded}
           setExpanded={setExpanded}
-          sx={{ mt: mt, flexShrink: 0 }}
+          sx={{ mt: mt, flexShrink: 0, ...buttonSx }}
         />
       </Flex>
       <AnimateHeight
