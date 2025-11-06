@@ -21,7 +21,7 @@ const Intro = () => {
         This explorer shows fire risk across the continental US. Search for an
         address or use the map to explore risk data. More risks will be added in
         the future. Read our <Link href='#TK'>methods</Link>, the{' '}
-        <Link href='#TK'>FAQs</Link>, or{' '}
+        <Link href='#TK'>explainer</Link>, or{' '}
         <Link href='#TK'>download the data</Link> for more details.
         <Box sx={{ mt: 3, color: 'secondary', fontSize: 1 }}>
           By viewing Open Climate Risk, you agree to CarbonPlan’s{' '}
