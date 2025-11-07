@@ -128,8 +128,11 @@ export const useStore = create<Store>((set, get) => ({
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   colorLimits: {
     type: 'discrete',
-    bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
-    binBoundaries: [0.003, 0.015, 0.02, 0.03, 0.04, 0.06, 0.1, 0.15, 0.3, 0.6],
+    bounds: [
+      RISKS.fire.binBoundaries[0],
+      RISKS.fire.binBoundaries[RISKS.fire.binBoundaries.length - 1],
+    ],
+    binBoundaries: [...RISKS.fire.binBoundaries],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,

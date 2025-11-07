@@ -22,7 +22,6 @@ const Buildings = () => {
   )
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-  const riskConfig = useStore((state) => state.riskConfig)
   const { fetchAddress } = useReverseGeocode()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
@@ -43,7 +42,7 @@ const Buildings = () => {
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
-      ['<', riskPercentExpression, riskConfig.bounds.min],
+      ['==', riskPercentExpression, 0],
       get(theme, 'rawColors.muted'),
       expr,
     ]
@@ -93,7 +92,6 @@ const Buildings = () => {
     colorLimits.bounds,
     colorLimits.binBoundaries,
     theme,
-    riskConfig.bounds.min,
   ])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {

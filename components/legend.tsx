@@ -8,7 +8,6 @@ import { useStore } from '../lib/store'
 import { useColormap } from '../lib/colormaps'
 
 const Legend = () => {
-  const riskConfig = useStore((state) => state.riskConfig)
   const colorLimits = useStore((state) => state.colorLimits)
   const setColorLimits = useStore((state) => state.setColorLimits)
   const advancedMode = useStore((state) => state.advancedMode)
@@ -121,7 +120,7 @@ const Legend = () => {
                   if (value < 1 || value > 100) return
                   setColorLimits({
                     type: colorLimits.type,
-                    bounds: [riskConfig.bounds.min, value],
+                    bounds: [colorLimits.bounds[0], value],
                     binBoundaries: colorLimits.binBoundaries,
                   })
                 }}

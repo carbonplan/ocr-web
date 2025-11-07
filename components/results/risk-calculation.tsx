@@ -22,7 +22,9 @@ const RiskCalculation = () => {
   const conditionalRisk = useStore((state) =>
     getConditionalRiskUsfs(state.selectedBuilding),
   )
-  const isLowBp = bp === 0 && !!risk && risk > 0
+  const isLowBp = bp ? bp < 0.01 : false
+  const isLowRisk = risk ? risk < 0.01 : false
+  const isLowConditionalRisk = conditionalRisk ? conditionalRisk < 0.01 : false
 
   return (
     <>
@@ -69,7 +71,7 @@ const RiskCalculation = () => {
           ],
           [
             <Box key='rol' sx={{ position: 'relative' }}>
-              <ValueBadge value={risk} />
+              <ValueBadge value={risk} lowValue={isLowRisk} />
               <Box
                 sx={{
                   position: 'absolute',
@@ -94,7 +96,12 @@ const RiskCalculation = () => {
                 x
               </Box>
             </Box>,
-            <ValueBadge key='cr' value={conditionalRisk} unit='#' />,
+            <ValueBadge
+              key='cr'
+              value={conditionalRisk}
+              unit='#'
+              lowValue={isLowConditionalRisk}
+            />,
           ],
         ]}
         borderTop={false}
