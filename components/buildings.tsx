@@ -42,7 +42,7 @@ const Buildings = () => {
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
-      ['<', riskPercentExpression, colorLimits.bounds[0]],
+      ['==', riskPercentExpression, 0],
       get(theme, 'rawColors.muted'),
       expr,
     ]

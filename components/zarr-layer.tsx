@@ -6,7 +6,7 @@ import { MapProvider, Raster } from '@carbonplan/maps/core'
 import { DATA_URLS } from '@/lib/config'
 
 const discard = `
-  if (value == fillValue || value > clim.y || value < clim.x) {
+  if (value == fillValue || value == 0.0 || value > clim.y || value < clim.x) {
     discard;
     return;
   }

@@ -46,7 +46,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
-      ['<', ['to-number', ['get', medianRisk]], colorLimits.bounds[0]],
+      ['==', ['to-number', ['get', medianRisk]], 0],
       get(theme, 'rawColors.muted'),
       expr,
     ]

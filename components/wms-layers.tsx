@@ -16,7 +16,8 @@ const WmsLayers = () => {
 
   const colorscaleRange = useMemo(() => {
     const [min, max] = colorLimits.bounds
-    return `${min - epsilon},${max}`
+    const lowerBound = min === 0 ? epsilon : min
+    return `${lowerBound},${max}`
   }, [colorLimits])
 
   const binsParam = useMemo(() => {
@@ -24,9 +25,8 @@ const WmsLayers = () => {
       colorLimits.type === 'discrete' &&
       colorLimits.binBoundaries.length > 0
     ) {
-      // replace first value with epsilon corrected value
       const correctedBinBoundaries = colorLimits.binBoundaries.map(
-        (value, index) => (index === 0 ? value - epsilon : value),
+        (value, index) => (index === 0 && value === 0 ? epsilon : value),
       )
       return `&bins=${correctedBinBoundaries.join(',')}`
     }
