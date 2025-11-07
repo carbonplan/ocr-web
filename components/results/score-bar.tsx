@@ -88,8 +88,14 @@ const ScoreBar = ({
                         transition: 'color 0.2s',
                       }}
                     >
-                      {String(bins[i]).replace(/^0(?=\.)/, '')}%
-                      {i === bins.length - 1 ? '+' : ''}
+                      {(() => {
+                        const str = String(bins[i])
+                        const digitCount = str.replace(/\D/g, '').length
+                        return digitCount > 2
+                          ? str.replace(/^0(?=\.)/, '')
+                          : str
+                      })()}
+                      %{i === bins.length - 1 ? '+' : ''}
                     </Box>
                   </>
                 )}
