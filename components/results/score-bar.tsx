@@ -55,7 +55,7 @@ const ScoreBar = ({
             .fill(null)
             .map((el, i) => (
               <Flex key={i} sx={{ position: 'relative' }}>
-                {labels && (
+                {labels && !(i === 0 && bins[0] === 0) && (
                   <>
                     <Box
                       sx={{
