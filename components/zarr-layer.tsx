@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
-import { useSpring } from 'react-spring'
+import { useMemo, useEffect } from 'react'
 import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 // @ts-expect-error missing types for carbonplan maps
 import { MapProvider, Raster } from '@carbonplan/maps/core'
-import { DATA_URLS, RASTER_ZOOM_THRESHOLD } from '@/lib/config'
+import { DATA_URLS } from '@/lib/config'
 
 const discard = `
   if (value == fillValue || value > clim.y || value < clim.x) {
@@ -15,8 +14,6 @@ const discard = `
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
-  const riskRaster = useStore((state) => state.riskRaster)
-  const setRiskRaster = useStore((state) => state.setRiskRaster)
   const colorLimits = useStore((state) => state.colorLimits)
   const colormap = useColormapRGB()
   const timePeriod = useStore((state) => state.timePeriod)
@@ -25,67 +22,6 @@ const ZarrLayer = () => {
     return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
   }, [timePeriod])
 
-  const [displayOpacity, setDisplayOpacity] = useState(0)
-  const [transitioning, setTransitioning] = useState(false)
-  const previousZoom = useRef<number | undefined>(undefined)
-  const previousRiskRaster = useRef<boolean | undefined>(undefined)
-
-  useSpring({
-    opacity: riskRaster ? 1 : 0,
-    config: { duration: 500 },
-    onChange: ({ value }) => {
-      setDisplayOpacity(value.opacity)
-    },
-  })
-
-  let opacity = displayOpacity
-  if (!transitioning) {
-    // snap to opacity immediately if not transitioning
-    opacity = riskRaster ? 1 : 0
-  }
-
-  useEffect(() => {
-    if (!map) return
-
-    const handleZoom = () => {
-      const currentZoom = map.getZoom()
-      const prevZoom = previousZoom.current
-
-      let triggerTransition = false
-      let newRiskRaster = riskRaster // prevent stale state
-      if (riskRaster !== previousRiskRaster.current) {
-        setTransitioning(false)
-      }
-      if (prevZoom === undefined) {
-        newRiskRaster = currentZoom < RASTER_ZOOM_THRESHOLD
-      } else if (
-        currentZoom < RASTER_ZOOM_THRESHOLD &&
-        prevZoom >= RASTER_ZOOM_THRESHOLD
-      ) {
-        newRiskRaster = true
-        triggerTransition = true
-      } else if (
-        currentZoom >= RASTER_ZOOM_THRESHOLD &&
-        prevZoom < RASTER_ZOOM_THRESHOLD
-      ) {
-        newRiskRaster = false
-        triggerTransition = true
-      }
-
-      setRiskRaster(newRiskRaster)
-      setTransitioning((prev) => prev || triggerTransition)
-
-      previousZoom.current = currentZoom
-      previousRiskRaster.current = newRiskRaster
-    }
-
-    handleZoom()
-    map.on('zoom', handleZoom)
-    return () => {
-      map.off('zoom', handleZoom)
-    }
-  }, [map, riskRaster, setRiskRaster])
-
   const fragShader = useMemo(() => {
     if (colorLimits.type === 'continuous') {
       return `
@@ -93,8 +29,6 @@ const ZarrLayer = () => {
         ${discard}
         float rescaled = (value - clim.x) / (clim.y - clim.x);
         gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
-        gl_FragColor.a = opacity;
-        gl_FragColor.rgb *= gl_FragColor.a;
       `
     }
 
@@ -122,10 +56,14 @@ const ZarrLayer = () => {
       }
       float rescaled = binIndex / ${boundaries.length}.0; 
       gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
-      gl_FragColor.a = opacity;
-      gl_FragColor.rgb *= gl_FragColor.a;
     `
   }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
+
+  useEffect(() => {
+    return () => {
+      setZarrLoading(false)
+    }
+  }, [setZarrLoading])
 
   return (
     <MapProvider map={map}>
@@ -136,7 +74,6 @@ const ZarrLayer = () => {
         variable={riskAttribute}
         fillValue={9.969209968386869e36}
         frag={fragShader}
-        opacity={opacity}
         setLoading={setZarrLoading}
       />
     </MapProvider>

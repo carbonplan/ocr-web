@@ -19,10 +19,9 @@ import {
   Buildings,
   SelectionMarker,
   GeographyLayer,
-  WmsLayers,
   SatelliteLayer,
   HillshadeLayer,
-  ZarrLayer,
+  RasterLayer,
   MapAttribution,
   useMapControlStyles,
 } from './'
@@ -49,6 +48,7 @@ const MapComponent = () => {
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
+  const riskRaster = useStore((state) => state.riskRaster)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
 
@@ -274,8 +274,7 @@ const MapComponent = () => {
           <MapAttribution />
           <SatelliteLayer />
           <HillshadeLayer />
-          <WmsLayers />
-          <ZarrLayer />
+          {riskRaster && <RasterLayer />}
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}
