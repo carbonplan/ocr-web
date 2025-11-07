@@ -88,5 +88,5 @@ export const RISKS = {
   },
 } as const
 
-export const RASTER_ZOOM_THRESHOLD = 12
+export const RASTER_ZOOM_THRESHOLD = 14
 export const GEOGRAPHY_AUTOSELECT_ZOOM = 7
