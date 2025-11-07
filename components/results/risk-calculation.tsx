@@ -117,7 +117,7 @@ const RiskCalculation = () => {
         buttonSx={{ position: 'relative', top: '1px' }}
         tooltipSx={{ mt: -1, mb: 3 }}
       >
-        <Box variant='sectionHeading'>Risk score calculation</Box>
+        <Box variant='sectionHeading'>Calculating risk score</Box>
       </TooltipWrapper>
 
       <Row columns={3} sx={{ ...sx.row, mt: 2, py: 1 }}>
