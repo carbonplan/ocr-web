@@ -6,22 +6,14 @@ import ZarrLayer from './zarr-layer'
 
 const RasterLayer = () => {
   const map = useStore((state) => state.map)
-  const [isAboveThreshold, setIsAboveThreshold] = useState<boolean | undefined>(
-    undefined,
-  )
+  const [activeLayer, setActiveLayer] = useState<'zarr' | 'png' | null>(null)
 
   useEffect(() => {
     if (!map) return
 
     const handleZoom = () => {
       const zoom = map.getZoom()
-      const aboveThreshold = zoom >= RASTER_ZOOM_THRESHOLD
-      if (
-        isAboveThreshold === undefined ||
-        aboveThreshold !== isAboveThreshold
-      ) {
-        setIsAboveThreshold(aboveThreshold)
-      }
+      setActiveLayer(zoom >= RASTER_ZOOM_THRESHOLD ? 'png' : 'zarr')
     }
 
     handleZoom()
@@ -29,12 +21,12 @@ const RasterLayer = () => {
     return () => {
       map.off('zoom', handleZoom)
     }
-  }, [map, isAboveThreshold])
+  }, [map])
 
   return (
     <>
-      {isAboveThreshold === false && <ZarrLayer />}
-      {isAboveThreshold && <WmsLayers />}
+      {activeLayer === 'zarr' && <ZarrLayer />}
+      {activeLayer === 'png' && <WmsLayers />}
     </>
   )
 }
