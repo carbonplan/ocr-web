@@ -100,7 +100,7 @@ const MapComponent = () => {
     const sources: Record<string, SourceSpecification> = {
       basemap: {
         type: 'vector',
-        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/lower48.pmtiles',
+        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/NA.pmtiles',
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
