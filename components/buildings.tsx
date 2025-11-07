@@ -8,15 +8,13 @@ import { DATA_URLS, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
+import { updateSelectedBuildingUrl } from '@/lib/url-utils'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
-  const setSelectedCoordinates = useStore(
-    (state) => state.setSelectedCoordinates,
-  )
   const clearSelections = useStore((state) => state.clearSelections)
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
@@ -243,7 +241,7 @@ const Buildings = () => {
           map.easeTo({
             center: [lng, lat],
           })
-          setSelectedCoordinates({ lat, lng })
+          updateSelectedBuildingUrl({ lat, lng })
           fetchAddress(lat, lng)
         }
       } else if (selectedBuildingRef.current) {
@@ -257,7 +255,6 @@ const Buildings = () => {
     [
       map,
       setSelectedBuilding,
-      setSelectedCoordinates,
       clearSelections,
       queryGeographiesAtPoint,
       fetchAddress,
