@@ -3,15 +3,13 @@ import { centerOfMass, distance } from '@turf/turf'
 import { LAYERS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { Building } from '@/types/location'
+import { updateSelectedBuildingUrl } from '@/lib/url-utils'
 
 export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
-  )
-  const setSelectedCoordinates = useStore(
-    (state) => state.setSelectedCoordinates,
   )
 
   const highlightBuildingAtLocation = useCallback(
@@ -48,16 +46,18 @@ export const useBuildingUtils = () => {
             const distanceValue = distance([lng, lat], centroid, {
               units: 'meters',
             })
-            return { feature, distance: distanceValue }
+            return { feature, distance: distanceValue, centroid }
           })
           .sort((a, b) => a.distance - b.distance)
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          setSelectedBuilding(closestBuilding as Building)
-          setSelectedCoordinates({ lat, lng })
+          const [centroidLng, centroidLat] = featuresWithDistance[0].centroid
 
-          queryGeographiesAtPoint(lng, lat)
+          setSelectedBuilding(closestBuilding as Building)
+          updateSelectedBuildingUrl({ lat: centroidLat, lng: centroidLng })
+
+          queryGeographiesAtPoint(centroidLng, centroidLat)
 
           map.setFeatureState(
             {
@@ -72,7 +72,7 @@ export const useBuildingUtils = () => {
       }
       return false
     },
-    [map, setSelectedBuilding, queryGeographiesAtPoint, setSelectedCoordinates],
+    [map, setSelectedBuilding, queryGeographiesAtPoint],
   )
 
   return {

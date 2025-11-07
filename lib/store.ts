@@ -1,18 +1,8 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import {
-  Location,
-  Building,
-  Geography,
-  Coordinates,
-  GeographyKey,
-} from '../types/location'
+import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { GEOGRAPHY_AUTOSELECT_ZOOM, LAYERS, RISKS } from './config'
-import {
-  clearSelectedBuildingUrl,
-  updateSelectedBuildingUrl,
-  updateMapViewUrl,
-} from './url-utils'
+import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
@@ -21,8 +11,6 @@ type Store = {
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location) => void
-  selectedCoordinates: Coordinates | null
-  setSelectedCoordinates: (coordinates: Coordinates) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
@@ -88,11 +76,6 @@ export const useStore = create<Store>((set, get) => ({
   setMap: (map) => set({ map }),
   selectedLocation: null,
   setSelectedLocation: (location) => set({ selectedLocation: location }),
-  selectedCoordinates: null,
-  setSelectedCoordinates: (coordinates) => {
-    updateSelectedBuildingUrl(coordinates)
-    set({ selectedCoordinates: coordinates })
-  },
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
@@ -180,7 +163,6 @@ export const useStore = create<Store>((set, get) => ({
     set({
       selectedLocation: null,
       selectedBuilding: null,
-      selectedCoordinates: null,
       activeGeographies: {
         county: null,
         censusTract: null,
