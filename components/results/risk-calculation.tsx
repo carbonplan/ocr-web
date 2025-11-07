@@ -104,7 +104,9 @@ const RiskCalculation = () => {
   const conditionalRisk = useStore((state) =>
     getConditionalRiskUsfs(state.selectedBuilding),
   )
-  const isLowBp = bp === 0 && !!risk && risk > 0
+  const isLowBp = bp ? bp < 0.01 : false
+  const isLowRisk = risk ? risk < 0.01 : false
+  const isLowConditionalRisk = conditionalRisk ? conditionalRisk < 0.01 : false
 
   const tooltip = expanded ? TOOLTIP[expanded] : null
 
@@ -161,6 +163,7 @@ const RiskCalculation = () => {
             value={risk}
             tooltip='This is the value from which the risk score is directly derived.'
             operator='='
+            lowValue={isLowRisk}
           />
         </Column>
         <Column start={2} width={1}>
@@ -182,6 +185,7 @@ const RiskCalculation = () => {
             value={conditionalRisk}
             tooltip='This is the value from which the risk score is directly derived.'
             unit='#'
+            lowValue={isLowConditionalRisk}
           />
         </Column>
         <Column

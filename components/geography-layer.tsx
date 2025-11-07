@@ -27,7 +27,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   )
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-  const riskConfig = useStore((state) => state.riskConfig)
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -47,7 +46,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
 
     const wrap = (expr: ExpressionSpecification) => [
       'case',
-      ['<', ['to-number', ['get', medianRisk]], riskConfig.bounds.min],
+      ['==', ['to-number', ['get', medianRisk]], 0],
       get(theme, 'rawColors.muted'),
       expr,
     ]
@@ -97,7 +96,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     colorLimits.bounds,
     colorLimits.binBoundaries,
     theme,
-    riskConfig.bounds.min,
   ])
 
   useEffect(() => {

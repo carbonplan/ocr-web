@@ -1,18 +1,8 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import {
-  Location,
-  Building,
-  Geography,
-  Coordinates,
-  GeographyKey,
-} from '../types/location'
+import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { GEOGRAPHY_AUTOSELECT_ZOOM, LAYERS, RISKS } from './config'
-import {
-  clearSelectedBuildingUrl,
-  updateSelectedBuildingUrl,
-  updateMapViewUrl,
-} from './url-utils'
+import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
 
@@ -21,8 +11,6 @@ type Store = {
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
   setSelectedLocation: (location: Location) => void
-  selectedCoordinates: Coordinates | null
-  setSelectedCoordinates: (coordinates: Coordinates) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
@@ -88,11 +76,6 @@ export const useStore = create<Store>((set, get) => ({
   setMap: (map) => set({ map }),
   selectedLocation: null,
   setSelectedLocation: (location) => set({ selectedLocation: location }),
-  selectedCoordinates: null,
-  setSelectedCoordinates: (coordinates) => {
-    updateSelectedBuildingUrl(coordinates)
-    set({ selectedCoordinates: coordinates })
-  },
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
   riskRaster: false,
@@ -128,8 +111,11 @@ export const useStore = create<Store>((set, get) => ({
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   colorLimits: {
     type: 'discrete',
-    bounds: [RISKS.fire.bounds.min, RISKS.fire.bounds.max],
-    binBoundaries: [0.003, 0.015, 0.02, 0.03, 0.04, 0.06, 0.1, 0.15, 0.3, 0.6],
+    bounds: [
+      RISKS.fire.binBoundaries[0],
+      RISKS.fire.binBoundaries[RISKS.fire.binBoundaries.length - 1],
+    ],
+    binBoundaries: [...RISKS.fire.binBoundaries],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
@@ -177,7 +163,6 @@ export const useStore = create<Store>((set, get) => ({
     set({
       selectedLocation: null,
       selectedBuilding: null,
-      selectedCoordinates: null,
       activeGeographies: {
         county: null,
         censusTract: null,

@@ -55,42 +55,54 @@ const ScoreBar = ({
             .fill(null)
             .map((el, i) => (
               <Flex key={i} sx={{ position: 'relative' }}>
-                {labels && (
+                {labels && !(i === 0 && bins[0] === 0) && (
                   <>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        height: `5px`,
-                        bottom: '-12px',
-                        left: '-2.5px',
-                        color:
-                          color === colormap[i] || color === colormap[i - 1]
-                            ? 'primary'
-                            : 'secondary',
-                        borderStyle: 'solid',
-                        borderWidth: '0px',
-                        borderLeftWidth: '1px',
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: '-28px',
-                        left: `-${String(bins[i]).length * 4.5}px`,
-                        fontSize: 0,
-                        fontFamily: 'mono',
-                        letterSpacing: 'mono',
-                        color:
-                          color === colormap[i] || color === colormap[i - 1]
-                            ? 'primary'
-                            : 'secondary',
-                        userSelect: 'none',
-                        transition: 'color 0.2s',
-                      }}
-                    >
-                      {String(bins[i]).replace(/^0(?=\.)/, '')}%
-                      {i === bins.length - 1 ? '+' : ''}
-                    </Box>
+                    {(() => {
+                      const str = String(bins[i])
+                      const digitCount = str.replace(/\D/g, '').length
+                      const formattedStr =
+                        digitCount > 2 ? str.replace(/^0(?=\.)/, '') : str
+                      const displayText = `${formattedStr}%${i === bins.length - 1 ? '+' : ''}`
+                      return (
+                        <>
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              height: `5px`,
+                              bottom: '-12px',
+                              left: '-2.5px',
+                              color:
+                                color === colormap[i] ||
+                                color === colormap[i - 1]
+                                  ? 'primary'
+                                  : 'secondary',
+                              borderStyle: 'solid',
+                              borderWidth: '0px',
+                              borderLeftWidth: '1px',
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              bottom: '-28px',
+                              left: `-${displayText.length * 4.2}px`,
+                              fontSize: 0,
+                              fontFamily: 'mono',
+                              letterSpacing: 'mono',
+                              color:
+                                color === colormap[i] ||
+                                color === colormap[i - 1]
+                                  ? 'primary'
+                                  : 'secondary',
+                              userSelect: 'none',
+                              transition: 'color 0.2s',
+                            }}
+                          >
+                            {displayText}
+                          </Box>
+                        </>
+                      )
+                    })()}
                   </>
                 )}
 
