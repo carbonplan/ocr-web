@@ -51,9 +51,13 @@ export default async function handler(
     return res.status(400).json({ message: 'Query parameter is required' })
   }
 
+  const bbox = [-127, 23, -65, 50].join(',')
+  const countryCode = 'USA'
+  const limit = 5
+
   try {
     const response = await fetch(
-      `https://autocomplete.search.hereapi.com/v1/autocomplete?q=${encodeURIComponent(q)}&in=countryCode:USA&in=bbox:-127,23,-65,50&limit=5&apiKey=${process.env.HERE_API_KEY}`,
+      `https://autocomplete.search.hereapi.com/v1/autocomplete?q=${encodeURIComponent(q)}&in=countryCode:${countryCode}&in=bbox:${bbox}&limit=${limit}&apiKey=${process.env.HERE_API_KEY}`,
     )
     const data: HereApiResponse = await response.json()
 
