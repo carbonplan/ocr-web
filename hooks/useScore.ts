@@ -27,6 +27,9 @@ export const useScore = (
   }
 
   const score = useMemo(() => {
+    if (value === 0.0) {
+      return '0'
+    }
     if (typeof value === 'number') {
       return String(
         bins.findIndex((bin, i) =>
@@ -41,7 +44,7 @@ export const useScore = (
   }, [value, bins])
 
   const color = useMemo(() => {
-    if (value === null || value < min || !colormap?.length) {
+    if (value === null || value < min || !colormap?.length || value === 0.0) {
       return fallbackColor
     }
 
