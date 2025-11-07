@@ -48,16 +48,18 @@ export const useBuildingUtils = () => {
             const distanceValue = distance([lng, lat], centroid, {
               units: 'meters',
             })
-            return { feature, distance: distanceValue }
+            return { feature, distance: distanceValue, centroid }
           })
           .sort((a, b) => a.distance - b.distance)
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          setSelectedBuilding(closestBuilding as Building)
-          setSelectedCoordinates({ lat, lng })
+          const [centroidLng, centroidLat] = featuresWithDistance[0].centroid
 
-          queryGeographiesAtPoint(lng, lat)
+          setSelectedBuilding(closestBuilding as Building)
+          setSelectedCoordinates({ lat: centroidLat, lng: centroidLng })
+
+          queryGeographiesAtPoint(centroidLng, centroidLat)
 
           map.setFeatureState(
             {

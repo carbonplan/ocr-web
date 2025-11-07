@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
+import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
 import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 import { DATA_URLS, LAYERS } from '@/lib/config'
@@ -219,7 +220,8 @@ const Buildings = () => {
         }
 
         const feature = features[0]
-        const { lng, lat } = e.lngLat
+        const center = centerOfMass(feature)
+        const [lng, lat] = center.geometry.coordinates
 
         queryGeographiesAtPoint(lng, lat)
 
