@@ -48,7 +48,7 @@ const ScoreBar = ({
             sx={{
               width: '100%',
               backgroundColor: 'muted',
-              color: score === '0' || score === '1' ? 'primary' : 'secondary',
+              color: score === '0' ? 'primary' : 'secondary',
             }}
           />
           {Array(10)
