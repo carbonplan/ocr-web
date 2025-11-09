@@ -122,7 +122,7 @@ export default function MapLayers() {
         expanded={true}
         side='left'
         width={4}
-        sx={{ bottom: '10px' }}
+        sx={{ bottom: '10px', ml: '-6px' }}
       >
         <LayersSelector />
       </SidebarAttachment>
