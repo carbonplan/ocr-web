@@ -133,6 +133,8 @@ const RegionalRisk = () => {
     }
   }, [map])
 
+  const disabled = zoom < GEOGRAPHY_AUTOSELECT_ZOOM && !selectedBuilding
+
   return (
     <>
       <Box variant='sectionHeading'>Risk in the region</Box>
@@ -156,6 +158,13 @@ const RegionalRisk = () => {
             setSelectedGeographyLevel(selected)
           }
         }}
+        disabled={disabled}
+        sx={
+          disabled && {
+            pointerEvents: 'none',
+            '& button': { opacity: 0.1 },
+          }
+        }
       />
       <Table
         columns={3}
@@ -201,6 +210,7 @@ const RegionalRisk = () => {
             color: 'secondary',
             fontSize: 1,
           },
+          opacity: disabled ? 0.2 : 1,
         }}
       />
       <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
@@ -240,7 +250,7 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {zoom < GEOGRAPHY_AUTOSELECT_ZOOM && !selectedBuilding
+            {disabled
               ? 'Zoom in to view regional risk distribution'
               : 'No data available'}
           </Box>
