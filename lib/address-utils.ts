@@ -1,12 +1,16 @@
 import { Address } from '@/types/location'
 
-export const formatAddress = (address: Address, shortForm?: boolean) => {
+type Options = {
+  abbreviate?: boolean
+  requireStreet?: boolean
+}
+export const formatAddress = (address: Address, options: Options = {}) => {
   const shortFormElements = []
   if (address.houseNumber) shortFormElements.push(address.houseNumber)
   if (address.street) shortFormElements.push(address.street)
 
   const base = shortFormElements.join(' ')
-  if (shortForm) {
+  if (options.abbreviate) {
     return base
   }
 
@@ -15,6 +19,8 @@ export const formatAddress = (address: Address, shortForm?: boolean) => {
   if (address.stateCode) cityState.push(address.stateCode)
   if (cityState.length === 0) {
     return base
+  } else if (!base && options.requireStreet) {
+    return ''
   } else if (!base) {
     return cityState.join(', ')
   } else {
