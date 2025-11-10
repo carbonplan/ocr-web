@@ -20,8 +20,9 @@ const Intro = () => {
       <Box sx={{ mb: 3, variant: 'description' }}>
         This explorer shows fire risk across the continental US. Search for an
         address or use the map to explore risk data. More hazards will be added
-        in the future. Read our <Link href='#TK'>methods</Link>, the{' '}
-        <Link href='#TK'>explainer</Link>, or{' '}
+        in the future. Read our{' '}
+        <Link href='/research/climate-risk-fire-methods'>methods</Link>, the{' '}
+        <Link href='/research/climate-risk-explainer'>explainer</Link>, or{' '}
         <Link href='https://carbonplan.github.io/ocr/reference/data-downloads/'>
           download the data
         </Link>{' '}
