@@ -51,8 +51,8 @@ const LayersSelector = () => {
           sx={{
             flexDirection: 'column',
             gap: 2,
-            mt: [0, 0, 2, 2],
-            mb: [2, 2, 0, 0],
+            mt: [0, 0, 1, 1],
+            mb: [1, 1, 0, 0],
           }}
         >
           <Flex sx={{ gap: 2 }} as='label'>
@@ -122,7 +122,7 @@ export default function MapLayers() {
         expanded={true}
         side='left'
         width={4}
-        sx={{ bottom: '10px' }}
+        sx={{ bottom: '10px', ml: '-6px' }}
       >
         <LayersSelector />
       </SidebarAttachment>

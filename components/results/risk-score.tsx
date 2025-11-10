@@ -24,7 +24,10 @@ const RiskScore = () => {
     content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
   } else if (selectedBuilding && selectedLocation) {
     content =
-      formatAddress(selectedLocation.address, abbreviate) || 'Selected building'
+      formatAddress(selectedLocation.address, {
+        abbreviate,
+        requireStreet: true,
+      }) || 'Selected building'
   }
 
   useLayoutEffect(() => {

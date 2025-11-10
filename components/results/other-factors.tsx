@@ -33,11 +33,11 @@ const factors = [
         url: 'https://www.nfpa.org/education-and-research/policy-and-action/outthink-wildfire',
       },
       {
-        label: 'International Association of Fire Chiefs',
+        label: 'Community wildfire protection plan',
         url: 'https://www.iafc.org/docs/default-source/pdf/wild_cwppleadrsguide.pdf',
       },
       {
-        label: 'Fire Adapted Communities',
+        label: 'Fire adapted communities tool',
         url: 'https://fireadaptednetwork.org/resources/fac-assessment-tool/',
       },
       {
@@ -77,15 +77,28 @@ const factors = [
   {
     name: 'Access limitations',
     impact: 'Higher',
-    resources: [],
+    resources: [
+      {
+        label: 'Fire apparatus access roads',
+        url: 'https://www.nfpa.org/news-blogs-and-articles/blogs/2021/01/08/fire-apparatus-access-roads',
+      },
+      {
+        label: 'Wildfire risk to roads',
+        url: 'https://www.climatecentral.org/climate-matters/wildfire-risk-to-homes',
+      },
+    ],
   },
   {
     name: 'Value of resources at risk',
     impact: 'Higher',
     resources: [
       {
-        label: 'Expected Annual Loss',
-        url: 'https://hazards.fema.gov/nri/expected-annual-loss',
+        label: 'Risk exposure',
+        url: 'https://hazards.fema.gov/nri/exposure',
+      },
+      {
+        label: 'Understand risk',
+        url: 'https://wildfirerisk.org/understand-risk',
       },
     ],
   },
@@ -152,16 +165,12 @@ const OtherFactors = () => {
   ]
 
   return (
-    <Box sx={{ mt: '20px' }}>
-      <TooltipWrapper
-        tooltip='The risk described above does not account for a variety of factors that
-        each may drive the actual risk of loss due to fire up or down.'
-        sx={{ justifyContent: 'flex-start', gap: 2, alignItems: 'baseline' }}
-        buttonSx={{ position: 'relative', top: '1px' }}
-        tooltipSx={{ mt: -1, mb: 3 }}
-      >
-        <Box variant='sectionHeading'>Other factors</Box>
-      </TooltipWrapper>
+    <Box sx={{ mt: '52px' }}>
+      <Box variant='sectionHeading'>Other factors</Box>
+      <Box variant='description'>
+        The risk described above does not account for a variety of factors that
+        each may drive the actual risk of loss due to fire up or down.
+      </Box>
       <Table
         columns={3}
         start={[1, 3]}
@@ -170,7 +179,7 @@ const OtherFactors = () => {
         index={false}
         borderTop={false}
         sx={{
-          mt: 2,
+          mt: 3,
           '& tr': {
             py: 2,
           },

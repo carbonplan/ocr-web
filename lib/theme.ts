@@ -28,7 +28,7 @@ const customVariants = {
 
   filter: {
     button: {
-      mr: 3,
+      mr: '10px',
       '&:last-child': {
         mr: 0,
       },

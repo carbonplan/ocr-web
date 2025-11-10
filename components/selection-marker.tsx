@@ -45,7 +45,10 @@ const SelectionMarker = () => {
 
   const addressString = useMemo(() => {
     if (selectedLocation) {
-      return formatAddress(selectedLocation.address, true)
+      return formatAddress(selectedLocation.address, {
+        abbreviate: true,
+        requireStreet: true,
+      })
     }
     return null
   }, [selectedLocation])
@@ -90,7 +93,6 @@ const SelectionMarker = () => {
     !selectedBuilding ||
     !selectedLocation ||
     !markerPoint ||
-    !addressString ||
     !container ||
     reverseGeocodeLoading
   ) {
@@ -118,7 +120,7 @@ const SelectionMarker = () => {
           borderColor: 'secondary',
         }}
       >
-        {addressString}
+        {addressString || 'Selected building'}
       </Flex>
       <Box
         sx={{
