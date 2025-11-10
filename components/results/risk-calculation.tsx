@@ -113,8 +113,9 @@ const RiskCalculation = () => {
   return (
     <>
       <Box sx={{ mt: 2 }}>
-        Risk scores calculated from on percentile-based bins of risk of loss,
-        which is calculated at every building location.
+        Risk scores are calculated from percentile-based bins of annual risk of
+        loss, which is computed at every building location with the following
+        equation:
       </Box>
 
       <Row columns={3} sx={{ ...sx.row, mt: 2, py: 1 }}>

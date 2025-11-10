@@ -24,9 +24,7 @@ const TimeHorizons = () => {
   return (
     <>
       <Box sx={{ mt: 4 }}>
-        Burn probability compounds year over year at every building, increasing
-        risk of loss over longer time scales as a result. Uncertainties also
-        compound over larger timescales.
+        Over longer time horizons, burn probability and uncertainty increase.
       </Box>
       <Table
         columns={3}
