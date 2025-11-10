@@ -28,7 +28,6 @@ const TableCell = ({
   expanded: boolean
   setExpanded: (v: boolean) => void
   operator?: string
-  tooltip: string
   unit?: string
   lowValue?: boolean
 }) => {
@@ -72,9 +71,14 @@ const TableCell = ({
 }
 
 const TOOLTIP = {
-  rps: 'This is the value from which the risk score is directly derived, which represents the expected risk of loss experienced per year for a generic structure.',
-  bp: 'Annual burn probability (BP) for present day (circa 2011) and future (circa 2047) climates based upon landscape conditions circa 2020.',
-  crps: 'Conditional net value change in a generic structure if it were to burn.',
+  rps: 'Annual risk of loss incorporates both the probability and relative severity of fire at a given location. This value is directly translated into the risk score.',
+  bp: {
+    current:
+      'Annual burn probability (BP) for today’s climate (circa 2011) based on fire weather wind direction and landscape conditions.',
+    future:
+      'Annual burn probability (BP) for future climate (circa 2047) based on fire weather wind direction and landscape conditions.',
+  },
+  crps: 'Relative net value change in a hypothetical generic structure if a fire occurred at this location. This value reflects fire severity and is controlled by the local landscape.',
 }
 
 const sx = {
@@ -106,11 +110,16 @@ const RiskCalculation = () => {
   const conditionalRisk = useStore((state) =>
     getConditionalRiskUsfs(state.selectedBuilding),
   )
+  const timePeriod = useStore((state) => state.timePeriod)
   const isLowBp = bp ? bp < 0.01 : false
   const isLowRisk = risk ? risk < 0.01 : false
   const isLowConditionalRisk = conditionalRisk ? conditionalRisk < 0.01 : false
 
-  const tooltip = expanded ? TOOLTIP[expanded] : null
+  let tooltip
+  if (expanded) {
+    tooltip =
+      expanded === 'bp' ? TOOLTIP[expanded][timePeriod] : TOOLTIP[expanded]
+  }
 
   return (
     <>
@@ -159,7 +168,6 @@ const RiskCalculation = () => {
             expanded={expanded === 'rps'}
             setExpanded={(value: boolean) => setExpanded(value ? 'rps' : null)}
             value={risk}
-            tooltip='This is the value from which the risk score is directly derived.'
             operator='='
             lowValue={isLowRisk}
           />
@@ -170,7 +178,6 @@ const RiskCalculation = () => {
             expanded={expanded === 'bp'}
             setExpanded={(value: boolean) => setExpanded(value ? 'bp' : null)}
             value={risk}
-            tooltip='This is the value from which the risk score is directly derived.'
             operator='x'
             lowValue={isLowBp}
           />
@@ -181,7 +188,6 @@ const RiskCalculation = () => {
             expanded={expanded === 'crps'}
             setExpanded={(value: boolean) => setExpanded(value ? 'crps' : null)}
             value={conditionalRisk}
-            tooltip='This is the value from which the risk score is directly derived.'
             unit='#'
             lowValue={isLowConditionalRisk}
           />

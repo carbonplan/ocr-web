@@ -1,9 +1,6 @@
-import { Box, Flex } from 'theme-ui'
+import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Button, Table } from '@carbonplan/components'
-//@ts-expect-error - carbonplan icons types not available
-import { RotatingArrow } from '@carbonplan/icons'
-import TooltipWrapper from '../tooltip'
+import { Link, Table } from '@carbonplan/components'
 
 const factors = [
   {
@@ -88,20 +85,20 @@ const factors = [
       },
     ],
   },
-  {
-    name: 'Value of resources at risk',
-    impact: 'Higher',
-    resources: [
-      {
-        label: 'Risk exposure',
-        url: 'https://hazards.fema.gov/nri/exposure',
-      },
-      {
-        label: 'Understand risk',
-        url: 'https://wildfirerisk.org/understand-risk',
-      },
-    ],
-  },
+  // {
+  //   name: 'Value of resources at risk',
+  //   impact: 'Higher',
+  //   resources: [
+  //     {
+  //       label: 'Risk exposure',
+  //       url: 'https://hazards.fema.gov/nri/exposure',
+  //     },
+  //     {
+  //       label: 'Understand risk',
+  //       url: 'https://wildfirerisk.org/understand-risk',
+  //     },
+  //   ],
+  // },
   {
     name: 'Ignition patterns',
     impact: 'Either',
@@ -121,46 +118,46 @@ const factors = [
 
 const OtherFactors = () => {
   const tableData = [
-    ['Factor', 'Risk impact'],
+    ['Factor'],
     ...factors.map((factor) => {
-      const factorCell =
-        factor.resources.length > 0 ? (
-          <Box>
-            <TooltipWrapper
-              tooltip={
-                <Box>
-                  <Flex
-                    sx={{ mt: 2, flexWrap: 'wrap', columnGap: 3, rowGap: 2 }}
-                  >
-                    {factor.resources.map(({ label, url }) => (
-                      <Button
-                        key={url}
-                        href={url}
-                        size='xs'
-                        target='_blank'
-                        suffix={<RotatingArrow />}
-                        sx={{
-                          color: 'secondary',
-                          '&:hover': {
-                            color: 'primary',
-                          },
-                        }}
-                      >
-                        {label}
-                      </Button>
-                    ))}
-                  </Flex>
-                </Box>
-              }
-              sx={{ display: 'inline-flex', gap: 2 }}
-            >
-              {factor.name}
-            </TooltipWrapper>
-          </Box>
-        ) : (
-          <Box>{factor.name}</Box>
-        )
-      return [factorCell, factor.impact]
+      // const factorCell =
+      //   factor.resources.length > 0 ? (
+      //     <Box>
+      //       <TooltipWrapper
+      //         tooltip={
+      //           <Box>
+      //             <Flex
+      //               sx={{ mt: 2, flexWrap: 'wrap', columnGap: 3, rowGap: 2 }}
+      //             >
+      //               {factor.resources.map(({ label, url }) => (
+      //                 <Button
+      //                   key={url}
+      //                   href={url}
+      //                   size='xs'
+      //                   target='_blank'
+      //                   suffix={<RotatingArrow />}
+      //                   sx={{
+      //                     color: 'secondary',
+      //                     '&:hover': {
+      //                       color: 'primary',
+      //                     },
+      //                   }}
+      //                 >
+      //                   {label}
+      //                 </Button>
+      //               ))}
+      //             </Flex>
+      //           </Box>
+      //         }
+      //         sx={{ display: 'inline-flex', gap: 2 }}
+      //       >
+      //         {factor.name}
+      //       </TooltipWrapper>
+      //     </Box>
+      //   ) : (
+      //     <Box>{factor.name}</Box>
+      //   )
+      return [factor.name]
     }),
   ]
 
@@ -169,12 +166,14 @@ const OtherFactors = () => {
       <Box variant='sectionHeading'>Other factors</Box>
       <Box variant='description'>
         The risk described above does not account for a variety of factors that
-        each may drive the actual risk of loss due to fire up or down.
+        each may drive the actual risk of loss due to fire up or down. For more
+        information on these factors, see our{' '}
+        <Link href='/research/climate-risk-faq'>FAQs</Link>.
       </Box>
       <Table
         columns={3}
-        start={[1, 3]}
-        width={[2, 1]}
+        start={[1]}
+        width={[3]}
         data={tableData}
         index={false}
         borderTop={false}
@@ -198,9 +197,9 @@ const OtherFactors = () => {
             letterSpacing: 'body',
             whiteSpace: 'nowrap',
           },
-          '& td:last-of-type': {
-            textAlign: 'right',
-          },
+          // '& td:last-of-type': {
+          //   textAlign: 'right',
+          // },
         }}
       />
     </Box>

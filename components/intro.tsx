@@ -20,25 +20,19 @@ const Intro = () => {
       <Box sx={{ mb: 3, variant: 'description' }}>
         This explorer shows fire risk across the continental US. Search for an
         address or use the map to explore risk data. More hazards will be added
-        in the future. Read our <Link href='#TK'>methods</Link>, the{' '}
-        <Link href='#TK'>explainer</Link>, or{' '}
+        in the future. Read our{' '}
+        <Link href='/research/climate-risk-fire-methods'>methods</Link>, the{' '}
+        <Link href='/research/climate-risk-explainer'>explainer</Link>, or{' '}
         <Link href='https://carbonplan.github.io/ocr/reference/data-downloads/'>
           download the data
         </Link>{' '}
         for more details.
-        <Box sx={{ mt: 3, color: 'secondary', fontSize: 1 }}>
+        <Box sx={{ mt: 3 }}>
           By viewing Open Climate Risk, you agree to CarbonPlan’s{' '}
-          <Link sx={{ color: 'secondary' }} href='https://carbonplan.org/terms'>
-            Terms of Use
-          </Link>{' '}
-          and{' '}
-          <Link
-            sx={{ color: 'secondary' }}
-            href='https://carbonplan.org/privacy'
-          >
-            Privacy Policy
-          </Link>
-          .
+          <Link href='https://carbonplan.org/terms'>Terms of Use</Link> and{' '}
+          <Link href='https://carbonplan.org/privacy'>Privacy Policy</Link>, and
+          that it is in a beta state and may not be used for decision-making
+          purposes, cited, or otherwise shared.
         </Box>
       </Box>
     </>
