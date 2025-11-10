@@ -14,7 +14,7 @@ import AnimateHeight from 'react-animate-height'
 
 import { useStore } from '@/lib/store'
 import ValueBadge from './value-badge'
-import TooltipWrapper, { Tooltip } from '../tooltip'
+import { Tooltip } from '../tooltip'
 
 const TableCell = ({
   value,
@@ -114,15 +114,11 @@ const RiskCalculation = () => {
 
   return (
     <>
-      <TooltipWrapper
-        tooltip='Risk scores are based on an estimation of damage likelihood due to
-        wildfire.'
-        sx={{ justifyContent: 'flex-start', gap: 2, alignItems: 'baseline' }}
-        buttonSx={{ position: 'relative', top: '1px' }}
-        tooltipSx={{ mt: -1, mb: 3 }}
-      >
-        <Box variant='sectionHeading'>Calculating risk score</Box>
-      </TooltipWrapper>
+      <Box sx={{ mt: 2 }}>
+        Risk scores are calculated from percentile-based bins of annual risk of
+        loss, which is computed at every building location with the following
+        equation:
+      </Box>
 
       <Row columns={3} sx={{ ...sx.row, mt: 2, py: 1 }}>
         <Column start={1} width={1}>
