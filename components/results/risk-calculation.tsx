@@ -33,7 +33,7 @@ const TableCell = ({
   lowValue?: boolean
 }) => {
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: 'relative', mb: '2px' }}>
       <Flex
         sx={{
           justifyContent: 'flex-start',
@@ -41,12 +41,14 @@ const TableCell = ({
           alignItems: 'center',
         }}
       >
-        <ValueBadge
-          value={value}
-          unit={unit}
-          lowValue={lowValue}
-          sx={{ flexShrink: 0 }}
-        />
+        <Box>
+          <ValueBadge
+            value={value}
+            unit={unit}
+            lowValue={lowValue}
+            sx={{ flexShrink: 0 }}
+          />
+        </Box>
         <Tooltip
           expanded={expanded}
           setExpanded={setExpanded}
@@ -191,14 +193,14 @@ const RiskCalculation = () => {
         <Column
           start={1}
           width={3}
-          sx={{ mt: 2, fontSize: [1, 1, 1, 2], color: 'secondary' }}
+          sx={{ fontSize: [1, 1, 1, 2], color: 'secondary' }}
         >
           <AnimateHeight
             duration={100}
             height={expanded ? 'auto' : 0}
             easing={'linear'}
           >
-            {tooltip}
+            <Box sx={{ pt: 2 }}>{tooltip}</Box>
           </AnimateHeight>
         </Column>
       </Row>
