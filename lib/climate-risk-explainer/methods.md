@@ -13,7 +13,7 @@ components:
 
 # Methods
 
-Here we describe the methods we used to produce a 30 meter spatial resolution gridded dataset of fire risk for the conterminous United States (CONUS) under both present-day and future climate conditions. We explain how we sample that dataset to estimate risk for approximately 160 million structures across CONUS. Both the raster and the structure-level risks can be explored in an accompanying [interactive map tool](https://ocr.carbonplan.org/). Our approach both relies on and extends a set of methods and data previously released by the United States Forest Service (USFS), as explained in more detail below.
+Here we describe the methods we used to produce a 30 meter spatial resolution gridded dataset of fire risk for the conterminous United States (CONUS) under both present-day and future climate conditions. We explain how we sample that dataset to estimate risk for approximately 160 million structures across CONUS. Both the raster and the structure-level risks can be explored in an accompanying [interactive map tool](/research/climate-risk). Our approach both relies on and extends a set of methods and data previously released by the United States Forest Service (USFS), as explained in more detail below.
 
 ## Input datasets
 

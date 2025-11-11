@@ -15,12 +15,14 @@ components:
     src: ./components/wind-comparison.js
   - name: SummaryTable
     src: ./components/summary-table.js
-back: /
+back: /research/climate-risk
 links:
   - label: Map tool
-    href: /
+    href: /research/climate-risk
   - label: Methods
     href: /research/climate-risk-fire-methods
+  - label: FAQ
+    href: /research/climate-risk-faq
   - label: Download data
     href: https://carbonplan.github.io/ocr/reference/data-downloads/
 fileId: 1jqDGZD2BTeMyhIFaZa3xHKLSeEiNmilZIqyPmesysfs

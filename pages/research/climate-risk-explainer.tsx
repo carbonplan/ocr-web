@@ -23,7 +23,7 @@ const Article = (props: Props) => {
       source={props.source}
       frontMatter={props.frontMatter}
       figures={{ OverviewMap, CountyMap, WindComparison, SummaryTable }}
-      back='/'
+      back='/research/climate-risk'
     />
   )
 }
