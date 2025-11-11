@@ -25,7 +25,7 @@ const TimeHorizons = () => {
   return (
     <>
       <Box sx={{ mt: 4 }}>
-        Over longer time horizons, burn probability and uncertainty increase.
+        Over longer time horizons, burn probability increases.
       </Box>
       <Table
         columns={3}
