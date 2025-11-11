@@ -2,7 +2,16 @@
 date: 11-12-2025
 title: Making climate risk data open
 authors:
-  - TK
+  - Oriana Chegwidden
+  - Chris Allen
+  - Tracy Aquino Anderson
+  - Grayson Badgley
+  - Anderson Banihirwe
+  - Jeremy Freeman
+  - Raphael Hagen
+  - Tyler Kukla
+  - Shane Loeffler
+  - Kata Martin
 color: red
 summary: We’re releasing Open Climate Risk, a platform which transparently reveals present-day and future fire risks for buildings across the continental United States.
 quickLook: Building-level fire risks for now and the future, across the United States.
@@ -15,7 +24,6 @@ components:
     src: ./components/wind-comparison.js
   - name: SummaryTable
     src: ./components/summary-table.js
-back: /research/climate-risk
 links:
   - label: Map tool
     href: /research/climate-risk
@@ -25,12 +33,13 @@ links:
     href: /research/climate-risk-faq
   - label: Download data
     href: https://carbonplan.github.io/ocr/reference/data-downloads/
+back: /research/climate-risk
 fileId: 1jqDGZD2BTeMyhIFaZa3xHKLSeEiNmilZIqyPmesysfs
 ---
 
 Will a levee hold? Will a prospective homebuyer have access to a mortgage? Will a farmer be able to plant a particular crop? In each case, the availability of high-quality climate risk data could make the difference between safety and calamity, prosperity and sustained hardship.
 
-The private sector understands the need for climate data. Earlier this year the Boston Consulting Group estimated private equity investment opportunities in the climate and resilience adaptation market will grow from $0.5T to $1.3T per year by 2030, and identified climate intelligence solutions as the subsector expected to grow the most quickly.<Cite id='oehling.2025' /> “Extreme weather events and climate hazards are increasing in probability and rising in terms of impact, so investors that keep abreast with the latest climate science and data across regions will be able to stay one step ahead and position themselves to capture the most attractive opportunities,” the report encourages. The public is also starting to draw connections between the prediction of risk and its economic consequences, most clearly when it comes to insurance availability and cost. In climate-impacted states that elect insurance commissioners, some of these elections have become proxies for [public frustration over rising premiums](https://grist.org/elections/climate-impacts-put-insurance-commissioner-races-in-the-spotlight).
+The private sector understands the need for climate data. Earlier this year the Boston Consulting Group estimated private equity investment opportunities in the climate and resilience adaptation market will grow from $0.5T to $1.3T per year by 2030, and identified climate intelligence solutions as the subsector expected to grow the most quickly.<Cite id='oehling.2025' /> “Extreme weather events and climate hazards are increasing in probability and rising in terms of impact, so investors that keep abreast with the latest climate science and data across regions will be able to stay one step ahead and position themselves to capture the most attractive opportunities,” the report encourages. The public is also starting to draw connections between the prediction of risk and its economic consequences, most clearly when it comes to insurance availability and cost. In climate-impacted states that elect insurance commissioners, some of these elections have become proxies for [public frustration over rising premiums] (https://grist.org/elections/climate-impacts-put-insurance-commissioner-races-in-the-spotlight).
 
 Yet despite the importance of climate risk data, and the growth of private analytics firms producing it, almost none of that data is available to the public.<Cite id='condon.2023' /> You can type an address into Zillow and get a handful of climate risk scores, but you can’t see how those scores were calculated. Your tax dollars likely funded the creation of the base datasets that an analytics company uses in its wildfire risk model, but for your local government to use the model to protect your neighborhood, they likely have to sign a restrictive contract with a company, and pay a significant fee. As legal scholar Madison Condon summarizes this worrisome state of affairs, “The climate risk information available to individual citizens and municipalities... is limited and expensive to access.”
 
@@ -71,7 +80,7 @@ Our release includes three main components — an interactive web tool, the data
 model to be reproducible and reliant on only free, publicly available input data.
 Our fire model [methods](TK) extends previous work by the United States Forest Service
 (USFS), incorporating a new technique for estimating wildfire risk in communities
-based on nearby burn probability data. The fire model relies on three input datasets:
+based on nearby burn probability data. The fire model relies on four input datasets:
 
 - Riley et al., (2025), an annual burn probability (BP) raster dataset at 270-m resolution, produced by the USFS. It includes BP data for present day (circa 2011) and future (circa 2047) climates based on landscape (e.g. vegetation type) conditions circa 2020. The data is only available for wildland areas, with all other land (e.g. developed neighborhoods in the WUI) considered “non-burnable” (often developed) in their modeling framework.<Cite id='riley.2025' />
 - Scott et al., (2024), a conditional risk to potential structures (cRPS) raster dataset for the present day (circa 2023) at 30-m resolution. cRPS is a metric for potential damage of a fire to a generic structure based on factors such as fire intensity. The dataset was produced as part of the Wildfire Risk to Communities (WRC) project.<Cite id='scott.2024' />
@@ -91,7 +100,7 @@ Finally, and as a third enhancement of the WRC dataset, we intersected the RPS r
 <Figure>
   <WindComparison />
 
-  <FigureCaption number={3}>
+  <FigureCaption number={2}>
     risk with and without wind smearing [optional on adding buildings]
   </FigureCaption>
 </Figure>
@@ -100,7 +109,7 @@ In addition to providing maps of wildfire risk, we developed a risk scoring syst
 
 <Figure>
   <CountyMap />
-  <FigureCaption number={2}>
+  <FigureCaption number={3}>
     county / census level risk with risk scores, present and future, side by
     side, highlight one [and possibly show a histogram]
   </FigureCaption>
@@ -176,17 +185,15 @@ As we launch Open Climate Risk, one of our hopes is that someone with access to 
 
 Most of all, we hope that this free, transparent data will help individuals and communities better understand and plan for the risks they face. We are eager for feedback about what in our platform works well and how we can improve it, and for others to build on our model using our open codebase, whether independently or in collaboration. Fundamentally, we believe climate information is a public good, and see this platform as a step in that direction.
 
-## References / Bibliography
-
 <Endnote label='Credits' divider>
+
+This explainer is in-development, and released here as part of a closed beta test of Open Climate Risk. The final published version will differ, and is not yet available for citation.
 
 Oriana Chegwidden wrote the explainer with support from the following team (listed alphabetically): Chris Allen, Tracy Aquino Anderson, Grayson Badgley, Anderson Banihirwe, Jeremy Freeman, Raphael Hagen, Tyler Kukla, Shane Loeffler, Kata Martin. Crystal Raymond provided guidance.Header image (modified) by [Photographer Name](https://unsplash.com/photos/TK) on [Unsplash](https://unsplash.com/).
 
 </Endnote>
 
 <Endnote label='Terms'>
-
-CarbonPlan received [financial support from the Patrick J McGovern Foundation](https://carbonplan.org/funding) for this work.
 
 Article text and Figure 1 and 3are made available under a [CC-BY 4.0 International license](https://creativecommons.org/licenses/by/4.0/). Figure 2 is made available under an [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
 
