@@ -8,6 +8,7 @@ import { DATA_URLS, DATA_VERSION } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getCountyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
+import useTracking from '@/hooks/useTracking'
 
 const DownloadButton = ({
   label,
@@ -46,6 +47,7 @@ const REGION_TYPES: Record<GeographyKey, string> = {
 }
 
 export const Download = () => {
+  const track = useTracking()
   const [loading, setLoading] = useState({ csv: false, gpkg: false })
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
@@ -70,6 +72,10 @@ export const Download = () => {
   const handleClick = async (format: 'csv' | 'gpkg') => {
     setLoading((prev) => ({ ...prev, [format]: true }))
     try {
+      track('data_download', {
+        geography: selectedGeographyLevel,
+        geoid: geoid ?? '',
+      })
       const res = await fetch(DATA_URLS.downloads, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,6 +102,10 @@ export const Download = () => {
 
       setLoading((prev) => ({ ...prev, [format]: false }))
     } catch {
+      track('data_download_error', {
+        geography: selectedGeographyLevel,
+        geoid: geoid ?? '',
+      })
       setLoading((prev) => ({ ...prev, [format]: false }))
     }
   }

@@ -1,4 +1,6 @@
-import { ComponentType, useEffect } from 'react'
+import { ComponentType } from 'react'
+import PlausibleProvider from 'next-plausible'
+
 // @ts-expect-error - carbonplan auth types not available
 import { useAuth, withAuth } from '@carbonplan/auth'
 import { USERNAMES } from '@/pages/api/auth'
@@ -16,19 +18,21 @@ export function withAuthAndPlausible<P extends object>(
 ): ComponentType<P> {
   const WrappedComponent = (props: P) => {
     const { username } = useAuth()
-    useEffect(() => {
-      // TODO: Figure out how to get this to run when window.plausible has been initialized
-      //       (currently always undefined at the time this useEffect() is invoked)
-      if (window.plausible && window.plausible.init) {
-        window.plausible.init({
-          customProperties: {
-            user: username,
-          },
-        })
-      }
-    }, [username])
 
-    return <Component {...props} />
+    return (
+      <>
+        <PlausibleProvider
+          domain='carbonplan.org'
+          customDomain='https://carbonplan.org'
+          enabled={process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'}
+          trackOutboundLinks
+          trackFileDownloads
+          pageviewProps={{ user: username }}
+        >
+          <Component {...props} />
+        </PlausibleProvider>
+      </>
+    )
   }
 
   return withAuth(WrappedComponent, USERNAMES)
