@@ -2,7 +2,7 @@
 date: 11-12-2025
 title: Open climate risk fire methods
 card: TK
-quickLook: TK Quicklook for supplement (used in meta tag)
+quickLook: The scientific methods underpinning the OCR dataset and web tool.
 back: /research/climate-risk-explainer
 fileId: 1Xpm0uDrgO9lpJMTUcZ80uoK_LiaSrgMEhpU5C5FctxI
 slug: climate-risk-fire-methods
@@ -32,7 +32,7 @@ Our approach relies on four input datasets:
     ],
     [
       <a href='https://doi.org/10.2737/RDS-2025-0006'>Riley et al., (2025)</a>,
-      'A 270-m resolution raster dataset including annual burn probability (BP) for present day (2011) and future (2047) climates. Landscape (e.g. vegetation type) is held fixed with conditions circa 2020. The data is only available for wildland areas, with all other land considered “non-burnable” in their modeling framework.',
+      'A 270-m resolution raster dataset including annual burn probability (BP) for present day (2011) and future (2047) climates. Landscape (e.g. vegetation type) is held fixed with conditions at the end of 2020 (circa 2021). The data is only available for wildland areas, with all other land considered “non-burnable” in their modeling framework.',
     ],
     [
       <a href='https://doi.org/10.2737/RDS-2020-0016-2'>
@@ -59,7 +59,7 @@ Our approach relies on four input datasets:
   data={[
     [
       <a href='https://doi.org/10.2737/RDS-2020-0016-2'>Scott et al., (2024)</a>,
-      'A 30-m raster layer of risk to potential structures (RPS) for present day (circa 2023). The data is available for all of CONUS',
+      'A 30-m raster layer of risk to potential structures (RPS) for present day (end of 2023). The data is available for all of CONUS',
     ],
     [
       <a href='https://osfm.fire.ca.gov/what-we-do/community-wildfire-preparedness-and-mitigation/fire-hazard-severity-zones'>Cal Fire <em>Fire Hazard Severity Zones</em> (2024)</a>,
@@ -106,22 +106,20 @@ After estimating burn probabilities, we multiply those estimates with estimates 
 
 Multiplying cRPS by burn probability results in an estimate of the risk to potential structures (RPS), or the expected risk of loss experienced by a hypothetical structure in each pixel per year. Finney (2005), and Scott and Thompson (2015), have also described RPS as a unitless estimate of the expected net value change.
 
-RPS combines both probability and consequence, potentially complicating interpretation. For example, a high BP value could still result in a low RPS value, if cRPS is low. As stated above, the hypothetical structure considered in cRPS is generic and does not consider any attributes about structure aside from its location. We calculated risk for every pixel in CONUS, regardless of the presence of a structure. This extended coverage supports analysis in zones of proposed development or in areas which have been developed since the input datasets were finalized.
+RPS combines both probability and consequence, potentially complicating interpretation. For example, a high BP value could still result in a low RPS value, if cRPS is low. As stated above, the hypothetical structure considered in cRPS is generic and does not consider any attributes about structure aside from its location. We calculated risk for every pixel in CONUS, regardless of the presence of a structure. This extended coverage supports, for example, analysis in zones of proposed development or in areas which have been developed since the input datasets were finalized, with the caveat that extensive development could invalidate the underlying cRPS and BP data.
 
 ## Risk to score mapping
 
-To aid interpretability, we converted continuous values of RPS into a categorical risk score on a scale from 1 to 10. That conversion was based on... We then also calculated a risk score based upon percentile-based bins of RPS. Percentiles were calculated for buildings across the full CONUS domain.
+To aid interpretability, we converted continuous values of RPS into a categorical risk score on a scale from 0 to 10. Any RPS value of 0 was cast to a score of 0, meaning any non-zero risk score has a non-zero RPS value in the dataset. We crafted the score bins by calculating percentiles of RPS values for all ~160 million buildings in the dataset. The breakpoints between bins grow increasingly clustered at higher RPS values, such that there are ~10,000,000 buildings with score 2, but only ~2,500 buildings with score 10. This design allows us to distinguish among risk values across the highly heterogeneous domain where risk values span multiple orders of magnitude. The approach mimics that of the Wildfire Risk to Communities project though they used five categories of risk and calculated their percentiles across all lands, as opposed to buildings.
 
 ## Building-level risk
 
-We intersected the 30 m RPS raster with the footprints of individual buildings contained within [the Overture Maps Foundation buildings dataset](https://docs.overturemaps.org/guides/buildings/#14/32.58453/-117.05154/0/60). We assigned each building a risk value based on the nearest pixel within our RPS dataset to the centroid of each building. Previous work has shown that small decisions about spatial joins with risk maps can have an outsized influence on the final result.
+We intersected the 30 m RPS raster with the footprints of individual buildings contained within [the Overture Maps Foundation buildings dataset](https://docs.overturemaps.org/guides/buildings/#14/32.58453/-117.05154/0/60). We assigned each building a risk value based on the nearest pixel within our RPS dataset to the centroid of each building. Previous work has shown that small decisions about spatial joins with risk maps can have an [outsized influence] on the final result.
 
-##
+## Displaying data in web tool
 
-Within our web tool, we made buildings searchable by address. We accomplish that using Here Maps. First, we get the latitude and longitude for a user-provided address (“geocoding”). We then return the risk score of whatever building within the Overture buildings dataset is nearest to those coordinates.
-
-We used the Overture building dataset (TKTK cite GARP) to intersect structures with our raster fire risk grid. We assigned risk values to buildings based on the pixel associated with the centroid of each building. The webtool uses the same centroid to find the building’s address using a nearest-neighbor geocoding.
+Within our web tool, we made buildings searchable by address using [HERE Maps](https://www.here.com/). First, we get the latitude and longitude for a user-provided address (“geocoding”). We then return the risk information of whatever building within the Overture buildings dataset is nearest to those coordinates.
 
 The building-level data is also visible in the web tool alongside the underlying 30 m raster. The result is an interface that enables searching for risk across CONUS at the address level. The inclusion of both raster and building datasets side-by-side supports the interrogation of building risk assignments as well as risk information in undeveloped areas where developments might be proposed. The web tool also displays summary statistics for several types of geographic areas: census block, census tract, and county. Displaying the aggregated statistics helps contextualize an individual building’s risk score.
 
-We provide building-level RPS estimates, including spatial subsets of the data, for [download](https://carbonplan.github.io/ocr/reference/data-downloads/) in CSV, GeoParquet, and GeoPackage formats. Downloads of spatially aggregated data (e.g., data for all census tracts across CONUS), include summary statistics (e.g. median score across buildings) as well as the count of buildings within each risk score in each summary region.
+We provide building-level RPS estimates, including spatial subsets of the data, for [download](https://carbonplan.github.io/ocr/reference/data-downloads/) in CSV, GeoParquet, and GeoPackage formats. Downloads of spatially-aggregated data (e.g., data for all census tracts across CONUS) include summary statistics (e.g. median score across buildings) as well as the count of buildings within each risk score in each summary region.
