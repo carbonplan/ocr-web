@@ -2,14 +2,14 @@
   "oehling.2025": {
     "authors": "D Oehling et al.",
     "year": 2025,
-    "title": "The Private Equity Opportunity in Climate Adaptation and Resilience",
+    "title": "The private equity opportunity in climate adaptation and resilience",
     "journal": "",
     "url": "https://www.bcg.com/publications/2025/investment-opportunities-in-climate-a-and-r"
   },
   "condon.2023": {
     "authors": "M Condon",
     "year": 2023,
-    "title": "The business of physical risk",
+    "title": "Climate Services: The business of physical risk",
     "journal": "Arizona State Law Journal",
     "editors": "",
     "url": "https://dx.doi.org/10.2139/ssrn.4396826"
@@ -17,7 +17,7 @@
   "hain.2021": {
     "authors": "L Hain et al.",
     "year": 2021,
-    "title": "Let’s get physical: comparing metrics of physical risk",
+    "title": "Let’s get physical: Comparing metrics of physical risk",
     "journal": "Financial Research Letters",
     "editors": "",
     "url": "https://doi.org/10.1016/j.frl.2021.102406"
@@ -33,7 +33,7 @@
   "paisley.2025": {
     "authors": "J Paisley and M Nelson",
     "year": 2025,
-    "title": "A Risk Professional’s Guide to Physical Risk Assessments",
+    "title": "A risk professional’s guide to physical risk assessments",
     "journal": "",
     "editors": "Climate Financial Risk Forum",
     "url": "https://www.fca.org.uk/publication/corporate/risk-professionals-guide-physical-risk-assessments-garp-benchmarking-study-13-vendors.pdf"
@@ -49,7 +49,7 @@
   "scott.2024": {
     "authors": "J Scott et al.",
     "year": 2024,
-    "title": "Wildfire Risk to Communities: Spatial datasets of landscape-wide wildfire risk components for the United States, Second Edition",
+    "title": "Wildfire risk to communities: spatial datasets of landscape-wide wildfire risk components for the United States (2nd edition)",
     "journal": "",
     "editors": "",
     "url": "https://doi.org/10.2737/RDS-2020-0016-2"
@@ -57,7 +57,7 @@
   "rasmussen.2023": {
     "authors": "R Rasmussen et al.",
     "year": 2023,
-    "title": "CONUS404: The NCAR-USGS 4-km Long-Term Regional Hydroclimate Reanalysis over the CONUS",
+    "title": "CONUS404: The NCAR-USGS 4-km long-term regional hydroclimate reanalysis over the CONUS",
     "journal": "Bulletin of the American Meteorological Society",
     "editors": "",
     "url": "https://doi.org/10.1175/BAMS-D-21-0326.1"
@@ -73,7 +73,7 @@
   "maranghides.2022": {
     "authors": "A Maranghides et al.",
     "year": 2022,
-    "title": "WUI Structure/Parcel/Community Fire Mitigation Methodology",
+    "title": "WUI structure/parcel/community fire mitigation methodology",
     "journal": "National Institute of Standards and Technology",
     "editors": "",
     "url": "https://doi.org/10.6028/NIST.TN.2205"
@@ -81,15 +81,15 @@
   "chulahwat.2024": {
     "authors": "A Chulahwat and H Mahmoud",
     "year": 2024,
-    "title": "The Impact of Wind Characteristics on the Spatial Distribution of Damage to the Built Environment during Wildfire Events: The 2022 Marshall Fire",
+    "title": "The impact of wind characteristics on the spatial distribution of damage to the built environment during wildfire events: The 2022 Marshall Fire",
     "journal": "Natural Hazards Review",
     "editors": "",
-    "url": "https://doi.org/10.1061/NHREFO.NHENG-188"
+    "url": "https://doi.org/10.1061/NHREFO.NHENG-1888"
   },
   "calfire.2024": {
     "authors": "Cal Fire",
     "year": 2024,
-    "title": "Fire Hazard Severity Zones",
+    "title": "Fire hazard severity zones",
     "journal": "",
     "editors": "",
     "url": "https://osfm.fire.ca.gov/what-we-do/community-wildfire-preparedness-and-mitigation/fire-hazard-severity-zones"
@@ -119,11 +119,11 @@
     "url": "https://doi.org/10.1016/j.crm.2023.100511"
   },
   "overture.2025": {
-    "authors": "Overture Maps Foundation",
+    "authors": "OpenStreetMap contributors, Overture Maps Foundation",
     "year": 2025,
-    "title": "Buildings",
+    "title": "",
     "journal": "",
     "editors": "",
-    "url": "overturemaps.org"
+    "url": "https://overturemaps.org/"
   }
 }
