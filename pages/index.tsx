@@ -13,9 +13,8 @@ import {
   Loading,
   MapLayers,
 } from '../components'
-// @ts-expect-error - carbonplan auth types not available
-import { withAuth } from '@carbonplan/auth'
 import { useStore } from '@/lib/store'
+import { withAuthAndPlausible } from '@/hocs/with-auth-and-plausible'
 
 const Index = () => {
   const [showIntro, setShowIntro] = useState(true)
@@ -138,4 +137,4 @@ const Index = () => {
   )
 }
 
-export default withAuth(Index, ['user', 'admin'])
+export default withAuthAndPlausible(Index)

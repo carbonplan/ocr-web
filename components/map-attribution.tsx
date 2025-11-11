@@ -39,7 +39,13 @@ const MapAttribution = () => {
     const attributionControl = new AttributionControl({ compact: true })
     map.addControl(attributionControl, 'bottom-right')
     return () => {
-      map.removeControl(attributionControl)
+      try {
+        if (!map) return
+
+        map.removeControl(attributionControl)
+      } catch (e) {
+        console.error('Error removing attribution:', e)
+      }
     }
   }, [map])
 

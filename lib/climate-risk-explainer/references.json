@@ -1,0 +1,129 @@
+{
+  "oehling.2025": {
+    "authors": "D Oehling et al.",
+    "year": 2025,
+    "title": "The Private Equity Opportunity in Climate Adaptation and Resilience",
+    "journal": "",
+    "url": "https://www.bcg.com/publications/2025/investment-opportunities-in-climate-a-and-r"
+  },
+  "condon.2023": {
+    "authors": "M Condon",
+    "year": 2023,
+    "title": "The business of physical risk",
+    "journal": "Arizona State Law Journal",
+    "editors": "",
+    "url": "https://dx.doi.org/10.2139/ssrn.4396826"
+  },
+  "hain.2021": {
+    "authors": "L Hain et al.",
+    "year": 2021,
+    "title": "Let’s get physical: comparing metrics of physical risk",
+    "journal": "Financial Research Letters",
+    "editors": "",
+    "url": "https://doi.org/10.1016/j.frl.2021.102406"
+  },
+  "fiedler.2021": {
+    "authors": "T Fiedler et al.",
+    "year": 2021,
+    "title": "Business risk and the emergence of climate analytics",
+    "journal": "Nature Climate Change",
+    "editors": "",
+    "url": "https://doi.org/10.1038/s41558-020-00984-6"
+  },
+  "paisley.2025": {
+    "authors": "J Paisley and M Nelson",
+    "year": 2025,
+    "title": "A Risk Professional’s Guide to Physical Risk Assessments",
+    "journal": "",
+    "editors": "Climate Financial Risk Forum",
+    "url": "https://www.fca.org.uk/publication/corporate/risk-professionals-guide-physical-risk-assessments-garp-benchmarking-study-13-vendors.pdf"
+  },
+  "riley.2025": {
+    "authors": "K Riley et al.",
+    "year": 2025,
+    "title": "Spatial datasets of probabilistic wildfire risk components for the conterminous United States (270m) for circa 2011 climate and projected future climate circa 2047",
+    "journal": "",
+    "editors": "",
+    "url": "https://www.fs.usda.gov/rds/archive/catalog/RDS-2025-0006"
+  },
+  "scott.2024": {
+    "authors": "J Scott et al.",
+    "year": 2024,
+    "title": "Wildfire Risk to Communities: Spatial datasets of landscape-wide wildfire risk components for the United States, Second Edition",
+    "journal": "",
+    "editors": "",
+    "url": "https://doi.org/10.2737/RDS-2020-0016-2"
+  },
+  "rasmussen.2023": {
+    "authors": "R Rasmussen et al.",
+    "year": 2023,
+    "title": "CONUS404: The NCAR-USGS 4-km Long-Term Regional Hydroclimate Reanalysis over the CONUS",
+    "journal": "Bulletin of the American Meteorological Society",
+    "editors": "",
+    "url": "https://doi.org/10.1175/BAMS-D-21-0326.1"
+  },
+  "balch.2024": {
+    "authors": "J Balch et al.",
+    "year": 2024,
+    "title": "The fastest-growing and most destructive fires in the US (2001 to 2020)",
+    "journal": "Science",
+    "editors": "",
+    "url": "https://doi.org/10.1126/science.adk5737"
+  },
+  "maranghides.2022": {
+    "authors": "A Maranghides et al.",
+    "year": 2022,
+    "title": "WUI Structure/Parcel/Community Fire Mitigation Methodology",
+    "journal": "National Institute of Standards and Technology",
+    "editors": "",
+    "url": "https://doi.org/10.6028/NIST.TN.2205"
+  },
+  "chulahwat.2024": {
+    "authors": "A Chulahwat and H Mahmoud",
+    "year": 2024,
+    "title": "The Impact of Wind Characteristics on the Spatial Distribution of Damage to the Built Environment during Wildfire Events: The 2022 Marshall Fire",
+    "journal": "Natural Hazards Review",
+    "editors": "",
+    "url": "https://doi.org/10.1061/NHREFO.NHENG-188"
+  },
+  "calfire.2024": {
+    "authors": "Cal Fire",
+    "year": 2024,
+    "title": "Fire Hazard Severity Zones",
+    "journal": "",
+    "editors": "",
+    "url": "https://osfm.fire.ca.gov/what-we-do/community-wildfire-preparedness-and-mitigation/fire-hazard-severity-zones"
+  },
+  "moran.2025": {
+    "authors": "C Moran et al.",
+    "year": 2025,
+    "title": "Benchmarking performance of annual burn probability modeling against subsequent wildfire activity in California",
+    "journal": "",
+    "editors": "",
+    "url": "https://doi.org/10.1038/s41598-025-07968-6"
+  },
+  "schubert.2024": {
+    "authors": "J Schubert et al.",
+    "year": 2024,
+    "title": "National-scale flood hazard data unfit for urban risk management",
+    "journal": "Earth's Future",
+    "editors": "",
+    "url": "https://doi.org/10.1029/2024EF004549"
+  },
+  "dawkins.2023": {
+    "authors": "L Dawkins et al.",
+    "year": 2023,
+    "title": "Quantifying uncertainty and sensitivity in climate risk assessments: Varying hazard, exposure and vulnerability modelling choices",
+    "journal": "Climate Risk Management",
+    "editors": "",
+    "url": "https://doi.org/10.1016/j.crm.2023.100511"
+  },
+  "overture.2025": {
+    "authors": "Overture Maps Foundation",
+    "year": 2025,
+    "title": "Buildings",
+    "journal": "",
+    "editors": "",
+    "url": "overturemaps.org"
+  }
+}
