@@ -44,7 +44,7 @@ const MapAttribution = () => {
 
         map.removeControl(attributionControl)
       } catch (e) {
-        console.error('Error removing buildings layers:', e)
+        console.error('Error removing attribution:', e)
       }
     }
   }, [map])
