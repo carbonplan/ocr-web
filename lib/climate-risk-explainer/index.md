@@ -15,6 +15,7 @@ components:
     src: ./components/wind-comparison.js
   - name: SummaryTable
     src: ./components/summary-table.js
+back: /
 links:
   - label: Map tool
     href: /
