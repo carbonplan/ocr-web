@@ -2,17 +2,18 @@ import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Link, Table } from '@carbonplan/components'
 
-const factors = [
+const FACTORS = [
   {
-    name: 'Fire-resistant construction',
-    impact: 'Lower',
+    name: 'Fire-resistant construction and maintenance',
+    explanation:
+      'Interventions like metal roofs, clean gutters, resistant siding, and defensible space can dramatically reduce the risk of home ignition. We do not account for any of these attributes.',
     resources: [
       {
-        label: 'Ignition-resistant homes',
-        url: 'https://wildfirerisk.org/reduce-risk/ignition-resistant-homes/',
+        label: 'Home hardening',
+        url: 'https://readyforwildfire.org/prepare-for-wildfire/hardening-your-home',
       },
       {
-        label: 'Preparing homes',
+        label: 'Home ignition zone',
         url: 'https://www.nfpa.org/education-and-research/wildfire/preparing-homes-for-wildfire',
       },
       {
@@ -22,44 +23,9 @@ const factors = [
     ],
   },
   {
-    name: 'Community mitigation',
-    impact: 'Lower',
-    resources: [
-      {
-        label: 'Action policies',
-        url: 'https://www.nfpa.org/education-and-research/policy-and-action/outthink-wildfire',
-      },
-      {
-        label: 'Community wildfire protection plan',
-        url: 'https://www.iafc.org/docs/default-source/pdf/wild_cwppleadrsguide.pdf',
-      },
-      {
-        label: 'Fire adapted communities tool',
-        url: 'https://fireadaptednetwork.org/resources/fac-assessment-tool/',
-      },
-      {
-        label: 'Land use planning',
-        url: 'https://wildfirerisk.org/reduce-risk/land-use-planning/',
-      },
-    ],
-  },
-  {
-    name: 'Community emergency response',
-    impact: 'Lower',
-    resources: [
-      {
-        label: 'Evacuation readiness',
-        url: 'https://wildfirerisk.org/reduce-risk/evacuation-readiness/',
-      },
-      {
-        label: 'Wildfire response',
-        url: 'https://wildfirerisk.org/reduce-risk/wildfire-response',
-      },
-    ],
-  },
-  {
-    name: 'Fires in the last ~5 years',
-    impact: 'Lower',
+    name: 'Recent fires',
+    explanation:
+      'Our estimates are based on a combination of vegetation maps from ~2021 and ~2023. Fires in the interim would have removed fuel and reduced our BP and cRPS values, thereby decreasing the final risk estimate. In these cases our risk estimates are likely anomalously high-biased. Similarly, prescribed fire is an effective technique for reducing fire risk.',
     resources: [
       {
         label: 'Prescribed fire',
@@ -72,9 +38,37 @@ const factors = [
     ],
   },
   {
-    name: 'Access limitations',
-    impact: 'Higher',
+    name: 'Community mitigation planning',
+    explanation:
+      'Our estimates do not account for community-scale actions like wildfire protection plans and land use planning. These actions can reduce the risk of wildfire entering a community.',
     resources: [
+      {
+        label: 'Firewise Communties',
+        url: 'https://www.nfpa.org/education-and-research/wildfire/firewise-usa',
+      },
+      {
+        label: 'Community wildfire protection plan',
+        url: 'https://www.iafc.org/docs/default-source/pdf/wild_cwppleadrsguide.pdf',
+      },
+      {
+        label: 'Fire adapted communities tool',
+        url: 'https://fireadaptednetwork.org/resources/fac-assessment-tool/',
+      },
+      {
+        label: 'Land use planning',
+        url: 'https://wildfirerisk.org/reduce-risk/land-use-planning',
+      },
+    ],
+  },
+  {
+    name: 'Community emergency planning',
+    explanation:
+      'Community-level emergency planning can support the development of strong evacuation plans and ensure adequate access, which could reduce wildfire risk.',
+    resources: [
+      {
+        label: 'Evacuation readiness',
+        url: 'https://www.nist.gov/publications/wui-fire-evacuation-and-sheltering-considerations-assessment-planning-and-execution-0',
+      },
       {
         label: 'Fire apparatus access roads',
         url: 'https://www.nfpa.org/news-blogs-and-articles/blogs/2021/01/08/fire-apparatus-access-roads',
@@ -85,33 +79,19 @@ const factors = [
       },
     ],
   },
-  // {
-  //   name: 'Value of resources at risk',
-  //   impact: 'Higher',
-  //   resources: [
-  //     {
-  //       label: 'Risk exposure',
-  //       url: 'https://hazards.fema.gov/nri/exposure',
-  //     },
-  //     {
-  //       label: 'Understand risk',
-  //       url: 'https://wildfirerisk.org/understand-risk',
-  //     },
-  //   ],
-  // },
   {
     name: 'Ignition patterns',
-    impact: 'Either',
+    explanation:
+      'Our model is based on simulations which used a fixed map of ignition probabilities. Changes in ignition patterns could either increase or decrease the estimated risk in a given location.',
     resources: [
       {
         label: 'Preventing ignitions',
-        url: 'https://wildfirerisk.org/reduce-risk/prevent-ignitions/',
+        url: 'https://wildfirerisk.org/reduce-risk/prevent-ignitions',
       },
       {
         label: 'Wildfire prevention',
         url: 'https://dnr.wa.gov/wildfire-resources/wildfire-prevention',
       },
-      { label: 'Smokey Bear', url: 'https://smokeybear.com' },
     ],
   },
 ]
@@ -119,7 +99,7 @@ const factors = [
 const OtherFactors = () => {
   const tableData = [
     ['Factor'],
-    ...factors.map((factor) => {
+    ...FACTORS.map((factor) => {
       // const factorCell =
       //   factor.resources.length > 0 ? (
       //     <Box>
@@ -168,7 +148,7 @@ const OtherFactors = () => {
         The risk described above does not account for a variety of factors that
         each may drive the actual risk of loss due to fire up or down. For more
         information on these factors, see our{' '}
-        <Link href='/research/climate-risk-faq'>FAQs</Link>.
+        <Link href='/research/climate-risk-faq'>FAQ</Link>.
       </Box>
       <Table
         columns={3}
