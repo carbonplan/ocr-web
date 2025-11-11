@@ -189,12 +189,12 @@ Most of all, we hope that this free, transparent data will help individuals and 
 
 This explainer is in-development, and released here as part of a closed beta test of Open Climate Risk. The final published version will differ, and is not yet available for citation.
 
-Oriana Chegwidden wrote the explainer with support from the following team (listed alphabetically): Chris Allen, Tracy Aquino Anderson, Grayson Badgley, Anderson Banihirwe, Jeremy Freeman, Raphael Hagen, Tyler Kukla, Shane Loeffler, Kata Martin. Crystal Raymond provided guidance.Header image (modified) by [Photographer Name](https://unsplash.com/photos/TK) on [Unsplash](https://unsplash.com/).
+Oriana Chegwidden wrote the explainer with support from the following team (listed alphabetically): Chris Allen, Tracy Aquino Anderson, Grayson Badgley, Anderson Banihirwe, Jeremy Freeman, Raphael Hagen, Tyler Kukla, Shane Loeffler, Kata Martin. Crystal Raymond provided guidance.
 
 </Endnote>
 
 <Endnote label='Terms'>
 
-Article text and Figure 1 and 3are made available under a [CC-BY 4.0 International license](https://creativecommons.org/licenses/by/4.0/). Figure 2 is made available under an [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
+Article text and Figures 1 and 2 are made available under a [CC-BY 4.0 International license](https://creativecommons.org/licenses/by/4.0/). Figure 3 is made available under an [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
 
 </Endnote>
