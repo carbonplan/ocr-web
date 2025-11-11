@@ -25,7 +25,7 @@ export function withAuthAndPlausible<P extends object>(
           domain='carbonplan.org'
           customDomain='https://carbonplan.org'
           scriptProps={{
-            src: 'https://carbonplan.org/js/script.file-downloads.outbound-links.js',
+            src: 'https://carbonplan.org/js/script.file-downloads.outbound-links.pageview-props.js',
             // @ts-expect-error - following example https://github.com/4lejandrito/next-plausible/blob/8aa2279a9c2c8d03508c198abc4b219591efbc5c/test/page/pages/scriptProps.js
             'data-api': 'https://carbonplan.org/proxy/api/event',
           }}
