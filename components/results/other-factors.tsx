@@ -145,7 +145,7 @@ const OtherFactors = () => {
     <Box sx={{ mt: '52px' }}>
       <Box variant='sectionHeading'>Other factors</Box>
       <Box variant='description'>
-        TThe risk described above does not account for several highly important
+        The risk described above does not account for several highly important
         factors, which could influence the actual fire risk of a given location.
         For more information on these factors, see our{' '}
         <Link href='/research/climate-risk-faq'>FAQ</Link>.
