@@ -33,7 +33,7 @@ const ClimateSelector = () => {
         }}
       >
         <TooltipWrapper
-          tooltip='Current risk estimates are based on a climate circa 2003-2018 while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from circa 2020.'
+          tooltip='Current risk estimates are based on a climate circa 2003-2018, while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from circa 2020.'
           sx={{ justifyContent: 'flex-start', gap: 3 }}
         >
           <Filter

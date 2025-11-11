@@ -38,7 +38,7 @@ const Index = () => {
     <>
       <Meta
         // card TK
-        description={'Explore fire risk across the continental US'}
+        description={'Explore fire risk across the continental U.S.'}
         title={'Open Climate Risk – CarbonPlan'}
       />
 
