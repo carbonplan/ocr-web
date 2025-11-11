@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import Script from 'next/script'
 import type { AppProps } from 'next/app'
 // @ts-expect-error - carbonplan auth types not available
 import { AuthProvider } from '@carbonplan/auth'
@@ -27,13 +26,6 @@ const App = ({ Component, pageProps }: AppProps) => {
   return (
     <AuthProvider config={{ useLocalStorage: true }}>
       <ThemeProvider theme={theme}>
-        {process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' && (
-          <Script
-            data-domain='carbonplan.org'
-            data-api='https://carbonplan.org/proxy/api/event'
-            src='https://carbonplan.org/js/script.file-downloads.outbound-links.js'
-          />
-        )}
         <Component {...pageProps} />
       </ThemeProvider>
     </AuthProvider>
