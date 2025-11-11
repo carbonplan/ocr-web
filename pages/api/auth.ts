@@ -15,6 +15,7 @@ const users = [
       password: process.env[`USER_PASSWORD_${i + 1}`],
     })),
 ]
+export const USERNAMES = users.map((u) => u.username)
 
 const handler = api({ secret, users })
 
