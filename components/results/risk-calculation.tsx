@@ -22,6 +22,7 @@ const TableCell = ({
   unit,
   lowValue,
   expanded,
+  toFixed,
   setExpanded,
 }: {
   value: number | null
@@ -29,6 +30,7 @@ const TableCell = ({
   setExpanded: (v: boolean) => void
   operator?: string
   unit?: string
+  toFixed?: number
   lowValue?: boolean
 }) => {
   return (
@@ -45,6 +47,7 @@ const TableCell = ({
             value={value}
             unit={unit}
             lowValue={lowValue}
+            toFixed={toFixed}
             sx={{ flexShrink: 0 }}
           />
         </Box>
@@ -179,6 +182,8 @@ const RiskCalculation = () => {
             setExpanded={(value: boolean) => setExpanded(value ? 'bp' : null)}
             value={bp}
             operator='x'
+            unit='#'
+            toFixed={3}
             lowValue={isLowBp}
           />
         </Column>
@@ -188,7 +193,8 @@ const RiskCalculation = () => {
             expanded={expanded === 'crps'}
             setExpanded={(value: boolean) => setExpanded(value ? 'crps' : null)}
             value={conditionalRisk}
-            unit='#'
+            unit='%'
+            toFixed={1}
             lowValue={isLowConditionalRisk}
           />
         </Column>
