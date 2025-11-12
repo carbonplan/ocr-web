@@ -4,7 +4,11 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
-import { getAdjustedBurnProbability } from '@/lib/risk-utils'
+import {
+  getAdjustedBurnProbability,
+  getConditionalRiskUsfs,
+  getRiskScore,
+} from '@/lib/risk-utils'
 import ValueBadge from './value-badge'
 
 const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
@@ -13,19 +17,32 @@ const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
     : null
 
 const TimeHorizons = () => {
+  const risk = useStore((state) =>
+    getRiskScore(state.selectedBuilding, state.timePeriod),
+  )
   const bp = useStore((state) =>
     getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
+  const conditionalRisk = useStore((state) =>
+    getConditionalRiskUsfs(state.selectedBuilding),
+  )
   const values = {
-    1: bp,
-    15: getProbabilityOverHorizon(15, bp),
-    30: getProbabilityOverHorizon(30, bp),
+    1: risk,
+    15:
+      conditionalRisk == null
+        ? null
+        : (getProbabilityOverHorizon(15, bp) ?? 0) * (conditionalRisk ?? 0),
+    30:
+      conditionalRisk == null
+        ? null
+        : (getProbabilityOverHorizon(30, bp) ?? 0) * (conditionalRisk ?? 0),
   }
 
   return (
     <>
       <Box sx={{ mt: 4 }}>
-        Over longer time horizons, burn probability increases.
+        Over longer time horizons, burn probability compounds, increasing risk
+        of loss.
       </Box>
       <Table
         columns={3}
@@ -38,22 +55,16 @@ const TimeHorizons = () => {
               key={1}
               value={values['1']}
               lowValue={values['1'] ? values['1'] < 0.01 : false}
-              unit='#'
-              toFixed={3}
             />,
             <ValueBadge
               key={15}
               value={values['15']}
               lowValue={values['15'] ? values['15'] < 0.01 : false}
-              unit='#'
-              toFixed={3}
             />,
             <ValueBadge
               key={30}
               value={values['30']}
               lowValue={values['30'] ? values['30'] < 0.01 : false}
-              unit='#'
-              toFixed={3}
             />,
           ],
         ]}
