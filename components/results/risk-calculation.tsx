@@ -177,7 +177,7 @@ const RiskCalculation = () => {
             key='bp'
             expanded={expanded === 'bp'}
             setExpanded={(value: boolean) => setExpanded(value ? 'bp' : null)}
-            value={risk}
+            value={bp}
             operator='x'
             lowValue={isLowBp}
           />
