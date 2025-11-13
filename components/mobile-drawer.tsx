@@ -74,6 +74,7 @@ const MobileDrawer = () => {
             right: 0,
             height: '100%',
             zIndex: 2,
+            outline: 'none',
           }}
         >
           <Flex
