@@ -53,6 +53,13 @@ export const LAYERS = {
       line: 'risk-census-blocks-line',
     },
   },
+  buildingPoints: {
+    layerName: 'risk',
+    sourceId: 'buildingPoints',
+    layerIds: {
+      circle: 'building-points-circle',
+    },
+  },
 } as const
 
 export const BUILDING_ATTRIBUTE_KEYS = {

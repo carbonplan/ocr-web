@@ -17,6 +17,7 @@ import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import {
   Buildings,
+  BuildingPoints,
   SelectionMarker,
   GeographyLayer,
   SatelliteLayer,
@@ -108,6 +109,10 @@ const MapComponent = () => {
         type: 'vector',
         url: `pmtiles://${DATA_URLS.vector.regions}`,
         promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
+      },
+      buildingPoints: {
+        type: 'vector',
+        url: `pmtiles://https://carbonplan-scratch.s3.us-west-2.amazonaws.com/test_centroids.pmtiles`,
       },
     }
 
@@ -285,6 +290,7 @@ const MapComponent = () => {
             geographyKey='censusBlock'
           />
           <Buildings />
+          <BuildingPoints />
           <SelectionMarker />
         </>
       )}

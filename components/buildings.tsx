@@ -109,9 +109,9 @@ const Buildings = () => {
       'interpolate',
       ['linear'],
       ['zoom'],
+      11,
+      0,
       13,
-      1, // TODO modify when opposing fade in layer ready.
-      13.1,
       1,
     ] as ExpressionSpecification
   }, [])
