@@ -128,9 +128,9 @@ const MapComponent = () => {
       ],
       attributionControl: false,
       dragRotate: false,
-      touchZoomRotate: false,
       pitchWithRotate: false,
     })
+    newMap.touchZoomRotate.disableRotation()
 
     const handleLoadingOn = () => {
       setMapLoading(true)
