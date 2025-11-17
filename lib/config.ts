@@ -10,7 +10,7 @@ export const DATA_URLS = {
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles`,
     buildingPoints:
       process.env.NEXT_PUBLIC_BUILDING_POINTS_URL ??
-      `https://carbonplan-scratch.s3.us-west-2.amazonaws.com/double_features_and_tilesize.pmtiles`, // TODO: finalize url w/ version
+      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/building_centroids.pmtiles`,
   },
   raster: {
     png:
