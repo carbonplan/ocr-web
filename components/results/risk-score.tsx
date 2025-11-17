@@ -1,5 +1,6 @@
 import { ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 
 import { useStore } from '@/lib/store'
 import { formatAddress } from '@/lib/address-utils'
@@ -13,6 +14,7 @@ const RiskScore = () => {
   const selectedLocation = useStore((state) => state.selectedLocation)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
   const [abbreviate, setAbbreviate] = useState(false)
+  const index = useBreakpointIndex({ defaultIndex: 2 })
 
   const { score, color } = useScore(selectedBuilding, 'muted')
 
@@ -31,9 +33,11 @@ const RiskScore = () => {
   }
 
   useLayoutEffect(() => {
-    const shouldAbbreviate = !!ref.current && ref.current.clientHeight > 22
+    const lineHeight = index > 2 ? 25 : 22
+    const shouldAbbreviate =
+      !!ref.current && ref.current.clientHeight > lineHeight
     setAbbreviate(shouldAbbreviate)
-  }, [reverseGeocodeLoading, selectedBuilding, selectedLocation])
+  }, [reverseGeocodeLoading, selectedBuilding, selectedLocation, index])
 
   return (
     <>
