@@ -110,10 +110,6 @@ const MapComponent = () => {
         url: `pmtiles://${DATA_URLS.vector.regions}`,
         promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
       },
-      buildingPoints: {
-        type: 'vector',
-        url: `pmtiles://https://carbonplan-scratch.s3.us-west-2.amazonaws.com/test_centroids.pmtiles`,
-      },
     }
 
     const newMap = new Map({

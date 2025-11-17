@@ -282,6 +282,7 @@ const Buildings = () => {
         map.addSource(LAYERS.buildings.sourceId, {
           type: 'vector',
           url: `pmtiles://${DATA_URLS.vector.buildings}`,
+          minzoom: 6,
         })
       }
 
