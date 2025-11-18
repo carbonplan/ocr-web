@@ -51,21 +51,9 @@ const TimeHorizons = () => {
         data={[
           ['1 year', '15 years', '30 years'],
           [
-            <ValueBadge
-              key={1}
-              value={values['1']}
-              lowValue={values['1'] ? values['1'] < 0.01 : false}
-            />,
-            <ValueBadge
-              key={15}
-              value={values['15']}
-              lowValue={values['15'] ? values['15'] < 0.01 : false}
-            />,
-            <ValueBadge
-              key={30}
-              value={values['30']}
-              lowValue={values['30'] ? values['30'] < 0.01 : false}
-            />,
+            <ValueBadge key={1} value={values['1']} />,
+            <ValueBadge key={15} value={values['15']} />,
+            <ValueBadge key={30} value={values['30']} />,
           ],
         ]}
         borderTop={false}

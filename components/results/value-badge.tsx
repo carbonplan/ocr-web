@@ -23,20 +23,21 @@ const ValueBadge = ({
   color,
   sx,
   toFixed = 2,
-  lowValue = false,
   unit = '%',
 }: {
   value?: string | number | null
   color?: string
   unit?: string
   toFixed?: number
-  lowValue?: boolean
   sx?: ThemeUIStyleObject
 }) => {
   const { theme } = useThemeUI()
   let formattedValue
+  let lowValue = false
   if (typeof value === 'number') {
-    formattedValue = lowValue ? 1 * 10 ** -toFixed : value.toFixed(toFixed)
+    const threshold = 1 * 10 ** -toFixed
+    lowValue = value > 0 && value < threshold
+    formattedValue = lowValue ? threshold : value.toFixed(toFixed)
   } else if (typeof value === 'string') {
     formattedValue = value
   }

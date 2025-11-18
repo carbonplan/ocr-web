@@ -20,7 +20,6 @@ const TableCell = ({
   value,
   operator,
   unit,
-  lowValue,
   expanded,
   toFixed,
   setExpanded,
@@ -31,7 +30,6 @@ const TableCell = ({
   operator?: string
   unit?: string
   toFixed?: number
-  lowValue?: boolean
 }) => {
   return (
     <Box sx={{ position: 'relative', mb: '2px' }}>
@@ -46,7 +44,6 @@ const TableCell = ({
           <ValueBadge
             value={value}
             unit={unit}
-            lowValue={lowValue}
             toFixed={toFixed}
             sx={{ flexShrink: 0 }}
           />
@@ -114,9 +111,6 @@ const RiskCalculation = () => {
     getConditionalRiskUsfs(state.selectedBuilding),
   )
   const timePeriod = useStore((state) => state.timePeriod)
-  const isLowBp = bp ? bp < 0.01 : false
-  const isLowRisk = risk ? risk < 0.01 : false
-  const isLowConditionalRisk = conditionalRisk ? conditionalRisk < 0.01 : false
 
   let tooltip
   if (expanded) {
@@ -172,7 +166,6 @@ const RiskCalculation = () => {
             setExpanded={(value: boolean) => setExpanded(value ? 'rps' : null)}
             value={risk}
             operator='='
-            lowValue={isLowRisk}
           />
         </Column>
         <Column start={2} width={1}>
@@ -184,7 +177,6 @@ const RiskCalculation = () => {
             operator='x'
             unit='#'
             toFixed={3}
-            lowValue={isLowBp}
           />
         </Column>
         <Column start={3} width={1}>
@@ -195,7 +187,6 @@ const RiskCalculation = () => {
             value={conditionalRisk}
             unit='%'
             toFixed={1}
-            lowValue={isLowConditionalRisk}
           />
         </Column>
         <Column
