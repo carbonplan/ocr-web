@@ -1,5 +1,5 @@
 ---
-date: 11-12-2025
+date: 11-18-2025
 title: Open climate risk FAQ
 color: red
 quickLook: FAQ for our open climate risk project
@@ -31,7 +31,7 @@ components:
 
 ## 01 — What do the risk scores actually represent?
 
-The risk scores report the expected risk of loss for a hypothetical building in a given year. The risk scores are categorical, from 0-10, with each score representing a percentile range. For example, if a building has a risk score of 6, then there is an estimated 0.1-0.2% chance of loss in a given year. (See [here](https://carbonplan.github.io/ocr/methods/fire-risk/score-bins/) for more information on how we binned the data.) The risk score combines two metrics: the probability that the building burns in a year (the “burn probability”), and the consequence for a hypothetical structure (the “conditional risk to potential structures”), which considers factors such as fire intensity. There are two key caveats to keep in mind. First, the conditional risk to potential structures is a metric, not a probability, which leaves some room for interpretation. In addition to the annual risk of loss, the risk to potential structures has also been described as the expected change in value (see our [methods](research/climate-risk-fire-methods) for more detail). Second, a risk score applies to a hypothetical structure — it does not account for specific details such as the building materials.
+The risk scores report the expected risk of loss for a hypothetical building in a given year. The risk scores are categorical, from 0-10, with each score representing a percentile range. For example, if a building has a risk score of 6, then there is an estimated 0.1-0.2% chance of loss in a given year. (See [here](https://carbonplan.github.io/ocr/methods/fire-risk/score-bins/) for more information on how we binned the data.) The risk score combines two metrics: the probability that the building burns in a year (the “burn probability”), and the consequence for a hypothetical structure (the “conditional risk to potential structures”), which considers factors such as fire intensity. There are two key caveats to keep in mind. First, the conditional risk to potential structures metric leaves some room for interpretation. In addition to the annual risk of loss, it has also been described as the expected change in value (see our [methods](research/climate-risk-fire-methods) for more detail). Second, a risk score applies to a hypothetical structure — it does not account for specific details such as the building materials.
 
 ## 02 — What are some features that your model accounts for?
 
@@ -45,7 +45,7 @@ The biggest limitation to our risk score estimates is that they do not account f
 
 ## 04 — Why do some buildings right next to each other have different risk scores?
 
-Local landscape conditions, such as the difference between trees, shrubs, and pavement, can vary significantly from one place to another, especially where development is interspersed with wildlands. While those changes can appear gradual in person, our input data average them into 30-meter pixels, which can create sharp boundaries from one pixel to another. Those sharp boundaries in vegetation lead to sharp boundaries in one of the data layers that the risk score depends on — the “conditional risk to potential structures” — which then affects the final risk scores. Because each building’s risk score is assigned based on the closest pixel, buildings that straddle these sharp boundaries can have very different risk scores.
+Local landscape conditions, such as the difference between trees, shrubs, and pavement, can vary significantly from one place to another, especially where development abuts wildlands. While those changes can appear gradual in person, our input data average them into 30-meter pixels, which can create sharp boundaries from one pixel to another. Those sharp boundaries in vegetation lead to sharp boundaries in one of the data layers that the risk score depends on — the “conditional risk to potential structures” — which then affects the final risk scores. Because each building’s risk score is assigned based on the closest pixel, buildings that straddle these sharp boundaries can have very different risk scores. See [some figures](https://carbonplan.github.io/ocr/methods/fire-risk/compare-risk-rasters/) showing examples of this on our docs site.
 
 ## 05 — Why do some areas show decreasing risk in the future? Doesn’t climate change make wildfires worse?
 

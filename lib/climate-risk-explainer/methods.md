@@ -1,5 +1,5 @@
 ---
-date: 11-12-2025
+date: 11-18-2025
 title: Open climate risk wildfire methods
 card: TK
 quickLook: The scientific methods underpinning the OCR dataset and web tool.
@@ -100,7 +100,7 @@ As a final step, we applied a small (~300 ft radius) Gaussian kernel to blur the
 
 ## Calculating risk
 
-After estimating burn probabilities, we multiplied those estimates with estimates of “conditional risk to potential structures” (cRPS) developed by Scott et al. (2024). cRPS represents the conditional net value change in a hypothetical (i.e., generic) structure at a given pixel if it were to burn. cRPS does not take into account the specific attributes (e.g., roofing materials) of any actual structure located within a 30 m pixel. A cRPS value of 100 corresponds to a total loss whereas a cRPS value of 0 corresponds to no damage, so we interpret cRPS as a percentage loss.
+After estimating burn probabilities, we multiplied those estimates with estimates of “conditional risk to potential structures” (cRPS) developed by Scott et al. (2024). cRPS represents the conditional net value change in a hypothetical (i.e., generic) structure at a given pixel if it were to burn. cRPS does not take into account the specific attributes (e.g., roofing materials) of any actual structure located within a 30 m pixel. A cRPS value of 100 corresponds to a total loss whereas a cRPS value of 0 corresponds to no damage, so we interpret cRPS as a likelihood, or percentage, loss.
 
 Multiplying cRPS by burn probability resulted in an estimate of the risk to potential structures (RPS), which we interpreted as the expected risk of loss (%) experienced by a hypothetical structure in each pixel per year.
 
@@ -118,6 +118,6 @@ We intersected the 30 m RPS raster with the footprints of individual buildings c
 
 Within our web tool, we made buildings searchable by address using [HERE Maps](https://www.here.com/). First, we get the latitude and longitude for a user-provided address (“geocoding”). We then return the risk information of whatever building within the Overture buildings dataset is nearest to those coordinates.
 
-The building-level data is also visible in the web tool alongside the underlying 30 m RPS raster. The result is an interface that enables searching for risk across CONUS at the address level. The inclusion of both raster and building datasets side-by-side supports the interrogation of building risk assignments, as well as risk information in undeveloped areas where developments might be proposed. The web tool also displays summary statistics for several types of geographic areas: census block, census tract, and county, which helps contextualize an individual building’s risk score.
+The building-level data is also visible in the web tool alongside the underlying 30 m RPS raster. The result is an interface that enables searching for risk across CONUS at the address level. The inclusion of both raster and building datasets side-by-side supports the interrogation of building risk assignments, as well as risk information in undeveloped areas where developments might be proposed. The web tool also displays summary statistics for several types of geographic areas: census block, census tract, and county, which helps contextualize an individual building’s risk score. Finally, in addition to the 1-year RPS value, it displays the risk — assuming at least one burn over 15- and 30-year time horizons.
 
 We provide building-level RPS estimates, including spatial subsets of the data, for [download](https://carbonplan.github.io/ocr/reference/data-downloads/) in CSV, GeoParquet, and GeoPackage formats. Downloads of spatially-aggregated data (e.g., data for all census tracts across CONUS) include summary statistics (e.g., median score across buildings), as well as the count of buildings within each risk score in each summary region.

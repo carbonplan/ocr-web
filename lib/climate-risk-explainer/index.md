@@ -1,5 +1,5 @@
 ---
-date: 11-12-2025
+date: 11-18-2025
 title: Making climate risk data open
 authors:
   - Oriana Chegwidden
@@ -36,9 +36,9 @@ back: /research/climate-risk
 fileId: 1jqDGZD2BTeMyhIFaZa3xHKLSeEiNmilZIqyPmesysfs
 ---
 
-Will a levee hold? Will a prospective homebuyer have access to a mortgage? Will a farmer be able to plant a particular crop? In each case, the availability of high-quality climate risk data could make the difference between safety and calamity, prosperity and sustained hardship.
+Will a community be safe in a storm? Will a prospective homebuyer have access to a mortgage? Will a farmer be able to plant a particular crop? In each case, the availability of high-quality climate risk data could make the difference between security and calamity, prosperity and sustained hardship.
 
-The private sector understands the need for climate data. Earlier this year Boston Consulting Group estimated private equity investment opportunities in the climate and resilience adaptation market will grow from $0.5 trillion to $1.3 trillion per year by 2030, and identified climate intelligence solutions as the subsector expected to grow the most quickly.<Cite id='oehling.2025' /> “Extreme weather events and climate hazards are increasing in probability and rising in terms of impact, so investors that keep abreast with the latest climate science and data across regions will be able to stay one step ahead and position themselves to capture the most attractive opportunities,” the report encourages. The public is also starting to draw connections between the prediction of risk and its economic consequences, most clearly when it comes to insurance availability and cost. In climate-impacted states that elect insurance commissioners, some of these elections have become proxies for [public frustration over rising premiums] (https://grist.org/elections/climate-impacts-put-insurance-commissioner-races-in-the-spotlight).
+The private sector understands the need for climate data. Earlier this year Boston Consulting Group estimated private equity investment opportunities in the climate and resilience adaptation market will grow from $0.5 trillion to $1.3 trillion per year by 2030, and identified climate intelligence solutions as the subsector expected to grow the most quickly.<Cite id='oehling.2025' /> “Extreme weather events and climate hazards are increasing in probability and rising in terms of impact, so investors that keep abreast with the latest climate science and data across regions will be able to stay one step ahead and position themselves to capture the most attractive opportunities,” the report encourages. The public is also starting to draw connections between the prediction of risk and its economic consequences, most clearly when it comes to insurance availability and cost. In climate-impacted states that elect insurance commissioners, some of these elections have become proxies for [public frustration over rising premiums](https://grist.org/elections/climate-impacts-put-insurance-commissioner-races-in-the-spotlight).
 
 Yet despite the importance of climate risk data, and the growth of private analytics firms producing it, almost none of that data is available to the public.<Cite id='condon.2023' /> You can type an address into Zillow and get a handful of climate risk scores, but you can’t see how those scores were calculated. Your tax dollars likely funded the creation of the base datasets that an analytics company uses in its wildfire risk model, but for your local government to use the model to protect your neighborhood, they likely have to sign a restrictive contract with a company, and pay a significant fee. As legal scholar Madison Condon summarizes this worrisome state of affairs, “The climate risk information available to individual citizens and municipalities . . . is limited and expensive to access.”
 
@@ -96,7 +96,7 @@ There are no established standards for turning input data like these into a risk
 
 We built on the existing WRC product in three ways. First, we expanded the dataset to include future risk estimates, relying on an updated BP dataset for present and future climates.<Cite id='riley.2025' hide />
 
-Second, we developed a new technique for estimating BP in developed lands that accounts for historical meteorological information, since the original BP data only applies to wildlands. Our technique for calculating BP in developed lands focuses on the role of wind. Wind is a key driver of wildfire spread, carrying embers that present fire risk beyond wildlands, sometimes far ahead of the flame front. Hot, dry, and windy conditions can cause fires to expand faster than communities can manage them, and the prevalence of these conditions has led fire growth rates to more than double across the western U.S. between 2001 and 2020.<Cite id='balch.2024' /> The directionality of winds during fire weather is understudied, and has not previously been integrated into any public CONUS-scale fire risk product. The state of California gave credence to this theory in their use of directionality to model risk in Cal Fire’s Fire Hazard Severity Zone map, which we use in an intercomparison with our dataset, described below.
+Second, we developed a new technique for estimating BP in developed lands that accounts for historical meteorological information, since the original BP data only applies to wildlands. Our technique for calculating BP in developed lands focuses on the role of wind. Wind is a key driver of wildfire spread, carrying embers that present fire risk beyond wildlands, sometimes far ahead of the flame front. Hot, dry, and windy conditions can cause fires to expand faster than communities can manage them, and the prevalence of these conditions has led fire growth rates to more than double across the western U.S. between 2001 and 2020.<Cite id='balch.2024' /> The directionality of winds during fire weather is understudied, and has not previously been integrated into any public CONUS-scale fire risk product. The state of California gave credence to this theory in their use of directionality to model risk in CAL FIRE’s Fire Hazard Severity Zone map, which we use in an intercomparison with our dataset, described below.
 
 To account for the directionally-specific effects of wind, we identified wind patterns during the hottest and driest days, and used them to “spread” areas of high BP into areas which Riley et al. (2025) deemed “unburnable.” Our approach is inspired by the “oozing” method in Scott et al. (2024). We used a blurring filter to spread BP into non-burnable areas following local wind trajectories at hot, dry, and windy times as identified in Rasmussen et al. (2023). By expanding the BP data into developed areas, we were able to estimate their wildfire risk. We then multiplied the gridded, wind-spread BP layers for both present day and future climates with the fine scale cRPS layer to derive a 30 m gridded raster of risk to potential structures (RPS) for CONUS.
 
@@ -106,7 +106,7 @@ Finally, and as a third enhancement of the WRC dataset, we intersected the RPS r
   <WindComparison />
 
   <FigureCaption number={2}>
-Comparing the risk from Scott et al. (2024) and our method for the Altadena neighborhood of Los Angeles, where a devastating urban conflagration hit in early 2025. The risk of loss (i.e., RPS) maps differ between the two datasets, with wind spreading risk south into communities for our dataset while the Scott et al. approach spreads risk uniformly. Streets data from <Link href="https://www.openstreetmap.org/copyright">OpenStreetMap</Link>.
+Comparing the risk from Scott et al. (2024) and our method for the area around Griffith Observatory in Los Angeles. The risk of loss (i.e., RPS) maps differ between the two datasets, with wind preferentially spreading risk southeast for our dataset while the Scott et al. approach spreads risk uniformly. Streets data from <Link href="https://www.openstreetmap.org/copyright">OpenStreetMap</Link>.
   </FigureCaption>
 </Figure>
 
@@ -137,7 +137,7 @@ Finally, OCR’s wildfire model is based on vegetation data from several years a
 
 ## How our estimates compare with others
 
-Given the complexity of building a wildfire risk dataset, the choice of risk product could have a large effect on the estimated risk for a given set of buildings. We compare OCR’s wildfire risk estimates to two other public fire risk datasets to understand where they align and diverge: (1) the Scott et al. (2024) dataset that our work builds on; and (2) the Cal Fire Fire Hazard Severity Zones dataset.<Cite id='calfire.2024' /> The first dataset follows methods very similar to ours, with the biggest exception being how risk is spread to developed lands, and the second dataset implements a wind-driven spreading approach that is similar to ours. This comparison assesses risk values at individual buildings — which intentionally focuses the analysis on developed lands, where our methods differ most significantly from Scott et al. (2024).
+Given the complexity of building a wildfire risk dataset, the choice of risk product could have a large effect on the estimated risk for a given set of buildings. We compare OCR’s wildfire risk estimates to two other public fire risk datasets to understand where they align and diverge: (1) the Scott et al. (2024) dataset that our work builds on; and (2) the CAL FIRE Fire Hazard Severity Zones dataset.<Cite id='calfire.2024' /> The first dataset follows methods very similar to ours, with the biggest exception being how risk is spread to developed lands, and the second dataset implements a wind-driven spreading approach that is similar to ours. This comparison assesses risk values at individual buildings — which intentionally focuses the analysis on developed lands, where our methods differ most significantly from Scott et al. (2024).
 
 We find generally good agreement with the Scott et al. dataset, with a few important differences. Across the entire country, the average census-tract level correlation at individual buildings was ~0.64, with an absolute bias of 0.0013% RPS, indicating general agreement. Our higher risk estimates were driven by differences on the east slopes of the Cascades in Washington and Oregon, the mountain foothills in southern California, and the Texas panhandle. From an implementation perspective, areas with lower correlation are places where the choice of a risk dataset has a greater consequence.
 
@@ -148,7 +148,7 @@ We find generally good agreement with the Scott et al. dataset, with a few impor
     width={[3, 1, 1]}
     data={[
       ['Comparison (CONUS-wide)', 'Correlation', 'Bias'],
-      ['Scott 2024 vs. CarbonPlan', '0.64', '0.0013%'],
+      ['Scott et al. (2024) vs. CarbonPlan', 0.78, '0.0002%'],
     ]}
     index={false}
     sx={{'& tr:first-of-type td': {
@@ -164,7 +164,7 @@ Comparing our estimates of risk to potential structures (RPS) with those from Sc
   </TableCaption>
 </Figure>
 
-Comparing our data, as well as the data of Scott et al. (2024), to Cal Fire’s dataset is less straightforward for two reasons. First, the Cal Fire estimates are categorical, not continuous values. Second, they are hazard estimates, and so do not assess the level of damage that a fire could cause and therefore should not be understood as a risk score. Nonetheless, the comparison to our risk dataset is warranted because both components of risk — BP and cRPS — relate to fire severity by reflecting the hazard frequency (BP) and intensity (a subcomponent of cRPS) of wildfires.
+Comparing our data, as well as the data of Scott et al. (2024), to CAL FIRE’s dataset is less straightforward for two reasons. First, the CAL FIRE estimates are categorical, not continuous values. Second, they are hazard estimates, and so do not assess the level of damage that a fire could cause and therefore should not be understood as a risk score. Nonetheless, the comparison to our risk dataset is warranted because both components of risk — BP and cRPS — relate to fire severity by reflecting the hazard frequency (BP) and intensity (a subcomponent of cRPS) of wildfires.
 
 <Figure>
  <Table
@@ -173,9 +173,9 @@ Comparing our data, as well as the data of Scott et al. (2024), to Cal Fire’s 
     width={[4, 2]}
     data={[
       ['Comparison (California-wide)', 'Kendall’s Tau'],
-      ['Cal Fire vs. CarbonPlan', '0.1'],
-      ['Cal Fire vs. Scott 2024', '0.1'],
-      ['Scott 2024 vs. CarbonPlan', '0.26'],
+      ['CAL FIRE vs. CarbonPlan', 0.15],
+      ['CAL FIRE vs. Scott et al. 2024', 0.16],
+      ['Scott et al. (2024) vs. CarbonPlan', 0.30],
     ]}
     index={false}
     sx={{'& tr:first-of-type td': {
@@ -187,13 +187,13 @@ Comparing our data, as well as the data of Scott et al. (2024), to Cal Fire’s 
   />
 
   <TableCaption number={3}>
- As in Table 1, comparing our estimates with those from Scott et al. (2024) and Cal Fire’s Fire Hazard Severity Zones. Because Cal Fire’s estimates are categorical we use Kendall’s Tau instead of correlation. Our estimates are much more similar to Scott et al. (2024) than either estimate is to Cal Fire’s.
+ As in Table 1, comparing our estimates with those from Scott et al. (2024) and CAL FIRE’s Fire Hazard Severity Zones. Because CAL FIRE’s estimates are categorical we use Kendall’s Tau instead of correlation. Our estimates are much more similar to Scott et al. (2024) than either estimate is to CAL FIRE’s.
   </TableCaption>
 </Figure>
 
-We address these limitations by calculating the Kendall’s Tau for buildings within every census tract in the state, rather than evaluating the correlation. <Sidenote>We used this same test in our [previous climate risk comparisons](https://carbonplan.org/research/climate-risk-comparison).</Sidenote> Kendall’s Tau tests for concordance of data, asking: how similarly do two datasets rank areas on a scale from low to high? In other words, given two locations, do the two datasets agree which is higher or lower on a given scale. Kendall’s Tau ranges from -1 to 1, with 1 indicating perfect concordance and -1 indicating -1 total discordance. In making this comparison, we assume that the Cal Fire hazard scale and the risk to potential structures scale are comparable, and that each scale would similarly arrange low and high numbers. We think this is a reasonable assumption given the similar attributes that each dataset relies upon (e.g., high-resolution vegetation maps, dynamic fire model) and ignores (e.g., building attributes, landscape management).
+We address these limitations by calculating the Kendall’s Tau for buildings within every census tract in the state, rather than evaluating the correlation. <Sidenote>We used this same test in our [previous climate risk comparisons](https://carbonplan.org/research/climate-risk-comparison).</Sidenote> Kendall’s Tau tests for concordance of data, asking: how similarly do two datasets rank areas on a scale from low to high? In other words, given two locations, do the two datasets agree which is higher or lower on a given scale. Kendall’s Tau ranges from -1 to 1, with 1 indicating perfect concordance and -1 indicating -1 total discordance. In making this comparison, we assume that the CAL FIRE hazard scale and the risk to potential structures scale are comparable, and that each scale would similarly arrange low and high numbers. We think this is a reasonable assumption given the similar attributes that each dataset relies upon (e.g., high-resolution vegetation maps, dynamic fire model) and ignores (e.g., building attributes, landscape management).
 
-Overall, the average Kendall’s Tau was ~0.1 for Cal Fire’s hazard layer with both Scott et al. (2024) and our dataset. In contrast, Scott et al. (2024) and our data had much greater concordance, with a statewide average Kendall’s Tau of 0.26. This stronger agreement among datasets can be explained by the similarity in sources and approach between our datasets, while Cal Fire’s estimates come from a wholly different origin.
+Overall, the average Kendall’s Tau was ~0.15 for CAL FIRE’s hazard layer with both Scott et al. (2024) and our dataset. In contrast, Scott et al. (2024) and our data had much greater concordance, with a statewide average Kendall’s Tau of 0.30. This stronger agreement among datasets can be explained by the similarity in sources and approach between our datasets, while CAL FIRE’s estimates come from a wholly different origin.
 
 We also compared our BP data to historical fires using the [Interagency Fire Perimeter History dataset](https://data-nifc.opendata.arcgis.com/datasets/nifc::interagencyfireperimeterhistory-all-years-view/about) from the National Interagency Fire Center. Following Moran et al. (2025), we compared BP distributions in pixels that were previously burned and unburned.<Cite id='moran.2025' /> Across the entire CONUS domain, burned pixels had a higher mean and median BP than unburned pixels, indicating our burn probabilities are generally consistent with the distribution of historical burns. This same finding holds when we repeated the analysis for just the non-wildland pixels where we have altered the original BP values from Riley et al. (2025). Additional information about this benchmarking analysis can be found in our technical documentation.
 
