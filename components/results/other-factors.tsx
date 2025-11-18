@@ -40,10 +40,10 @@ const FACTORS = [
   {
     name: 'Community mitigation planning',
     explanation:
-      'Our estimates do not account for community-scale actions like wildfire protection plans and land use planning. These actions can reduce the risk of wildfire entering a community.',
+      'Our estimates do not account for community-scale actions like wildfire protection plans and land-use planning. These actions can reduce the risk of wildfire entering a community.',
     resources: [
       {
-        label: 'Firewise Communties',
+        label: 'Firewise communities',
         url: 'https://www.nfpa.org/education-and-research/wildfire/firewise-usa',
       },
       {
@@ -55,7 +55,7 @@ const FACTORS = [
         url: 'https://fireadaptednetwork.org/resources/fac-assessment-tool/',
       },
       {
-        label: 'Land use planning',
+        label: 'Land-use planning',
         url: 'https://wildfirerisk.org/reduce-risk/land-use-planning',
       },
     ],
