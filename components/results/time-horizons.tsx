@@ -7,19 +7,25 @@ import { useStore } from '@/lib/store'
 import {
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
-  getRiskScore,
 } from '@/lib/risk-utils'
 import ValueBadge from './value-badge'
 
-const getProbabilityOverHorizon = (horizon: number, prob?: number | null) =>
-  typeof prob === 'number'
-    ? (1 - Math.pow(1 - prob / 100, horizon)) * 100
-    : null
+const getProbabilityOverHorizon = (horizon: number, bp: number | null) =>
+  typeof bp === 'number' ? 1 - Math.pow(1 - bp, horizon) : null
+
+const getRiskOverHorizon = (
+  horizon: number,
+  bp: number | null,
+  conditionalRisk: number | null,
+) => {
+  if (bp == null || conditionalRisk == null) {
+    return null
+  }
+
+  return (getProbabilityOverHorizon(horizon, bp) ?? 0) * conditionalRisk
+}
 
 const TimeHorizons = () => {
-  const risk = useStore((state) =>
-    getRiskScore(state.selectedBuilding, state.timePeriod),
-  )
   const bp = useStore((state) =>
     getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
@@ -27,15 +33,9 @@ const TimeHorizons = () => {
     getConditionalRiskUsfs(state.selectedBuilding),
   )
   const values = {
-    1: risk,
-    15:
-      conditionalRisk == null
-        ? null
-        : (getProbabilityOverHorizon(15, bp) ?? 0) * (conditionalRisk ?? 0),
-    30:
-      conditionalRisk == null
-        ? null
-        : (getProbabilityOverHorizon(30, bp) ?? 0) * (conditionalRisk ?? 0),
+    1: getRiskOverHorizon(1, bp, conditionalRisk),
+    15: getRiskOverHorizon(15, bp, conditionalRisk),
+    30: getRiskOverHorizon(30, bp, conditionalRisk),
   }
 
   return (
