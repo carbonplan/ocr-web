@@ -8,6 +8,9 @@ export const DATA_URLS = {
     regions:
       process.env.NEXT_PUBLIC_REGIONS_URL ??
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles`,
+    buildingPoints:
+      process.env.NEXT_PUBLIC_BUILDING_POINTS_URL ??
+      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/building_centroids.pmtiles`,
   },
   raster: {
     png:
@@ -51,6 +54,13 @@ export const LAYERS = {
     layerIds: {
       fill: 'risk-census-blocks-fill',
       line: 'risk-census-blocks-line',
+    },
+  },
+  buildingPoints: {
+    layerName: 'risk',
+    sourceId: 'buildingPoints',
+    layerIds: {
+      circle: 'building-points-circle',
     },
   },
 } as const

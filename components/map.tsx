@@ -17,6 +17,7 @@ import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import {
   Buildings,
+  BuildingPoints,
   SelectionMarker,
   GeographyLayer,
   SatelliteLayer,
@@ -285,6 +286,7 @@ const MapComponent = () => {
             geographyKey='censusBlock'
           />
           <Buildings />
+          <BuildingPoints />
           <SelectionMarker />
         </>
       )}
