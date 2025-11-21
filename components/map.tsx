@@ -37,8 +37,6 @@ import {
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
 } from '@/lib/url-utils'
-import { useReverseGeocode } from '@/hooks/useReverseGeocode'
-
 const MapComponent = () => {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -59,7 +57,6 @@ const MapComponent = () => {
     (state) => state.queryGeographiesAtPoint,
   )
   const { highlightBuildingAtLocation } = useBuildingUtils()
-  const { fetchAddress } = useReverseGeocode()
 
   const updateGeographies = useCallback(() => {
     if (!map) return
@@ -239,9 +236,7 @@ const MapComponent = () => {
       if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
         map.off('sourcedata', handleSourceData)
         const found = highlightBuildingAtLocation(lng, lat)
-        if (found) {
-          fetchAddress(lat, lng)
-        } else {
+        if (!found) {
           clearSelections()
           updateGeographies()
         }
@@ -253,7 +248,6 @@ const MapComponent = () => {
     router.isReady,
     router.query,
     highlightBuildingAtLocation,
-    fetchAddress,
     clearSelections,
     updateGeographies,
   ])

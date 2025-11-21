@@ -4,6 +4,7 @@ import { LAYERS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { Building } from '@/types/location'
 import { updateSelectedBuildingUrl } from '@/lib/url-utils'
+import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 
 export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
@@ -11,20 +12,63 @@ export const useBuildingUtils = () => {
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
+  const { fetchAddress } = useReverseGeocode()
+
+  const selectBuilding = useCallback(
+    (
+      building: Building,
+      options: { easeTo?: boolean; fetchAddress?: boolean } = {
+        easeTo: true,
+        fetchAddress: true,
+      },
+    ) => {
+      if (!map || !building.id) return
+
+      const { easeTo = true, fetchAddress: shouldFetchAddress = true } = options
+
+      const center = centerOfMass(building)
+      const [lng, lat] = center.geometry.coordinates as [number, number]
+
+      setSelectedBuilding(building)
+      updateSelectedBuildingUrl({ lat, lng })
+      queryGeographiesAtPoint(lng, lat)
+
+      map.removeFeatureState({
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
+      })
+      map.setFeatureState(
+        {
+          source: LAYERS.buildings.sourceId,
+          id: building.id,
+          sourceLayer: LAYERS.buildings.layerName,
+        },
+        { selected: true },
+      )
+
+      if (easeTo) {
+        map.easeTo({ center: [lng, lat] })
+      }
+      if (shouldFetchAddress) fetchAddress(lat, lng)
+    },
+    [map, setSelectedBuilding, queryGeographiesAtPoint, fetchAddress],
+  )
 
   const highlightBuildingAtLocation = useCallback(
-    (lng: number, lat: number): boolean => {
+    (
+      lng: number,
+      lat: number,
+      options: { easeTo?: boolean; fetchAddress?: boolean } = {
+        easeTo: true,
+        fetchAddress: true,
+      },
+    ): boolean => {
       if (
         !map?.getSource(LAYERS.buildings.sourceId) ||
         !map?.getLayer(LAYERS.buildings.layerIds.fill)
       ) {
         return false
       }
-
-      map.removeFeatureState({
-        source: LAYERS.buildings.sourceId,
-        sourceLayer: LAYERS.buildings.layerName,
-      })
 
       const point = map.project([lng, lat])
       const tolerance = 100
@@ -52,30 +96,17 @@ export const useBuildingUtils = () => {
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          const [centroidLng, centroidLat] = featuresWithDistance[0].centroid
-
-          setSelectedBuilding(closestBuilding as Building)
-          updateSelectedBuildingUrl({ lat: centroidLat, lng: centroidLng })
-
-          queryGeographiesAtPoint(centroidLng, centroidLat)
-
-          map.setFeatureState(
-            {
-              source: LAYERS.buildings.sourceId,
-              id: closestBuilding.id,
-              sourceLayer: LAYERS.buildings.layerName,
-            },
-            { selected: true },
-          )
+          selectBuilding(closestBuilding as Building, options)
           return true
         }
       }
       return false
     },
-    [map, setSelectedBuilding, queryGeographiesAtPoint],
+    [map, selectBuilding],
   )
 
   return {
+    selectBuilding,
     highlightBuildingAtLocation,
   }
 }

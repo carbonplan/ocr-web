@@ -1,27 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
-import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
-import { useReverseGeocode } from '@/hooks/useReverseGeocode'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
-import { updateSelectedBuildingUrl } from '@/lib/url-utils'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
-  const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
-  const queryGeographiesAtPoint = useStore(
-    (state) => state.queryGeographiesAtPoint,
-  )
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-  const { fetchAddress } = useReverseGeocode()
+  const { selectBuilding } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const selectedBuildingRef = useRef<Building | null>(null)
@@ -190,7 +184,6 @@ const Buildings = () => {
       })
 
       if (features.length > 0) {
-        setSelectedBuilding(features[0] as Building)
         if (hoveredFeatureId.current !== null) {
           map.setFeatureState(
             {
@@ -204,32 +197,7 @@ const Buildings = () => {
         }
 
         const feature = features[0]
-        const center = centerOfMass(feature)
-        const [lng, lat] = center.geometry.coordinates
-
-        queryGeographiesAtPoint(lng, lat)
-
-        if (feature.id) {
-          map.removeFeatureState({
-            source: LAYERS.buildings.sourceId,
-            sourceLayer: LAYERS.buildings.layerName,
-          })
-
-          map.setFeatureState(
-            {
-              source: LAYERS.buildings.sourceId,
-              id: feature.id,
-              sourceLayer: LAYERS.buildings.layerName,
-            },
-            { selected: true },
-          )
-
-          map.easeTo({
-            center: [lng, lat],
-          })
-          updateSelectedBuildingUrl({ lat, lng })
-          fetchAddress(lat, lng)
-        }
+        selectBuilding(feature as Building)
       } else if (selectedBuildingRef.current) {
         clearSelections()
         map.removeFeatureState({
@@ -238,13 +206,7 @@ const Buildings = () => {
         })
       }
     },
-    [
-      map,
-      setSelectedBuilding,
-      clearSelections,
-      queryGeographiesAtPoint,
-      fetchAddress,
-    ],
+    [map, selectBuilding, clearSelections],
   )
 
   useEffect(() => {

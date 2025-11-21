@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import { MapSourceDataEvent } from 'maplibre-gl'
@@ -172,6 +172,7 @@ const Geocode = () => {
               const success = highlightBuildingAtLocation(
                 location.position.lng,
                 location.position.lat,
+                { easeTo: false, fetchAddress: false },
               )
               if (success) setSelectedLocation(location)
             } else {
@@ -184,6 +185,7 @@ const Geocode = () => {
                   const success = highlightBuildingAtLocation(
                     location.position.lng,
                     location.position.lat,
+                    { easeTo: false, fetchAddress: false },
                   )
                   if (success) setSelectedLocation(location)
                 }
