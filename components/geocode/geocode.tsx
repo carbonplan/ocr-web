@@ -151,19 +151,9 @@ const Geocode = () => {
     }
   }
 
-  const clearSelectedLocation = useCallback(() => {
-    clearSelections()
-    if (map) {
-      map.removeFeatureState({
-        source: LAYERS.buildings.sourceId,
-        sourceLayer: LAYERS.buildings.layerName,
-      })
-    }
-  }, [clearSelections, map])
-
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
-      clearSelectedLocation()
+      clearSelections()
       const locationResponse = await fetch(
         `/api/geocode/lookup?id=${suggestion.id}`,
       )

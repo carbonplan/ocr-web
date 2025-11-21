@@ -174,6 +174,10 @@ export const useStore = create<Store>((set, get) => ({
     clearSelectedBuildingUrl()
     const { map, queryGeographiesAtPoint } = get()
     if (map) {
+      map.removeFeatureState({
+        source: LAYERS.buildings.sourceId,
+        sourceLayer: LAYERS.buildings.layerName,
+      })
       const center = map.getCenter()
       const zoom = map.getZoom()
       updateMapViewUrl({
