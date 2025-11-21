@@ -168,7 +168,6 @@ const Geocode = () => {
         `/api/geocode/lookup?id=${suggestion.id}`,
       )
       const location = await locationResponse.json()
-      setSelectedLocation(location)
 
       if (map && location) {
         map.easeTo({
@@ -180,10 +179,11 @@ const Geocode = () => {
         if (location.address.houseNumber) {
           const handleMoveEnd = () => {
             if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-              highlightBuildingAtLocation(
+              const success = highlightBuildingAtLocation(
                 location.position.lng,
                 location.position.lat,
               )
+              if (success) setSelectedLocation(location)
             } else {
               const handleSourceData = (e: MapSourceDataEvent) => {
                 if (
@@ -191,10 +191,11 @@ const Geocode = () => {
                   e.isSourceLoaded
                 ) {
                   map.off('sourcedata', handleSourceData)
-                  highlightBuildingAtLocation(
+                  const success = highlightBuildingAtLocation(
                     location.position.lng,
                     location.position.lat,
                   )
+                  if (success) setSelectedLocation(location)
                 }
               }
               map.on('sourcedata', handleSourceData)
