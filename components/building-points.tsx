@@ -5,7 +5,7 @@ import {
   MapSourceDataEvent,
 } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
-import { LAYERS, DATA_URLS } from '@/lib/config'
+import { LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
@@ -104,98 +104,17 @@ const BuildingPoints = () => {
   useEffect(() => {
     if (!map) return
 
-    const initializeLayer = () => {
-      if (!map.getSource(LAYERS.buildingPoints.sourceId)) {
-        map.addSource(LAYERS.buildingPoints.sourceId, {
-          type: 'vector',
-          url: `pmtiles://${DATA_URLS.vector.buildingPoints}`,
-        })
-      }
-
-      if (!map.getLayer(LAYERS.buildingPoints.layerIds.circle)) {
-        map.addLayer(
-          {
-            id: LAYERS.buildingPoints.layerIds.circle,
-            type: 'circle',
-            source: LAYERS.buildingPoints.sourceId,
-            'source-layer': LAYERS.buildingPoints.layerName,
-            paint: {
-              'circle-color': colorExpression,
-              'circle-radius': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                11,
-                1,
-                13,
-                2,
-              ],
-              'circle-opacity': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                14,
-                1,
-                14.5,
-                0,
-              ],
-            },
-          },
-          'buildings',
-        )
-      }
-    }
-
-    if (map.isStyleLoaded()) {
-      initializeLayer()
-    } else {
-      map.once('load', initializeLayer)
-    }
-
     map.on('click', LAYERS.buildingPoints.layerIds.circle, handlePointClick)
-    map.on(
-      'mouseenter',
-      LAYERS.buildingPoints.layerIds.circle,
-      handlePointEnter,
-    )
-    map.on(
-      'mouseleave',
-      LAYERS.buildingPoints.layerIds.circle,
-      handlePointLeave,
-    )
+    map.on('mouseenter', LAYERS.buildingPoints.layerIds.circle, handlePointEnter)
+    map.on('mouseleave', LAYERS.buildingPoints.layerIds.circle, handlePointLeave)
 
     return () => {
-      try {
-        if (!map) return
-
-        map.off(
-          'click',
-          LAYERS.buildingPoints.layerIds.circle,
-          handlePointClick,
-        )
-        map.off(
-          'mouseenter',
-          LAYERS.buildingPoints.layerIds.circle,
-          handlePointEnter,
-        )
-        map.off(
-          'mouseleave',
-          LAYERS.buildingPoints.layerIds.circle,
-          handlePointLeave,
-        )
-
-        if (map.getLayer(LAYERS.buildingPoints.layerIds.circle)) {
-          map.removeLayer(LAYERS.buildingPoints.layerIds.circle)
-        }
-        if (map.getSource(LAYERS.buildingPoints.sourceId)) {
-          map.removeSource(LAYERS.buildingPoints.sourceId)
-        }
-      } catch (error) {
-        console.error('Error removing building points layer:', error)
-      }
+      if (!map) return
+      map.off('click', LAYERS.buildingPoints.layerIds.circle, handlePointClick)
+      map.off('mouseenter', LAYERS.buildingPoints.layerIds.circle, handlePointEnter)
+      map.off('mouseleave', LAYERS.buildingPoints.layerIds.circle, handlePointLeave)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map])
+  }, [map, handlePointClick, handlePointEnter, handlePointLeave])
 
   useEffect(() => {
     if (!map || !map.getLayer(LAYERS.buildingPoints.layerIds.circle)) return

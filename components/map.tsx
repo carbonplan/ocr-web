@@ -26,17 +26,14 @@ import {
   MapAttribution,
   useMapControlStyles,
 } from './'
-import {
-  DATA_URLS,
-  GEOGRAPHY_ATTRIBUTE_KEYS,
-  LAYERS,
-  GEOGRAPHY_AUTOSELECT_ZOOM,
-} from '@/lib/config'
+import { LAYERS, GEOGRAPHY_AUTOSELECT_ZOOM } from '@/lib/config'
+import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
 import {
   getMapViewFromQuery,
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
 } from '@/lib/url-utils'
+
 const MapComponent = () => {
   const router = useRouter()
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -102,12 +99,10 @@ const MapComponent = () => {
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
-      regions: {
-        type: 'vector',
-        url: `pmtiles://${DATA_URLS.vector.regions}`,
-        promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
-      },
+      ...getRiskSources(),
     }
+
+    const orderedLayers = insertRiskLayers(mapLayers)
 
     const newMap = new Map({
       container: mapContainer.current,
@@ -116,7 +111,7 @@ const MapComponent = () => {
         glyphs:
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
-        layers: mapLayers,
+        layers: orderedLayers,
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
