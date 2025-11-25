@@ -9,6 +9,7 @@ import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
+  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
@@ -49,9 +50,21 @@ export const useBuildingUtils = () => {
       if (easeTo) {
         map.easeTo({ center: [lng, lat] })
       }
-      if (shouldFetchAddress) fetchAddress(lat, lng)
+      if (shouldFetchAddress) {
+        fetchAddress(lat, lng).then((location) => {
+          if (location && useStore.getState().selectedBuilding) {
+            setSelectedLocation(location)
+          }
+        })
+      }
     },
-    [map, setSelectedBuilding, queryGeographiesAtPoint, fetchAddress],
+    [
+      map,
+      setSelectedBuilding,
+      setSelectedLocation,
+      queryGeographiesAtPoint,
+      fetchAddress,
+    ],
   )
 
   const highlightBuildingAtLocation = useCallback(
