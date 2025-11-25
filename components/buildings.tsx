@@ -11,19 +11,13 @@ import { Building } from '@/types/location'
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const { selectBuilding } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
-  const selectedBuildingRef = useRef<Building | null>(null)
   const colormap = useColormap()
-
-  useEffect(() => {
-    selectedBuildingRef.current = selectedBuilding
-  }, [selectedBuilding])
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
@@ -198,12 +192,8 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as Building)
-      } else if (selectedBuildingRef.current) {
+      } else {
         clearSelections()
-        map.removeFeatureState({
-          source: LAYERS.buildings.sourceId,
-          sourceLayer: LAYERS.buildings.layerName,
-        })
       }
     },
     [map, selectBuilding, clearSelections],
@@ -228,7 +218,13 @@ const Buildings = () => {
       )
       map.off('mouseleave', LAYERS.buildings.layerIds.fill, handleBuildingLeave)
     }
-  }, [map])
+  }, [
+    map,
+    handleMapClick,
+    handleBuildingEnter,
+    handleBuildingMouseMove,
+    handleBuildingLeave,
+  ])
 
   useEffect(() => {
     // update color expression when variable selection changes
