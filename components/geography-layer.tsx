@@ -99,129 +99,37 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   ])
 
   useEffect(() => {
-    if (!map) return
-
-    const initializeLayers = () => {
-      if (!map.getLayer(config.layerIds.fill)) {
-        map.addLayer(
-          {
-            id: config.layerIds.fill,
-            type: 'fill',
-            source: config.sourceId,
-            'source-layer': config.layerName,
-            paint: {
-              'fill-color': colorExpression,
-              'fill-opacity': geographyLayerVisibility[geographyKey] ? 1 : 0,
-            },
-          },
-          'landcover',
-        )
-      }
-
-      if (!map.getLayer(config.layerIds.line)) {
-        map.addLayer(
-          {
-            id: config.layerIds.line,
-            type: 'line',
-            source: config.sourceId,
-            'source-layer': config.layerName,
-            paint: {
-              'line-opacity': geographyLayerVisibility[geographyKey] ? 1 : 0,
-              'line-color': get(theme, 'rawColors.secondary'),
-              'line-width': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                2,
-                0.1,
-                14,
-                0.5,
-              ],
-            },
-          },
-          'address_label',
-        )
-      }
-
-      if (!map.getLayer(highlightLayerId)) {
-        map.addLayer(
-          {
-            id: highlightLayerId,
-            type: 'line',
-            source: config.sourceId,
-            'source-layer': config.layerName,
-            paint: {
-              'line-opacity': [
-                'case',
-                ['boolean', ['feature-state', 'selected'], false],
-                1,
-                0,
-              ],
-              'line-color': get(theme, 'rawColors.primary'),
-              'line-width': 1,
-            },
-          },
-          'address_label',
-        )
-      }
-    }
-
-    if (map.isStyleLoaded()) {
-      initializeLayers()
-    } else {
-      map.once('load', initializeLayers)
-    }
-
-    return () => {
-      try {
-        if (!map) return
-
-        if (map.getLayer(config.layerIds.fill)) {
-          map.removeLayer(config.layerIds.fill)
-        }
-        if (map.getLayer(config.layerIds.line)) {
-          map.removeLayer(config.layerIds.line)
-        }
-        if (map.getLayer(highlightLayerId)) {
-          map.removeLayer(highlightLayerId)
-        }
-      } catch (error) {
-        console.error(`Error removing ${geographyKey} layers:`, error)
-      }
-    }
-  }, [map])
-
-  useEffect(() => {
     if (!map || !map.getLayer(config.layerIds.fill)) return
     map.setPaintProperty(config.layerIds.fill, 'fill-color', colorExpression)
-  }, [map, colorExpression, config.layerIds.fill])
-
-  useEffect(() => {
-    if (!map || !map.getLayer(config.layerIds.fill)) return
     map.setPaintProperty(
       config.layerIds.fill,
       'fill-opacity',
       geographyLayerVisibility[geographyKey] ? 1 : 0,
     )
-    if (map.getLayer(config.layerIds.line)) {
-      map.setPaintProperty(
-        config.layerIds.line,
-        'line-opacity',
-        geographyLayerVisibility[geographyKey] ? 1 : 0,
-      )
-      map.setPaintProperty(
-        config.layerIds.line,
-        'line-color',
-        get(theme, 'rawColors.secondary'),
-      )
-    }
+    map.setPaintProperty(
+      config.layerIds.line,
+      'line-opacity',
+      geographyLayerVisibility[geographyKey] ? 1 : 0,
+    )
+    map.setPaintProperty(
+      config.layerIds.line,
+      'line-color',
+      get(theme, 'rawColors.secondary'),
+    )
+    map.setPaintProperty(
+      highlightLayerId,
+      'line-color',
+      get(theme, 'rawColors.primary'),
+    )
   }, [
     map,
+    colorExpression,
     geographyLayerVisibility,
     geographyKey,
     theme,
     config.layerIds.fill,
     config.layerIds.line,
+    highlightLayerId,
   ])
 
   useEffect(() => {

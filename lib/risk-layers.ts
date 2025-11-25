@@ -26,21 +26,26 @@ export const getRiskSources = (): Record<string, SourceSpecification> => ({
   },
 })
 
-const createGeographyLayers = (config: {
+const createGeographyFillLayer = (config: {
+  layerName: string
+  sourceId: string
+  layerIds: { fill: string; line: string }
+}): LayerSpecification => ({
+  id: config.layerIds.fill,
+  type: 'fill',
+  source: config.sourceId,
+  'source-layer': config.layerName,
+  paint: {
+    'fill-color': 'transparent',
+    'fill-opacity': 0,
+  },
+})
+
+const createGeographyLineLayers = (config: {
   layerName: string
   sourceId: string
   layerIds: { fill: string; line: string }
 }): LayerSpecification[] => [
-  {
-    id: config.layerIds.fill,
-    type: 'fill',
-    source: config.sourceId,
-    'source-layer': config.layerName,
-    paint: {
-      'fill-color': 'transparent',
-      'fill-opacity': 0,
-    },
-  },
   {
     id: config.layerIds.line,
     type: 'line',
@@ -78,10 +83,16 @@ const createGeographyLayers = (config: {
   },
 ]
 
-export const getGeographyLayers = (): LayerSpecification[] => [
-  ...createGeographyLayers(LAYERS.counties),
-  ...createGeographyLayers(LAYERS.censusTracts),
-  ...createGeographyLayers(LAYERS.censusBlocks),
+export const getGeographyFillLayers = (): LayerSpecification[] => [
+  createGeographyFillLayer(LAYERS.counties),
+  createGeographyFillLayer(LAYERS.censusTracts),
+  createGeographyFillLayer(LAYERS.censusBlocks),
+]
+
+export const getGeographyLineLayers = (): LayerSpecification[] => [
+  ...createGeographyLineLayers(LAYERS.counties),
+  ...createGeographyLineLayers(LAYERS.censusTracts),
+  ...createGeographyLineLayers(LAYERS.censusBlocks),
 ]
 
 export const getBuildingLayers = (): LayerSpecification[] => [
@@ -174,7 +185,8 @@ const insertBefore = (
 export const insertRiskLayers = (
   baseLayers: LayerSpecification[],
 ): LayerSpecification[] => {
-  let layers = insertBefore(baseLayers, getGeographyLayers(), 'landcover')
+  let layers = insertBefore(baseLayers, getGeographyFillLayers(), 'landcover')
+  layers = insertBefore(layers, getGeographyLineLayers(), 'address_label')
   layers = insertBefore(layers, getBuildingLayers(), 'buildings')
   return layers
 }
