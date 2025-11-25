@@ -9,7 +9,6 @@ import { LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
-import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 
 const ZOOM_THRESHOLD = 12
 
@@ -20,7 +19,6 @@ const BuildingPoints = () => {
   const colormap = useColormap()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const { highlightBuildingAtLocation } = useBuildingUtils()
-  const { fetchAddress } = useReverseGeocode()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
@@ -69,10 +67,7 @@ const BuildingPoints = () => {
 
         const handleMoveEnd = () => {
           if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-            const success = highlightBuildingAtLocation(lng, lat)
-            if (success) {
-              fetchAddress(lat, lng)
-            }
+            highlightBuildingAtLocation(lng, lat)
           } else {
             const handleSourceData = (e: MapSourceDataEvent) => {
               if (
@@ -80,10 +75,7 @@ const BuildingPoints = () => {
                 e.isSourceLoaded
               ) {
                 map.off('sourcedata', handleSourceData)
-                const success = highlightBuildingAtLocation(lng, lat)
-                if (success) {
-                  fetchAddress(lat, lng)
-                }
+                highlightBuildingAtLocation(lng, lat)
               }
             }
             map.on('sourcedata', handleSourceData)
@@ -98,21 +90,37 @@ const BuildingPoints = () => {
         })
       }
     },
-    [map, highlightBuildingAtLocation, fetchAddress],
+    [map, highlightBuildingAtLocation],
   )
 
   useEffect(() => {
     if (!map) return
 
     map.on('click', LAYERS.buildingPoints.layerIds.circle, handlePointClick)
-    map.on('mouseenter', LAYERS.buildingPoints.layerIds.circle, handlePointEnter)
-    map.on('mouseleave', LAYERS.buildingPoints.layerIds.circle, handlePointLeave)
+    map.on(
+      'mouseenter',
+      LAYERS.buildingPoints.layerIds.circle,
+      handlePointEnter,
+    )
+    map.on(
+      'mouseleave',
+      LAYERS.buildingPoints.layerIds.circle,
+      handlePointLeave,
+    )
 
     return () => {
       if (!map) return
       map.off('click', LAYERS.buildingPoints.layerIds.circle, handlePointClick)
-      map.off('mouseenter', LAYERS.buildingPoints.layerIds.circle, handlePointEnter)
-      map.off('mouseleave', LAYERS.buildingPoints.layerIds.circle, handlePointLeave)
+      map.off(
+        'mouseenter',
+        LAYERS.buildingPoints.layerIds.circle,
+        handlePointEnter,
+      )
+      map.off(
+        'mouseleave',
+        LAYERS.buildingPoints.layerIds.circle,
+        handlePointLeave,
+      )
     }
   }, [map, handlePointClick, handlePointEnter, handlePointLeave])
 
