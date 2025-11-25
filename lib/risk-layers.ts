@@ -1,4 +1,4 @@
-// seperated risk layer source and layer creation so that requests
+// separated risk layer source and layer creation so that requests
 // for these important layers go out before eg hillshade tile
 // requests during app start
 
