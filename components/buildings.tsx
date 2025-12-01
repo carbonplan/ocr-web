@@ -1,35 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
-import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
-import { useReverseGeocode } from '@/hooks/useReverseGeocode'
-import { DATA_URLS, LAYERS } from '@/lib/config'
+import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
-import { updateSelectedBuildingUrl } from '@/lib/url-utils'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const selectedBuilding = useStore((state) => state.selectedBuilding) // todo clear state
-  const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
-  const queryGeographiesAtPoint = useStore(
-    (state) => state.queryGeographiesAtPoint,
-  )
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-  const { fetchAddress } = useReverseGeocode()
+  const { selectBuilding } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
-  const selectedBuildingRef = useRef<Building | null>(null)
   const colormap = useColormap()
-
-  useEffect(() => {
-    selectedBuildingRef.current = selectedBuilding
-  }, [selectedBuilding])
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     if (!colormap?.length) return ['literal', 'transparent']
@@ -190,7 +178,6 @@ const Buildings = () => {
       })
 
       if (features.length > 0) {
-        setSelectedBuilding(features[0] as Building)
         if (hoveredFeatureId.current !== null) {
           map.setFeatureState(
             {
@@ -204,135 +191,16 @@ const Buildings = () => {
         }
 
         const feature = features[0]
-        const center = centerOfMass(feature)
-        const [lng, lat] = center.geometry.coordinates
-
-        queryGeographiesAtPoint(lng, lat)
-
-        if (feature.id) {
-          map.removeFeatureState({
-            source: LAYERS.buildings.sourceId,
-            sourceLayer: LAYERS.buildings.layerName,
-          })
-
-          map.setFeatureState(
-            {
-              source: LAYERS.buildings.sourceId,
-              id: feature.id,
-              sourceLayer: LAYERS.buildings.layerName,
-            },
-            { selected: true },
-          )
-
-          map.easeTo({
-            center: [lng, lat],
-          })
-          updateSelectedBuildingUrl({ lat, lng })
-          fetchAddress(lat, lng)
-        }
-      } else if (selectedBuildingRef.current) {
+        selectBuilding(feature as Building)
+      } else {
         clearSelections()
-        map.removeFeatureState({
-          source: LAYERS.buildings.sourceId,
-          sourceLayer: LAYERS.buildings.layerName,
-        })
       }
     },
-    [
-      map,
-      setSelectedBuilding,
-      clearSelections,
-      queryGeographiesAtPoint,
-      fetchAddress,
-    ],
+    [map, selectBuilding, clearSelections],
   )
 
   useEffect(() => {
-    // remove highlight when building is deselected outside of map context
-    if (
-      !selectedBuilding &&
-      map?.isStyleLoaded() &&
-      map.getSource(LAYERS.buildings.sourceId)
-    ) {
-      map.removeFeatureState({
-        source: LAYERS.buildings.sourceId,
-        sourceLayer: LAYERS.buildings.layerName,
-      })
-    }
-  }, [selectedBuilding, map])
-
-  useEffect(() => {
-    // initialize layers and listeners
     if (!map) return
-
-    const initializeLayers = () => {
-      if (!map.getSource(LAYERS.buildings.sourceId)) {
-        map.addSource(LAYERS.buildings.sourceId, {
-          type: 'vector',
-          url: `pmtiles://${DATA_URLS.vector.buildings}`,
-          minzoom: 6,
-        })
-      }
-
-      if (!map.getLayer(LAYERS.buildings.layerIds.fill)) {
-        map.addLayer(
-          {
-            id: LAYERS.buildings.layerIds.fill,
-            type: 'fill',
-            source: LAYERS.buildings.sourceId,
-            'source-layer': LAYERS.buildings.layerName,
-            paint: {
-              'fill-color': colorExpression,
-            },
-          },
-          'buildings',
-        )
-      }
-
-      if (!map.getLayer(LAYERS.buildings.layerIds.line)) {
-        map.addLayer(
-          {
-            id: LAYERS.buildings.layerIds.line,
-            type: 'line',
-            source: LAYERS.buildings.sourceId,
-            'source-layer': LAYERS.buildings.layerName,
-            paint: {
-              'line-color': lineColorExpression,
-              'line-width': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                12,
-                [
-                  'case',
-                  ['boolean', ['feature-state', 'selected'], false],
-                  2,
-                  ['boolean', ['feature-state', 'hovered'], false],
-                  1,
-                  0,
-                ],
-                14,
-                [
-                  'case',
-                  ['boolean', ['feature-state', 'selected'], false],
-                  2,
-                  ['boolean', ['feature-state', 'hovered'], false],
-                  1,
-                  0.3,
-                ],
-              ],
-            },
-          },
-          'buildings',
-        )
-      }
-    }
-
-    if (map.isStyleLoaded()) {
-      initializeLayers()
-    } else {
-      map.on('load', initializeLayers)
-    }
 
     map.on('click', handleMapClick)
     map.on('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
@@ -340,40 +208,23 @@ const Buildings = () => {
     map.on('mouseleave', LAYERS.buildings.layerIds.fill, handleBuildingLeave)
 
     return () => {
-      try {
-        if (!map) return
-
-        map.off('click', handleMapClick)
-        map.off(
-          'mouseenter',
-          LAYERS.buildings.layerIds.fill,
-          handleBuildingEnter,
-        )
-        map.off(
-          'mousemove',
-          LAYERS.buildings.layerIds.fill,
-          handleBuildingMouseMove,
-        )
-        map.off(
-          'mouseleave',
-          LAYERS.buildings.layerIds.fill,
-          handleBuildingLeave,
-        )
-
-        if (map.getLayer(LAYERS.buildings.layerIds.fill)) {
-          map.removeLayer(LAYERS.buildings.layerIds.fill)
-        }
-        if (map.getLayer(LAYERS.buildings.layerIds.line)) {
-          map.removeLayer(LAYERS.buildings.layerIds.line)
-        }
-        if (map.getSource(LAYERS.buildings.sourceId)) {
-          map.removeSource(LAYERS.buildings.sourceId)
-        }
-      } catch (error) {
-        console.error('Error removing buildings layers:', error)
-      }
+      if (!map) return
+      map.off('click', handleMapClick)
+      map.off('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
+      map.off(
+        'mousemove',
+        LAYERS.buildings.layerIds.fill,
+        handleBuildingMouseMove,
+      )
+      map.off('mouseleave', LAYERS.buildings.layerIds.fill, handleBuildingLeave)
     }
-  }, [map])
+  }, [
+    map,
+    handleMapClick,
+    handleBuildingEnter,
+    handleBuildingMouseMove,
+    handleBuildingLeave,
+  ])
 
   useEffect(() => {
     // update color expression when variable selection changes

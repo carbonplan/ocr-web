@@ -2,7 +2,6 @@ import { useCallback } from 'react'
 import { useStore } from '@/lib/store'
 
 export const useReverseGeocode = () => {
-  const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const setReverseGeocodeLoading = useStore(
     (state) => state.setReverseGeocodeLoading,
   )
@@ -16,7 +15,6 @@ export const useReverseGeocode = () => {
         )
         if (response.ok) {
           const location = await response.json()
-          setSelectedLocation(location)
           return location
         }
       } catch (error) {
@@ -24,8 +22,9 @@ export const useReverseGeocode = () => {
       } finally {
         setReverseGeocodeLoading(false)
       }
+      return null
     },
-    [setSelectedLocation, setReverseGeocodeLoading],
+    [setReverseGeocodeLoading],
   )
 
   return { fetchAddress }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import { MapSourceDataEvent } from 'maplibre-gl'
@@ -151,24 +151,13 @@ const Geocode = () => {
     }
   }
 
-  const clearSelectedLocation = useCallback(() => {
-    clearSelections()
-    if (map) {
-      map.removeFeatureState({
-        source: LAYERS.buildings.sourceId,
-        sourceLayer: LAYERS.buildings.layerName,
-      })
-    }
-  }, [clearSelections, map])
-
   const handleSuggestionSelect = async (suggestion: Suggestion) => {
     try {
-      clearSelectedLocation()
+      clearSelections()
       const locationResponse = await fetch(
         `/api/geocode/lookup?id=${suggestion.id}`,
       )
       const location = await locationResponse.json()
-      setSelectedLocation(location)
 
       if (map && location) {
         map.easeTo({
@@ -180,10 +169,12 @@ const Geocode = () => {
         if (location.address.houseNumber) {
           const handleMoveEnd = () => {
             if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-              highlightBuildingAtLocation(
+              const success = highlightBuildingAtLocation(
                 location.position.lng,
                 location.position.lat,
+                { easeTo: false, fetchAddress: false },
               )
+              if (success) setSelectedLocation(location)
             } else {
               const handleSourceData = (e: MapSourceDataEvent) => {
                 if (
@@ -191,10 +182,12 @@ const Geocode = () => {
                   e.isSourceLoaded
                 ) {
                   map.off('sourcedata', handleSourceData)
-                  highlightBuildingAtLocation(
+                  const success = highlightBuildingAtLocation(
                     location.position.lng,
                     location.position.lat,
+                    { easeTo: false, fetchAddress: false },
                   )
+                  if (success) setSelectedLocation(location)
                 }
               }
               map.on('sourcedata', handleSourceData)
