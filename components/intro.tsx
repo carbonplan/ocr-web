@@ -27,13 +27,6 @@ const Intro = () => {
           download the data
         </Link>{' '}
         for more details.
-        <Box sx={{ mt: 3 }}>
-          By viewing Open Climate Risk, you agree to CarbonPlan’s{' '}
-          <Link href='https://carbonplan.org/terms'>Terms of Use</Link> and{' '}
-          <Link href='https://carbonplan.org/privacy'>Privacy Policy</Link>, and
-          that it is in a beta state and may not be used for decision-making
-          purposes, cited, or otherwise shared.
-        </Box>
       </Box>
     </>
   )
