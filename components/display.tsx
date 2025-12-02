@@ -24,6 +24,8 @@ const Display = () => {
         </Column>
         <Column start={2} width={[2, 2, 3, 3]}>
           <Filter
+            role='group'
+            aria-label='Select geography layers'
             variant='filter'
             values={geographyLayerVisibility}
             labels={{

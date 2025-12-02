@@ -139,6 +139,8 @@ const RegionalRisk = () => {
     <>
       <Box variant='sectionHeading'>Risk in the region</Box>
       <Filter
+        role='group'
+        aria-label='Select geographic level'
         variant='filter'
         values={{
           county: selectedGeographyLevel === 'county',

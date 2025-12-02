@@ -37,6 +37,8 @@ const ClimateSelector = () => {
           sx={{ justifyContent: 'flex-start', gap: 3 }}
         >
           <Filter
+            role='group'
+            aria-label='Select climate period'
             variant='filter'
             values={{
               current: timePeriod === 'current',
