@@ -17,7 +17,9 @@ const Display = () => {
 
   return (
     <>
-      <Box variant='sectionHeading'>Display</Box>
+      <Box as='h2' variant='sectionHeading'>
+        Display
+      </Box>
       <Row sx={{ my: 3 }} columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label'>
           Geography

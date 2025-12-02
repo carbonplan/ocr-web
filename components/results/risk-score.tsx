@@ -41,7 +41,7 @@ const RiskScore = () => {
 
   return (
     <>
-      <Box variant='sectionHeading' sx={{ mt: 3, mb: 2 }}>
+      <Box as='h2' variant='sectionHeading' sx={{ mt: 3, mb: 2 }}>
         Risk score
       </Box>
       <Flex sx={{ gap: 3, mb: 3 }}>

@@ -143,7 +143,9 @@ const OtherFactors = () => {
 
   return (
     <Box sx={{ mt: '52px' }}>
-      <Box variant='sectionHeading'>Other factors</Box>
+      <Box as='h2' variant='sectionHeading'>
+        Other factors
+      </Box>
       <Box variant='description'>
         The risk described above does not account for several highly important
         factors, which could influence the actual fire risk of a given location.
