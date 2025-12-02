@@ -10,6 +10,7 @@ interface TooltipProps {
   setExpanded: (value: boolean) => void
   sx?: ThemeUIStyleObject
   'aria-controls'?: string
+  'aria-label'?: string
 }
 export const Tooltip = ({
   expanded,
@@ -17,6 +18,7 @@ export const Tooltip = ({
   sx,
   disabled,
   'aria-controls': ariaControls,
+  'aria-label': ariaLabel = 'More information',
 }: TooltipProps) => {
   return (
     <IconButton
@@ -24,7 +26,7 @@ export const Tooltip = ({
       disabled={disabled}
       aria-expanded={expanded}
       aria-controls={ariaControls}
-      aria-label='More information'
+      aria-label={ariaLabel}
       sx={{
         cursor: 'pointer',
         height: '16px',
