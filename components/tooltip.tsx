@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useId } from 'react'
 import AnimateHeight from 'react-animate-height'
 import { IconButton, Box, Flex, ThemeUIStyleObject } from 'theme-ui'
 //@ts-expect-error - carbonplan icons types not available
@@ -9,20 +9,22 @@ interface TooltipProps {
   disabled?: boolean
   setExpanded: (value: boolean) => void
   sx?: ThemeUIStyleObject
+  'aria-controls'?: string
 }
 export const Tooltip = ({
   expanded,
   setExpanded,
   sx,
   disabled,
+  'aria-controls': ariaControls,
 }: TooltipProps) => {
   return (
     <IconButton
       onClick={() => setExpanded(!expanded)}
       disabled={disabled}
-      role='checkbox'
-      aria-checked={expanded}
-      aria-label='Information'
+      aria-expanded={expanded}
+      aria-controls={ariaControls}
+      aria-label='More information'
       sx={{
         cursor: 'pointer',
         height: '16px',
@@ -45,6 +47,7 @@ export const Tooltip = ({
           opacity: disabled ? 0.5 : 1,
           transition: '0.1s',
         }}
+        aria-hidden='true'
       />
     </IconButton>
   )
@@ -72,6 +75,8 @@ const TooltipWrapper = ({
   tooltipSx,
 }: TooltipWrapperProps) => {
   const [expanded, setExpanded] = useState(false)
+  const id = useId()
+
   return (
     <>
       <Flex
@@ -86,6 +91,7 @@ const TooltipWrapper = ({
           disabled={disabled}
           expanded={expanded}
           setExpanded={setExpanded}
+          aria-controls={id}
           sx={{ mt: mt, flexShrink: 0, ...buttonSx }}
         />
       </Flex>
@@ -94,7 +100,10 @@ const TooltipWrapper = ({
         height={expanded ? 'auto' : 0}
         easing={'linear'}
       >
-        <Box sx={{ my: 1, fontSize: [1, 1, 1, 2], color, ...tooltipSx }}>
+        <Box
+          id={id}
+          sx={{ my: 1, fontSize: [1, 1, 1, 2], color, ...tooltipSx }}
+        >
           {tooltip}
         </Box>
       </AnimateHeight>
