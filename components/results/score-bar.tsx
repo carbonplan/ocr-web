@@ -28,6 +28,8 @@ const ScoreBar = ({
   return (
     <>
       <Flex
+        role='img'
+        aria-label={`Risk score scale from 0 to 10${score ? `, selected building has risk score ${score} (${bins[Number(score) - 1]}% to ${bins[Number(score)]}%)` : ''}`}
         sx={{
           gap: '2px',
           alignItems: 'flex-start',

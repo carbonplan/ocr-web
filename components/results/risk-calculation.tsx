@@ -9,7 +9,7 @@ import {
   getConditionalRiskUsfs,
   getRiskScore,
 } from '@/lib/risk-utils'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AnimateHeight from 'react-animate-height'
 
 import { useStore } from '@/lib/store'
@@ -23,6 +23,8 @@ const TableCell = ({
   expanded,
   toFixed,
   setExpanded,
+  tooltipId,
+  'aria-label': ariaLabel,
 }: {
   value: number | null
   expanded: boolean
@@ -30,6 +32,8 @@ const TableCell = ({
   operator?: string
   unit?: string
   toFixed?: number
+  tooltipId?: string
+  'aria-label'?: string
 }) => {
   return (
     <Box sx={{ position: 'relative', mb: '2px' }}>
@@ -51,11 +55,14 @@ const TableCell = ({
         <Tooltip
           expanded={expanded}
           setExpanded={setExpanded}
+          aria-label={ariaLabel}
+          aria-controls={expanded ? tooltipId : undefined}
           sx={{ mb: '-4px' }}
         />
       </Flex>
       {operator && (
         <Box
+          aria-hidden='true'
           sx={{
             position: 'absolute',
             left: ['80%', '60%', '75%', '70%'],
@@ -101,6 +108,7 @@ const sx = {
 
 const RiskCalculation = () => {
   const [expanded, setExpanded] = useState<'rps' | 'bp' | 'crps' | null>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
   const risk = useStore((state) =>
     getRiskScore(state.selectedBuilding, state.timePeriod),
   )
@@ -118,6 +126,12 @@ const RiskCalculation = () => {
       expanded === 'bp' ? TOOLTIP[expanded][timePeriod] : TOOLTIP[expanded]
   }
 
+  useEffect(() => {
+    if (expanded && tooltipRef.current) {
+      tooltipRef.current.focus()
+    }
+  }, [expanded])
+
   return (
     <>
       <Box sx={{ mt: 2 }}>
@@ -126,83 +140,127 @@ const RiskCalculation = () => {
         equation:
       </Box>
 
-      <Row columns={3} sx={{ ...sx.row, mt: 2, py: 1 }}>
-        <Column start={1} width={1}>
-          <Box key='rps' sx={sx.tableHead}>
-            Risk{' '}
-            <Box
-              as='br'
-              sx={{ display: ['block', 'block', 'block', 'none'] }}
-            />{' '}
-            of loss
-          </Box>
-        </Column>
-        <Column start={2} width={1}>
-          <Box key='bp' sx={sx.tableHead}>
-            Burn
-            <Box
-              as='br'
-              sx={{ display: ['block', 'block', 'block', 'none'] }}
-            />{' '}
-            probability
-          </Box>
-        </Column>
-        <Column start={3} width={1}>
-          <Box key='bp' sx={sx.tableHead}>
-            Conditional
-            <Box
-              as='br'
-              sx={{ display: ['block', 'block', 'block', 'none'] }}
-            />{' '}
-            risk
-          </Box>
-        </Column>
-      </Row>
-      <Row columns={3} sx={{ ...sx.row, py: 2 }}>
-        <Column start={1} width={1}>
-          <TableCell
-            key='rps'
-            expanded={expanded === 'rps'}
-            setExpanded={(value: boolean) => setExpanded(value ? 'rps' : null)}
-            value={risk}
-            operator='='
-          />
-        </Column>
-        <Column start={2} width={1}>
-          <TableCell
-            key='bp'
-            expanded={expanded === 'bp'}
-            setExpanded={(value: boolean) => setExpanded(value ? 'bp' : null)}
-            value={bp}
-            operator='x'
-            unit='#'
-            toFixed={3}
-          />
-        </Column>
-        <Column start={3} width={1}>
-          <TableCell
-            key='crps'
-            expanded={expanded === 'crps'}
-            setExpanded={(value: boolean) => setExpanded(value ? 'crps' : null)}
-            value={conditionalRisk}
-            unit='%'
-            toFixed={1}
-          />
-        </Column>
-        <Column
-          start={1}
-          width={3}
-          sx={{ fontSize: [1, 1, 1, 2], color: 'secondary' }}
-        >
-          <AnimateHeight
-            duration={100}
-            height={expanded ? 'auto' : 0}
-            easing={'linear'}
+      <Box sx={{ variant: 'srOnly' }}>
+        Risk of loss (%) equals burn probability (#) times conditional risk (%).
+        Each component has an information button with additional details.
+      </Box>
+
+      <Box>
+        <Row columns={3} sx={{ ...sx.row, mt: 2, py: 1 }}>
+          <Column start={1} width={1}>
+            <Box key='rps' sx={sx.tableHead} id='risk-of-loss-label'>
+              Risk{' '}
+              <Box
+                as='br'
+                aria-hidden='true'
+                sx={{ display: ['block', 'block', 'block', 'none'] }}
+              />{' '}
+              of loss
+            </Box>
+          </Column>
+          <Column start={2} width={1}>
+            <Box key='bp' sx={sx.tableHead} id='burn-probability-label'>
+              Burn
+              <Box
+                as='br'
+                aria-hidden='true'
+                sx={{ display: ['block', 'block', 'block', 'none'] }}
+              />{' '}
+              probability
+            </Box>
+          </Column>
+          <Column start={3} width={1}>
+            <Box key='bp' sx={sx.tableHead} id='conditional-risk-label'>
+              Conditional
+              <Box
+                as='br'
+                aria-hidden='true'
+                sx={{ display: ['block', 'block', 'block', 'none'] }}
+              />{' '}
+              risk
+            </Box>
+          </Column>
+        </Row>
+        <Row columns={3} sx={{ ...sx.row, py: 2 }}>
+          <Column
+            start={1}
+            width={1}
+            as='section'
+            aria-labelledby='risk-of-loss-label'
           >
-            <Box sx={{ pt: 2 }}>{tooltip}</Box>
-          </AnimateHeight>
-        </Column>
-      </Row>
+            <TableCell
+              key='rps'
+              expanded={expanded === 'rps'}
+              setExpanded={(value: boolean) =>
+                setExpanded(value ? 'rps' : null)
+              }
+              value={risk}
+              operator='='
+              tooltipId='risk-calculation-tooltip'
+              aria-label='More information about risk of loss'
+            />
+          </Column>
+          <Column
+            start={2}
+            width={1}
+            as='section'
+            aria-labelledby='burn-probability-label'
+          >
+            <TableCell
+              key='bp'
+              expanded={expanded === 'bp'}
+              setExpanded={(value: boolean) => setExpanded(value ? 'bp' : null)}
+              value={bp}
+              operator='x'
+              unit='#'
+              toFixed={3}
+              tooltipId='risk-calculation-tooltip'
+              aria-label='More information about burn probability'
+            />
+          </Column>
+          <Column
+            start={3}
+            width={1}
+            as='section'
+            aria-labelledby='conditional-risk-label'
+          >
+            <TableCell
+              key='crps'
+              expanded={expanded === 'crps'}
+              setExpanded={(value: boolean) =>
+                setExpanded(value ? 'crps' : null)
+              }
+              value={conditionalRisk}
+              unit='%'
+              toFixed={1}
+              tooltipId='risk-calculation-tooltip'
+              aria-label='More information about conditional risk'
+            />
+          </Column>
+        </Row>
+        <Box>
+          <Column
+            start={1}
+            width={3}
+            sx={{ fontSize: [1, 1, 1, 2], color: 'secondary' }}
+          >
+            <AnimateHeight
+              duration={100}
+              height={expanded ? 'auto' : 0}
+              easing={'linear'}
+            >
+              <Box
+                id='risk-calculation-tooltip'
+                ref={tooltipRef}
+                tabIndex={-1}
+                sx={{ pt: 2, outline: 'none' }}
+              >
+                {tooltip}
+              </Box>
+            </AnimateHeight>
+          </Column>
+        </Box>
+      </Box>
     </>
   )
 }

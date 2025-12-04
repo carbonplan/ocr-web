@@ -54,10 +54,23 @@ const Histogram = ({
   sx?: ThemeUIStyleObject
 }) => {
   const maxCount: number = useMemo(() => Math.max(...data), [data])
+  const totalBuildings = useMemo(() => data.reduce((a, b) => a + b, 0), [data])
+  const screenReaderDescription = useMemo(() => {
+    const distribution = data
+      .map((count, i) => {
+        if (count === 0) return null
+        const percentage = ((count / totalBuildings) * 100).toFixed(1)
+        return `Risk score ${i}: ${formatBuildingCount(count)} buildings (${percentage}%)`
+      })
+      .filter(Boolean)
+      .join('. ')
+    return `Distribution of ${formatBuildingCount(totalBuildings)} buildings across risk scores in ${region}. ${distribution}${score ? `. Selected building has risk score ${score}.` : ''}`
+  }, [data, region, score, totalBuildings])
 
   return (
     <Box sx={sx}>
       <Box
+        as='h3'
         sx={{
           fontFamily: 'mono',
           letterSpacing: 'mono',
@@ -67,7 +80,11 @@ const Histogram = ({
       >
         Risk scores in {region}
       </Box>
-      <Box sx={{ height: '175px', pb: '30px' }}>
+      <Box
+        sx={{ height: '175px', pb: '30px' }}
+        role='img'
+        aria-label={screenReaderDescription}
+      >
         <Chart
           x={[0, 11]}
           y={[1, maxCount * 1.1]}

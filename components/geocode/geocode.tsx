@@ -26,6 +26,10 @@ const Geocode = () => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const listboxId = 'address-suggestions'
+  const errorId = 'search-error'
+
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const map = useStore((state) => state.map)
@@ -254,6 +258,16 @@ const Geocode = () => {
             <Flex>
               <Input
                 ref={inputRef}
+                id={'address-search'}
+                role='combobox'
+                aria-expanded={isEditing && suggestions.length > 0}
+                aria-haspopup='listbox'
+                aria-controls={listboxId}
+                aria-activedescendant={
+                  selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined
+                }
+                aria-describedby={errorMessage ? errorId : undefined}
+                aria-label='Search for an address'
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setSearchQuery(e.target.value)
@@ -311,6 +325,8 @@ const Geocode = () => {
           selectedIndex={selectedIndex}
           errorMessage={errorMessage}
           onSelectSuggestion={handleSuggestionSelect}
+          listboxId={listboxId}
+          errorId={errorId}
           ref={menuRef}
         />
       )}

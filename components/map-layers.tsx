@@ -37,7 +37,7 @@ const LayersSelector = () => {
         alignItems: 'center',
         justifyContent: expanded ? 'flex-end' : 'center',
         minHeight: '24px',
-        flexDirection: ['column-reverse', 'column-reverse', 'column', 'column'],
+        flexDirection: ['column', 'column', 'column-reverse', 'column-reverse'],
         borderRadius: '12px',
         backgroundColor: 'hinted',
         px: 2,
@@ -46,48 +46,6 @@ const LayersSelector = () => {
         borderColor: 'secondary',
       }}
     >
-      {expanded && (
-        <Flex
-          sx={{
-            flexDirection: 'column',
-            gap: 2,
-            mt: [0, 0, 1, 1],
-            mb: [1, 1, 0, 0],
-          }}
-        >
-          <Flex sx={{ gap: 2 }} as='label'>
-            <EyeCheckbox
-              checked={riskRaster}
-              onChange={(e) => setRiskRaster(e.target.checked)}
-            />
-            <Box
-              sx={{
-                ...sx.text,
-                ...sx.label,
-                color: riskRaster ? 'primary' : 'secondary',
-              }}
-            >
-              Raw data
-            </Box>
-          </Flex>
-          <Flex sx={{ gap: 2 }} as='label'>
-            <EyeCheckbox
-              checked={satellite}
-              onChange={(e) => setSatellite(e.target.checked)}
-            />
-            <Box
-              sx={{
-                ...sx.text,
-                ...sx.label,
-                color: satellite ? 'primary' : 'secondary',
-              }}
-            >
-              Satellite
-            </Box>
-          </Flex>
-        </Flex>
-      )}
-
       <Flex
         sx={{
           width: 'fit-content',
@@ -109,6 +67,50 @@ const LayersSelector = () => {
           sx={{ stroke: 'primary', width: '10px', p: 0 }}
         />
       </Flex>
+
+      {expanded && (
+        <Flex
+          sx={{
+            flexDirection: 'column',
+            gap: 2,
+            mt: [0, 0, 1, 1],
+            mb: [1, 1, 0, 0],
+          }}
+        >
+          <Flex sx={{ gap: 2 }} as='label'>
+            <EyeCheckbox
+              checked={riskRaster}
+              onChange={(e) => setRiskRaster(e.target.checked)}
+              aria-label="Toggle risk raster visibility"
+            />
+            <Box
+              sx={{
+                ...sx.text,
+                ...sx.label,
+                color: riskRaster ? 'primary' : 'secondary',
+              }}
+            >
+              Raw data
+            </Box>
+          </Flex>
+          <Flex sx={{ gap: 2 }} as='label'>
+            <EyeCheckbox
+              checked={satellite}
+              onChange={(e) => setSatellite(e.target.checked)}
+              aria-label="Toggle satellite imagery visibility"
+            />
+            <Box
+              sx={{
+                ...sx.text,
+                ...sx.label,
+                color: satellite ? 'primary' : 'secondary',
+              }}
+            >
+              Satellite
+            </Box>
+          </Flex>
+        </Flex>
+      )}
     </Flex>
   )
 }

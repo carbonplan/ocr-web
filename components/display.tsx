@@ -17,13 +17,17 @@ const Display = () => {
 
   return (
     <>
-      <Box variant='sectionHeading'>Display</Box>
+      <Box as='h2' variant='sectionHeading'>
+        Display
+      </Box>
       <Row sx={{ my: 3 }} columns={[3, 3, 4, 4]}>
         <Column start={1} width={1} variant='label'>
           Geography
         </Column>
         <Column start={2} width={[2, 2, 3, 3]}>
           <Filter
+            role='group'
+            aria-label='Select geography layers'
             variant='filter'
             values={geographyLayerVisibility}
             labels={{

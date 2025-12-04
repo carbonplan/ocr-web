@@ -137,8 +137,12 @@ const RegionalRisk = () => {
 
   return (
     <>
-      <Box variant='sectionHeading'>Risk in the region</Box>
+      <Box as='h2' variant='sectionHeading'>
+        Risk in the region
+      </Box>
       <Filter
+        role='group'
+        aria-label='Select geographic level'
         variant='filter'
         values={{
           county: selectedGeographyLevel === 'county',
@@ -220,6 +224,11 @@ const RegionalRisk = () => {
           suffix={showOnMap ? <X /> : <RotatingArrow />}
           onClick={handleShowRegionChange}
           disabled={!activeGeography}
+          aria-label={
+            showOnMap
+              ? 'Hide selected region on map'
+              : 'Show selected region on map'
+          }
           sx={{
             '&:disabled': {
               cursor: 'default',

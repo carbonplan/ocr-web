@@ -12,15 +12,19 @@ interface Props {
   selectedIndex: number
   errorMessage: string
   onSelectSuggestion: (suggestion: Suggestion) => void
+  listboxId: string
+  errorId: string
 }
 
 type Ref = HTMLDivElement
 const Menu = forwardRef<Ref, Props>(
-  ({ suggestions, selectedIndex, errorMessage, onSelectSuggestion }, ref) => {
+  ({ suggestions, selectedIndex, errorMessage, onSelectSuggestion, listboxId, errorId }, ref) => {
     return (
       <Box ref={ref}>
         {(suggestions.length > 0 || errorMessage) && (
           <Row
+            id={listboxId}
+            role="listbox"
             columns={4}
             sx={{
               position: 'absolute',
@@ -39,6 +43,7 @@ const Menu = forwardRef<Ref, Props>(
               {suggestions.map((suggestion, index) => (
                 <Box
                   key={suggestion.id}
+                  id={`suggestion-${index}`}
                   role='option'
                   aria-selected={index === selectedIndex}
                   aria-label={formatAddress(suggestion.address)}
@@ -65,6 +70,7 @@ const Menu = forwardRef<Ref, Props>(
 
               {errorMessage && (
                 <Box
+                  id={errorId}
                   aria-live='polite'
                   role='status'
                   sx={{

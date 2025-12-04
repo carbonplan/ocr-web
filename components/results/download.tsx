@@ -15,11 +15,13 @@ const DownloadButton = ({
   loading,
   disabled,
   onClick,
+  ariaLabel,
 }: {
   label: string
   loading: boolean
   disabled?: boolean
   onClick: () => void
+  ariaLabel?: string
 }) => {
   return (
     <Button
@@ -27,6 +29,7 @@ const DownloadButton = ({
       suffix={loading ? <Spinner sx={{ mt: -1 }} /> : <Down sx={{ mt: -1 }} />}
       disabled={loading || disabled}
       onClick={onClick}
+      aria-label={ariaLabel || label}
       sx={{
         color: loading ? 'secondary' : disabled ? 'muted' : 'secondary',
         '&:hover': {
@@ -111,18 +114,20 @@ export const Download = () => {
   }
 
   return (
-    <Flex sx={{ gap: 3 }}>
+    <Flex sx={{ gap: 3 }} role='group' aria-label='Download regional data'>
       <DownloadButton
         label='CSV'
         loading={loading.csv}
         disabled={disabled}
         onClick={() => handleClick('csv')}
+        ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as CSV`}
       />
       <DownloadButton
         label='GeoPackage'
         loading={loading.gpkg}
         disabled={disabled}
         onClick={() => handleClick('gpkg')}
+        ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as GeoPackage`}
       />
     </Flex>
   )

@@ -34,6 +34,14 @@ const customVariants = {
       },
     },
   },
+
+  srOnly: {
+    position: 'absolute',
+    left: '-10000px',
+    width: '1px',
+    height: '1px',
+    overflow: 'hidden',
+  },
 }
 
 const theme = merge(baseTheme, customVariants as Partial<typeof baseTheme>)
