@@ -80,8 +80,10 @@ Our release includes three main components — an interactive web tool, the data
     analyses.
   </TableCaption>
 </Figure>
-## How we built our wildfire model We developed the Open Climate Risk (OCR) wildfire
-model to be reproducible and reliant on only free, publicly available input data.
+
+## How we built our wildfire model
+
+We developed the Open Climate Risk (OCR) wildfire model to be reproducible and reliant on only free, publicly available input data.
 Our fire model [methods](/research/climate-risk-fire-methods) extends previous work
 by the United States Forest Service (USFS), incorporating a new technique for estimating
 wildfire risk in communities based on nearby burn probability data. The fire model
