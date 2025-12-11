@@ -2,18 +2,16 @@
 import { api } from '@carbonplan/auth'
 
 const secret = process.env.JWT_SECRET
-const USER_COUNT = 22
+const USERS = [7, 22, 23]
 const users = [
   {
     username: 'admin',
     password: process.env.USER_PASSWORD,
   },
-  ...Array(USER_COUNT)
-    .fill(null)
-    .map((d, i) => ({
-      username: `user_${i + 1}`,
-      password: process.env[`USER_PASSWORD_${i + 1}`],
-    })),
+  ...USERS.map((id) => ({
+    username: `user_${id}`,
+    password: process.env[`USER_PASSWORD_${id}`],
+  })),
 ]
 export const USERNAMES = users.map((u) => u.username)
 
