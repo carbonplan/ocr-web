@@ -2,7 +2,7 @@
 import { api } from '@carbonplan/auth'
 
 const secret = process.env.JWT_SECRET
-const USERS = [7, 22, 23]
+const USERS = [7, 22, 23, 24]
 const users = [
   {
     username: 'admin',
