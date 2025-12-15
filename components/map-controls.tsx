@@ -6,6 +6,7 @@ import { useStore } from '@/lib/store'
 export const useMapControlStyles = (): ThemeUIStyleObject => {
   const { theme } = useThemeUI()
   const primary = get(theme, 'rawColors.primary')
+  const secondary = get(theme, 'rawColors.secondary')
 
   return {
     '& .maplibregl-control-container': {
@@ -59,8 +60,14 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
         '& .maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon': {
           backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='${encodeURIComponent(primary)}' stroke-width='2' stroke-linecap='round' fill='none' d='M10 6v8M6 10h8'/%3E%3C/svg%3E")`,
         },
+        '& .maplibregl-ctrl-zoom-in:hover .maplibregl-ctrl-icon': {
+          backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='2' stroke-linecap='round' fill='none' d='M10 6v8M6 10h8'/%3E%3C/svg%3E")`,
+        },
         '& .maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon': {
           backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='${encodeURIComponent(primary)}' stroke-width='2' stroke-linecap='round' fill='none' d='M6 10h8'/%3E%3C/svg%3E")`,
+        },
+        '& .maplibregl-ctrl-zoom-out:hover .maplibregl-ctrl-icon': {
+          backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='2' stroke-linecap='round' fill='none' d='M6 10h8'/%3E%3C/svg%3E")`,
         },
       },
     },
