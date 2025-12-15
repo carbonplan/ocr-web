@@ -47,12 +47,8 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
-          transition: 'background-color 0.15s',
           '&:last-child': {
             borderBottom: 'none',
-          },
-          '&:hover': {
-            bg: 'secondary',
           },
           '& .maplibregl-ctrl-icon': {
             backgroundSize: '20px',
