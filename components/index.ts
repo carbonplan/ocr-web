@@ -1,9 +1,9 @@
 export { default as Geocode } from './geocode'
 export { default as Map } from './map'
 export {
-  default as MapAttribution,
+  default as MapControls,
   useMapControlStyles,
-} from './map-attribution'
+} from './map-controls'
 export { default as Buildings } from './buildings'
 export { default as BuildingPoints } from './building-points'
 export { default as SelectionMarker } from './selection-marker'
