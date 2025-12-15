@@ -56,6 +56,12 @@ const BuildingPoints = () => {
     async (e: MapMouseEvent) => {
       if (!map || map.getZoom() < ZOOM_THRESHOLD) return
 
+      // Check if a building was also clicked - if so, prefer building click and skip point click
+      const buildingFeatures = map.queryRenderedFeatures(e.point, {
+        layers: [LAYERS.buildings.layerIds.fill],
+      })
+      if (buildingFeatures.length > 0) return
+
       const features = map.queryRenderedFeatures(e.point, {
         layers: [LAYERS.buildingPoints.layerIds.circle],
       })
@@ -67,7 +73,7 @@ const BuildingPoints = () => {
 
         const handleMoveEnd = () => {
           if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-            highlightBuildingAtLocation(lng, lat)
+            highlightBuildingAtLocation(lng, lat, { easeTo: false })
           } else {
             const handleSourceData = (e: MapSourceDataEvent) => {
               if (
@@ -75,7 +81,7 @@ const BuildingPoints = () => {
                 e.isSourceLoaded
               ) {
                 map.off('sourcedata', handleSourceData)
-                highlightBuildingAtLocation(lng, lat)
+                highlightBuildingAtLocation(lng, lat, { easeTo: false })
               }
             }
             map.on('sourcedata', handleSourceData)
