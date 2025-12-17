@@ -31,6 +31,9 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
         '& .maplibregl-ctrl-attrib-button': {
           bg: 'hinted',
           backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath fill='${encodeURIComponent(primary)}' d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E")`,
+          '&:hover, &:focus-visible': {
+            backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E%3Cpath fill='${encodeURIComponent(secondary)}' d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E%3C/svg%3E")`,
+          },
         },
       },
       '& .maplibregl-ctrl-group': {
@@ -79,11 +82,11 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
             backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='2' stroke-linecap='round' fill='none' d='M6 10h8'/%3E%3C/svg%3E")`,
           },
         '& .maplibregl-ctrl-geolocate .maplibregl-ctrl-icon': {
-          backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(primary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(primary)}' stroke-width='2' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(primary)}' stroke-width='2' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(primary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(primary)}' stroke-width='1.5' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(primary)}' stroke-width='1.5' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
         },
         '& .maplibregl-ctrl-geolocate:hover .maplibregl-ctrl-icon, & .maplibregl-ctrl-geolocate:focus-visible .maplibregl-ctrl-icon':
           {
-            backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(secondary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(secondary)}' stroke-width='2' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='2' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(secondary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(secondary)}' stroke-width='1.5' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='1.5' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
           },
       },
     },
