@@ -122,6 +122,9 @@ const MapGeolocateControl = () => {
       },
       trackUserLocation: false,
       showUserLocation: false,
+      fitBoundsOptions: {
+        linear: true,
+      },
     })
 
     map.addControl(geolocateControl, 'bottom-right')
