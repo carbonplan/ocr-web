@@ -127,6 +127,7 @@ const MapGeolocateControl = () => {
       showUserLocation: false,
       fitBoundsOptions: {
         linear: true,
+        maxZoom: 16,
       },
     })
 
