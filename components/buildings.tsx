@@ -26,11 +26,10 @@ const Buildings = () => {
       'to-number',
       ['get', riskAttribute],
     ]
-
     const wrap = (expr: ExpressionSpecification) => [
       'case',
       ['==', riskPercentExpression, 0],
-      get(theme, 'rawColors.muted'),
+      colormap[0],
       expr,
     ]
 
@@ -38,8 +37,8 @@ const Buildings = () => {
       const steps: (string | number)[] = []
 
       colorLimits.binBoundaries.forEach((value: number, index: number) => {
-        if (index < colormap.length) {
-          steps.push(value, colormap[index])
+        if (index + 1 < colormap.length) {
+          steps.push(value, colormap[index + 1])
         }
       })
 
@@ -52,7 +51,7 @@ const Buildings = () => {
     }
 
     return wrap(makeDiscrete()) as ExpressionSpecification
-  }, [colormap, riskAttribute, colorLimits.binBoundaries, theme])
+  }, [colormap, riskAttribute, colorLimits.binBoundaries])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {
     return [
