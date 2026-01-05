@@ -1,5 +1,5 @@
 import { useMemo, useEffect } from 'react'
-import { useColormap } from '@/lib/colormaps'
+import { useColormapRGB } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 // @ts-expect-error missing types for carbonplan maps
 import { MapProvider, Raster } from '@carbonplan/maps/core'
@@ -15,7 +15,7 @@ const discard = `
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
   const colorLimits = useStore((state) => state.colorLimits)
-  const colormap = useColormap({ format: 'rgb' })
+  const colormap = useColormapRGB()
   const timePeriod = useStore((state) => state.timePeriod)
   const setZarrLoading = useStore((state) => state.setZarrLoading)
   const riskAttribute = useMemo(() => {
@@ -23,6 +23,15 @@ const ZarrLayer = () => {
   }, [timePeriod])
 
   const fragShader = useMemo(() => {
+    if (colorLimits.type === 'continuous') {
+      return `
+        float value = ${riskAttribute};
+        ${discard}
+        float rescaled = (value - clim.x) / (clim.y - clim.x);
+        gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
+      `
+    }
+
     const boundaries = colorLimits.binBoundaries || []
 
     const binConditions = boundaries
@@ -48,7 +57,7 @@ const ZarrLayer = () => {
       float rescaled = binIndex / ${boundaries.length}.0; 
       gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
     `
-  }, [colorLimits.binBoundaries, riskAttribute])
+  }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
 
   useEffect(() => {
     return () => {

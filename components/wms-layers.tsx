@@ -2,18 +2,17 @@ import { useEffect, useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
 import { RasterTileSource } from 'maplibre-gl'
 import { useStore } from '../lib/store'
-import { useColormap } from '@/lib/colormaps'
+import { generateColormap } from '@/lib/colormaps'
 import { DATA_URLS } from '@/lib/config'
 
 const epsilon = 1e-9
 
 const WmsLayers = () => {
   const map = useStore((state) => state.map)
+  const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const [colorMode] = useColorMode()
-  const lightColormap = useColormap({ mode: 'light' })
-  const darkColormap = useColormap({ mode: 'dark' })
 
   const colorscaleRange = useMemo(() => {
     const [min, max] = colorLimits.bounds
@@ -22,11 +21,33 @@ const WmsLayers = () => {
   }, [colorLimits])
 
   const binsParam = useMemo(() => {
-    const correctedBinBoundaries = colorLimits.binBoundaries.map(
-      (value, index) => (index === 0 && value === 0 ? epsilon : value),
-    )
-    return `&bins=${correctedBinBoundaries.join(',')}`
+    if (
+      colorLimits.type === 'discrete' &&
+      colorLimits.binBoundaries.length > 0
+    ) {
+      const correctedBinBoundaries = colorLimits.binBoundaries.map(
+        (value, index) => (index === 0 && value === 0 ? epsilon : value),
+      )
+      return `&bins=${correctedBinBoundaries.join(',')}`
+    }
+    return ''
   }, [colorLimits])
+
+  const count = useMemo(() => {
+    if (colorLimits.type === 'discrete') {
+      return colorLimits.binBoundaries.length
+    }
+    return 30
+  }, [colorLimits])
+
+  const lightColormap = useMemo(
+    () => generateColormap(riskConfig.colormap, { count, mode: 'light' }),
+    [riskConfig.colormap, count],
+  )
+  const darkColormap = useMemo(
+    () => generateColormap(riskConfig.colormap, { count, mode: 'dark' }),
+    [riskConfig.colormap, count],
+  )
 
   const riskMatrix = useMemo(() => {
     const riskAttributes = ['wind_risk_2011', 'wind_risk_2047']

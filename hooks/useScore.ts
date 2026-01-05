@@ -14,7 +14,8 @@ export const useScore = (
   const colormap = useColormap()
   const timePeriod = useStore((state) => state.timePeriod)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
-  const [min] = useStore(useShallow((state) => state.colorLimits.bounds))
+  const isDiscrete = useStore((state) => state.colorLimits.type === 'discrete')
+  const [min, max] = useStore(useShallow((state) => state.colorLimits.bounds))
 
   let value: number | null = null
   if (geo) {
@@ -46,12 +47,22 @@ export const useScore = (
     if (value === null || value < min || !colormap?.length || value === 0.0) {
       return fallbackColor
     }
-    const binIndex = bins.findIndex((bin, i) =>
-      i === bins.length - 1 ? i : value >= bin && value < bins[i + 1],
-    )
 
-    return colormap[binIndex]
-  }, [colormap, min, value, bins, fallbackColor])
+    if (isDiscrete) {
+      const binIndex = bins.findIndex((bin, i) =>
+        i === bins.length - 1 ? i : value >= bin && value < bins[i + 1],
+      )
+
+      return colormap[binIndex]
+    } else {
+      const normalizedScore = Math.min(
+        Math.max((value - min) / (max - min), 0),
+        1,
+      )
+      const colormapIndex = Math.floor(normalizedScore * (colormap.length - 1))
+      return colormap[colormapIndex]
+    }
+  }, [isDiscrete, colormap, min, max, value, bins, fallbackColor])
 
   return { score, value, color }
 }

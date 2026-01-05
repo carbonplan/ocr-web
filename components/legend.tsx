@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Colorbar, Input, Button } from '@carbonplan/components'
+import { Colorbar, Filter, Input, Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan charts types not available
 import { Chart, TickLabels } from '@carbonplan/charts'
 import { useStore } from '../lib/store'
@@ -11,6 +11,7 @@ const Legend = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const setColorLimits = useStore((state) => state.setColorLimits)
   const advancedMode = useStore((state) => state.advancedMode)
+  const isDiscrete = colorLimits.type === 'discrete'
   const baseColormap = useColormap()
   const [boundariesInput, setBoundariesInput] = useState(
     colorLimits.binBoundaries.join(', '),
@@ -24,17 +25,24 @@ const Legend = () => {
     return null
   }
 
-  // Generate tick values - one for each boundary
-  const ticks = colorLimits.binBoundaries.map((_, i) => i)
+  // Generate tick values for discrete mode - one for each boundary
+  const discreteTicks = isDiscrete
+    ? colorLimits.binBoundaries.map((_, i) => i)
+    : null
 
   const formatPercentage = (value: number, isMax: boolean) => {
     return `${value}${isMax && value !== 100 ? '+' : ''}`
   }
 
   const formatTickValue = (d: number) => {
-    const value = colorLimits.binBoundaries[d]
-    const isMax = d === colorLimits.binBoundaries.length - 1
-    return formatPercentage(value, isMax)
+    if (isDiscrete) {
+      const value = colorLimits.binBoundaries[d]
+      const isMax = d === colorLimits.binBoundaries.length - 1
+      return formatPercentage(value, isMax)
+    } else {
+      const isMax = d === colorLimits.bounds[1]
+      return formatPercentage(d, isMax)
+    }
   }
 
   const handleApplyBoundaries = () => {
@@ -45,13 +53,16 @@ const Legend = () => {
 
     if (parsed.length > 0) {
       setColorLimits({
+        type: colorLimits.type,
         bounds: colorLimits.bounds,
         binBoundaries: parsed,
       })
     }
   }
 
-  const chartXRange = [0, colorLimits.binBoundaries.length]
+  const chartXRange = isDiscrete
+    ? [0, colorLimits.binBoundaries.length]
+    : [0, colorLimits.bounds[1]]
 
   return (
     <Box
@@ -63,28 +74,84 @@ const Legend = () => {
         width: [200, 200, 340, 340],
       }}
     >
-      <Flex
-        sx={{
-          my: 2,
-          gap: 2,
-        }}
-      >
-        <Input
-          size='xs'
-          value={boundariesInput}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setBoundariesInput(e.target.value)
-          }
-          sx={{
-            flex: 1,
-            fontSize: [0, 0, 1, 1],
-          }}
-        />
-        <Button size='xs' onClick={handleApplyBoundaries}>
-          Apply
-        </Button>
-      </Flex>
-
+      <Box>
+        <Flex sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <Filter
+            variant='filter'
+            values={{
+              continuous: !isDiscrete,
+              discrete: isDiscrete,
+            }}
+            setValues={(values: Record<string, boolean>) => {
+              const type = values.discrete ? 'discrete' : 'continuous'
+              setColorLimits({
+                type,
+                bounds: colorLimits.bounds,
+                binBoundaries: colorLimits.binBoundaries,
+              })
+            }}
+          />
+          {!isDiscrete && (
+            <Flex
+              sx={{
+                alignItems: 'baseline',
+                gap: 1,
+                fontSize: [1, 1, 1, 2],
+                whiteSpace: 'nowrap',
+              }}
+            >
+              0 -
+              <Input
+                size='xs'
+                type='number'
+                min={0}
+                max={100}
+                step={10}
+                sx={{
+                  fontSize: [1, 1, 1, 2],
+                  '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button':
+                    {
+                      opacity: 1,
+                    },
+                }}
+                value={colorLimits.bounds[1]}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = parseFloat(e.target.value)
+                  if (value < 1 || value > 100) return
+                  setColorLimits({
+                    type: colorLimits.type,
+                    bounds: [colorLimits.bounds[0], value],
+                    binBoundaries: colorLimits.binBoundaries,
+                  })
+                }}
+              />
+            </Flex>
+          )}
+        </Flex>
+        {isDiscrete && (
+          <Flex
+            sx={{
+              my: 2,
+              gap: 2,
+            }}
+          >
+            <Input
+              size='xs'
+              value={boundariesInput}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBoundariesInput(e.target.value)
+              }
+              sx={{
+                flex: 1,
+                fontSize: [0, 0, 1, 1],
+              }}
+            />
+            <Button size='xs' onClick={handleApplyBoundaries}>
+              Apply
+            </Button>
+          </Flex>
+        )}
+      </Box>
       <Flex
         sx={{
           width: '100%',
@@ -105,7 +172,7 @@ const Legend = () => {
         <Box sx={{ width: '98%', height: '100%' }}>
           <Colorbar
             colormap={baseColormap}
-            discrete
+            discrete={isDiscrete}
             horizontal
             width={'100%'}
           />
@@ -114,12 +181,12 @@ const Legend = () => {
       <Chart x={chartXRange} y={[0, 0]} padding={{ left: 1, bottom: 8 }}>
         <TickLabels
           bottom
-          values={ticks}
+          values={isDiscrete ? discreteTicks : null}
           format={formatTickValue}
           sx={{
             color: 'primary',
-            ml: 2,
-            width: 10,
+            ml: isDiscrete ? 2 : '-10px',
+            width: isDiscrete ? 10 : 'auto',
             ':first-of-type': {
               // nudge zero over
               ml: 1,

@@ -50,10 +50,12 @@ type Store = {
   riskConfig: RiskConfig
   setRiskConfig: (riskConfig: RiskConfig) => void
   colorLimits: {
+    type: 'continuous' | 'discrete'
     bounds: [number, number]
     binBoundaries: number[]
   }
   setColorLimits: (colorLimits: {
+    type: 'continuous' | 'discrete'
     bounds: [number, number]
     binBoundaries: number[]
   }) => void
@@ -108,6 +110,7 @@ export const useStore = create<Store>((set, get) => ({
   riskConfig: RISKS.fire,
   setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
   colorLimits: {
+    type: 'discrete',
     bounds: [
       RISKS.fire.binBoundaries[0],
       RISKS.fire.binBoundaries[RISKS.fire.binBoundaries.length - 1],

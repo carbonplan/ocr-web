@@ -51,8 +51,35 @@ const Buildings = () => {
       ] as ExpressionSpecification
     }
 
-    return wrap(makeDiscrete()) as ExpressionSpecification
-  }, [colormap, riskAttribute, colorLimits.binBoundaries, theme])
+    const makeContinuous = (): ExpressionSpecification => {
+      const stops: (string | number)[] = []
+      colormap.forEach((color: string, index: number) => {
+        const rawValue =
+          colorLimits.bounds[0] +
+          (index / (colormap.length - 1)) *
+            (colorLimits.bounds[1] - colorLimits.bounds[0])
+        stops.push(rawValue, color)
+      })
+
+      return [
+        'interpolate',
+        ['linear'],
+        riskPercentExpression,
+        ...stops,
+      ] as ExpressionSpecification
+    }
+
+    return wrap(
+      colorLimits.type === 'discrete' ? makeDiscrete() : makeContinuous(),
+    ) as ExpressionSpecification
+  }, [
+    colormap,
+    riskAttribute,
+    colorLimits.type,
+    colorLimits.bounds,
+    colorLimits.binBoundaries,
+    theme,
+  ])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {
     return [
