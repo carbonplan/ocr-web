@@ -48,7 +48,7 @@ const RiskScore = () => {
         <ValueBadge
           value={score}
           unit='#'
-          color={score === '0' ? 'primary' : color}
+          color={color}
           sx={{
             fontSize: [4, 4, 4, 4],
             width: [80, 80, 80, 100],

@@ -43,19 +43,14 @@ export const useScore = (
   }, [value, bins])
 
   const color = useMemo(() => {
-    if (value === null || value < min || !colormap?.length) {
+    if (value === null || value < min || !colormap?.length || value === 0.0) {
       return fallbackColor
     }
-
-    if (value === 0) {
-      return colormap[0]
-    }
-
-    const binIndex = bins.findIndex(
-      (bin, i) => value >= bin && value < bins[i + 1],
+    const binIndex = bins.findIndex((bin, i) =>
+      i === bins.length - 1 ? i : value >= bin && value < bins[i + 1],
     )
 
-    return colormap[binIndex === -1 ? bins.length - 1 : binIndex + 1]
+    return colormap[binIndex]
   }, [colormap, min, value, bins, fallbackColor])
 
   return { score, value, color }

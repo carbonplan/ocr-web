@@ -44,19 +44,27 @@ const ScoreBar = ({
             gridGap: '2px',
           }}
         >
-          {Array(11)
+          <ValueBadge
+            value='0'
+            unit='#'
+            sx={{
+              width: '100%',
+              backgroundColor: 'muted',
+              color: score === '0' ? 'primary' : 'secondary',
+            }}
+          />
+          {Array(10)
             .fill(null)
             .map((el, i) => (
               <Flex key={i} sx={{ position: 'relative' }}>
-                {labels && (
+                {labels && !(i === 0 && bins[0] === 0) && (
                   <>
                     {(() => {
-                      if (i < 2) return
-                      const str = String(bins[i - 1])
+                      const str = String(bins[i])
                       const digitCount = str.replace(/\D/g, '').length
                       const formattedStr =
                         digitCount > 2 ? str.replace(/^0(?=\.)/, '') : str
-                      const displayText = `${formattedStr}%${i === bins.length ? '+' : ''}`
+                      const displayText = `${formattedStr}%${i === bins.length - 1 ? '+' : ''}`
                       return (
                         <>
                           <Box
@@ -101,13 +109,10 @@ const ScoreBar = ({
                 )}
 
                 <ValueBadge
-                  value={`${i}`}
+                  value={`${i + 1}`}
                   unit='#'
                   color={colormap[i]}
-                  sx={{
-                    width: '100%',
-                    ...(i === 0 && score === '0' ? { color: 'primary' } : {}),
-                  }}
+                  sx={{ width: '100%' }}
                 />
               </Flex>
             ))}
