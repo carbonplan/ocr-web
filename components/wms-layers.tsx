@@ -34,7 +34,9 @@ const WmsLayers = () => {
 
     const matrix = []
     for (const themeType of themes) {
-      const colormap = themeType === 'light' ? lightColormap : darkColormap
+      const colormap = (
+        themeType === 'light' ? lightColormap : darkColormap
+      ).slice(1) // remove 0-value color
       for (const attr of riskAttributes) {
         const url = `${DATA_URLS.raster.png}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}${binsParam}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
         matrix.push({
