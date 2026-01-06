@@ -21,11 +21,15 @@ type Store = {
     county: Geography | null
     censusTract: Geography | null
     censusBlock: Geography | null
+    state: Geography | null
+    nation: Geography | null
   }
   setActiveGeographies: (activeGeographies: {
     county: Geography | null
     censusTract: Geography | null
     censusBlock: Geography | null
+    state: Geography | null
+    nation: Geography | null
   }) => void
   selectedGeographyLevel: GeographyKey
   setSelectedGeographyLevel: (level: GeographyKey) => void
@@ -36,12 +40,16 @@ type Store = {
     county: boolean
     censusTract: boolean
     censusBlock: boolean
+    state: boolean
+    nation: boolean
   }
   setGeographyLayerVisibility: (geographyLayerVisibility: {
     building: boolean
     county: boolean
     censusTract: boolean
     censusBlock: boolean
+    state: boolean
+    nation: boolean
   }) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
@@ -86,10 +94,12 @@ export const useStore = create<Store>((set, get) => ({
     county: null,
     censusTract: null,
     censusBlock: null,
+    state: null,
+    nation: null,
   },
-  setActiveGeographies: ({ county, censusTract, censusBlock }) =>
+  setActiveGeographies: ({ county, censusTract, censusBlock, state, nation }) =>
     set({
-      activeGeographies: { county, censusTract, censusBlock },
+      activeGeographies: { county, censusTract, censusBlock, state, nation },
     }),
   selectedGeographyLevel: 'county',
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
@@ -100,6 +110,8 @@ export const useStore = create<Store>((set, get) => ({
     county: false,
     censusTract: false,
     censusBlock: false,
+    state: false,
+    nation: false,
   },
   setGeographyLayerVisibility: (geographyLayerVisibility) =>
     set({ geographyLayerVisibility }),
@@ -141,6 +153,12 @@ export const useStore = create<Store>((set, get) => ({
     const blockFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
       layers: [LAYERS.censusBlocks.layerIds.fill],
     })
+    const stateFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+      layers: [LAYERS.states.layerIds.fill],
+    })
+    const nationFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
+      layers: [LAYERS.nation.layerIds.fill],
+    })
 
     set({
       activeGeographies: {
@@ -156,6 +174,14 @@ export const useStore = create<Store>((set, get) => ({
           blockFeatures.length > 0
             ? (blockFeatures[0].properties as Geography)
             : null,
+        state:
+          stateFeatures.length > 0
+            ? (stateFeatures[0].properties as Geography)
+            : null,
+        nation:
+          nationFeatures.length > 0
+            ? (nationFeatures[0].properties as Geography)
+            : null,
       },
     })
   },
@@ -167,6 +193,8 @@ export const useStore = create<Store>((set, get) => ({
         county: null,
         censusTract: null,
         censusBlock: null,
+        state: null,
+        nation: null,
       },
       showGeographyHighlight: false,
       selectedGeographyLevel: 'county',

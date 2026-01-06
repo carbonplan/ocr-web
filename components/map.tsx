@@ -67,6 +67,8 @@ const MapComponent = () => {
         county: null,
         censusTract: null,
         censusBlock: null,
+        state: null,
+        nation: null,
       })
     }
   }, [map, queryGeographiesAtPoint, setActiveGeographies])
@@ -274,6 +276,8 @@ const MapComponent = () => {
             config={LAYERS.censusBlocks}
             geographyKey='censusBlock'
           />
+          <GeographyLayer config={LAYERS.states} geographyKey='state' />
+          <GeographyLayer config={LAYERS.nation} geographyKey='nation' />
           <Buildings />
           <BuildingPoints />
           <SelectionMarker />

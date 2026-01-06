@@ -7,11 +7,7 @@ import { RotatingArrow, X } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 import { LngLatBounds } from 'maplibre-gl'
 
-import {
-  getGeographyRisk,
-  getCountyName,
-  getBoundingBox,
-} from '@/lib/risk-utils'
+import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import {
   GEOGRAPHY_ATTRIBUTE_KEYS,
@@ -37,9 +33,6 @@ const RegionalRisk = () => {
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
-  const countyName = useStore((state) =>
-    getCountyName(state.activeGeographies.county),
-  )
   const activeGeography = activeGeographies[selectedGeographyLevel]
   const [zoom, setZoom] = useState(0)
 
@@ -59,8 +52,15 @@ const RegionalRisk = () => {
   const previousBuildingIDRef = useRef<string | null>(null)
 
   const getRegionName = () => {
+    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
     if (selectedGeographyLevel === 'county') {
-      return `${countyName ?? ''} County`
+      return name ? `${name} County` : 'the county'
+    }
+    if (selectedGeographyLevel === 'state') {
+      return name ?? 'the state'
+    }
+    if (selectedGeographyLevel === 'nation') {
+      return name ?? 'CONUS'
     }
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
     // Extract 4-digit identifiers based on https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
@@ -148,11 +148,15 @@ const RegionalRisk = () => {
           county: selectedGeographyLevel === 'county',
           censusTract: selectedGeographyLevel === 'censusTract',
           censusBlock: selectedGeographyLevel === 'censusBlock',
+          state: selectedGeographyLevel === 'state',
+          nation: selectedGeographyLevel === 'nation',
         }}
         labels={{
           county: 'County',
           censusTract: 'Census tract',
           censusBlock: 'Census block',
+          state: 'State',
+          nation: 'CONUS',
         }}
         setValues={(obj: Record<GeographyKey, boolean>) => {
           const selected = (Object.keys(obj) as GeographyKey[]).find(

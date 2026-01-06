@@ -87,12 +87,16 @@ export const getGeographyFillLayers = (): LayerSpecification[] => [
   createGeographyFillLayer(LAYERS.counties),
   createGeographyFillLayer(LAYERS.censusTracts),
   createGeographyFillLayer(LAYERS.censusBlocks),
+  createGeographyFillLayer(LAYERS.states),
+  createGeographyFillLayer(LAYERS.nation),
 ]
 
 export const getGeographyLineLayers = (): LayerSpecification[] => [
   ...createGeographyLineLayers(LAYERS.counties),
   ...createGeographyLineLayers(LAYERS.censusTracts),
   ...createGeographyLineLayers(LAYERS.censusBlocks),
+  ...createGeographyLineLayers(LAYERS.states),
+  ...createGeographyLineLayers(LAYERS.nation),
 ]
 
 export const getBuildingLayers = (): LayerSpecification[] => [
