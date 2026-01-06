@@ -1,3 +1,4 @@
+import chroma from 'chroma-js'
 import { useColorMode, useThemeUI } from 'theme-ui'
 // @ts-expect-error - carbonplan colormaps types not available
 import { useColormap as useColormapBase } from '@carbonplan/colormaps'
@@ -8,7 +9,6 @@ import { useStore } from './store'
 export interface ColormapOptions {
   count?: number
   mode?: 'light' | 'dark'
-  format?: 'rgb' | 'hex'
 }
 
 const OFFSET = 1
@@ -33,4 +33,13 @@ export function useColormap(options?: ColormapOptions): string[] {
     ],
     [colormapBase, theme],
   )
+}
+
+export function useColormapRGB(
+  options?: ColormapOptions,
+): [number, number, number][] {
+  const hexColors = useColormap(options)
+  return useMemo(() => {
+    return hexColors.map((c) => chroma(c).rgb())
+  }, [hexColors])
 }
