@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
-import { GEOGRAPHY_AUTOSELECT_ZOOM, LAYERS, RISKS } from './config'
+import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
@@ -101,7 +101,7 @@ export const useStore = create<Store>((set, get) => ({
     set({
       activeGeographies: { county, censusTract, censusBlock, state, nation },
     }),
-  selectedGeographyLevel: 'county',
+  selectedGeographyLevel: 'nation',
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
   showGeographyHighlight: false,
   setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
@@ -144,44 +144,35 @@ export const useStore = create<Store>((set, get) => ({
     const { map } = get()
     if (!map) return
 
-    const countyFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-      layers: [LAYERS.counties.layerIds.fill],
-    })
-    const tractFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-      layers: [LAYERS.censusTracts.layerIds.fill],
-    })
-    const blockFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-      layers: [LAYERS.censusBlocks.layerIds.fill],
-    })
-    const stateFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-      layers: [LAYERS.states.layerIds.fill],
-    })
-    const nationFeatures = map.queryRenderedFeatures(map.project([lng, lat]), {
-      layers: [LAYERS.nation.layerIds.fill],
-    })
+    const zoom = map.getZoom()
+    const point = map.project([lng, lat])
+
+    const queryIfZoom = (
+      minZoom: number,
+      layers: string[],
+    ): Geography | null => {
+      if (zoom < minZoom) return null
+      const features = map.queryRenderedFeatures(point, { layers })
+      return features.length > 0 ? (features[0].properties as Geography) : null
+    }
 
     set({
       activeGeographies: {
-        censusTract:
-          tractFeatures.length > 0
-            ? (tractFeatures[0].properties as Geography)
-            : null,
-        county:
-          countyFeatures.length > 0
-            ? (countyFeatures[0].properties as Geography)
-            : null,
-        censusBlock:
-          blockFeatures.length > 0
-            ? (blockFeatures[0].properties as Geography)
-            : null,
-        state:
-          stateFeatures.length > 0
-            ? (stateFeatures[0].properties as Geography)
-            : null,
-        nation:
-          nationFeatures.length > 0
-            ? (nationFeatures[0].properties as Geography)
-            : null,
+        nation: queryIfZoom(GEOGRAPHY_MIN_ZOOM.nation, [
+          LAYERS.nation.layerIds.fill,
+        ]),
+        state: queryIfZoom(GEOGRAPHY_MIN_ZOOM.state, [
+          LAYERS.states.layerIds.fill,
+        ]),
+        county: queryIfZoom(GEOGRAPHY_MIN_ZOOM.county, [
+          LAYERS.counties.layerIds.fill,
+        ]),
+        censusTract: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusTract, [
+          LAYERS.censusTracts.layerIds.fill,
+        ]),
+        censusBlock: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusBlock, [
+          LAYERS.censusBlocks.layerIds.fill,
+        ]),
       },
     })
   },
@@ -197,7 +188,7 @@ export const useStore = create<Store>((set, get) => ({
         nation: null,
       },
       showGeographyHighlight: false,
-      selectedGeographyLevel: 'county',
+      selectedGeographyLevel: 'nation',
     })
     clearSelectedBuildingUrl()
     const { map, queryGeographiesAtPoint } = get()
@@ -213,9 +204,7 @@ export const useStore = create<Store>((set, get) => ({
         lng: center.lng,
         zoom: zoom,
       })
-      if (zoom >= GEOGRAPHY_AUTOSELECT_ZOOM) {
-        queryGeographiesAtPoint(center.lng, center.lat)
-      }
+      queryGeographiesAtPoint(center.lng, center.lat)
     }
   },
 }))

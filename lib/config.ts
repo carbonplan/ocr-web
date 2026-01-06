@@ -112,4 +112,11 @@ export const RISKS = {
 } as const
 
 export const RASTER_ZOOM_THRESHOLD = 14
-export const GEOGRAPHY_AUTOSELECT_ZOOM = 7
+
+export const GEOGRAPHY_MIN_ZOOM = {
+  nation: 0,
+  state: 5,
+  county: 7,
+  censusTract: 9,
+  censusBlock: 13,
+} as const

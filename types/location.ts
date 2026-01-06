@@ -38,7 +38,12 @@ export type Location = {
 
 export type ScenarioKey = 'current' | 'future'
 
-export type GeographyKey = 'county' | 'censusTract' | 'censusBlock' | 'state' | 'nation'
+export type GeographyKey =
+  | 'county'
+  | 'censusTract'
+  | 'censusBlock'
+  | 'state'
+  | 'nation'
 
 export type BuildingProperties = {
   [BUILDING_ATTRIBUTE_KEYS.wind_risk_2011]: number

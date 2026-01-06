@@ -48,7 +48,9 @@ export const getRiskScore = (
   return selectedBuilding.properties[riskKey]
 }
 
-export const getGeographyName = (geography: Geography | null): string | null => {
+export const getGeographyName = (
+  geography: Geography | null,
+): string | null => {
   if (!geography) return null
   return (geography[GEOGRAPHY_ATTRIBUTE_KEYS.name] as string) ?? null
 }

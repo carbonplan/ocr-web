@@ -26,7 +26,7 @@ import {
   MapControls,
   useMapControlStyles,
 } from './'
-import { LAYERS, GEOGRAPHY_AUTOSELECT_ZOOM } from '@/lib/config'
+import { LAYERS } from '@/lib/config'
 import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
 import {
   getMapViewFromQuery,
@@ -40,7 +40,6 @@ const MapComponent = () => {
   const map = useStore((state) => state.map)
   const setMap = useStore((state) => state.setMap)
   const setMapLoading = useStore((state) => state.setMapLoading)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
@@ -58,20 +57,8 @@ const MapComponent = () => {
   const updateGeographies = useCallback(() => {
     if (!map) return
     const center = map.getCenter()
-    const zoom = map.getZoom()
-
-    if (zoom >= GEOGRAPHY_AUTOSELECT_ZOOM) {
-      queryGeographiesAtPoint(center.lng, center.lat)
-    } else {
-      setActiveGeographies({
-        county: null,
-        censusTract: null,
-        censusBlock: null,
-        state: null,
-        nation: null,
-      })
-    }
-  }, [map, queryGeographiesAtPoint, setActiveGeographies])
+    queryGeographiesAtPoint(center.lng, center.lat)
+  }, [map, queryGeographiesAtPoint])
 
   useEffect(() => {
     if (!map) return
