@@ -106,7 +106,7 @@ const ScoreBar = ({
                   color={colormap[i]}
                   sx={{
                     width: '100%',
-                    ...(i === 0 && score === '0' ? { color: 'primary' } : {}),
+                    ...(i === 0 && score !== '0' ? { color: 'secondary' } : {}),
                   }}
                 />
               </Flex>

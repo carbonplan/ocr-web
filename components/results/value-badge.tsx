@@ -3,7 +3,6 @@ import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-import chroma from 'chroma-js'
 import { mix } from '@theme-ui/color'
 
 const Wrapper = ({
@@ -43,26 +42,9 @@ const ValueBadge = ({
     formattedValue = value
   }
 
-  let colors: Partial<ThemeUIStyleObject> = {
-    backgroundColor: mix('muted', 'background', 0.3)(theme),
+  const colors: Partial<ThemeUIStyleObject> = {
+    backgroundColor: color ?? mix('muted', 'background', 0.3)(theme),
     color: value == null ? 'secondary' : 'primary',
-  }
-  if (color) {
-    // For all colormap colors...
-    if (chroma.valid(color)) {
-      // Use secondary when background fails to contrast with color (lightmode-only)
-      const contrast = chroma.contrast(
-        color,
-        theme.rawColors?.background as string,
-      )
-      const textColor = contrast > 2 ? 'background' : 'secondary'
-      colors = {
-        backgroundColor: color,
-        color: textColor,
-      }
-    } else {
-      colors = { backgroundColor: color, color: 'primary' } // otherwise, use primary.
-    }
   }
   return (
     <Wrapper lowValue={lowValue}>

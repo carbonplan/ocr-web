@@ -49,7 +49,6 @@ const RiskScore = () => {
           value={score}
           unit='#'
           color={score ? color : undefined}
-          active
           sx={{
             fontSize: [4, 4, 4, 4],
             width: [80, 80, 80, 100],
