@@ -23,15 +23,6 @@ const ZarrLayer = () => {
   }, [timePeriod])
 
   const fragShader = useMemo(() => {
-    if (colorLimits.type === 'continuous') {
-      return `
-        float value = ${riskAttribute};
-        ${discard}
-        float rescaled = (value - clim.x) / (clim.y - clim.x);
-        gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
-      `
-    }
-
     const boundaries = colorLimits.binBoundaries || []
 
     const binConditions = boundaries
@@ -57,7 +48,7 @@ const ZarrLayer = () => {
       float rescaled = binIndex / ${boundaries.length}.0; 
       gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
     `
-  }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
+  }, [colorLimits.binBoundaries, riskAttribute])
 
   useEffect(() => {
     return () => {

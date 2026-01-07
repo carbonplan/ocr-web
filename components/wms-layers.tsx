@@ -2,17 +2,18 @@ import { useEffect, useMemo } from 'react'
 import { useColorMode } from 'theme-ui'
 import { RasterTileSource } from 'maplibre-gl'
 import { useStore } from '../lib/store'
-import { generateColormap } from '@/lib/colormaps'
+import { useColormap } from '@/lib/colormaps'
 import { DATA_URLS } from '@/lib/config'
 
 const epsilon = 1e-9
 
 const WmsLayers = () => {
   const map = useStore((state) => state.map)
-  const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const [colorMode] = useColorMode()
+  const lightColormap = useColormap({ mode: 'light' })
+  const darkColormap = useColormap({ mode: 'dark' })
 
   const colorscaleRange = useMemo(() => {
     const [min, max] = colorLimits.bounds
@@ -21,33 +22,11 @@ const WmsLayers = () => {
   }, [colorLimits])
 
   const binsParam = useMemo(() => {
-    if (
-      colorLimits.type === 'discrete' &&
-      colorLimits.binBoundaries.length > 0
-    ) {
-      const correctedBinBoundaries = colorLimits.binBoundaries.map(
-        (value, index) => (index === 0 && value === 0 ? epsilon : value),
-      )
-      return `&bins=${correctedBinBoundaries.join(',')}`
-    }
-    return ''
+    const correctedBinBoundaries = colorLimits.binBoundaries.map(
+      (value, index) => (index === 0 && value === 0 ? epsilon : value),
+    )
+    return `&bins=${correctedBinBoundaries.join(',')}`
   }, [colorLimits])
-
-  const count = useMemo(() => {
-    if (colorLimits.type === 'discrete') {
-      return colorLimits.binBoundaries.length
-    }
-    return 30
-  }, [colorLimits])
-
-  const lightColormap = useMemo(
-    () => generateColormap(riskConfig.colormap, { count, mode: 'light' }),
-    [riskConfig.colormap, count],
-  )
-  const darkColormap = useMemo(
-    () => generateColormap(riskConfig.colormap, { count, mode: 'dark' }),
-    [riskConfig.colormap, count],
-  )
 
   const riskMatrix = useMemo(() => {
     const riskAttributes = ['wind_risk_2011', 'wind_risk_2047']
@@ -55,7 +34,9 @@ const WmsLayers = () => {
 
     const matrix = []
     for (const themeType of themes) {
-      const colormap = themeType === 'light' ? lightColormap : darkColormap
+      const colormap = (
+        themeType === 'light' ? lightColormap : darkColormap
+      ).slice(1) // remove 0-value color
       for (const attr of riskAttributes) {
         const url = `${DATA_URLS.raster.png}/wms/?service=WMS&request=GetMap&version=1.1.1&layers=${attr}&styles=raster/${encodeURIComponent(colormap.join(','))}&colorscalerange=${colorscaleRange}${binsParam}&transparent_below_range=true&format=image/png&srs=EPSG:3857&width=256&height=256&bbox={bbox-epsg-3857}`
         matrix.push({
