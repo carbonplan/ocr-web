@@ -11,7 +11,7 @@ export interface ColormapOptions {
   mode?: 'light' | 'dark'
 }
 
-const OFFSET = 1
+const OFFSET = 2
 
 export function useColormap(options?: ColormapOptions): string[] {
   const colormap = useStore((state) => state.riskConfig.colormap)
