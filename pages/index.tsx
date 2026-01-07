@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Box, Container, IconButton, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Info, X } from '@carbonplan/icons'
 import {
+  Agreement,
   Legend,
   Map,
   Sidebar,
@@ -16,12 +17,19 @@ import {
 import { useStore } from '@/lib/store'
 import { withAuthAndPlausible } from '@/hocs/with-auth-and-plausible'
 
+const AGREEMENT_KEY = 'ocr.agreement'
+
 const Index = () => {
   const [showIntro, setShowIntro] = useState(true)
+  const [showAgreement, setShowAgreement] = useState(false)
   const isLoading = useStore(
     (state) => state.mapLoading || state.reverseGeocodeLoading,
   )
   const modalRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setShowAgreement(localStorage.getItem(AGREEMENT_KEY) !== 'true')
+  }, [])
 
   useEffect(() => {
     if (!showIntro) return
@@ -33,6 +41,11 @@ const Index = () => {
     document.addEventListener('pointerdown', onPointerDown, { passive: true })
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [showIntro])
+
+  const handleAgreement = useCallback(() => {
+    localStorage.setItem(AGREEMENT_KEY, 'true')
+    setShowAgreement(false)
+  }, [])
 
   return (
     <>
@@ -85,6 +98,8 @@ const Index = () => {
               </IconButton>,
             ]}
           />
+          {showAgreement && <Agreement onClick={handleAgreement} />}
+
           {showIntro && (
             <Box
               ref={modalRef}
