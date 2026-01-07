@@ -10,7 +10,7 @@ export interface ColormapOptions {
   mode?: 'light' | 'dark'
 }
 
-const OFFSET = 1
+const OFFSET = 4
 
 export function useColormap(options?: ColormapOptions): string[] {
   const colormap = useStore((state) => state.riskConfig.colormap)
@@ -40,7 +40,7 @@ export function useColormap(options?: ColormapOptions): string[] {
       chroma(muted).mix(background, 0.3).hex(),
       ...colormapBase.slice(OFFSET).map((c: string, i: number) =>
         chroma(background)
-          .mix(c, Math.min(0.4 + i * 0.1, 1))
+          .mix(c, Math.min(0.2 + i * 0.1, 1))
           .hex(),
       ),
     ],
