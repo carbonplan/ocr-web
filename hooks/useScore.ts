@@ -55,7 +55,7 @@ export const useScore = (
       (bin, i) => value >= bin && value < bins[i + 1],
     )
 
-    return colormap[binIndex === -1 ? bins.length - 1 : binIndex + 1]
+    return colormap[binIndex === -1 ? colormap.length - 1 : binIndex + 1]
   }, [colormap, min, value, bins, fallbackColor])
 
   return { score, value, color }
