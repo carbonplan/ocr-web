@@ -6,6 +6,7 @@ import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 import { Info, X } from '@carbonplan/icons'
 import {
   Agreement,
+  AgreementPopup,
   Legend,
   Map,
   Sidebar,
@@ -32,7 +33,7 @@ const Index = () => {
   }, [])
 
   useEffect(() => {
-    if (!showIntro) return
+    if (!showIntro || showAgreement) return
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node
       const insideModal = modalRef.current?.contains(target)
@@ -40,7 +41,7 @@ const Index = () => {
     }
     document.addEventListener('pointerdown', onPointerDown, { passive: true })
     return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [showIntro])
+  }, [showIntro, showAgreement])
 
   const handleAgreement = useCallback(() => {
     localStorage.setItem(AGREEMENT_KEY, 'true')
@@ -98,9 +99,9 @@ const Index = () => {
               </IconButton>,
             ]}
           />
-          {showAgreement && <Agreement onClick={handleAgreement} />}
+          {showAgreement && <AgreementPopup onClick={handleAgreement} />}
 
-          {showIntro && (
+          {(showIntro || showAgreement) && (
             <Box
               ref={modalRef}
               sx={{
@@ -112,21 +113,33 @@ const Index = () => {
                 borderColor: 'muted',
                 position: 'relative',
                 pointerEvents: 'auto',
+                zIndex: 2,
               }}
             >
-              <IconButton
-                onClick={() => setShowIntro(false)}
-                sx={{
-                  position: 'absolute',
-                  top: 2,
-                  right: 2,
-                  p: 1,
-                  color: 'secondary',
-                }}
-              >
-                <X />
-              </IconButton>
+              {!showAgreement && (
+                <IconButton
+                  onClick={() => setShowIntro(false)}
+                  sx={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    p: 1,
+                    color: 'secondary',
+                  }}
+                >
+                  <X />
+                </IconButton>
+              )}
               <Intro />
+
+              {showAgreement && (
+                <Agreement
+                  onClick={() => {
+                    handleAgreement()
+                    setShowIntro(false)
+                  }}
+                />
+              )}
             </Box>
           )}
         </Container>
