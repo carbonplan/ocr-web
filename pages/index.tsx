@@ -43,6 +43,22 @@ const Index = () => {
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [showIntro, showAgreement])
 
+  useEffect(() => {
+    if (!showAgreement) return
+    const onKeydown = (event: KeyboardEvent) => {
+      const target = event.target as Node
+
+      if (
+        event.key !== 'Tab' &&
+        !document.getElementById('agreement')?.contains(target)
+      ) {
+        event.preventDefault()
+      }
+    }
+    document.addEventListener('keydown', onKeydown)
+    return () => document.removeEventListener('keydown', onKeydown)
+  }, [showIntro, showAgreement])
+
   const handleAgreement = useCallback(() => {
     localStorage.setItem(AGREEMENT_KEY, 'true')
     setShowAgreement(false)

@@ -5,6 +5,7 @@ import { Link } from '@carbonplan/components'
 const Agreement = ({ onClick }: { onClick: () => void }) => {
   return (
     <Flex
+      id='agreement'
       sx={{
         flexDirection: 'column',
         alignItems: ['flex-end', 'flex-end', 'center', 'center'],
