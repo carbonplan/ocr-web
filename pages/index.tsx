@@ -83,6 +83,7 @@ const Index = () => {
           height: '56px',
           zIndex: 5000,
           pointerEvents: 'none',
+          '& svg': { zIndex: 5000, position: 'relative' },
         }}
       >
         <Container>
