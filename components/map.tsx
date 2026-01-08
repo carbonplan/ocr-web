@@ -76,9 +76,9 @@ const MapComponent = () => {
     addProtocol('pmtiles', protocol.tile)
 
     const initialView = getMapViewFromQuery(router.query) || {
-      lat: 34.089,
-      lng: -118.254,
-      zoom: 10.84,
+      lat: 39.83,
+      lng: -98.58,
+      zoom: 3,
     }
 
     const sources: Record<string, SourceSpecification> = {
