@@ -24,6 +24,7 @@ const Agreement = ({ onClick }: { onClick: () => void }) => {
           cursor: 'pointer',
           width: 'fit-content',
           backgroundColor: 'hinted',
+          color: 'primary',
           fontFamily: 'mono',
           letterSpacing: 'mono',
           textTransform: 'uppercase',
