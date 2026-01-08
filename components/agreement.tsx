@@ -9,10 +9,10 @@ const Agreement = ({ onClick }: { onClick: () => void }) => {
       sx={{
         flexDirection: 'column',
         alignItems: ['flex-end', 'flex-end', 'center', 'center'],
-        gap: [4, 5, 5, 6],
+        gap: [4, 4, 3, 4],
       }}
     >
-      <Box>
+      <Box sx={{ width: '100%' }}>
         By viewing Open Climate Risk, you agree to CarbonPlan’s 
         <Link href='https://carbonplan.org/terms'>Terms of Use</Link>
          and 

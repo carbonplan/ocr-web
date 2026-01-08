@@ -37,7 +37,7 @@ const AgreementPopup = ({ onClick }: { onClick: () => void }) => {
               borderStyle: 'solid',
               borderWidth: 1,
               px: [4, 5, 5, 6],
-              py: [4, 5, 5, 6],
+              py: [3, 4, 4, 5],
             }}
           >
             <Agreement onClick={onClick} />
