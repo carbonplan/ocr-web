@@ -107,7 +107,7 @@ const MobileDrawer = () => {
                 px: 4,
                 overflowY: 'auto',
                 flex: 1,
-                pb: '50vh', // Bottom padding for scroll space
+                pb: '48vh', // Bottom padding for scroll space
                 WebkitOverflowScrolling: 'touch',
               }}
             >
