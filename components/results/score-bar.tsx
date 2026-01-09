@@ -12,11 +12,9 @@ import ValueBadge from './value-badge'
 
 const ScoreBar = ({
   labels,
-  axisLabel,
   sx,
 }: {
   labels?: boolean
-  axisLabel?: boolean
   sx?: ThemeUIStyleObject
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -113,15 +111,20 @@ const ScoreBar = ({
             ))}
         </Grid>
       </Flex>
-      {axisLabel && (
-        <Box sx={{ width: '100%', mt: '56px', pb: 1 }}>
-          <Chart x={[0, 1]} y={[0, 1]}>
-            <AxisLabel bottom units='%'>
-              Risk of loss
-            </AxisLabel>
-          </Chart>
-        </Box>
-      )}
+      <Box sx={{ width: '100%', mt: '50px', pb: 1 }}>
+        <Chart x={[0, 1]} y={[0, 1]}>
+          <AxisLabel
+            bottom
+            units='%'
+            sx={{
+              color: 'secondary',
+              '& svg': { fill: 'secondary' },
+            }}
+          >
+            Risk of loss
+          </AxisLabel>
+        </Chart>
+      </Box>
     </>
   )
 }

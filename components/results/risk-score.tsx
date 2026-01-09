@@ -60,7 +60,7 @@ const RiskScore = () => {
           {content}
         </Box>
       </Flex>
-      <ScoreBar labels axisLabel />
+      <ScoreBar labels />
     </>
   )
 }
