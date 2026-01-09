@@ -82,9 +82,25 @@ export const useMapTheme = () => {
       railway: muted,
       boundaries: secondary,
 
-      roads_label_minor: secondary,
+      roads_label_minor: [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        secondary,
+        26,
+        primary,
+      ],
       roads_label_minor_halo: background,
-      roads_label_major: secondary,
+      roads_label_major: [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        secondary,
+        26,
+        primary,
+      ],
       roads_label_major_halo: background,
       ocean_label: secondary,
       subplace_label: [
