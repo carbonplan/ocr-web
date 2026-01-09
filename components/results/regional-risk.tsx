@@ -16,33 +16,27 @@ import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
+// module level because refs were being reset by react strict mode I think?
+let hasUserSelectedGeo = false
+
 const RegionalRisk = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const map = useStore((state) => state.map)
-  const setSelectedGeographyLevel = useStore(
-    (state) => state.setSelectedGeographyLevel,
-  )
+  const geographyLevel = useStore((state) => state.selectedGeographyLevel)
+  const setGeographyLevel = useStore((state) => state.setSelectedGeographyLevel)
   const showOnMap = useStore((state) => state.showGeographyHighlight)
   const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
   const [zoom, setZoom] = useState(0)
-  const [userSelectedGeo, setUserSelectedGeo] = useState<GeographyKey | null>(
-    null,
-  )
-
-  const getAutoSelectedGeo = (): GeographyKey => {
-    if (zoom >= GEOGRAPHY_MIN_ZOOM.county) return 'county'
-    if (zoom >= GEOGRAPHY_MIN_ZOOM.state) return 'state'
-    return 'nation'
-  }
-  const effectiveGeographyLevel = userSelectedGeo ?? getAutoSelectedGeo()
-  const activeGeography = activeGeographies[effectiveGeographyLevel]
+  const activeGeography = activeGeographies[geographyLevel]
 
   useEffect(() => {
-    setSelectedGeographyLevel(effectiveGeographyLevel)
-  }, [effectiveGeographyLevel, setSelectedGeographyLevel])
+    if (!hasUserSelectedGeo) {
+      setGeographyLevel(selectedBuilding ? 'county' : 'nation')
+    }
+  }, [selectedBuilding, setGeographyLevel])
 
   const { score, color } = useScore(activeGeography ?? null, 'muted')
   const { score: buildingScore } = useScore(selectedBuilding)
@@ -50,7 +44,7 @@ const RegionalRisk = () => {
     useShallow(
       (state) =>
         getGeographyRisk(
-          state.activeGeographies[effectiveGeographyLevel],
+          state.activeGeographies[geographyLevel],
           state.timePeriod,
         ) ?? [],
     ),
@@ -61,18 +55,18 @@ const RegionalRisk = () => {
 
   const getRegionName = () => {
     const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
-    if (effectiveGeographyLevel === 'county') {
+    if (geographyLevel === 'county') {
       return name ? `${name} County` : 'the county'
     }
-    if (effectiveGeographyLevel === 'state') {
+    if (geographyLevel === 'state') {
       return name ?? 'the state'
     }
-    if (effectiveGeographyLevel === 'nation') {
+    if (geographyLevel === 'nation') {
       return 'the continental US'
     }
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
     // Extract 4-digit identifiers based on https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
-    if (effectiveGeographyLevel === 'censusTract') {
+    if (geographyLevel === 'censusTract') {
       return geoid ? `Census Tract ${geoid.slice(5, 9)}` : 'the census tract'
     }
     return geoid ? `Census Block ${geoid.slice(11)}` : 'the census block'
@@ -124,7 +118,7 @@ const RegionalRisk = () => {
     }
     // exclude fitBoundsToGeography from deps to avoid loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showOnMap, effectiveGeographyLevel])
+  }, [showOnMap, geographyLevel])
 
   useEffect(() => {
     if (!map) return
@@ -153,70 +147,36 @@ const RegionalRisk = () => {
     }
   }, [map])
 
-  const isGeographyDisabled = (key: GeographyKey) => {
-    if (selectedBuilding) return false
-    return zoom < GEOGRAPHY_MIN_ZOOM[key]
-  }
-
-  const disabledGeographies = {
-    county: isGeographyDisabled('county'),
-    censusTract: isGeographyDisabled('censusTract'),
-    censusBlock: isGeographyDisabled('censusBlock'),
-    state: isGeographyDisabled('state'),
-    nation: isGeographyDisabled('nation'),
-  }
+  const isGeographyUnavailable = zoom < GEOGRAPHY_MIN_ZOOM[geographyLevel]
 
   return (
     <>
       <Box as='h2' variant='sectionHeading'>
         Risk in the region
       </Box>
-      <Flex
-        sx={{ alignItems: 'baseline', justifyContent: 'space-between', gap: 2 }}
+      <Select
+        aria-label='Select geographic level'
+        size='xs'
+        value={geographyLevel}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+          hasUserSelectedGeo = true
+          setGeographyLevel(e.target.value as GeographyKey)
+        }}
+        sx={{
+          '& select': {
+            fontSize: 1,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+          },
+        }}
       >
-        <Select
-          aria-label='Select geographic level'
-          size='xs'
-          value={effectiveGeographyLevel}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-            setUserSelectedGeo(e.target.value as GeographyKey)
-          }}
-          sx={{
-            '& select': {
-              fontSize: 1,
-              fontFamily: 'mono',
-              letterSpacing: 'mono',
-              textTransform: 'uppercase',
-            },
-          }}
-        >
-          <option value='nation' disabled={disabledGeographies.nation}>
-            CONTINENTAL US
-          </option>
-          <option value='state' disabled={disabledGeographies.state}>
-            STATE
-          </option>
-          <option value='county' disabled={disabledGeographies.county}>
-            COUNTY
-          </option>
-          <option
-            value='censusTract'
-            disabled={disabledGeographies.censusTract}
-          >
-            CENSUS TRACT
-          </option>
-          <option
-            value='censusBlock'
-            disabled={disabledGeographies.censusBlock}
-          >
-            CENSUS BLOCK
-          </option>
-        </Select>
-        <Box sx={{ fontSize: 1, color: 'secondary' }}>
-          {zoom < GEOGRAPHY_MIN_ZOOM.censusTract &&
-            'Zoom in for smaller regions'}
-        </Box>
-      </Flex>
+        <option value='nation'>CONTINENTAL US</option>
+        <option value='state'>STATE</option>
+        <option value='county'>COUNTY</option>
+        <option value='censusTract'>CENSUS TRACT</option>
+        <option value='censusBlock'>CENSUS BLOCK</option>
+      </Select>
       <Table
         columns={3}
         start={[1, 2]}
@@ -261,7 +221,6 @@ const RegionalRisk = () => {
             color: 'secondary',
             fontSize: 1,
           },
-          opacity: disabledGeographies[effectiveGeographyLevel] ? 0.2 : 1,
         }}
       />
       <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
@@ -306,8 +265,8 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {disabledGeographies[effectiveGeographyLevel]
-              ? `Zoom in to view ${getGeographyLabel(effectiveGeographyLevel)} data`
+            {isGeographyUnavailable
+              ? `Zoom in to view ${getGeographyLabel(geographyLevel)} data`
               : 'No data available'}
           </Box>
         )}

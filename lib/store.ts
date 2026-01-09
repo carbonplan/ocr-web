@@ -199,7 +199,6 @@ export const useStore = create<Store>((set, get) => ({
         nation: null,
       },
       showGeographyHighlight: false,
-      selectedGeographyLevel: 'nation',
     })
     clearSelectedBuildingUrl()
     const { map, queryGeographiesAtPoint } = get()
