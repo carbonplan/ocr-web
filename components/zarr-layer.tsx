@@ -1,34 +1,34 @@
-import { useMemo, useEffect } from 'react'
-import { useColormapRGB } from '@/lib/colormaps'
+import { useMemo, useEffect, useRef } from 'react'
+import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
-// @ts-expect-error missing types for carbonplan maps
-import { MapProvider, Raster } from '@carbonplan/maps/core'
+import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
 import { DATA_URLS } from '@/lib/config'
 
-const discard = `
-  if (value == fillValue || value == 0.0) {
-    discard;
-    return;
-  }
-`
+const LAYER_ID = 'zarr-raster-layer'
+const FILL_VALUE = 9.969209968386869e36
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
   const colorLimits = useStore((state) => state.colorLimits)
-  const colormap = useColormapRGB()
+  const colormap = useColormap()
   const timePeriod = useStore((state) => state.timePeriod)
   const setZarrLoading = useStore((state) => state.setZarrLoading)
-  const riskAttribute = useMemo(() => {
-    return timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
-  }, [timePeriod])
+  const layerRef = useRef<ZarrLayerClass | null>(null)
 
-  const fragShader = useMemo(() => {
+  const riskAttribute =
+    timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+
+  const customFrag = useMemo(() => {
     if (colorLimits.type === 'continuous') {
       return `
         float value = ${riskAttribute};
-        ${discard}
+        if (value == fillValue || value == 0.0) {
+          fragColor = vec4(0.0);
+          return;
+        }
         float rescaled = (value - clim.x) / (clim.y - clim.x);
-        gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
+        vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
+        fragColor = vec4(c.rgb, opacity);
       `
     }
 
@@ -49,35 +49,62 @@ const ZarrLayer = () => {
 
     return `
       float value = ${riskAttribute};
-      ${discard}
+      if (value == fillValue || value == 0.0) {
+        fragColor = vec4(0.0);
+        return;
+      }
       float binIndex = 0.0;
       ${binConditions} else {
         binIndex = ${lastBinIndex}.0;
       }
-      float rescaled = binIndex / ${boundaries.length}.0; 
-      gl_FragColor = texture2D(colormap, vec2(rescaled, 1.0));
+      float rescaled = (binIndex + 0.5) / ${boundaries.length}.0;
+      vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
+      fragColor = vec4(c.rgb, opacity);
     `
   }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
 
   useEffect(() => {
+    if (!map) return
+
+    const layer = new ZarrLayerClass({
+      id: LAYER_ID,
+      source: DATA_URLS.raster,
+      variable: riskAttribute,
+      colormap,
+      clim: colorLimits.bounds,
+      fillValue: FILL_VALUE,
+      customFrag,
+      onLoadingStateChange: (state) => setZarrLoading(state.loading),
+      zarrVersion: 3,
+      bounds: [
+        -128.3875562194317, 22.428114227623336, -64.05348689808879,
+        52.4818488914143,
+      ],
+      latIsAscending: true,
+    })
+
+    layerRef.current = layer
+    map.addLayer(layer, 'hillshade')
+
     return () => {
+      if (map.getLayer(LAYER_ID)) {
+        map.removeLayer(LAYER_ID)
+      }
+      layerRef.current = null
       setZarrLoading(false)
     }
-  }, [setZarrLoading])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, customFrag])
 
-  return (
-    <MapProvider map={map}>
-      <Raster
-        colormap={colormap}
-        clim={colorLimits.bounds}
-        source={DATA_URLS.raster.zarr}
-        variable={riskAttribute}
-        fillValue={9.969209968386869e36}
-        frag={fragShader}
-        setLoading={setZarrLoading}
-      />
-    </MapProvider>
-  )
+  useEffect(() => {
+    layerRef.current?.setColormap(colormap)
+  }, [colormap])
+
+  useEffect(() => {
+    layerRef.current?.setClim(colorLimits.bounds)
+  }, [colorLimits.bounds])
+
+  return null
 }
 
 export default ZarrLayer
