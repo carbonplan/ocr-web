@@ -2,6 +2,8 @@ import { Box } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import {
   Filter,
+  Row,
+  Column,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 
@@ -32,34 +34,41 @@ const ClimateSelector = () => {
           },
         }}
       >
-        <TooltipWrapper
-          tooltip='Current risk estimates are based on a climate circa 2003-2018, while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from circa 2020.'
-          sx={{ justifyContent: 'flex-start', gap: 3 }}
-        >
-          <Filter
-            role='group'
-            aria-label='Select climate period'
-            variant='filter'
-            values={{
-              current: timePeriod === 'current',
-              future: timePeriod === 'future',
-            }}
-            labels={{
-              current: 'Today’s climate',
-              future: 'Future climate',
-            }}
-            setValues={(values: Record<string, boolean>) => {
-              const selectedPeriod = Object.keys(values).find(
-                (key) => values[key],
-              )
-              if (selectedPeriod === 'current') {
-                setTimePeriod('current')
-              } else if (selectedPeriod === 'future') {
-                setTimePeriod('future')
-              }
-            }}
-          />
-        </TooltipWrapper>
+        <Row columns={[6, 8, 4, 4]}>
+          <Column start={[1]} width={1}>
+            <Box variant='label'>Climate</Box>
+          </Column>
+          <Column start={[3, 2, 2, 2]} width={[4, 7, 3, 3]} sx={{ mb: '-5px' }}>
+            <TooltipWrapper
+              tooltip='Current risk estimates are based on a climate circa 2003-2018, while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from circa 2020.'
+              sx={{ justifyContent: 'flex-start', gap: 3 }}
+            >
+              <Filter
+                role='group'
+                aria-label='Select climate period'
+                variant='filter'
+                values={{
+                  current: timePeriod === 'current',
+                  future: timePeriod === 'future',
+                }}
+                labels={{
+                  current: 'Current',
+                  future: 'Future',
+                }}
+                setValues={(values: Record<string, boolean>) => {
+                  const selectedPeriod = Object.keys(values).find(
+                    (key) => values[key],
+                  )
+                  if (selectedPeriod === 'current') {
+                    setTimePeriod('current')
+                  } else if (selectedPeriod === 'future') {
+                    setTimePeriod('future')
+                  }
+                }}
+              />
+            </TooltipWrapper>
+          </Column>
+        </Row>
         <SidebarDivider sx={{ mt: 3, mb: 0 }} />
       </Box>
     </Box>

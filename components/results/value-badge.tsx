@@ -4,6 +4,7 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { mix } from '@theme-ui/color'
+import { useCallback } from 'react'
 
 const Wrapper = ({
   lowValue,
@@ -46,6 +47,20 @@ const ValueBadge = ({
     backgroundColor: color ?? mix('muted', 'background', 0.3)(theme),
     color: value == null ? 'secondary' : 'primary',
   }
+
+  const handleCopy = useCallback(
+    (event: ClipboardEvent) => {
+      event.preventDefault()
+      if (event.clipboardData) {
+        event.clipboardData.setData(
+          'text/plain',
+          `${value}${unit === '#' ? '' : unit}`,
+        )
+      }
+    },
+    [value, unit],
+  )
+
   return (
     <Wrapper lowValue={lowValue}>
       {lowValue && (
@@ -67,9 +82,11 @@ const ValueBadge = ({
           height: [21, 21, 21, 22],
           mb: '-5px',
           transition: 'all 0.2s',
+          userSelect: typeof value == 'number' ? 'all' : 'none',
           ...colors,
           ...sx,
         }}
+        onCopy={handleCopy}
       >
         {value == null ? (
           <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
