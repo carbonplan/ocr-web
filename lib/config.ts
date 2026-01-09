@@ -115,8 +115,8 @@ export const RASTER_ZOOM_THRESHOLD = 14
 
 export const GEOGRAPHY_MIN_ZOOM = {
   nation: 0,
-  state: 7,
-  county: 10,
-  censusTract: 12,
-  censusBlock: 13,
+  state: 5,
+  county: 6,
+  censusTract: 7,
+  censusBlock: 9,
 } as const
