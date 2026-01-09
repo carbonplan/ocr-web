@@ -85,7 +85,7 @@ export const GEOGRAPHY_ATTRIBUTE_KEYS = {
 
 export const RISKS = {
   fire: {
-    colormap: 'fire-risk',
+    colormap: 'reds',
     binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
   },
 } as const

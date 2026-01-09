@@ -3,7 +3,8 @@ import {
   Badge,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-import chroma from 'chroma-js'
+import { mix } from '@theme-ui/color'
+import { useCallback } from 'react'
 
 const Wrapper = ({
   lowValue,
@@ -42,24 +43,24 @@ const ValueBadge = ({
     formattedValue = value
   }
 
-  let colors: Partial<ThemeUIStyleObject> = {}
-  if (color) {
-    // For all colormap colors...
-    if (chroma.valid(color)) {
-      // Use secondary when background fails to contrast with color (lightmode-only)
-      const contrast = chroma.contrast(
-        color,
-        theme.rawColors?.background as string,
-      )
-      const textColor = contrast > 2 ? 'background' : 'secondary'
-      colors = {
-        backgroundColor: color,
-        color: textColor,
-      }
-    } else {
-      colors = { backgroundColor: color, color: 'primary' } // otherwise, use primary.
-    }
+  const colors: Partial<ThemeUIStyleObject> = {
+    backgroundColor: color ?? mix('muted', 'background', 0.3)(theme),
+    color: value == null ? 'secondary' : 'primary',
   }
+
+  const handleCopy = useCallback(
+    (event: ClipboardEvent) => {
+      event.preventDefault()
+      if (event.clipboardData) {
+        event.clipboardData.setData(
+          'text/plain',
+          `${value}${unit === '#' ? '' : unit}`,
+        )
+      }
+    },
+    [value, unit],
+  )
+
   return (
     <Wrapper lowValue={lowValue}>
       {lowValue && (
@@ -80,9 +81,12 @@ const ValueBadge = ({
           fontSize: [1, 1, 1, 2],
           height: [21, 21, 21, 22],
           mb: '-5px',
+          transition: 'all 0.2s',
+          userSelect: typeof value == 'number' ? 'all' : 'none',
           ...colors,
           ...sx,
         }}
+        onCopy={handleCopy}
       >
         {value == null ? (
           <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>

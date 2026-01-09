@@ -61,7 +61,7 @@ const ZarrLayer = () => {
       vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
       fragColor = vec4(c.rgb, opacity);
     `
-  }, [colorLimits.type, colorLimits.binBoundaries, riskAttribute])
+  }, [colorLimits.binBoundaries, riskAttribute])
 
   useEffect(() => {
     if (!map) return

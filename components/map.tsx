@@ -24,7 +24,7 @@ import {
   SatelliteLayer,
   HillshadeLayer,
   ZarrLayer,
-  MapAttribution,
+  MapControls,
   useMapControlStyles,
 } from './'
 import { LAYERS, GEOGRAPHY_AUTOSELECT_ZOOM } from '@/lib/config'
@@ -272,7 +272,7 @@ const MapComponent = () => {
     >
       {map && styleLoaded && (
         <>
-          <MapAttribution />
+          <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
           {riskRaster && <ZarrLayer />}

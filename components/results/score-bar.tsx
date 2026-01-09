@@ -12,11 +12,9 @@ import ValueBadge from './value-badge'
 
 const ScoreBar = ({
   labels,
-  axisLabel,
   sx,
 }: {
   labels?: boolean
-  axisLabel?: boolean
   sx?: ThemeUIStyleObject
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -44,27 +42,19 @@ const ScoreBar = ({
             gridGap: '2px',
           }}
         >
-          <ValueBadge
-            value='0'
-            unit='#'
-            sx={{
-              width: '100%',
-              backgroundColor: 'muted',
-              color: score === '0' ? 'primary' : 'secondary',
-            }}
-          />
-          {Array(10)
+          {Array(11)
             .fill(null)
             .map((el, i) => (
               <Flex key={i} sx={{ position: 'relative' }}>
-                {labels && !(i === 0 && bins[0] === 0) && (
+                {labels && (
                   <>
                     {(() => {
-                      const str = String(bins[i])
+                      if (i < 2) return
+                      const str = String(bins[i - 1])
                       const digitCount = str.replace(/\D/g, '').length
                       const formattedStr =
                         digitCount > 2 ? str.replace(/^0(?=\.)/, '') : str
-                      const displayText = `${formattedStr}%${i === bins.length - 1 ? '+' : ''}`
+                      const displayText = `${formattedStr}%${i === bins.length ? '+' : ''}`
                       return (
                         <>
                           <Box
@@ -109,24 +99,32 @@ const ScoreBar = ({
                 )}
 
                 <ValueBadge
-                  value={`${i + 1}`}
+                  value={`${i}`}
                   unit='#'
                   color={colormap[i]}
-                  sx={{ width: '100%' }}
+                  sx={{
+                    width: '100%',
+                    ...(i === 0 && score !== '0' ? { color: 'secondary' } : {}),
+                  }}
                 />
               </Flex>
             ))}
         </Grid>
       </Flex>
-      {axisLabel && (
-        <Box sx={{ width: '100%', mt: '56px', pb: 1 }}>
-          <Chart x={[0, 1]} y={[0, 1]}>
-            <AxisLabel bottom units='%'>
-              Risk of loss
-            </AxisLabel>
-          </Chart>
-        </Box>
-      )}
+      <Box sx={{ width: '100%', mt: '50px', pb: 1 }}>
+        <Chart x={[0, 1]} y={[0, 1]}>
+          <AxisLabel
+            bottom
+            units='%'
+            sx={{
+              color: 'secondary',
+              '& svg': { fill: 'secondary' },
+            }}
+          >
+            Risk of loss
+          </AxisLabel>
+        </Chart>
+      </Box>
     </>
   )
 }
