@@ -181,6 +181,14 @@ const RegionalRisk = () => {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
             setUserSelectedGeo(e.target.value as GeographyKey)
           }}
+          sx={{
+            '& select': {
+              fontSize: 1,
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              textTransform: 'uppercase',
+            },
+          }}
         >
           <option value='nation' disabled={disabledGeographies.nation}>
             CONTINENTAL US
