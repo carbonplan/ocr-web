@@ -109,7 +109,7 @@ export const useBuildingUtils = () => {
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          selectBuilding(closestBuilding as Building, options)
+          selectBuilding(closestBuilding as unknown as Building, options)
           return true
         }
       }
