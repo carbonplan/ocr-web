@@ -21,11 +21,13 @@ const Geocode = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [suggestionsQuery, setSuggestionsQuery] = useState('')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 300)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const listboxId = 'address-suggestions'
   const errorId = 'search-error'
@@ -66,6 +68,7 @@ const Geocode = () => {
   useEffect(() => {
     if (!isEditing) {
       setSuggestions([])
+      setSuggestionsQuery('')
       setSelectedIndex(-1)
       setErrorMessage('')
     }
@@ -74,6 +77,7 @@ const Geocode = () => {
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSuggestions([])
+      setSuggestionsQuery('')
       setErrorMessage('')
     }
   }, [searchQuery])
@@ -87,18 +91,30 @@ const Geocode = () => {
 
   useEffect(() => {
     if (debouncedQuery.trim() && searchQuery.trim() && isEditing) {
-      fetchSuggestions(debouncedQuery)
+      abortControllerRef.current?.abort()
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+      fetchSuggestions(debouncedQuery, controller.signal)
+    }
+
+    return () => {
+      abortControllerRef.current?.abort()
     }
   }, [debouncedQuery, searchQuery, isEditing])
 
-  const fetchSuggestions = async (query: string): Promise<Suggestion[]> => {
+  const fetchSuggestions = async (
+    query: string,
+    signal: AbortSignal,
+  ): Promise<Suggestion[]> => {
     try {
       const response = await fetch(
         `/api/geocode/autocomplete?q=${encodeURIComponent(query)}`,
+        { signal },
       )
       const data = await response.json()
       const results = data.items || []
       setSuggestions(results)
+      setSuggestionsQuery(query)
 
       if (results.length === 0) {
         setErrorMessage('No results found')
@@ -107,6 +123,10 @@ const Geocode = () => {
       }
       return results
     } catch (error) {
+      // Ignore aborted requests
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return []
+      }
       console.error('Autocomplete error:', error)
       setErrorMessage('Error searching for location')
       setSuggestions([])
@@ -212,7 +232,17 @@ const Geocode = () => {
 
   const handleEnterKeyPress = async () => {
     if (!searchQuery.trim()) return
-    const results = await fetchSuggestions(searchQuery)
+
+    if (suggestions.length > 0 && suggestionsQuery === searchQuery) {
+      handleSuggestionSelect(suggestions[0])
+      return
+    }
+
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    const results = await fetchSuggestions(searchQuery, controller.signal)
     if (results.length > 0) {
       handleSuggestionSelect(results[0])
     }
