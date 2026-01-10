@@ -19,19 +19,6 @@ const ZarrLayer = () => {
     timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
 
   const customFrag = useMemo(() => {
-    if (colorLimits.type === 'continuous') {
-      return `
-        float value = ${riskAttribute};
-        if (value == fillValue || value == 0.0) {
-          fragColor = vec4(0.0);
-          return;
-        }
-        float rescaled = (value - clim.x) / (clim.y - clim.x);
-        vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
-        fragColor = vec4(c.rgb, opacity);
-      `
-    }
-
     const boundaries = colorLimits.binBoundaries || []
 
     const binConditions = boundaries
