@@ -6,7 +6,7 @@ import { Button } from '@carbonplan/components'
 import { Down } from '@carbonplan/icons'
 import { DATA_URLS, DATA_VERSION } from '@/lib/config'
 import { useStore } from '@/lib/store'
-import { getCountyName, getGeoid } from '@/lib/risk-utils'
+import { getGeographyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
 import useTracking from '@/hooks/useTracking'
 
@@ -43,7 +43,7 @@ const DownloadButton = ({
   )
 }
 
-const REGION_TYPES: Record<GeographyKey, string> = {
+const REGION_TYPES: Partial<Record<GeographyKey, string>> = {
   county: 'county',
   censusTract: 'tract',
   censusBlock: 'block',
@@ -59,10 +59,13 @@ export const Download = () => {
     getGeoid(state.activeGeographies[selectedGeographyLevel]),
   )
   const countyName = useStore((state) =>
-    getCountyName(state.activeGeographies.county),
+    getGeographyName(state.activeGeographies.county),
   )
   const activeGeographies = useStore((state) => state.activeGeographies)
-  const disabled = !activeGeographies[selectedGeographyLevel]
+  const isDownloadableLevel =
+    selectedGeographyLevel !== 'state' && selectedGeographyLevel !== 'nation'
+  const disabled =
+    !activeGeographies[selectedGeographyLevel] || !isDownloadableLevel
   let filename: string
   if (selectedGeographyLevel === 'county') {
     filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`

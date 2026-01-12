@@ -35,6 +35,8 @@ const Display = () => {
               county: 'County',
               censusTract: 'Census tract',
               censusBlock: 'Census block',
+              state: 'State',
+              nation: 'Nation',
             }}
             multiSelect
             setValues={(values: Record<string, boolean>) => {
@@ -43,6 +45,8 @@ const Display = () => {
                 county: values.county,
                 censusTract: values.censusTract,
                 censusBlock: values.censusBlock,
+                state: values.state,
+                nation: values.nation,
               })
             }}
           />

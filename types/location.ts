@@ -38,7 +38,12 @@ export type Location = {
 
 export type ScenarioKey = 'current' | 'future'
 
-export type GeographyKey = 'county' | 'censusTract' | 'censusBlock'
+export type GeographyKey =
+  | 'county'
+  | 'censusTract'
+  | 'censusBlock'
+  | 'state'
+  | 'nation'
 
 export type BuildingProperties = {
   [BUILDING_ATTRIBUTE_KEYS.wind_risk_2011]: number
@@ -65,7 +70,7 @@ export type Geography = {
   [GEOGRAPHY_ATTRIBUTE_KEYS.wind_risk_2047]: string // stringified number[]
   [GEOGRAPHY_ATTRIBUTE_KEYS.geoid]: string
   [GEOGRAPHY_ATTRIBUTE_KEYS.bbox]: string
-  [GEOGRAPHY_ATTRIBUTE_KEYS.county_name]?: string
+  [GEOGRAPHY_ATTRIBUTE_KEYS.name]?: string
 }
 
 export type Suggestion = {
