@@ -31,11 +31,10 @@ const DownloadButton = ({
       onClick={onClick}
       aria-label={ariaLabel || label}
       sx={{
-        color: loading ? 'secondary' : disabled ? 'muted' : 'secondary',
-        '&:hover': {
-          color: loading ? 'secondary' : disabled ? 'muted' : 'primary',
+        '&:disabled': {
+          pointerEvents: 'none',
+          color: loading ? 'secondary' : 'muted',
         },
-        '&:disabled': { pointerEvents: 'none' },
       }}
     >
       {label}
