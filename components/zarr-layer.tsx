@@ -44,7 +44,9 @@ const ZarrLayer = () => {
       ${binConditions} else {
         binIndex = ${lastBinIndex}.0;
       }
-      float rescaled = (binIndex + 0.5) / ${boundaries.length}.0;
+      // Offset by 1 to match buildings layer which uses colormap[i+1] for bin i
+      // +0.5 to center the bin in the colormap
+      float rescaled = (binIndex + 1.5) / ${boundaries.length + 1}.0;
       vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
       fragColor = vec4(c.rgb, opacity);
     `
