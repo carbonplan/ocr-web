@@ -1,47 +1,42 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Button, Filter, Table } from '@carbonplan/components'
+import { Button, Select, Table } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { RotatingArrow, X } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 import { LngLatBounds } from 'maplibre-gl'
 
-import {
-  getGeographyRisk,
-  getCountyName,
-  getBoundingBox,
-} from '@/lib/risk-utils'
+import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
-import {
-  GEOGRAPHY_ATTRIBUTE_KEYS,
-  GEOGRAPHY_AUTOSELECT_ZOOM,
-} from '@/lib/config'
+import { GEOGRAPHY_ATTRIBUTE_KEYS, GEOGRAPHY_MIN_ZOOM } from '@/lib/config'
 import { GeographyKey } from '@/types/location'
 import { Download } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 
+// module level because refs were being reset by react strict mode I think?
+let hasUserSelectedGeo = false
+
 const RegionalRisk = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const map = useStore((state) => state.map)
-  const selectedGeographyLevel = useStore(
-    (state) => state.selectedGeographyLevel,
-  )
-  const setSelectedGeographyLevel = useStore(
-    (state) => state.setSelectedGeographyLevel,
-  )
+  const geographyLevel = useStore((state) => state.selectedGeographyLevel)
+  const setGeographyLevel = useStore((state) => state.setSelectedGeographyLevel)
   const showOnMap = useStore((state) => state.showGeographyHighlight)
   const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
-  const countyName = useStore((state) =>
-    getCountyName(state.activeGeographies.county),
-  )
-  const activeGeography = activeGeographies[selectedGeographyLevel]
   const [zoom, setZoom] = useState(0)
+  const activeGeography = activeGeographies[geographyLevel]
+
+  useEffect(() => {
+    if (!hasUserSelectedGeo) {
+      setGeographyLevel(selectedBuilding ? 'county' : 'nation')
+    }
+  }, [selectedBuilding, setGeographyLevel])
 
   const { score, color } = useScore(activeGeography ?? null, 'muted')
   const { score: buildingScore } = useScore(selectedBuilding)
@@ -49,7 +44,7 @@ const RegionalRisk = () => {
     useShallow(
       (state) =>
         getGeographyRisk(
-          state.activeGeographies[selectedGeographyLevel],
+          state.activeGeographies[geographyLevel],
           state.timePeriod,
         ) ?? [],
     ),
@@ -59,15 +54,33 @@ const RegionalRisk = () => {
   const previousBuildingIDRef = useRef<string | null>(null)
 
   const getRegionName = () => {
-    if (selectedGeographyLevel === 'county') {
-      return `${countyName ?? ''} County`
+    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
+    if (geographyLevel === 'county') {
+      return name ? `${name} County` : 'the county'
+    }
+    if (geographyLevel === 'state') {
+      return name ?? 'the state'
+    }
+    if (geographyLevel === 'nation') {
+      return 'the continental US'
     }
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
     // Extract 4-digit identifiers based on https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
-    if (selectedGeographyLevel === 'censusTract') {
+    if (geographyLevel === 'censusTract') {
       return geoid ? `Census Tract ${geoid.slice(5, 9)}` : 'the census tract'
     }
     return geoid ? `Census Block ${geoid.slice(11)}` : 'the census block'
+  }
+
+  const getGeographyLabel = (key: GeographyKey): string => {
+    const labels: Record<GeographyKey, string> = {
+      nation: 'continental US',
+      state: 'state',
+      county: 'county',
+      censusTract: 'census tract',
+      censusBlock: 'census block',
+    }
+    return labels[key]
   }
 
   const fitBoundsToGeography = useCallback(() => {
@@ -105,7 +118,7 @@ const RegionalRisk = () => {
     }
     // exclude fitBoundsToGeography from deps to avoid loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showOnMap, selectedGeographyLevel])
+  }, [showOnMap, geographyLevel])
 
   useEffect(() => {
     if (!map) return
@@ -124,52 +137,46 @@ const RegionalRisk = () => {
 
   useEffect(() => {
     if (!map) return
-    const handleMoveEnd = () => {
+    const updateZoom = () => {
       setZoom(map.getZoom())
     }
-    map.on('moveend', handleMoveEnd)
+    updateZoom()
+    map.on('moveend', updateZoom)
     return () => {
-      map.off('moveend', handleMoveEnd)
+      map.off('moveend', updateZoom)
     }
   }, [map])
 
-  const disabled = zoom < GEOGRAPHY_AUTOSELECT_ZOOM && !selectedBuilding
+  const isGeographyUnavailable = zoom < GEOGRAPHY_MIN_ZOOM[geographyLevel]
 
   return (
     <>
       <Box as='h2' variant='sectionHeading'>
         Risk in the region
       </Box>
-      <Filter
-        role='group'
+      <Select
         aria-label='Select geographic level'
-        variant='filter'
-        values={{
-          county: selectedGeographyLevel === 'county',
-          censusTract: selectedGeographyLevel === 'censusTract',
-          censusBlock: selectedGeographyLevel === 'censusBlock',
+        size='xs'
+        value={geographyLevel}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+          hasUserSelectedGeo = true
+          setGeographyLevel(e.target.value as GeographyKey)
         }}
-        labels={{
-          county: 'County',
-          censusTract: 'Census tract',
-          censusBlock: 'Census block',
+        sx={{
+          '& select': {
+            fontSize: 1,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+          },
         }}
-        setValues={(obj: Record<GeographyKey, boolean>) => {
-          const selected = (Object.keys(obj) as GeographyKey[]).find(
-            (k) => obj[k],
-          )
-          if (selected) {
-            setSelectedGeographyLevel(selected)
-          }
-        }}
-        disabled={disabled}
-        sx={
-          disabled && {
-            pointerEvents: 'none',
-            '& button': { opacity: 0.1 },
-          }
-        }
-      />
+      >
+        <option value='nation'>CONTINENTAL US</option>
+        <option value='state'>STATE</option>
+        <option value='county'>COUNTY</option>
+        <option value='censusTract'>CENSUS TRACT</option>
+        <option value='censusBlock'>CENSUS BLOCK</option>
+      </Select>
       <Table
         columns={3}
         start={[1, 2]}
@@ -214,7 +221,6 @@ const RegionalRisk = () => {
             color: 'secondary',
             fontSize: 1,
           },
-          opacity: disabled ? 0.2 : 1,
         }}
       />
       <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
@@ -259,8 +265,8 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {disabled
-              ? 'Zoom in to view regional risk distribution'
+            {isGeographyUnavailable
+              ? `Zoom in to view ${getGeographyLabel(geographyLevel)} data`
               : 'No data available'}
           </Box>
         )}

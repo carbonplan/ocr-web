@@ -51,6 +51,22 @@ export const LAYERS = {
       line: 'risk-census-blocks-line',
     },
   },
+  states: {
+    layerName: 'states',
+    sourceId: 'regions',
+    layerIds: {
+      fill: 'risk-states-fill',
+      line: 'risk-states-line',
+    },
+  },
+  nation: {
+    layerName: 'nation',
+    sourceId: 'regions',
+    layerIds: {
+      fill: 'risk-nation-fill',
+      line: 'risk-nation-line',
+    },
+  },
   buildingPoints: {
     layerName: 'risk',
     sourceId: 'buildingPoints',
@@ -80,7 +96,7 @@ export const GEOGRAPHY_ATTRIBUTE_KEYS = {
   wind_risk_2047: '6',
   geoid: '7',
   bbox: '8',
-  county_name: '9',
+  name: '9',
 } as const
 
 export const RISKS = {
@@ -90,4 +106,12 @@ export const RISKS = {
   },
 } as const
 
-export const GEOGRAPHY_AUTOSELECT_ZOOM = 7
+export const RASTER_ZOOM_THRESHOLD = 14
+
+export const GEOGRAPHY_MIN_ZOOM = {
+  nation: 0,
+  state: 5,
+  county: 6,
+  censusTract: 7,
+  censusBlock: 9,
+} as const
