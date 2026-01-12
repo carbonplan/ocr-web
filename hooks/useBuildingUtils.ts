@@ -51,6 +51,7 @@ export const useBuildingUtils = () => {
         map.easeTo({ center: [lng, lat] })
       }
       if (shouldFetchAddress) {
+        setSelectedLocation(null)
         fetchAddress(lat, lng).then((location) => {
           if (location && useStore.getState().selectedBuilding) {
             setSelectedLocation(location)
