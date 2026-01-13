@@ -10,7 +10,7 @@ type Store = {
   map: Map | null
   setMap: (map: Map | null) => void
   selectedLocation: Location | null
-  setSelectedLocation: (location: Location) => void
+  setSelectedLocation: (location: Location | null) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
   riskRaster: boolean
