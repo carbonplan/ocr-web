@@ -20,7 +20,7 @@
     "@carbonplan/minimaps": "^2.7.0",
     "@carbonplan/prettier": "^1.2.0",
     "@carbonplan/theme": "^8.1.0",
-    "@carbonplan/zarr-layer": "^0.2.4",
+    "@carbonplan/zarr-layer": "^0.2.5",
     "@emotion/react": "^11.14.0",
     "@mdx-js/react": "^3.1.1",
     "@protomaps/basemaps": "^5.0.1",
