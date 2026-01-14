@@ -109,7 +109,7 @@ const MapComponent = () => {
       transformConstrain: (center, zoom) => {
         const sw = [-130, 25]
         const ne = [-75, 60]
-        const minZoom = 4
+        const minZoom = 3
         const maxZoom = 16.75
         return {
           center: new LngLat(
