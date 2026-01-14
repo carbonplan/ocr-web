@@ -163,7 +163,7 @@ const Buildings = () => {
         }
 
         const feature = features[0]
-        selectBuilding(feature as Building)
+        selectBuilding(feature as unknown as Building)
       } else {
         clearSelections()
       }
