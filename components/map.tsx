@@ -85,7 +85,7 @@ const MapComponent = () => {
     const sources: Record<string, SourceSpecification> = {
       basemap: {
         type: 'vector',
-        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/NA.pmtiles',
+        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/global.pmtiles',
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
@@ -110,7 +110,7 @@ const MapComponent = () => {
         const sw = [-130, 25]
         const ne = [-75, 60]
         const minZoom = 4
-        const maxZoom = 16.5
+        const maxZoom = 16.75
         return {
           center: new LngLat(
             Math.max(sw[0], Math.min(ne[0], center.lng)),
