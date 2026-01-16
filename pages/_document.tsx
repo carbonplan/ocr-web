@@ -17,6 +17,15 @@ class MyDocument extends Document {
             name='viewport'
             content='width=device-width, initial-scale=1, interactive-widget=resizes-content'
           />
+          <link
+            rel='preconnect'
+            href='https://carbonplan-maps.s3.us-west-2.amazonaws.com'
+          />
+          <link
+            rel='preconnect'
+            href='https://carbonplan-ocr.s3.amazonaws.com'
+          />
+          <link rel='preconnect' href='https://fonts.carbonplan.org' />
         </Head>
         <body>
           <InitializeColorMode />
