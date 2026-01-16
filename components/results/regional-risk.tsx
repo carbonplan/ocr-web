@@ -7,23 +7,33 @@ import { LngLatBounds } from 'maplibre-gl'
 
 import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
-import { GEOGRAPHY_ATTRIBUTE_KEYS, GEOGRAPHY_MIN_ZOOM } from '@/lib/config'
+import {
+  DATA_VERSION,
+  GEOGRAPHY_ATTRIBUTE_KEYS,
+  GEOGRAPHY_MIN_ZOOM,
+  STATISTICS_PATHS,
+} from '@/lib/config'
 import { GeographyKey } from '@/types/location'
-import { Download } from './download'
+import { Download, DownloadButton } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 import EyeCheckbox from '../eye-checkbox'
 
-const getGeographyLabel = (key: GeographyKey): string => {
-  const labels: Record<GeographyKey, string> = {
-    nation: 'continental US',
-    state: 'state',
-    county: 'county',
-    censusTract: 'census tract',
-    censusBlock: 'census block',
-  }
-  return labels[key]
+const GEOGRAPHY_LABELS = {
+  nation: 'continental US',
+  state: 'state',
+  county: 'county',
+  censusTract: 'census tract',
+  censusBlock: 'census block',
+}
+
+const GEOGRAPHY_SUMMARY_LABELS = {
+  nation: 'National summary statistics',
+  state: 'Comparison across states',
+  county: 'Comparison across counties',
+  censusTract: 'Comparison across census tracts',
+  censusBlock: 'Comparison across census blocks',
 }
 
 const RegionalRisk = () => {
@@ -65,7 +75,7 @@ const RegionalRisk = () => {
   function getRegionName(args?: { mode: 'long' }): string
   function getRegionName({ mode } = { mode: 'long' }) {
     const fallback =
-      mode === 'short' ? null : `the ${getGeographyLabel(geographyLevel)}`
+      mode === 'short' ? null : `the ${GEOGRAPHY_LABELS[geographyLevel]}`
     if (geographyLevel === 'nation') {
       return fallback
     }
@@ -228,7 +238,7 @@ const RegionalRisk = () => {
             }}
           >
             {isGeographyUnavailable
-              ? `Zoom in to view ${getGeographyLabel(geographyLevel)} data`
+              ? `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data`
               : 'No data available'}
           </Box>
         )}
@@ -265,7 +275,7 @@ const RegionalRisk = () => {
               />,
             ],
             [
-              'Downloads',
+              'Download',
               <Flex key='downloads' sx={{ flexDirection: 'column' }}>
                 <Box
                   sx={{
@@ -277,12 +287,12 @@ const RegionalRisk = () => {
                     color: 'secondary',
                   }}
                 >
-                  Building-level
+                  Buildings in {getRegionName()}
                 </Box>
                 <Download />
                 <Box
                   sx={{
-                    mt: 2,
+                    mt: 3,
                     mb: 1,
                     fontSize: [0, 0, 0, 1],
                     fontFamily: 'mono',
@@ -291,9 +301,28 @@ const RegionalRisk = () => {
                     color: 'secondary',
                   }}
                 >
-                  Aggregated statistics
+                  {GEOGRAPHY_SUMMARY_LABELS[geographyLevel]}
                 </Box>
-                <Download />
+                <Flex
+                  sx={{ gap: 3 }}
+                  role='group'
+                  aria-label='Download regional data'
+                >
+                  <DownloadButton
+                    label='CSV'
+                    loading={false}
+                    disabled={false}
+                    href={`https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${DATA_VERSION}/region-analysis/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
+                    ariaLabel={`Download summary data as CSV`}
+                  />
+                  <DownloadButton
+                    label='GeoJSON'
+                    loading={false}
+                    disabled={false}
+                    href={`https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${DATA_VERSION}/region-analysis/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
+                    ariaLabel={`Download summary data as GeoJSON`}
+                  />
+                </Flex>
               </Flex>,
             ],
           ]}

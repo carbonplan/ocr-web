@@ -10,25 +10,37 @@ import { getGeographyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
 import useTracking from '@/hooks/useTracking'
 
-const DownloadButton = ({
+export const DownloadButton = ({
   label,
   loading,
   disabled,
   onClick,
   ariaLabel,
+  href,
+  showSuffix = true,
 }: {
   label: string
   loading: boolean
   disabled?: boolean
-  onClick: () => void
+  onClick?: () => void
   ariaLabel?: string
+  href?: string
+  showSuffix?: boolean
 }) => {
+  let suffix
+  if (showSuffix) {
+    suffix = <Down sx={{ mt: -1 }} />
+    if (loading) {
+      suffix = <Spinner sx={{ mt: -1 }} />
+    }
+  }
   return (
     <Button
       size='xs'
-      suffix={loading ? <Spinner sx={{ mt: -1 }} /> : <Down sx={{ mt: -1 }} />}
+      suffix={suffix}
       disabled={loading || disabled}
       onClick={onClick}
+      href={href}
       aria-label={ariaLabel || label}
       sx={{
         '&:disabled': {
@@ -63,8 +75,7 @@ export const Download = () => {
   const activeGeographies = useStore((state) => state.activeGeographies)
   const isDownloadableLevel =
     selectedGeographyLevel !== 'state' && selectedGeographyLevel !== 'nation'
-  const disabled =
-    !activeGeographies[selectedGeographyLevel] || !isDownloadableLevel
+  const disabled = !activeGeographies[selectedGeographyLevel]
   let filename: string
   if (selectedGeographyLevel === 'county') {
     filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
@@ -113,6 +124,17 @@ export const Download = () => {
       })
       setLoading((prev) => ({ ...prev, [format]: false }))
     }
+  }
+
+  if (!isDownloadableLevel) {
+    return (
+      <DownloadButton
+        label='Not available'
+        loading={false}
+        disabled
+        showSuffix={false}
+      />
+    )
   }
 
   return (
