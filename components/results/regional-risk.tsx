@@ -261,6 +261,7 @@ const RegionalRisk = () => {
                   )
                 }
                 unit='#'
+                whitespace={false}
                 sx={{ minWidth: '34px' }}
               />,
             ],
@@ -271,6 +272,7 @@ const RegionalRisk = () => {
                 value={score}
                 unit='#'
                 color={score ? color : undefined}
+                whitespace={false}
                 sx={{ minWidth: '34px' }}
               />,
             ],
