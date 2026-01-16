@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Flex, IconButton } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Select, Table } from '@carbonplan/components'
-//@ts-expect-error - carbonplan icons types not available
-import { RotatingArrow, X } from '@carbonplan/icons'
 import { useShallow } from 'zustand/react/shallow'
 import { LngLatBounds } from 'maplibre-gl'
 
@@ -15,6 +13,18 @@ import { Download } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
+import EyeCheckbox from '../eye-checkbox'
+
+const getGeographyLabel = (key: GeographyKey): string => {
+  const labels: Record<GeographyKey, string> = {
+    nation: 'continental US',
+    state: 'state',
+    county: 'county',
+    censusTract: 'census tract',
+    censusBlock: 'census block',
+  }
+  return labels[key]
+}
 
 const RegionalRisk = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -51,34 +61,39 @@ const RegionalRisk = () => {
   const previousBoundsRef = useRef<LngLatBounds | null>(null)
   const previousBuildingIDRef = useRef<string | null>(null)
 
-  const getRegionName = () => {
-    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
-    if (geographyLevel === 'county') {
-      return name ? `${name} County` : 'the county'
-    }
-    if (geographyLevel === 'state') {
-      return name ?? 'the state'
-    }
+  function getRegionName(args: { mode: 'short' }): string | null
+  function getRegionName(args?: { mode: 'long' }): string
+  function getRegionName({ mode } = { mode: 'long' }) {
+    const fallback =
+      mode === 'short' ? null : `the ${getGeographyLabel(geographyLevel)}`
     if (geographyLevel === 'nation') {
-      return 'the continental US'
+      return fallback
     }
+
+    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
+    if (['county', 'state'].includes(geographyLevel)) {
+      if (!name) {
+        return fallback
+      } else if (geographyLevel === 'county') {
+        return `${name} County`
+      } else {
+        return name
+      }
+    }
+
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+    if (!geoid) {
+      return fallback
+    }
     // Extract 4-digit identifiers based on https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
     if (geographyLevel === 'censusTract') {
-      return geoid ? `Census Tract ${geoid.slice(5, 9)}` : 'the census tract'
+      return mode === 'short'
+        ? geoid.slice(5, 9)
+        : `Census Tract ${geoid.slice(5, 9)}`
     }
-    return geoid ? `Census Block ${geoid.slice(11)}` : 'the census block'
-  }
-
-  const getGeographyLabel = (key: GeographyKey): string => {
-    const labels: Record<GeographyKey, string> = {
-      nation: 'continental US',
-      state: 'state',
-      county: 'county',
-      censusTract: 'census tract',
-      censusBlock: 'census block',
-    }
-    return labels[key]
+    return mode === 'short'
+      ? geoid.slice(11)
+      : `Census Block ${geoid.slice(11)}`
   }
 
   const fitBoundsToGeography = useCallback(() => {
@@ -152,133 +167,156 @@ const RegionalRisk = () => {
       <Box as='h2' variant='sectionHeading'>
         Risk in the region
       </Box>
-      <Flex sx={{ flexDirection: 'column', gap: 3 }}>
-        <Box sx={{ position: 'relative', mb: 6 }}>
-          <Histogram
-            region={getRegionName()}
-            data={data}
-            score={buildingScore}
-            sx={data.length > 0 ? undefined : { opacity: 0.1 }}
-          />
-          {!data.length && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '35%',
-                width: '100%',
-                textAlign: 'center',
-                px: 7,
-                color: 'secondary',
-              }}
-            >
-              {isGeographyUnavailable
-                ? `Zoom in to view ${getGeographyLabel(geographyLevel)} data`
-                : 'No data available'}
-            </Box>
-          )}
-        </Box>
+      <Flex sx={{ alignItems: 'baseline', gap: 3 }}>
+        <Select
+          key='geography'
+          aria-label='Select geographic level'
+          size='xs'
+          value={geographyLevel}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            setHasSelectedGeo(true)
+            setGeographyLevel(e.target.value as GeographyKey)
+          }}
+          sx={{
+            '& select': {
+              fontSize: 1,
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              textTransform: 'uppercase',
+            },
+            '& svg': {
+              fill: 'primary',
+            },
+          }}
+        >
+          <option value='nation'>Continental US</option>
+          <option value='state'>State</option>
+          <option value='county'>County</option>
+          <option value='censusTract'>Census tract</option>
+          <option value='censusBlock'>Census block</option>
+        </Select>
+        <Flex
+          as='label'
+          sx={{
+            gap: 1,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+            fontSize: 1,
+          }}
+        >
+          {getRegionName({ mode: 'short' }) ?? <>&#8203;</>}
+          <EyeCheckbox checked={showOnMap} onChange={handleShowRegionChange} />
+        </Flex>
+      </Flex>
+      <Box sx={{ position: 'relative', mt: 2, mb: 7 }}>
+        <Histogram
+          region={getRegionName()}
+          data={data}
+          score={buildingScore}
+          sx={data.length > 0 ? undefined : { opacity: 0.1 }}
+        />
+        {!data.length && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '35%',
+              width: '100%',
+              textAlign: 'center',
+              px: 7,
+              color: 'secondary',
+            }}
+          >
+            {isGeographyUnavailable
+              ? `Zoom in to view ${getGeographyLabel(geographyLevel)} data`
+              : 'No data available'}
+          </Box>
+        )}
+      </Box>
 
-        <Box>
-          <Table
-            columns={3}
-            start={[1, 2]}
-            width={[1, 2]}
-            data={[
-              [
-                <Select
-                  key='geography'
-                  aria-label='Select geographic level'
-                  size='xs'
-                  value={hasSelectedGeo ? geographyLevel : ''}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    setHasSelectedGeo(true)
-                    setGeographyLevel(e.target.value as GeographyKey)
-                  }}
+      <Box>
+        <Table
+          columns={3}
+          start={[1, 2]}
+          width={[1, 2]}
+          data={[
+            [
+              'Structures',
+              <ValueBadge
+                key='count'
+                value={
+                  activeGeography &&
+                  formatBuildingCount(
+                    activeGeography[GEOGRAPHY_ATTRIBUTE_KEYS.building_count],
+                  )
+                }
+                unit='#'
+                sx={{ minWidth: '34px' }}
+              />,
+            ],
+            [
+              'Median score',
+              <ValueBadge
+                key='median'
+                value={score}
+                unit='#'
+                color={score ? color : undefined}
+                sx={{ minWidth: '34px' }}
+              />,
+            ],
+            [
+              'Downloads',
+              <Flex key='downloads' sx={{ flexDirection: 'column' }}>
+                <Box
                   sx={{
-                    '& select': {
-                      width: '100%',
-                      fontSize: 1,
-                      fontFamily: 'mono',
-                      letterSpacing: 'mono',
-                      textTransform: 'uppercase',
-                    },
-                    '& svg': {
-                      fill: 'primary',
-                    },
+                    mb: 1,
+                    fontSize: [0, 0, 0, 1],
+                    fontFamily: 'mono',
+                    letterSpacing: 'mono',
+                    textTransform: 'uppercase',
+                    color: 'secondary',
                   }}
                 >
-                  <option value='' disabled>
-                    Region
-                  </option>
-                  <option value='nation'>Nation</option>
-                  <option value='state'>State</option>
-                  <option value='county'>County</option>
-                  <option value='censusTract'>Census tract</option>
-                  <option value='censusBlock'>Census block</option>
-                </Select>,
-                <Flex key='regionInfo'>
-                  {getRegionName()}
-                  <IconButton
-                    onClick={handleShowRegionChange}
-                    size={24}
-                    disabled={!activeGeography}
-                    aria-label={
-                      showOnMap
-                        ? 'Hide selected region on map'
-                        : 'Show selected region on map'
-                    }
-                  >
-                    {showOnMap ? <X /> : <RotatingArrow />}
-                  </IconButton>
-                </Flex>,
-              ],
-              [
-                'Structures',
-                <ValueBadge
-                  key='count'
-                  value={
-                    activeGeography &&
-                    formatBuildingCount(
-                      activeGeography[GEOGRAPHY_ATTRIBUTE_KEYS.building_count],
-                    )
-                  }
-                  unit='#'
-                  sx={{ minWidth: '34px' }}
-                />,
-              ],
-              [
-                'Median score',
-                <ValueBadge
-                  key='median'
-                  value={score}
-                  unit='#'
-                  color={score ? color : undefined}
-                  sx={{ minWidth: '34px' }}
-                />,
-              ],
-              ['Downloads', <Download key='subset' />],
-            ]}
-            index={false}
-            sx={{
-              '& tr': {
-                py: 2,
-                alignItems: 'baseline',
-              },
-              '& tr td:first-of-type': {
-                fontFamily: 'mono',
-                letterSpacing: 'mono',
-                textTransform: 'uppercase',
-                color: 'secondary',
-                fontSize: 1,
-              },
-              '& tr td:last-of-type': {
-                fontFamily: 'body',
-                letterSpacing: 'body',
-              },
-            }}
-          />
-        </Box>
-      </Flex>
+                  Building-level
+                </Box>
+                <Download />
+                <Box
+                  sx={{
+                    mt: 2,
+                    mb: 1,
+                    fontSize: [0, 0, 0, 1],
+                    fontFamily: 'mono',
+                    letterSpacing: 'mono',
+                    textTransform: 'uppercase',
+                    color: 'secondary',
+                  }}
+                >
+                  Aggregated statistics
+                </Box>
+                <Download />
+              </Flex>,
+            ],
+          ]}
+          index={false}
+          sx={{
+            '& tr': {
+              py: 2,
+              alignItems: 'baseline',
+            },
+            '& tr td:first-of-type': {
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              textTransform: 'uppercase',
+              color: 'secondary',
+              fontSize: 1,
+            },
+            '& tr td:last-of-type': {
+              fontFamily: 'body',
+              letterSpacing: 'body',
+            },
+          }}
+        />
+      </Box>
     </>
   )
 }
