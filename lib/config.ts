@@ -77,8 +77,8 @@ export const LAYERS = {
 } as const
 
 export const BUILDING_ATTRIBUTE_KEYS = {
-  wind_risk_2011: '0', // strings for map expressions
-  wind_risk_2047: '1',
+  rps_2011: '0', // strings for map expressions
+  rps_2047: '1',
   burn_probability_2011: '2',
   burn_probability_2047: '3',
   conditional_risk_usfs: '4',
@@ -88,12 +88,12 @@ export const BUILDING_ATTRIBUTE_KEYS = {
 
 export const GEOGRAPHY_ATTRIBUTE_KEYS = {
   building_count: '0',
-  mean_wind_risk_2011: '1',
-  mean_wind_risk_2047: '2',
-  median_wind_risk_2011: '3',
-  median_wind_risk_2047: '4',
-  wind_risk_2011: '5',
-  wind_risk_2047: '6',
+  mean_rps_2011: '1',
+  mean_rps_2047: '2',
+  median_rps_2011: '3',
+  median_rps_2047: '4',
+  rps_2011: '5',
+  rps_2047: '6',
   geoid: '7',
   bbox: '8',
   name: '9',

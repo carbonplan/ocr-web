@@ -6,7 +6,7 @@ export const getBuildingRiskKey: (
 ) => (typeof BUILDING_ATTRIBUTE_KEYS)[keyof typeof BUILDING_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+  const key = timePeriod === 'current' ? 'rps_2011' : 'rps_2047'
   return BUILDING_ATTRIBUTE_KEYS[key]
 }
 
@@ -15,7 +15,7 @@ export const getGeographyRiskKey: (
 ) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+  const key = timePeriod === 'current' ? 'rps_2011' : 'rps_2047'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
@@ -25,7 +25,7 @@ export const getGeographyMedianRiskKey: (
   timePeriod: ScenarioKey,
 ) => {
   const key =
-    timePeriod === 'current' ? 'median_wind_risk_2011' : 'median_wind_risk_2047'
+    timePeriod === 'current' ? 'median_rps_2011' : 'median_rps_2047'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
