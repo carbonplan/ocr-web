@@ -213,6 +213,7 @@ const RegionalRisk = () => {
             letterSpacing: 'mono',
             textTransform: 'uppercase',
             fontSize: 1,
+            cursor: 'pointer',
           }}
         >
           {getRegionName({ mode: 'short' }) ?? <>&#8203;</>}
