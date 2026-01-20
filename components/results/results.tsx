@@ -53,6 +53,7 @@ const Results = () => {
             <Link href='https://docs.carbonplan.org/ocr/en/latest/reference/data-sources.html'>
               here
             </Link>
+            .
           </Box>
         </Box>
       </Box>
