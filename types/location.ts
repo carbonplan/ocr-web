@@ -48,11 +48,11 @@ export type GeographyKey =
 export type BuildingProperties = {
   [BUILDING_ATTRIBUTE_KEYS.rps_2011]: number
   [BUILDING_ATTRIBUTE_KEYS.rps_2047]: number
-  [BUILDING_ATTRIBUTE_KEYS.burn_probability_2011]: number
-  [BUILDING_ATTRIBUTE_KEYS.burn_probability_2047]: number
-  [BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]: number
-  [BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2011]: number
-  [BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2047]: number
+  [BUILDING_ATTRIBUTE_KEYS.bp_2011]: number
+  [BUILDING_ATTRIBUTE_KEYS.bp_2047]: number
+  [BUILDING_ATTRIBUTE_KEYS.crps_scott]: number
+  [BUILDING_ATTRIBUTE_KEYS.bp_2011_riley]: number
+  [BUILDING_ATTRIBUTE_KEYS.bp_2047_riley]: number
 }
 
 export type Building = Omit<MapGeoJSONFeature, 'properties'> & {
@@ -64,10 +64,10 @@ export type Geography = {
   [GEOGRAPHY_ATTRIBUTE_KEYS.building_count]: number
   [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2011]: number
   [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2047]: number
-  [GEOGRAPHY_ATTRIBUTE_KEYS.median_rps_2011]: number
-  [GEOGRAPHY_ATTRIBUTE_KEYS.median_rps_2047]: number
-  [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2011]: string // stringified number[]
-  [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2047]: string // stringified number[]
+  [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2011_median]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2047_median]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.risk_score_2011_hist]: string // stringified number[]
+  [GEOGRAPHY_ATTRIBUTE_KEYS.risk_score_2047_hist]: string // stringified number[]
   [GEOGRAPHY_ATTRIBUTE_KEYS.geoid]: string
   [GEOGRAPHY_ATTRIBUTE_KEYS.bbox]: string
   [GEOGRAPHY_ATTRIBUTE_KEYS.name]?: string
