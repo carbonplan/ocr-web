@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Map, PointLike } from 'maplibre-gl'
+import { Map } from 'maplibre-gl'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
@@ -153,15 +153,10 @@ export const useStore = create<Store>((set, get) => ({
       return features.length > 0 ? (features[0].properties as Geography) : null
     }
 
-    // Special-case nation query to use viewport intersection
+    // Query nation from source tiles directly (rendered features can miss)
     const queryNation = (): Geography | null => {
-      const canvas = map.getCanvas()
-      const bbox: [PointLike, PointLike] = [
-        [0, 0],
-        [canvas.width, canvas.height],
-      ]
-      const features = map.queryRenderedFeatures(bbox, {
-        layers: [LAYERS.nation.layerIds.fill],
+      const features = map.querySourceFeatures(LAYERS.nation.sourceId, {
+        sourceLayer: LAYERS.nation.layerName,
       })
       return features.length > 0 ? (features[0].properties as Geography) : null
     }
