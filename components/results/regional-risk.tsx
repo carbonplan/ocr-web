@@ -251,7 +251,6 @@ const RegionalRisk = () => {
           columns={3}
           start={[1, 2]}
           width={[1, 2]}
-          borderBottom={false}
           data={[
             [
               'Structures',
