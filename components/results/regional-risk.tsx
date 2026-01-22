@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Select, Table } from '@carbonplan/components'
+import { Link, Select, Table } from '@carbonplan/components'
 import { useShallow } from 'zustand/react/shallow'
 import { LngLatBounds } from 'maplibre-gl'
 
@@ -19,6 +19,7 @@ import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
 import EyeCheckbox from '../eye-checkbox'
+import TooltipWrapper from '../tooltip'
 
 const GEOGRAPHY_LABELS = {
   nation: 'continental US',
@@ -29,11 +30,11 @@ const GEOGRAPHY_LABELS = {
 }
 
 const GEOGRAPHY_SUMMARY_LABELS = {
-  nation: 'National summary statistics',
-  state: 'Comparison across states',
-  county: 'Comparison across counties',
-  censusTract: 'Comparison across census tracts',
-  censusBlock: 'Comparison across census blocks',
+  nation: 'National stats',
+  state: 'State stats',
+  county: 'County stats',
+  censusTract: 'Tract stats',
+  censusBlock: 'Block stats',
 }
 
 const RegionalRisk = () => {
@@ -279,34 +280,49 @@ const RegionalRisk = () => {
               />,
             ],
             [
-              'Download',
-              <Flex key='downloads' sx={{ flexDirection: 'column' }}>
-                <Box
-                  sx={{
-                    mb: 1,
-                    fontSize: [0, 0, 0, 1],
-                    fontFamily: 'mono',
-                    letterSpacing: 'mono',
-                    textTransform: 'uppercase',
-                    color: 'secondary',
-                  }}
-                >
-                  Buildings in {getRegionName()}
-                </Box>
+              `Building data`,
+              <TooltipWrapper
+                key='download'
+                tooltip={
+                  <>
+                    Download risk data for all buildings in {getRegionName()}.
+                    For more information about these files, including data
+                    schema, see the{' '}
+                    <Link
+                      sx={{ color: 'secondary' }}
+                      href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_2'
+                    >
+                      documentation
+                    </Link>
+                    .
+                  </>
+                }
+                sx={{ justifyContent: 'flex-start', gap: 3 }}
+              >
                 <Download />
-                <Box
-                  sx={{
-                    mt: 3,
-                    mb: 1,
-                    fontSize: [0, 0, 0, 1],
-                    fontFamily: 'mono',
-                    letterSpacing: 'mono',
-                    textTransform: 'uppercase',
-                    color: 'secondary',
-                  }}
-                >
-                  {GEOGRAPHY_SUMMARY_LABELS[geographyLevel]}
-                </Box>
+              </TooltipWrapper>,
+            ],
+            [
+              GEOGRAPHY_SUMMARY_LABELS[geographyLevel],
+              <TooltipWrapper
+                key='download'
+                tooltip={
+                  <>
+                    Download summary statistics for each{' '}
+                    {GEOGRAPHY_LABELS[geographyLevel]} in the continental US.
+                    For more information about these files, including data
+                    schema, see the{' '}
+                    <Link
+                      sx={{ color: 'secondary' }}
+                      href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_1'
+                    >
+                      documentation
+                    </Link>
+                    .
+                  </>
+                }
+                sx={{ justifyContent: 'flex-start', gap: 3 }}
+              >
                 <Flex
                   sx={{ gap: 3 }}
                   role='group'
@@ -327,7 +343,7 @@ const RegionalRisk = () => {
                     ariaLabel={`Download summary data as GeoJSON`}
                   />
                 </Flex>
-              </Flex>,
+              </TooltipWrapper>,
             ],
           ]}
           index={false}
@@ -342,6 +358,7 @@ const RegionalRisk = () => {
               textTransform: 'uppercase',
               color: 'secondary',
               fontSize: 1,
+              whiteSpace: 'nowrap',
             },
             '& tr td:last-of-type': {
               fontFamily: 'body',

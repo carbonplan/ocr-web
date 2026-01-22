@@ -129,7 +129,7 @@ export const Download = () => {
   if (!isDownloadableLevel) {
     return (
       <DownloadButton
-        label='Not available'
+        label='Download not available'
         loading={false}
         disabled
         showSuffix={false}
