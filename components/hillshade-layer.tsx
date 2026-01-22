@@ -20,7 +20,7 @@ const HillshadeLayer = () => {
         attribution:
           '<a href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank">Mapzen</a>',
         maxzoom: 15,
-        minzoom: 5,
+        minzoom: 6,
         encoding: 'terrarium',
       })
     }
