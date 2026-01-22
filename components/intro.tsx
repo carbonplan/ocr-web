@@ -23,7 +23,7 @@ const Intro = () => {
         in the future. Read our{' '}
         <Link href='/research/climate-risk-faq'>FAQ</Link>, the{' '}
         <Link href='/research/climate-risk-explainer'>explainer</Link>, or{' '}
-        <Link href='https://carbonplan.github.io/ocr/reference/data-downloads/'>
+        <Link href='https://docs.carbonplan.org/ocr/en/latest/access-data.html'>
           download the data
         </Link>{' '}
         for more details.

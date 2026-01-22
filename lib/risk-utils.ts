@@ -6,7 +6,7 @@ export const getBuildingRiskKey: (
 ) => (typeof BUILDING_ATTRIBUTE_KEYS)[keyof typeof BUILDING_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+  const key = timePeriod === 'current' ? 'rps_2011' : 'rps_2047'
   return BUILDING_ATTRIBUTE_KEYS[key]
 }
 
@@ -15,7 +15,8 @@ export const getGeographyRiskKey: (
 ) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const key = timePeriod === 'current' ? 'wind_risk_2011' : 'wind_risk_2047'
+  const key =
+    timePeriod === 'current' ? 'risk_score_2011_hist' : 'risk_score_2047_hist'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
@@ -25,7 +26,7 @@ export const getGeographyMedianRiskKey: (
   timePeriod: ScenarioKey,
 ) => {
   const key =
-    timePeriod === 'current' ? 'median_wind_risk_2011' : 'median_wind_risk_2047'
+    timePeriod === 'current' ? 'rps_2011_median' : 'rps_2047_median'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
@@ -67,8 +68,8 @@ export const getBurnProbabilityUsfs = (
   if (!building) return null
   const key =
     timePeriod === 'current'
-      ? BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2011
-      : BUILDING_ATTRIBUTE_KEYS.burn_probability_usfs_2047
+      ? BUILDING_ATTRIBUTE_KEYS.bp_2011_riley
+      : BUILDING_ATTRIBUTE_KEYS.bp_2047_riley
   return building.properties[key]
 }
 
@@ -79,8 +80,8 @@ export const getAdjustedBurnProbability = (
   if (!building) return null
   const key =
     timePeriod === 'current'
-      ? BUILDING_ATTRIBUTE_KEYS.burn_probability_2011
-      : BUILDING_ATTRIBUTE_KEYS.burn_probability_2047
+      ? BUILDING_ATTRIBUTE_KEYS.bp_2011
+      : BUILDING_ATTRIBUTE_KEYS.bp_2047
   return building.properties[key]
 }
 
@@ -88,7 +89,7 @@ export const getConditionalRiskUsfs = (
   building: Building | null,
 ): number | null => {
   if (!building) return null
-  return building.properties[BUILDING_ATTRIBUTE_KEYS.conditional_risk_usfs]
+  return building.properties[BUILDING_ATTRIBUTE_KEYS.crps_scott]
 }
 
 export const getBoundingBox = (

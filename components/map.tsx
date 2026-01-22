@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import {
   Map,
+  LngLat,
   addProtocol,
   removeProtocol,
   LayerSpecification,
@@ -22,7 +23,7 @@ import {
   GeographyLayer,
   SatelliteLayer,
   HillshadeLayer,
-  RasterLayer,
+  ZarrLayer,
   MapControls,
   useMapControlStyles,
 } from './'
@@ -84,7 +85,7 @@ const MapComponent = () => {
     const sources: Record<string, SourceSpecification> = {
       basemap: {
         type: 'vector',
-        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/NA.pmtiles',
+        url: 'pmtiles://https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/pmtiles/global.pmtiles',
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
@@ -101,13 +102,23 @@ const MapComponent = () => {
           'https://carbonplan-maps.s3.us-west-2.amazonaws.com/basemaps/fonts/{fontstack}/{range}.pbf',
         sources,
         layers: orderedLayers,
+        projection: { type: 'globe' },
       },
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
-      maxBounds: [
-        [-130, 10],
-        [-60, 65],
-      ],
+      transformConstrain: (center, zoom) => {
+        const sw = [-130, 25]
+        const ne = [-75, 60]
+        const minZoom = 3
+        const maxZoom = 16.75
+        return {
+          center: new LngLat(
+            Math.max(sw[0], Math.min(ne[0], center.lng)),
+            Math.max(sw[1], Math.min(ne[1], center.lat)),
+          ),
+          zoom: Math.max(minZoom, Math.min(maxZoom, zoom)),
+        }
+      },
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
@@ -253,7 +264,7 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
-          {riskRaster && <RasterLayer />}
+          {riskRaster && <ZarrLayer />}
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

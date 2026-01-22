@@ -51,6 +51,7 @@ export const useBuildingUtils = () => {
         map.easeTo({ center: [lng, lat] })
       }
       if (shouldFetchAddress) {
+        setSelectedLocation(null)
         fetchAddress(lat, lng).then((location) => {
           if (location && useStore.getState().selectedBuilding) {
             setSelectedLocation(location)
@@ -109,7 +110,7 @@ export const useBuildingUtils = () => {
 
         if (featuresWithDistance.length > 0) {
           const closestBuilding = featuresWithDistance[0].feature
-          selectBuilding(closestBuilding as Building, options)
+          selectBuilding(closestBuilding as unknown as Building, options)
           return true
         }
       }
