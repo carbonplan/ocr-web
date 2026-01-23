@@ -11,7 +11,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
-import { Box } from 'theme-ui'
+import { Box, useThemeUI } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
@@ -47,6 +47,15 @@ const MapComponent = () => {
   const riskRaster = useStore((state) => state.riskRaster)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
+  const { theme } = useThemeUI()
+
+  const getInitialZoom = useCallback((): number => {
+    const width = window.innerWidth
+    const sidebarBreakpoint = theme?.breakpoints?.[1] ?? '64em'
+    const hasSidebar = window.matchMedia(`(min-width: ${sidebarBreakpoint})`).matches
+    const mapWidth = hasSidebar ? width * (2 / 3) : width
+    return Math.log2(mapWidth) - 6.3
+  }, [theme.breakpoints])
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
@@ -76,10 +85,11 @@ const MapComponent = () => {
     const protocol = new Protocol()
     addProtocol('pmtiles', protocol.tile)
 
-    const initialView = getMapViewFromQuery(router.query) || {
+    const queryView = getMapViewFromQuery(router.query)
+    const initialView = queryView || {
       lat: 39.83,
-      lng: -98.58,
-      zoom: 3,
+      lng: -97.58,
+      zoom: getInitialZoom(),
     }
 
     const sources: Record<string, SourceSpecification> = {
@@ -109,7 +119,7 @@ const MapComponent = () => {
       transformConstrain: (center, zoom) => {
         const sw = [-130, 25]
         const ne = [-75, 60]
-        const minZoom = 3
+        const minZoom = 2
         const maxZoom = 16.75
         return {
           center: new LngLat(
