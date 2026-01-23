@@ -142,7 +142,7 @@ const OtherFactors = () => {
   ]
 
   return (
-    <Box sx={{ mt: '52px' }}>
+    <Box>
       <Box as='h2' variant='sectionHeading'>
         Other factors
       </Box>

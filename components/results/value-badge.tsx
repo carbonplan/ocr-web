@@ -25,12 +25,14 @@ const ValueBadge = ({
   sx,
   toFixed = 2,
   unit = '%',
+  whitespace = true,
 }: {
   value?: string | number | null
   color?: string
   unit?: string
   toFixed?: number
   sx?: ThemeUIStyleObject
+  whitespace?: boolean
 }) => {
   const { theme } = useThemeUI()
   let formattedValue
@@ -61,6 +63,19 @@ const ValueBadge = ({
     [value, unit],
   )
 
+  let content = (
+    <>
+      {formattedValue}
+      {unit === '%' ? '%' : ''}
+    </>
+  )
+
+  if (value == null && whitespace) {
+    content = <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
+  } else if (value == null) {
+    content = <>{unit}</>
+  }
+
   return (
     <Wrapper lowValue={lowValue}>
       {lowValue && (
@@ -88,11 +103,7 @@ const ValueBadge = ({
         }}
         onCopy={handleCopy}
       >
-        {value == null ? (
-          <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
-        ) : (
-          `${formattedValue}${unit === '%' ? '%' : ''}`
-        )}
+        {content}
       </Badge>
     </Wrapper>
   )

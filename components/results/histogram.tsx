@@ -70,17 +70,6 @@ const Histogram = ({
   return (
     <Box sx={sx}>
       <Box
-        as='h3'
-        sx={{
-          fontFamily: 'mono',
-          letterSpacing: 'mono',
-          textTransform: 'uppercase',
-          fontSize: [0, 0, 0, 1],
-        }}
-      >
-        Risk scores in {region}
-      </Box>
-      <Box
         sx={{ height: '175px', pb: '30px' }}
         role='img'
         aria-label={screenReaderDescription}

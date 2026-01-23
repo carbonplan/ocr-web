@@ -99,6 +99,14 @@ export const GEOGRAPHY_ATTRIBUTE_KEYS = {
   name: '9',
 } as const
 
+export const STATISTICS_PATHS = {
+  county: 'counties',
+  censusTract: 'tracts',
+  censusBlock: 'block',
+  state: 'states',
+  nation: 'nation',
+} as const
+
 export const RISKS = {
   fire: {
     colormap: 'reds',

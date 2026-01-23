@@ -1,23 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Flex } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
-import { Button, Select, Table } from '@carbonplan/components'
-//@ts-expect-error - carbonplan icons types not available
-import { RotatingArrow, X } from '@carbonplan/icons'
+import { Link, Select, Table } from '@carbonplan/components'
 import { useShallow } from 'zustand/react/shallow'
 import { LngLatBounds } from 'maplibre-gl'
 
 import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
-import { GEOGRAPHY_ATTRIBUTE_KEYS, GEOGRAPHY_MIN_ZOOM } from '@/lib/config'
+import {
+  DATA_VERSION,
+  GEOGRAPHY_ATTRIBUTE_KEYS,
+  GEOGRAPHY_MIN_ZOOM,
+  STATISTICS_PATHS,
+} from '@/lib/config'
 import { GeographyKey } from '@/types/location'
-import { Download } from './download'
+import { Download, DownloadButton } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
 import ValueBadge from './value-badge'
 import { useScore } from '@/hooks/useScore'
+import EyeCheckbox from '../eye-checkbox'
+import TooltipWrapper from '../tooltip'
 
-// module level because refs were being reset by react strict mode I think?
-let hasUserSelectedGeo = false
+const GEOGRAPHY_LABELS = {
+  nation: 'continental US',
+  state: 'state',
+  county: 'county',
+  censusTract: 'census tract',
+  censusBlock: 'census block',
+}
+
+const GEOGRAPHY_SUMMARY_LABELS = {
+  nation: 'National stats',
+  state: 'State stats',
+  county: 'County stats',
+  censusTract: 'Tract stats',
+  censusBlock: 'Block stats',
+}
 
 const RegionalRisk = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -31,14 +49,15 @@ const RegionalRisk = () => {
   )
   const [zoom, setZoom] = useState(0)
   const activeGeography = activeGeographies[geographyLevel]
+  const [hasSelectedGeo, setHasSelectedGeo] = useState<boolean>(false)
 
   useEffect(() => {
-    if (!hasUserSelectedGeo) {
+    if (!hasSelectedGeo) {
       setGeographyLevel(selectedBuilding ? 'county' : 'nation')
     }
-  }, [selectedBuilding, setGeographyLevel])
+  }, [hasSelectedGeo, selectedBuilding, setGeographyLevel])
 
-  const { score, color } = useScore(activeGeography ?? null, 'muted')
+  const { score, color } = useScore(activeGeography ?? null)
   const { score: buildingScore } = useScore(selectedBuilding)
   const data = useStore(
     useShallow(
@@ -53,34 +72,39 @@ const RegionalRisk = () => {
   const previousBoundsRef = useRef<LngLatBounds | null>(null)
   const previousBuildingIDRef = useRef<string | null>(null)
 
-  const getRegionName = () => {
-    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
-    if (geographyLevel === 'county') {
-      return name ? `${name} County` : 'the county'
-    }
-    if (geographyLevel === 'state') {
-      return name ?? 'the state'
-    }
+  function getRegionName(args: { mode: 'short' }): string | null
+  function getRegionName(args?: { mode: 'long' }): string
+  function getRegionName({ mode } = { mode: 'long' }) {
+    const fallback =
+      mode === 'short' ? null : `the ${GEOGRAPHY_LABELS[geographyLevel]}`
     if (geographyLevel === 'nation') {
-      return 'the continental US'
+      return fallback
     }
+
+    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
+    if (['county', 'state'].includes(geographyLevel)) {
+      if (!name) {
+        return fallback
+      } else if (geographyLevel === 'county') {
+        return `${name} County`
+      } else {
+        return name
+      }
+    }
+
     const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+    if (!geoid) {
+      return fallback
+    }
     // Extract 4-digit identifiers based on https://www.census.gov/programs-surveys/geography/guidance/geo-identifiers.html
     if (geographyLevel === 'censusTract') {
-      return geoid ? `Census Tract ${geoid.slice(5, 9)}` : 'the census tract'
+      return mode === 'short'
+        ? geoid.slice(5, 9)
+        : `Census Tract ${geoid.slice(5, 9)}`
     }
-    return geoid ? `Census Block ${geoid.slice(11)}` : 'the census block'
-  }
-
-  const getGeographyLabel = (key: GeographyKey): string => {
-    const labels: Record<GeographyKey, string> = {
-      nation: 'continental US',
-      state: 'state',
-      county: 'county',
-      censusTract: 'census tract',
-      censusBlock: 'census block',
-    }
-    return labels[key]
+    return mode === 'short'
+      ? geoid.slice(11)
+      : `Census Block ${geoid.slice(11)}`
   }
 
   const fitBoundsToGeography = useCallback(() => {
@@ -154,100 +178,50 @@ const RegionalRisk = () => {
       <Box as='h2' variant='sectionHeading'>
         Risk in the region
       </Box>
-      <Select
-        aria-label='Select geographic level'
-        size='xs'
-        value={geographyLevel}
-        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-          hasUserSelectedGeo = true
-          setGeographyLevel(e.target.value as GeographyKey)
-        }}
-        sx={{
-          '& select': {
-            fontSize: 1,
-            fontFamily: 'mono',
-            letterSpacing: 'mono',
-            textTransform: 'uppercase',
-          },
-        }}
-      >
-        <option value='nation'>CONTINENTAL US</option>
-        <option value='state'>STATE</option>
-        <option value='county'>COUNTY</option>
-        <option value='censusTract'>CENSUS TRACT</option>
-        <option value='censusBlock'>CENSUS BLOCK</option>
-      </Select>
-      <Table
-        columns={3}
-        start={[1, 2]}
-        width={[1, 2]}
-        data={[
-          ['Structures', 'Median risk score'],
-          [
-            <ValueBadge
-              key='count'
-              value={
-                activeGeography &&
-                formatBuildingCount(
-                  activeGeography[GEOGRAPHY_ATTRIBUTE_KEYS.building_count],
-                )
-              }
-              unit='#'
-              sx={{ minWidth: '34px' }}
-            />,
-            <ValueBadge
-              key='median'
-              value={score}
-              unit='#'
-              color={color}
-              sx={{ minWidth: '34px' }}
-            />,
-          ],
-        ]}
-        index={false}
-        borderTop={false}
-        sx={{
-          mt: 3,
-          '& tr': {
-            py: 2,
-          },
-          '& tr:first-of-type': {
-            py: 1,
-          },
-          '& tr:first-of-type td': {
-            fontFamily: 'mono',
-            letterSpacing: 'mono',
-            textTransform: 'uppercase',
-            color: 'secondary',
-            fontSize: 1,
-          },
-        }}
-      />
-      <Flex sx={{ justifyContent: 'space-between', mt: 2 }}>
-        <Button
+      <Flex sx={{ alignItems: 'baseline', gap: 3 }}>
+        <Select
+          key='geography'
+          aria-label='Select geographic level'
           size='xs'
-          inverted={!showOnMap}
-          suffix={showOnMap ? <X /> : <RotatingArrow />}
-          onClick={handleShowRegionChange}
-          disabled={!activeGeography}
-          aria-label={
-            showOnMap
-              ? 'Hide selected region on map'
-              : 'Show selected region on map'
-          }
+          value={geographyLevel}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            setHasSelectedGeo(true)
+            setGeographyLevel(e.target.value as GeographyKey)
+          }}
           sx={{
-            '&:disabled': {
-              cursor: 'default',
-              pointerEvents: 'none',
-              color: 'muted',
+            '& select': {
+              fontSize: 1,
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              textTransform: 'uppercase',
+            },
+            '& svg': {
+              fill: 'primary',
             },
           }}
         >
-          {showOnMap ? 'Hide region' : 'Show region'}
-        </Button>
-        <Download />
+          <option value='nation'>Continental US</option>
+          <option value='state'>State</option>
+          <option value='county'>County</option>
+          <option value='censusTract'>Census tract</option>
+          <option value='censusBlock'>Census block</option>
+        </Select>
+        <Flex
+          as='label'
+          sx={{
+            gap: 1,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+            fontSize: 1,
+            cursor: 'pointer',
+          }}
+        >
+          {getRegionName({ mode: 'short' }) ?? <>&#8203;</>}
+          <EyeCheckbox checked={showOnMap} onChange={handleShowRegionChange} />
+        </Flex>
       </Flex>
-      <Box sx={{ position: 'relative', mt: 4 }}>
+      <Box sx={{ position: 'relative', mt: 2, mb: 7 }}>
         <Histogram
           region={getRegionName()}
           data={data}
@@ -266,10 +240,133 @@ const RegionalRisk = () => {
             }}
           >
             {isGeographyUnavailable
-              ? `Zoom in to view ${getGeographyLabel(geographyLevel)} data`
+              ? `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data`
               : 'No data available'}
           </Box>
         )}
+      </Box>
+
+      <Box>
+        <Table
+          columns={3}
+          start={[1, 2]}
+          width={[1, 2]}
+          data={[
+            [
+              'Structures',
+              <ValueBadge
+                key='count'
+                value={
+                  activeGeography &&
+                  formatBuildingCount(
+                    activeGeography[GEOGRAPHY_ATTRIBUTE_KEYS.building_count],
+                  )
+                }
+                unit='#'
+                whitespace={false}
+                sx={{ minWidth: '34px' }}
+              />,
+            ],
+            [
+              'Median score',
+              <ValueBadge
+                key='median'
+                value={score}
+                unit='#'
+                color={score ? color : undefined}
+                whitespace={false}
+                sx={{ minWidth: '34px' }}
+              />,
+            ],
+            [
+              `Building data`,
+              <TooltipWrapper
+                key='download'
+                tooltip={
+                  <>
+                    Download risk data for all buildings in {getRegionName()}.
+                    For more information about these files, including data
+                    schema, see the{' '}
+                    <Link
+                      sx={{ color: 'secondary' }}
+                      href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_2'
+                    >
+                      documentation
+                    </Link>
+                    .
+                  </>
+                }
+                sx={{ justifyContent: 'flex-start', gap: 3 }}
+              >
+                <Download />
+              </TooltipWrapper>,
+            ],
+            [
+              GEOGRAPHY_SUMMARY_LABELS[geographyLevel],
+              <TooltipWrapper
+                key='download'
+                tooltip={
+                  <>
+                    Download summary statistics for
+                    {geographyLevel === 'nation'
+                      ? ' '
+                      : ` each ${GEOGRAPHY_LABELS[geographyLevel]} in `}
+                    the continental US. For more information about these files,
+                    including data schema, see the{' '}
+                    <Link
+                      sx={{ color: 'secondary' }}
+                      href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_1'
+                    >
+                      documentation
+                    </Link>
+                    .
+                  </>
+                }
+                sx={{ justifyContent: 'flex-start', gap: 3 }}
+              >
+                <Flex
+                  sx={{ gap: 3 }}
+                  role='group'
+                  aria-label='Download regional data'
+                >
+                  <DownloadButton
+                    label='CSV'
+                    loading={false}
+                    disabled={false}
+                    href={`https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${DATA_VERSION}/region-analysis/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
+                    ariaLabel={`Download summary data as CSV`}
+                  />
+                  <DownloadButton
+                    label='GeoJSON'
+                    loading={false}
+                    disabled={false}
+                    href={`https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${DATA_VERSION}/region-analysis/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
+                    ariaLabel={`Download summary data as GeoJSON`}
+                  />
+                </Flex>
+              </TooltipWrapper>,
+            ],
+          ]}
+          index={false}
+          sx={{
+            '& tr': {
+              py: 2,
+              alignItems: 'baseline',
+            },
+            '& tr td:first-of-type': {
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              textTransform: 'uppercase',
+              color: 'secondary',
+              fontSize: 1,
+              whiteSpace: 'nowrap',
+            },
+            '& tr td:last-of-type': {
+              fontFamily: 'body',
+              letterSpacing: 'body',
+            },
+          }}
+        />
       </Box>
     </>
   )
