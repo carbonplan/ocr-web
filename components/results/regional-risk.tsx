@@ -307,10 +307,12 @@ const RegionalRisk = () => {
                 key='download'
                 tooltip={
                   <>
-                    Download summary statistics for each{' '}
-                    {GEOGRAPHY_LABELS[geographyLevel]} in the continental US.
-                    For more information about these files, including data
-                    schema, see the{' '}
+                    Download summary statistics for
+                    {geographyLevel === 'nation'
+                      ? ' '
+                      : ` each ${GEOGRAPHY_LABELS[geographyLevel]} in `}
+                    the continental US. For more information about these files,
+                    including data schema, see the{' '}
                     <Link
                       sx={{ color: 'secondary' }}
                       href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_1'
