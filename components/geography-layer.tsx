@@ -33,6 +33,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   const showGeographyHighlight = useStore(
     (state) => state.showGeographyHighlight,
   )
+  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
   const activeGeographies = useStore((state) => state.activeGeographies)
   const previousGeoidRef = useRef<string | null>(null)
 
@@ -123,7 +124,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
       )
     }
 
-    if (isSelected && geoid && showGeographyHighlight) {
+    if (isSelected && geoid && (showGeographyHighlight || hasManualGeoSelection)) {
       map.setFeatureState(
         {
           source: config.sourceId,
@@ -144,6 +145,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     config.sourceId,
     config.layerName,
     showGeographyHighlight,
+    hasManualGeoSelection,
   ])
 
   return null

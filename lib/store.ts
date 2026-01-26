@@ -35,6 +35,8 @@ type Store = {
   setSelectedGeographyLevel: (level: GeographyKey) => void
   showGeographyHighlight: boolean
   setShowGeographyHighlight: (show: boolean) => void
+  hasManualGeoSelection: boolean
+  setHasManualGeoSelection: (hasSelected: boolean) => void
   geographyLayerVisibility: {
     building: boolean
     county: boolean
@@ -103,6 +105,8 @@ export const useStore = create<Store>((set, get) => ({
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
   showGeographyHighlight: false,
   setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
+  hasManualGeoSelection: false,
+  setHasManualGeoSelection: (hasSelected) => set({ hasManualGeoSelection: hasSelected }),
   geographyLayerVisibility: {
     building: true,
     county: false,
@@ -191,6 +195,7 @@ export const useStore = create<Store>((set, get) => ({
         nation: null,
       },
       showGeographyHighlight: false,
+      hasManualGeoSelection: false,
     })
     clearSelectedBuildingUrl()
     const { map, queryGeographiesAtPoint } = get()
