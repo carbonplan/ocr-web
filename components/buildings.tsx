@@ -14,6 +14,10 @@ const Buildings = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
+  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
+  const setHasManualGeoSelection = useStore(
+    (state) => state.setHasManualGeoSelection,
+  )
   const { selectBuilding } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
@@ -162,13 +166,17 @@ const Buildings = () => {
           hoveredFeatureId.current = null
         }
 
+        // Building clicks always exit region selection mode
+        setHasManualGeoSelection(false)
+
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
-      } else {
+      } else if (!hasManualGeoSelection) {
+        // Only clear selections if not in manual geo selection mode
         clearSelections()
       }
     },
-    [map, selectBuilding, clearSelections],
+    [map, selectBuilding, clearSelections, hasManualGeoSelection, setHasManualGeoSelection],
   )
 
   useEffect(() => {

@@ -62,13 +62,14 @@ const MapComponent = () => {
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
+  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
   const { highlightBuildingAtLocation } = useBuildingUtils()
 
   const updateGeographies = useCallback(() => {
-    if (!map) return
+    if (!map || hasManualGeoSelection) return
     const center = map.getCenter()
     queryGeographiesAtPoint(center.lng, center.lat)
-  }, [map, queryGeographiesAtPoint])
+  }, [map, queryGeographiesAtPoint, hasManualGeoSelection])
 
   useEffect(() => {
     if (!map) return
