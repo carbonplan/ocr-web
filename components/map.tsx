@@ -117,8 +117,8 @@ const MapComponent = () => {
       center: [initialView.lng, initialView.lat],
       zoom: initialView.zoom,
       transformConstrain: (center, zoom) => {
-        const sw = [-130, 25]
-        const ne = [-75, 60]
+        const sw = [-135, 20]
+        const ne = [-65, 55]
         const minZoom = 2
         const maxZoom = 16.75
         return {
