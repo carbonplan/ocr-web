@@ -53,6 +53,7 @@ const MapComponent = () => {
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
+  const toggleUserSelected = useStore((state) => state.toggleUserSelected)
   const riskRaster = useStore((state) => state.riskRaster)
   const activeGeographies = useStore((state) => state.activeGeographies)
   const selectedGeographyLevel = useStore(
@@ -139,9 +140,9 @@ const MapComponent = () => {
               GEOGRAPHY_ATTRIBUTE_KEYS.geoid
             ]
 
-          // If clicking the same geography, deselect and resume auto-update
+          // If clicking the same geography, ensure userSelected=true
           if (clickedGeoid && clickedGeoid === currentGeoid) {
-            clearSelections()
+            toggleUserSelected(true)
             return
           }
 
@@ -160,6 +161,7 @@ const MapComponent = () => {
       activeGeographies,
       queryGeographiesAtPoint,
       clearSelections,
+      toggleUserSelected,
     ],
   )
 

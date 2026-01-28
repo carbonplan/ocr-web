@@ -55,10 +55,10 @@ const RegionalRisk = () => {
   const activeGeography = activeGeographies[geographyLevel]
 
   useEffect(() => {
-    if (!hasSelectedGeoLevel) {
+    if (!hasSelectedGeoLevel && !geographyLevel) {
       setGeographyLevel(selectedBuilding ? 'county' : 'nation')
     }
-  }, [hasSelectedGeoLevel, selectedBuilding, setGeographyLevel])
+  }, [hasSelectedGeoLevel, geographyLevel, selectedBuilding, setGeographyLevel])
 
   const { score, color } = useScore(activeGeography ?? null)
   const { score: buildingScore } = useScore(selectedBuilding)
@@ -73,7 +73,6 @@ const RegionalRisk = () => {
   )
 
   const previousBoundsRef = useRef<LngLatBounds | null>(null)
-  const previousBuildingIDRef = useRef<string | null>(null)
 
   function getRegionName(args: { mode: 'short' }): string | null
   function getRegionName(args?: { mode: 'long' }): string
@@ -147,30 +146,20 @@ const RegionalRisk = () => {
 
   useEffect(() => {
     if (!map) return
-
-    if (
-      selectedBuilding &&
-      selectedBuilding.id !== previousBuildingIDRef.current
-    ) {
-      const handleMoveEnd = () => {
-        previousBoundsRef.current = map.getBounds()
+    const updateCamera = () => {
+      setZoom(map.getZoom()) // update zoom
+      if (showRegion && !previousBoundsRef.current) {
+        previousBoundsRef.current = map.getBounds() // update bounds
       }
-      map.once('moveend', handleMoveEnd)
-      previousBuildingIDRef.current = selectedBuilding.id ?? null
     }
-  }, [selectedBuilding, map])
 
-  useEffect(() => {
-    if (!map) return
-    const updateZoom = () => {
-      setZoom(map.getZoom())
-    }
-    updateZoom()
-    map.on('moveend', updateZoom)
+    updateCamera()
+    map.on('moveend', updateCamera)
+
     return () => {
-      map.off('moveend', updateZoom)
+      map.off('moveend', updateCamera)
     }
-  }, [map])
+  }, [map, showRegion])
 
   const isGeographyUnavailable = zoom < GEOGRAPHY_MIN_ZOOM[geographyLevel]
 
