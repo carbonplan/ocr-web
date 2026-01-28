@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { getGeographyMedianRiskKey } from '@/lib/risk-utils'
-import { GeographyKey, Geography } from '@/types/location'
-import { GEOGRAPHY_ATTRIBUTE_KEYS, LAYERS } from '@/lib/config'
+import { GeographyKey } from '@/types/location'
+import { GEOGRAPHY_ATTRIBUTE_KEYS, GEOGRAPHY_MIN_ZOOM } from '@/lib/config'
 
 interface GeographyLayerProps {
   config: {
@@ -35,16 +35,15 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   )
   const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
   const activeGeographies = useStore((state) => state.activeGeographies)
-  const setActiveGeographies = useStore((state) => state.setActiveGeographies)
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const previousGeoidRef = useRef<string | null>(null)
   const hoveredFeatureRef = useRef<string | null>(null)
+  const [zoom, setZoom] = useState(0)
+  const minZoom = GEOGRAPHY_MIN_ZOOM[geographyKey]
 
   const colormap = useColormap()
 
   const highlightLayerId = `${config.layerIds.line}-highlight`
   const hoverLayerId = `${config.layerIds.line}-hover`
-  const glowLayerId = `${config.layerIds.line}-glow`
   const medianRisk = getGeographyMedianRiskKey(timePeriod)
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
@@ -78,10 +77,23 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   }, [colormap, medianRisk, colorLimits.binBoundaries, theme])
 
   useEffect(() => {
+    if (!map) return
+    const updateZoom = () => setZoom(map.getZoom())
+    updateZoom()
+    map.on('moveend', updateZoom)
+    return () => {
+      map.off('moveend', updateZoom)
+    }
+  }, [map])
+
+  const isAboveMinZoom = zoom >= minZoom
+
+  useEffect(() => {
     if (!map || !map.getLayer(config.layerIds.fill)) return
 
     const isSelectedLevel = selectedGeographyLevel === geographyKey
-    const showManualOutlines = hasManualGeoSelection && isSelectedLevel
+    // Only show hinted outlines if above min zoom and not nation level
+    const showHintedOutlines = isSelectedLevel && isAboveMinZoom && geographyKey !== 'nation'
     const showLayerOutlines = geographyLayerVisibility[geographyKey]
 
     map.setPaintProperty(config.layerIds.fill, 'fill-color', colorExpression)
@@ -93,12 +105,12 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     map.setPaintProperty(
       config.layerIds.line,
       'line-opacity',
-      showLayerOutlines || showManualOutlines ? 1 : 0,
+      showLayerOutlines || showHintedOutlines ? 1 : 0,
     )
     map.setPaintProperty(
       config.layerIds.line,
       'line-color',
-      showManualOutlines && !showLayerOutlines
+      showHintedOutlines && !showLayerOutlines
         ? get(theme, 'rawColors.hinted')
         : get(theme, 'rawColors.secondary'),
     )
@@ -112,20 +124,18 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
       'line-color',
       get(theme, 'rawColors.secondary'),
     )
-    map.setPaintProperty(glowLayerId, 'line-color', get(theme, 'rawColors.primary'))
   }, [
     map,
     colorExpression,
     geographyLayerVisibility,
     geographyKey,
+    selectedGeographyLevel,
+    isAboveMinZoom,
     theme,
     config.layerIds.fill,
     config.layerIds.line,
     highlightLayerId,
     hoverLayerId,
-    glowLayerId,
-    hasManualGeoSelection,
-    selectedGeographyLevel,
   ])
 
   useEffect(() => {
@@ -190,16 +200,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     (e: MapMouseEvent) => {
       if (!map) return
 
-      // Check if hovering over a building - let building hover take precedence
-      const buildingFeatures = map.queryRenderedFeatures(e.point, {
-        layers: [LAYERS.buildings.layerIds.fill],
-      })
-
-      if (buildingFeatures.length > 0) {
-        clearHoveredFeature()
-        return
-      }
-
       const features = map.queryRenderedFeatures(e.point, {
         layers: [config.layerIds.fill],
       })
@@ -229,32 +229,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     [map, config, clearHoveredFeature],
   )
 
-  const handleClick = useCallback(
-    (e: MapMouseEvent) => {
-      if (!map) return
-
-      // Check if clicking on a building - buildings take priority
-      const buildingFeatures = map.queryRenderedFeatures(e.point, {
-        layers: [LAYERS.buildings.layerIds.fill],
-      })
-
-      if (buildingFeatures.length > 0) return
-
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [config.layerIds.fill],
-      })
-
-      if (features.length > 0) {
-        const geography = features[0].properties as Geography
-        setActiveGeographies({
-          ...activeGeographies,
-          [geographyKey]: geography,
-        } as typeof activeGeographies)
-      }
-    },
-    [map, config.layerIds.fill, activeGeographies, setActiveGeographies, geographyKey],
-  )
-
   const handleMouseLeave = useCallback(() => {
     clearHoveredFeature()
     if (map) {
@@ -263,16 +237,14 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   }, [map, clearHoveredFeature])
 
   useEffect(() => {
-    if (!map || !isSelectedLevel || !hasManualGeoSelection || selectedBuilding) return
+    if (!map || !isSelectedLevel || !isAboveMinZoom || geographyKey === 'nation') return
 
     const canvas = map.getCanvas()
     map.on('mousemove', handleMouseMove)
-    map.on('click', handleClick)
     canvas.addEventListener('mouseleave', handleMouseLeave)
 
     return () => {
       map.off('mousemove', handleMouseMove)
-      map.off('click', handleClick)
       canvas.removeEventListener('mouseleave', handleMouseLeave)
       clearHoveredFeature()
       map.getCanvas().style.cursor = ''
@@ -280,10 +252,9 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   }, [
     map,
     isSelectedLevel,
-    hasManualGeoSelection,
-    selectedBuilding,
+    isAboveMinZoom,
+    geographyKey,
     handleMouseMove,
-    handleClick,
     handleMouseLeave,
     clearHoveredFeature,
   ])

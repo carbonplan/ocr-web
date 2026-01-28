@@ -82,24 +82,6 @@ const createGeographyLineLayers = (config: {
     },
   },
   {
-    id: `${config.layerIds.line}-glow`,
-    type: 'line',
-    source: config.sourceId,
-    'source-layer': config.layerName,
-    paint: {
-      'line-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'selected'], false],
-        0.2,
-        0,
-      ] as ExpressionSpecification,
-      'line-color': 'transparent',
-      'line-width': 6,
-      'line-offset': 3,
-      'line-blur': 3,
-    },
-  },
-  {
     id: `${config.layerIds.line}-highlight`,
     type: 'line',
     source: config.sourceId,

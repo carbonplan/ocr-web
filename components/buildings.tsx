@@ -2,23 +2,15 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
-import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
-import { Building } from '@/types/location'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
-  const setHasManualGeoSelection = useStore(
-    (state) => state.setHasManualGeoSelection,
-  )
-  const { selectBuilding } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const colormap = useColormap()
@@ -145,51 +137,15 @@ const Buildings = () => {
     map.getCanvas().style.cursor = ''
   }, [map])
 
-  const handleMapClick = useCallback(
-    async (e: MapMouseEvent) => {
-      if (!map) return
-
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [LAYERS.buildings.layerIds.fill],
-      })
-
-      if (features.length > 0) {
-        if (hoveredFeatureId.current !== null) {
-          map.setFeatureState(
-            {
-              source: LAYERS.buildings.sourceId,
-              id: hoveredFeatureId.current,
-              sourceLayer: LAYERS.buildings.layerName,
-            },
-            { hovered: false },
-          )
-          hoveredFeatureId.current = null
-        }
-
-        // Building clicks always exit region selection mode
-        setHasManualGeoSelection(false)
-
-        const feature = features[0]
-        selectBuilding(feature as unknown as Building)
-      } else if (!hasManualGeoSelection) {
-        // Only clear selections if not in manual geo selection mode
-        clearSelections()
-      }
-    },
-    [map, selectBuilding, clearSelections, hasManualGeoSelection, setHasManualGeoSelection],
-  )
-
   useEffect(() => {
     if (!map) return
 
-    map.on('click', handleMapClick)
     map.on('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
     map.on('mousemove', LAYERS.buildings.layerIds.fill, handleBuildingMouseMove)
     map.on('mouseleave', LAYERS.buildings.layerIds.fill, handleBuildingLeave)
 
     return () => {
       if (!map) return
-      map.off('click', handleMapClick)
       map.off('mouseenter', LAYERS.buildings.layerIds.fill, handleBuildingEnter)
       map.off(
         'mousemove',
@@ -200,7 +156,6 @@ const Buildings = () => {
     }
   }, [
     map,
-    handleMapClick,
     handleBuildingEnter,
     handleBuildingMouseMove,
     handleBuildingLeave,

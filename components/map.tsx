@@ -8,6 +8,7 @@ import {
   LayerSpecification,
   SourceSpecification,
   MapSourceDataEvent,
+  MapMouseEvent,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
@@ -16,6 +17,7 @@ import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { Building, Geography, GeographyKey } from '@/types/location'
 import {
   Buildings,
   BuildingPoints,
@@ -27,13 +29,20 @@ import {
   MapControls,
   useMapControlStyles,
 } from './'
-import { LAYERS } from '@/lib/config'
+import {
+  GEOGRAPHY_ATTRIBUTE_KEYS,
+  GEOGRAPHY_MIN_ZOOM,
+  LAYERS,
+} from '@/lib/config'
 import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
 import {
   getMapViewFromQuery,
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
 } from '@/lib/url-utils'
+
+const BUILDING_POINTS_MIN_ZOOM = 12
+const BUILDING_MIN_ZOOM = 13
 
 const MapComponent = () => {
   const router = useRouter()
@@ -45,6 +54,13 @@ const MapComponent = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
   const riskRaster = useStore((state) => state.riskRaster)
+  const activeGeographies = useStore((state) => state.activeGeographies)
+  const selectedGeographyLevel = useStore(
+    (state) => state.selectedGeographyLevel,
+  )
+  const setHasManualGeoSelection = useStore(
+    (state) => state.setHasManualGeoSelection,
+  )
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -63,7 +79,7 @@ const MapComponent = () => {
     (state) => state.queryGeographiesAtPoint,
   )
   const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
-  const { highlightBuildingAtLocation } = useBuildingUtils()
+  const { highlightBuildingAtLocation, selectBuilding } = useBuildingUtils()
 
   const updateGeographies = useCallback(() => {
     if (!map || hasManualGeoSelection) return
@@ -71,12 +87,104 @@ const MapComponent = () => {
     queryGeographiesAtPoint(center.lng, center.lat)
   }, [map, queryGeographiesAtPoint, hasManualGeoSelection])
 
+  const handleMapClick = useCallback(
+    (e: MapMouseEvent) => {
+      if (!map) return
+
+      const zoom = map.getZoom()
+
+      // Building click has highest priority (only at zoom > 13)
+      const buildingFeatures =
+        zoom > BUILDING_MIN_ZOOM
+          ? map.queryRenderedFeatures(e.point, {
+              layers: [LAYERS.buildings.layerIds.fill],
+            })
+          : []
+
+      if (buildingFeatures.length > 0) {
+        selectBuilding(buildingFeatures[0] as unknown as Building)
+        return
+      }
+
+      // If building points are clicked, let the building points handler handle it
+      if (zoom >= BUILDING_POINTS_MIN_ZOOM) {
+        const buildingPointFeatures = map.queryRenderedFeatures(e.point, {
+          layers: [LAYERS.buildingPoints.layerIds.circle],
+        })
+        if (buildingPointFeatures.length > 0) return
+      }
+
+      const geographyLayerMap: Record<GeographyKey, string | null> = {
+        county: LAYERS.counties.layerIds.fill,
+        censusTract: LAYERS.censusTracts.layerIds.fill,
+        censusBlock: LAYERS.censusBlocks.layerIds.fill,
+        state: LAYERS.states.layerIds.fill,
+        nation: null,
+      }
+
+      const geographyLayer = geographyLayerMap[selectedGeographyLevel]
+      const minZoom = GEOGRAPHY_MIN_ZOOM[selectedGeographyLevel]
+
+      if (geographyLayer && zoom >= minZoom) {
+        const geographyFeatures = map.queryRenderedFeatures(e.point, {
+          layers: [geographyLayer],
+        })
+
+        if (geographyFeatures.length > 0) {
+          const geography = geographyFeatures[0].properties as Geography
+          const clickedGeoid = geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+          const currentGeoid =
+            activeGeographies[selectedGeographyLevel]?.[
+              GEOGRAPHY_ATTRIBUTE_KEYS.geoid
+            ]
+
+          // If clicking the same geography, deselect and resume auto-update
+          if (clickedGeoid && clickedGeoid === currentGeoid) {
+            clearSelections()
+            return
+          }
+
+          if (selectedBuilding) {
+            clearSelections()
+          }
+
+          const lngLat = e.lngLat
+          queryGeographiesAtPoint(lngLat.lng, lngLat.lat)
+          setHasManualGeoSelection(true)
+          return
+        }
+      }
+
+      clearSelections()
+    },
+    [
+      map,
+      selectBuilding,
+      selectedGeographyLevel,
+      activeGeographies,
+      queryGeographiesAtPoint,
+      setHasManualGeoSelection,
+      clearSelections,
+      selectedBuilding,
+    ],
+  )
+
   useEffect(() => {
     if (!map) return
     const padding =
       index < 2 ? { bottom: window.innerHeight / 2 } : { bottom: 0 }
     map.setPadding(padding)
   }, [map, index])
+
+  useEffect(() => {
+    if (!map) return
+
+    map.on('click', handleMapClick)
+
+    return () => {
+      map.off('click', handleMapClick)
+    }
+  }, [map, handleMapClick])
 
   useEffect(() => {
     if (!mapContainer.current || !router.isReady) {

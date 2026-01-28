@@ -1,4 +1,4 @@
-export const DATA_VERSION = 'v0.13.2'
+export const DATA_VERSION = 'v1.0.0'
 
 export const DATA_URLS = {
   vector: {
@@ -118,7 +118,7 @@ export const RASTER_ZOOM_THRESHOLD = 14
 
 export const GEOGRAPHY_MIN_ZOOM = {
   nation: 0,
-  state: 5,
+  state: 2,
   county: 6,
   censusTract: 7,
   censusBlock: 9,

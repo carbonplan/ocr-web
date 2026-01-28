@@ -49,14 +49,16 @@ const RegionalRisk = () => {
   )
   const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
   const setHasManualGeoSelection = useStore((state) => state.setHasManualGeoSelection)
+  const queryGeographiesAtPoint = useStore((state) => state.queryGeographiesAtPoint)
   const [zoom, setZoom] = useState(0)
+  const [hasSelectedGeoLevel, setHasSelectedGeoLevel] = useState(false)
   const activeGeography = activeGeographies[geographyLevel]
 
   useEffect(() => {
-    if (!hasManualGeoSelection) {
+    if (!hasSelectedGeoLevel) {
       setGeographyLevel(selectedBuilding ? 'county' : 'nation')
     }
-  }, [hasManualGeoSelection, selectedBuilding, setGeographyLevel])
+  }, [hasSelectedGeoLevel, selectedBuilding, setGeographyLevel])
 
   const { score, color } = useScore(activeGeography ?? null)
   const { score: buildingScore } = useScore(selectedBuilding)
@@ -186,7 +188,13 @@ const RegionalRisk = () => {
           size='xs'
           value={geographyLevel}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-            setHasManualGeoSelection(true)
+            setHasSelectedGeoLevel(true)
+            // If manually selected a geography on map (not building-related), reset to auto
+            if (hasManualGeoSelection && !selectedBuilding && map) {
+              setHasManualGeoSelection(false)
+              const center = map.getCenter()
+              queryGeographiesAtPoint(center.lng, center.lat)
+            }
             setGeographyLevel(e.target.value as GeographyKey)
           }}
           sx={{
