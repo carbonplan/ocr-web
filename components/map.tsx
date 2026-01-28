@@ -289,7 +289,7 @@ const MapComponent = () => {
         lng: center.lng,
         zoom: zoom,
       })
-      if (!selectedBuilding) {
+      if (!selectedBuilding && !activeGeographies.userSelected) {
         updateGeographies(false)
       }
     }
@@ -297,7 +297,13 @@ const MapComponent = () => {
     return () => {
       map.off('moveend', handleMoveEnd)
     }
-  }, [map, styleLoaded, selectedBuilding, updateGeographies])
+  }, [
+    map,
+    styleLoaded,
+    selectedBuilding,
+    updateGeographies,
+    activeGeographies.userSelected,
+  ])
 
   // initial region query
   useEffect(() => {

@@ -25,14 +25,7 @@ type Store = {
     nation: Geography | null
     userSelected: boolean
   }
-  setActiveGeographies: (activeGeographies: {
-    county: Geography | null
-    censusTract: Geography | null
-    censusBlock: Geography | null
-    state: Geography | null
-    nation: Geography | null
-    userSelected: boolean
-  }) => void
+  toggleUserSelected: (value: boolean) => void
   selectedGeographyLevel: GeographyKey
   setSelectedGeographyLevel: (level: GeographyKey) => void
   geographyLayerVisibility: {
@@ -100,24 +93,6 @@ export const useStore = create<Store>((set, get) => ({
     nation: null,
     userSelected: false,
   },
-  setActiveGeographies: ({
-    county,
-    censusTract,
-    censusBlock,
-    state,
-    nation,
-    userSelected,
-  }) =>
-    set({
-      activeGeographies: {
-        county,
-        censusTract,
-        censusBlock,
-        state,
-        nation,
-        userSelected,
-      },
-    }),
   selectedGeographyLevel: 'nation' as const,
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
   geographyLayerVisibility: {
@@ -200,6 +175,14 @@ export const useStore = create<Store>((set, get) => ({
         userSelected,
       },
     })
+  },
+  toggleUserSelected: (value: boolean) => {
+    set(({ activeGeographies }) => ({
+      activeGeographies: {
+        ...activeGeographies,
+        userSelected: value,
+      },
+    }))
   },
   clearSelections: () => {
     set({

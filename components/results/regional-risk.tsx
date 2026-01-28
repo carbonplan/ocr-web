@@ -42,6 +42,7 @@ const RegionalRisk = () => {
   const map = useStore((state) => state.map)
   const geographyLevel = useStore((state) => state.selectedGeographyLevel)
   const setGeographyLevel = useStore((state) => state.setSelectedGeographyLevel)
+  const toggleUserSelected = useStore((state) => state.toggleUserSelected)
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
@@ -50,6 +51,7 @@ const RegionalRisk = () => {
   )
   const [zoom, setZoom] = useState(0)
   const [hasSelectedGeoLevel, setHasSelectedGeoLevel] = useState(false)
+  const [showRegion, setShowRegion] = useState(false)
   const activeGeography = activeGeographies[geographyLevel]
 
   useEffect(() => {
@@ -108,6 +110,11 @@ const RegionalRisk = () => {
       : `Census Block ${geoid.slice(11)}`
   }
 
+  useEffect(() => {
+    // Uncheck showRegion checkbox on change of activeGeography
+    setShowRegion(false)
+  }, [activeGeography])
+
   const fitBoundsToGeography = useCallback(() => {
     if (map && activeGeography) {
       const bbox = getBoundingBox(activeGeography)
@@ -123,17 +130,19 @@ const RegionalRisk = () => {
   const handleShowRegionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.checked
     if (!map) return
+    toggleUserSelected(newValue)
     if (newValue) {
-      if (!previousBoundsRef.current && selectedBuilding) {
+      if (!previousBoundsRef.current) {
         previousBoundsRef.current = map.getBounds()
       }
       fitBoundsToGeography()
-    } else if (previousBoundsRef.current && selectedBuilding) {
+    } else if (previousBoundsRef.current) {
       map.fitBounds(previousBoundsRef.current, {
         duration: 500,
       })
       previousBoundsRef.current = null
     }
+    setShowRegion(newValue)
   }
 
   useEffect(() => {
@@ -178,7 +187,6 @@ const RegionalRisk = () => {
           value={geographyLevel}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
             setHasSelectedGeoLevel(true)
-            // If manually selected a geography on map (not building-related), reset to auto
             if (!selectedBuilding && map) {
               const center = map.getCenter()
               queryGeographiesAtPoint(center.lng, center.lat, false)
@@ -215,7 +223,7 @@ const RegionalRisk = () => {
           }}
         >
           {getRegionName({ mode: 'short' }) ?? <>&#8203;</>}
-          <EyeCheckbox onChange={handleShowRegionChange} />
+          <EyeCheckbox checked={showRegion} onChange={handleShowRegionChange} />
         </Flex>
       </Flex>
       <Box sx={{ position: 'relative', mt: 2, mb: 7 }}>

@@ -153,12 +153,7 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
       )
     }
 
-    if (
-      isSelected &&
-      geoid &&
-      activeGeographies.userSelected &&
-      geographyKey !== 'nation'
-    ) {
+    if (isSelected && geoid && activeGeographies.userSelected) {
       map.setFeatureState(
         {
           source: config.sourceId,
