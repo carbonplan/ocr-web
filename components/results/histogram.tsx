@@ -24,9 +24,12 @@ export const formatBuildingCount = (value: number) => {
   } else if (abs < 1000000) {
     // e.g., 194K
     return format('0.3s')(value)
-  } else {
+  } else if (abs < 100000000) {
     // e.g., 2.7M
     return format('0.2s')(value)
+  } else {
+    // e.g., 101M
+    return format('0.3s')(value)
   }
 }
 
