@@ -58,9 +58,6 @@ const MapComponent = () => {
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
-  const setHasManualGeoSelection = useStore(
-    (state) => state.setHasManualGeoSelection,
-  )
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -68,7 +65,9 @@ const MapComponent = () => {
   const getInitialZoom = useCallback((): number => {
     const width = window.innerWidth
     const sidebarBreakpoint = theme?.breakpoints?.[1] ?? '64em'
-    const hasSidebar = window.matchMedia(`(min-width: ${sidebarBreakpoint})`).matches
+    const hasSidebar = window.matchMedia(
+      `(min-width: ${sidebarBreakpoint})`,
+    ).matches
     const mapWidth = hasSidebar ? width * (2 / 3) : width
     return Math.log2(mapWidth) - 6.3
   }, [theme.breakpoints])
@@ -78,14 +77,16 @@ const MapComponent = () => {
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
-  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
   const { highlightBuildingAtLocation, selectBuilding } = useBuildingUtils()
 
-  const updateGeographies = useCallback(() => {
-    if (!map || hasManualGeoSelection) return
-    const center = map.getCenter()
-    queryGeographiesAtPoint(center.lng, center.lat)
-  }, [map, queryGeographiesAtPoint, hasManualGeoSelection])
+  const updateGeographies = useCallback(
+    (userSelected: boolean) => {
+      if (!map) return
+      const center = map.getCenter()
+      queryGeographiesAtPoint(center.lng, center.lat, userSelected)
+    },
+    [map, queryGeographiesAtPoint],
+  )
 
   const handleMapClick = useCallback(
     (e: MapMouseEvent) => {
@@ -106,7 +107,7 @@ const MapComponent = () => {
         return
       }
 
-      // If building points are clicked, let the building points handler handle it
+      // If building points have priority (zoom >= 12), let the building points handler handle it
       if (zoom >= BUILDING_POINTS_MIN_ZOOM) {
         const buildingPointFeatures = map.queryRenderedFeatures(e.point, {
           layers: [LAYERS.buildingPoints.layerIds.circle],
@@ -144,13 +145,8 @@ const MapComponent = () => {
             return
           }
 
-          if (selectedBuilding) {
-            clearSelections()
-          }
-
           const lngLat = e.lngLat
-          queryGeographiesAtPoint(lngLat.lng, lngLat.lat)
-          setHasManualGeoSelection(true)
+          queryGeographiesAtPoint(lngLat.lng, lngLat.lat, true)
           return
         }
       }
@@ -163,9 +159,7 @@ const MapComponent = () => {
       selectedGeographyLevel,
       activeGeographies,
       queryGeographiesAtPoint,
-      setHasManualGeoSelection,
       clearSelections,
-      selectedBuilding,
     ],
   )
 
@@ -296,7 +290,7 @@ const MapComponent = () => {
         zoom: zoom,
       })
       if (!selectedBuilding) {
-        updateGeographies()
+        updateGeographies(false)
       }
     }
     map.on('moveend', handleMoveEnd)
@@ -314,7 +308,7 @@ const MapComponent = () => {
 
       if (layerExists && sourceLoaded) {
         map.off('idle', handleIdle)
-        updateGeographies()
+        updateGeographies(false)
       }
     }
     map.on('idle', handleIdle)
@@ -352,7 +346,7 @@ const MapComponent = () => {
         const found = highlightBuildingAtLocation(lng, lat)
         if (!found) {
           clearSelections()
-          updateGeographies()
+          updateGeographies(false)
         }
       }
     }

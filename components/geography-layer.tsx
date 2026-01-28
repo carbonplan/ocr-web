@@ -30,10 +30,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
-  const showGeographyHighlight = useStore(
-    (state) => state.showGeographyHighlight,
-  )
-  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
   const activeGeographies = useStore((state) => state.activeGeographies)
   const previousGeoidRef = useRef<string | null>(null)
   const hoveredFeatureRef = useRef<string | null>(null)
@@ -93,7 +89,8 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
 
     const isSelectedLevel = selectedGeographyLevel === geographyKey
     // Only show hinted outlines if above min zoom and not nation level
-    const showHintedOutlines = isSelectedLevel && isAboveMinZoom && geographyKey !== 'nation'
+    const showHintedOutlines =
+      isSelectedLevel && isAboveMinZoom && geographyKey !== 'nation'
     const showLayerOutlines = geographyLayerVisibility[geographyKey]
 
     map.setPaintProperty(config.layerIds.fill, 'fill-color', colorExpression)
@@ -156,7 +153,12 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
       )
     }
 
-    if (isSelected && geoid && (showGeographyHighlight || hasManualGeoSelection)) {
+    if (
+      isSelected &&
+      geoid &&
+      activeGeographies.userSelected &&
+      geographyKey !== 'nation'
+    ) {
       map.setFeatureState(
         {
           source: config.sourceId,
@@ -176,8 +178,6 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
     geographyKey,
     config.sourceId,
     config.layerName,
-    showGeographyHighlight,
-    hasManualGeoSelection,
   ])
 
   // Interaction handlers - only active for the selected geography level
@@ -237,7 +237,13 @@ const GeographyLayer = ({ config, geographyKey }: GeographyLayerProps) => {
   }, [map, clearHoveredFeature])
 
   useEffect(() => {
-    if (!map || !isSelectedLevel || !isAboveMinZoom || geographyKey === 'nation') return
+    if (
+      !map ||
+      !isSelectedLevel ||
+      !isAboveMinZoom ||
+      geographyKey === 'nation'
+    )
+      return
 
     const canvas = map.getCanvas()
     map.on('mousemove', handleMouseMove)

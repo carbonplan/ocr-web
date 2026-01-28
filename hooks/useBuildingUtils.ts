@@ -32,7 +32,7 @@ export const useBuildingUtils = () => {
 
       setSelectedBuilding(building)
       updateSelectedBuildingUrl({ lat, lng })
-      queryGeographiesAtPoint(lng, lat)
+      queryGeographiesAtPoint(lng, lat, true)
 
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,

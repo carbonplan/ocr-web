@@ -42,14 +42,12 @@ const RegionalRisk = () => {
   const map = useStore((state) => state.map)
   const geographyLevel = useStore((state) => state.selectedGeographyLevel)
   const setGeographyLevel = useStore((state) => state.setSelectedGeographyLevel)
-  const showOnMap = useStore((state) => state.showGeographyHighlight)
-  const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
-  const hasManualGeoSelection = useStore((state) => state.hasManualGeoSelection)
-  const setHasManualGeoSelection = useStore((state) => state.setHasManualGeoSelection)
-  const queryGeographiesAtPoint = useStore((state) => state.queryGeographiesAtPoint)
+  const queryGeographiesAtPoint = useStore(
+    (state) => state.queryGeographiesAtPoint,
+  )
   const [zoom, setZoom] = useState(0)
   const [hasSelectedGeoLevel, setHasSelectedGeoLevel] = useState(false)
   const activeGeography = activeGeographies[geographyLevel]
@@ -122,9 +120,8 @@ const RegionalRisk = () => {
     }
   }, [map, activeGeography])
 
-  const handleShowRegionChange = () => {
-    const newValue = !showOnMap
-    setShowOnMap(newValue)
+  const handleShowRegionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.checked
     if (!map) return
     if (newValue) {
       if (!previousBoundsRef.current && selectedBuilding) {
@@ -140,14 +137,6 @@ const RegionalRisk = () => {
   }
 
   useEffect(() => {
-    if (showOnMap) {
-      fitBoundsToGeography()
-    }
-    // exclude fitBoundsToGeography from deps to avoid loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showOnMap, geographyLevel])
-
-  useEffect(() => {
     if (!map) return
 
     if (
@@ -160,7 +149,7 @@ const RegionalRisk = () => {
       map.once('moveend', handleMoveEnd)
       previousBuildingIDRef.current = selectedBuilding.id ?? null
     }
-  }, [selectedBuilding, map, showOnMap])
+  }, [selectedBuilding, map])
 
   useEffect(() => {
     if (!map) return
@@ -190,10 +179,9 @@ const RegionalRisk = () => {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
             setHasSelectedGeoLevel(true)
             // If manually selected a geography on map (not building-related), reset to auto
-            if (hasManualGeoSelection && !selectedBuilding && map) {
-              setHasManualGeoSelection(false)
+            if (!selectedBuilding && map) {
               const center = map.getCenter()
-              queryGeographiesAtPoint(center.lng, center.lat)
+              queryGeographiesAtPoint(center.lng, center.lat, false)
             }
             setGeographyLevel(e.target.value as GeographyKey)
           }}
@@ -227,7 +215,7 @@ const RegionalRisk = () => {
           }}
         >
           {getRegionName({ mode: 'short' }) ?? <>&#8203;</>}
-          <EyeCheckbox checked={showOnMap} onChange={handleShowRegionChange} />
+          <EyeCheckbox onChange={handleShowRegionChange} />
         </Flex>
       </Flex>
       <Box sx={{ position: 'relative', mt: 2, mb: 7 }}>

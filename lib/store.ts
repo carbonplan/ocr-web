@@ -23,6 +23,7 @@ type Store = {
     censusBlock: Geography | null
     state: Geography | null
     nation: Geography | null
+    userSelected: boolean
   }
   setActiveGeographies: (activeGeographies: {
     county: Geography | null
@@ -30,13 +31,10 @@ type Store = {
     censusBlock: Geography | null
     state: Geography | null
     nation: Geography | null
+    userSelected: boolean
   }) => void
   selectedGeographyLevel: GeographyKey
   setSelectedGeographyLevel: (level: GeographyKey) => void
-  showGeographyHighlight: boolean
-  setShowGeographyHighlight: (show: boolean) => void
-  hasManualGeoSelection: boolean
-  setHasManualGeoSelection: (hasSelected: boolean) => void
   geographyLayerVisibility: {
     building: boolean
     county: boolean
@@ -75,7 +73,11 @@ type Store = {
   setReverseGeocodeLoading: (reverseGeocodeLoading: boolean) => void
   advancedMode: boolean
   toggleAdvancedMode: () => void
-  queryGeographiesAtPoint: (lng: number, lat: number) => void
+  queryGeographiesAtPoint: (
+    lng: number,
+    lat: number,
+    userSelected: boolean,
+  ) => void
   clearSelections: () => void
 }
 
@@ -96,17 +98,28 @@ export const useStore = create<Store>((set, get) => ({
     censusBlock: null,
     state: null,
     nation: null,
+    userSelected: false,
   },
-  setActiveGeographies: ({ county, censusTract, censusBlock, state, nation }) =>
+  setActiveGeographies: ({
+    county,
+    censusTract,
+    censusBlock,
+    state,
+    nation,
+    userSelected,
+  }) =>
     set({
-      activeGeographies: { county, censusTract, censusBlock, state, nation },
+      activeGeographies: {
+        county,
+        censusTract,
+        censusBlock,
+        state,
+        nation,
+        userSelected,
+      },
     }),
-  selectedGeographyLevel: 'nation',
+  selectedGeographyLevel: 'nation' as const,
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
-  showGeographyHighlight: false,
-  setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
-  hasManualGeoSelection: false,
-  setHasManualGeoSelection: (hasSelected) => set({ hasManualGeoSelection: hasSelected }),
   geographyLayerVisibility: {
     building: true,
     county: false,
@@ -117,7 +130,7 @@ export const useStore = create<Store>((set, get) => ({
   },
   setGeographyLayerVisibility: (geographyLayerVisibility) =>
     set({ geographyLayerVisibility }),
-  timePeriod: 'current',
+  timePeriod: 'current' as const,
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
@@ -141,7 +154,11 @@ export const useStore = create<Store>((set, get) => ({
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
-  queryGeographiesAtPoint: (lng: number, lat: number) => {
+  queryGeographiesAtPoint: (
+    lng: number,
+    lat: number,
+    userSelected: boolean,
+  ) => {
     const { map } = get()
     if (!map) return
 
@@ -180,6 +197,7 @@ export const useStore = create<Store>((set, get) => ({
         censusBlock: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusBlock, [
           LAYERS.censusBlocks.layerIds.fill,
         ]),
+        userSelected,
       },
     })
   },
@@ -193,9 +211,8 @@ export const useStore = create<Store>((set, get) => ({
         censusBlock: null,
         state: null,
         nation: null,
+        userSelected: false,
       },
-      showGeographyHighlight: false,
-      hasManualGeoSelection: false,
     })
     clearSelectedBuildingUrl()
     const { map, queryGeographiesAtPoint } = get()
@@ -211,7 +228,7 @@ export const useStore = create<Store>((set, get) => ({
         lng: center.lng,
         zoom: zoom,
       })
-      queryGeographiesAtPoint(center.lng, center.lat)
+      queryGeographiesAtPoint(center.lng, center.lat, false)
     }
   },
 }))
