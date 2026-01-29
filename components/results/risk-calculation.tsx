@@ -78,14 +78,14 @@ const TableCell = ({
 }
 
 const TOOLTIP = {
-  rps: 'Annual risk of loss incorporates both the probability and relative severity of fire at a given location. This value is directly translated into the risk score.',
+  rps: 'Annual risk of loss incorporates both the probability and relative consequence of wildfire to a structure at a given location. Also known as the expected annual net value change. This value is directly translated into the risk score. Values range from 0 to 100.',
   bp: {
     current:
-      'Annual burn probability (BP) for today’s climate (circa 2011) based on fire weather wind direction and landscape conditions.',
+      'Annual burn probability (BP) for today’s climate (circa 2011) based on fire weather wind direction and landscape conditions. Values range from 0 to 1.',
     future:
-      'Annual burn probability (BP) for future climate (circa 2047) based on fire weather wind direction and landscape conditions.',
+      'Annual burn probability (BP) for future climate (circa 2047) based on fire weather wind direction and landscape conditions. Values range from 0 to 1.',
   },
-  crps: 'Relative net value change in a hypothetical generic structure if a fire occurred at this location. This value reflects fire severity and is controlled by the local landscape.',
+  crps: 'Relative loss in structure value if a wildfire were to occur at a given location. Determined by the modeled intensity of a fire at this location and is largely controlled by local vegetation. Values range from 0 to 100.',
 }
 
 const sx = {
@@ -135,9 +135,9 @@ const RiskCalculation = () => {
   return (
     <>
       <Box sx={{ mt: 2 }}>
-        Risk scores are calculated from percentile-based bins of annual risk of
-        loss, which is computed at every building location with the following
-        equation:
+        The risk scoring system is a categorical classification of continuous
+        values of annual risk of loss, which is computed at every location with
+        the following equation:
       </Box>
 
       <Box sx={{ variant: 'srOnly' }}>
