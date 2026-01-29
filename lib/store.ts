@@ -33,6 +33,8 @@ type Store = {
   }) => void
   selectedGeographyLevel: GeographyKey
   setSelectedGeographyLevel: (level: GeographyKey) => void
+  hasManuallySelectedGeography: boolean
+  setHasManuallySelectedGeography: (value: boolean) => void
   showGeographyHighlight: boolean
   setShowGeographyHighlight: (show: boolean) => void
   geographyLayerVisibility: {
@@ -101,6 +103,8 @@ export const useStore = create<Store>((set, get) => ({
     }),
   selectedGeographyLevel: 'nation',
   setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
+  hasManuallySelectedGeography: false,
+  setHasManuallySelectedGeography: (value) => set({ hasManuallySelectedGeography: value }),
   showGeographyHighlight: false,
   setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
   geographyLayerVisibility: {

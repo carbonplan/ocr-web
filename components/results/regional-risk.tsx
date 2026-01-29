@@ -42,6 +42,8 @@ const RegionalRisk = () => {
   const map = useStore((state) => state.map)
   const geographyLevel = useStore((state) => state.selectedGeographyLevel)
   const setGeographyLevel = useStore((state) => state.setSelectedGeographyLevel)
+  const hasManuallySelectedGeography = useStore((state) => state.hasManuallySelectedGeography)
+  const setHasManuallySelectedGeography = useStore((state) => state.setHasManuallySelectedGeography)
   const showOnMap = useStore((state) => state.showGeographyHighlight)
   const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
   const activeGeographies = useStore(
@@ -49,13 +51,12 @@ const RegionalRisk = () => {
   )
   const [zoom, setZoom] = useState(0)
   const activeGeography = activeGeographies[geographyLevel]
-  const [hasSelectedGeo, setHasSelectedGeo] = useState<boolean>(false)
 
   useEffect(() => {
-    if (!hasSelectedGeo) {
+    if (!hasManuallySelectedGeography) {
       setGeographyLevel(selectedBuilding ? 'county' : 'nation')
     }
-  }, [hasSelectedGeo, selectedBuilding, setGeographyLevel])
+  }, [hasManuallySelectedGeography, selectedBuilding, setGeographyLevel])
 
   const { score, color } = useScore(activeGeography ?? null)
   const { score: buildingScore } = useScore(selectedBuilding)
@@ -185,7 +186,7 @@ const RegionalRisk = () => {
           size='xs'
           value={geographyLevel}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-            setHasSelectedGeo(true)
+            setHasManuallySelectedGeography(true)
             setGeographyLevel(e.target.value as GeographyKey)
           }}
           sx={{

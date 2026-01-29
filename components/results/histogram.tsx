@@ -56,7 +56,7 @@ const Histogram = ({
   data: number[]
   sx?: ThemeUIStyleObject
 }) => {
-  const maxCount: number = useMemo(() => Math.max(...data), [data])
+  const maxCount: number = useMemo(() => Math.max(...data, 1), [data])
   const totalBuildings = useMemo(() => data.reduce((a, b) => a + b, 0), [data])
   const screenReaderDescription = useMemo(() => {
     const distribution = data
@@ -79,7 +79,7 @@ const Histogram = ({
       >
         <Chart
           x={[0, 11]}
-          y={[1, maxCount * 1.1]}
+          y={[0, maxCount * 1.1]}
           padding={{ left: 0, bottom: 0, top: 10 }}
         >
           <Grid horizontal />

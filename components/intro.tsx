@@ -18,15 +18,11 @@ const Intro = () => {
         Open Climate Risk
       </Box>
       <Box sx={{ mb: 3, variant: 'description' }}>
-        This explorer shows fire risk across the continental US. Search for an
-        address or use the map to explore risk data. More hazards will be added
-        in the future. Read our{' '}
-        <Link href='https://carbonplan.org/research/climate-risk-faq'>FAQ</Link>,
-        the{' '}
-        <Link href='https://carbonplan.org/research/climate-risk-explainer'>
-          explainer
-        </Link>
-        , or{' '}
+        This explorer shows wildfire risk across the continental US. Search for
+        an address or use the map to explore risk data. More hazards will be
+        added in the future. Read our{' '}
+        <Link href='https://carbonplan.org/research/climate-risk-faq'>FAQ</Link>, the{' '}
+        <Link href='https://carbonplan.org/research/climate-risk-explainer'>explainer</Link>, or{' '}
         <Link href='https://docs.carbonplan.org/ocr/en/latest/access-data.html'>
           download the data
         </Link>{' '}
