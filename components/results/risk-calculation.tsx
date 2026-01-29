@@ -12,9 +12,9 @@ const TOOLTIP = {
   rps: 'Annual risk of loss incorporates both the probability and relative consequence of wildfire to a structure at a given location. Also known as the expected annual net value change. This value is directly translated into the risk score. Values range from 0 to 100.',
   bp: {
     current:
-      'Annual burn probability (BP) for today’s climate (circa 2011) based on fire weather wind direction and landscape conditions. Values range from 0 to 1.',
+      'Annual burn probability (BP) for current climate (circa 2011). Determined by modeled wildfire frequency, adjusted by fire-weather wind directions. Values range from 0 to 1.',
     future:
-      'Annual burn probability (BP) for future climate (circa 2047) based on fire weather wind direction and landscape conditions. Values range from 0 to 1.',
+      'Annual burn probability (BP) for future climate (circa 2047). Determined by modeled wildfire frequency, adjusted by fire-weather wind directions. Values range from 0 to 1.',
   },
   crps: 'Relative loss in structure value if a wildfire were to occur at a given location. Determined by the modeled intensity of a fire at this location and is largely controlled by local vegetation. Values range from 0 to 100.',
 }
