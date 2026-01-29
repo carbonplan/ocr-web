@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import { Box, Container, IconButton, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
@@ -10,13 +11,16 @@ import {
   Legend,
   Map,
   Sidebar,
-  MobileDrawer,
   Intro,
   Loading,
   MapLayers,
 } from '../components'
+
+const MobileDrawer = dynamic(() => import('../components/mobile-drawer'), {
+  ssr: false,
+})
 import { useStore } from '@/lib/store'
-import { withAuthAndPlausible } from '@/hocs/with-auth-and-plausible'
+import { withPlausible } from '@/hocs/with-plausible'
 
 const AGREEMENT_KEY = 'ocr.agreement'
 
@@ -182,4 +186,4 @@ const Index = () => {
   )
 }
 
-export default withAuthAndPlausible(Index)
+export default withPlausible(Index)
