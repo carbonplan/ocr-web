@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useStore } from '../lib/store'
+import { BASE_PATH } from '../lib/config'
 
 const CASING_LAYERS = [
   'roads_minor_service_casing',
@@ -34,7 +35,7 @@ const SatelliteLayer = () => {
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'raster',
-        tiles: [`/api/map/tiles/{z}/{x}/{y}?style=satellite.day`],
+        tiles: [`${BASE_PATH}/api/map/tiles/{z}/{x}/{y}?style=satellite.day`],
         tileSize: 512,
         attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
       })
