@@ -3,11 +3,12 @@ import { Box } from 'theme-ui'
 import { Link, Table } from '@carbonplan/components'
 
 const FACTORS = [
-  'Building attributes like fire-resistant construction and maintenance',
+  'Building attributes like fire-resistant construction and defensible space',
   'Building-to-building spread',
   'Vegetation management and defensible space',
-  'Fires since 2021',
+  'Changes in vegetation including wildfires since 2021',
   'Community mitigation planning',
+  'Community emergency planning',
 ]
 
 const OtherFactors = () => {
