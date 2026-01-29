@@ -9,6 +9,7 @@ const FACTORS = [
   'Changes in vegetation including wildfires since 2021',
   'Community mitigation planning',
   'Community emergency planning',
+  'Changes to ignition patterns',
 ]
 
 const OtherFactors = () => {
