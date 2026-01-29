@@ -24,9 +24,9 @@ const OtherFactors = () => {
         Other factors
       </Box>
       <Box variant='description'>
-        The risk described above does not account for several important factors,
-        which could influence the actual wildfire risk of a given location. For
-        more information on these factors, see our{' '}
+        The risk described above does not account for several important factors
+        including those below, which could influence the actual wildfire risk of
+        a given location. For more information on these factors, see our{' '}
         <Link href='/research/climate-risk-faq'>FAQ</Link>.
       </Box>
       <Table
