@@ -18,10 +18,9 @@ const Intro = () => {
         Open Climate Risk
       </Box>
       <Box sx={{ mb: 3, variant: 'description' }}>
-        This explorer shows wildfire risk across the continental US. Search for
-        an address or use the map to explore risk data. More hazards will be
-        added in the future. Read our{' '}
-        <Link href='/research/climate-risk-faq'>FAQ</Link>, the{' '}
+        This explorer shows wildfire risk across the continental United States.
+        Search for an address or use the map to explore risk data. See our{' '}
+        <Link href='/research/climate-risk-faq'>FAQ</Link>, read the{' '}
         <Link href='/research/climate-risk-explainer'>explainer</Link>, or{' '}
         <Link href='https://docs.carbonplan.org/ocr/en/latest/access-data.html'>
           download the data
