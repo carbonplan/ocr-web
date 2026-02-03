@@ -5,8 +5,7 @@ import { Link, Table } from '@carbonplan/components'
 const FACTORS = [
   'Building attributes like fire-resistant construction and defensible space',
   'Building-to-building spread',
-  'Vegetation management and defensible space',
-  'Changes in vegetation including wildfires since 2021',
+  'Changes in vegetation, including wildfires, after 2020',
   'Community mitigation planning',
   'Community emergency planning',
   'Changes to ignition patterns',
@@ -26,7 +25,7 @@ const OtherFactors = () => {
         Other factors
       </Box>
       <Box variant='description'>
-        The risk described above does not account for several important factors
+        The risk described above does not account for several important factors,
         including those below, which could influence the actual wildfire risk of
         a given location. For more information on these factors, see our{' '}
         <Link href='/research/climate-risk-faq'>FAQ</Link>.

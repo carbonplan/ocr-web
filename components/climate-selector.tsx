@@ -40,7 +40,7 @@ const ClimateSelector = () => {
           </Column>
           <Column start={[3, 2, 2, 2]} width={[4, 7, 3, 3]} sx={{ mb: '-5px' }}>
             <TooltipWrapper
-              tooltip='Current risk estimates are based on a climate circa 2003-2018, while future estimates use a climate representative of 2040-2055. Both estimates use vegetation from circa 2020.'
+              tooltip='Current risk estimates are based on a climate circa 2004-2018, while future estimates use a climate representative of 2040-2054. Both estimates use vegetation from the early 2020s.'
               sx={{ justifyContent: 'flex-start', gap: 3 }}
             >
               <Filter
