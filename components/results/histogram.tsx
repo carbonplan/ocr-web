@@ -67,7 +67,7 @@ const Histogram = ({
       })
       .filter(Boolean)
       .join('. ')
-    return `Distribution of ${formatBuildingCount(totalBuildings)} buildings across risk scores in ${region}. ${distribution}${score ? `. Selected building has risk score ${score}.` : ''}`
+    return `Distribution of ${formatBuildingCount(totalBuildings)} buildings across risk scores in ${region}${region.endsWith('.') ? '' : '.'} ${distribution}${score ? `. Selected building has risk score ${score}.` : ''}`
   }, [data, region, score, totalBuildings])
 
   return (

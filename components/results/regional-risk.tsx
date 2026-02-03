@@ -22,7 +22,7 @@ import EyeCheckbox from '../eye-checkbox'
 import TooltipWrapper from '../tooltip'
 
 const GEOGRAPHY_LABELS = {
-  nation: 'continental US',
+  nation: 'continental U.S.',
   state: 'state',
   county: 'county',
   censusTract: 'census tract',
@@ -42,8 +42,12 @@ const RegionalRisk = () => {
   const map = useStore((state) => state.map)
   const geographyLevel = useStore((state) => state.selectedGeographyLevel)
   const setGeographyLevel = useStore((state) => state.setSelectedGeographyLevel)
-  const hasManuallySelectedGeography = useStore((state) => state.hasManuallySelectedGeography)
-  const setHasManuallySelectedGeography = useStore((state) => state.setHasManuallySelectedGeography)
+  const hasManuallySelectedGeography = useStore(
+    (state) => state.hasManuallySelectedGeography,
+  )
+  const setHasManuallySelectedGeography = useStore(
+    (state) => state.setHasManuallySelectedGeography,
+  )
   const showOnMap = useStore((state) => state.showGeographyHighlight)
   const setShowOnMap = useStore((state) => state.setShowGeographyHighlight)
   const activeGeographies = useStore(
@@ -201,7 +205,7 @@ const RegionalRisk = () => {
             },
           }}
         >
-          <option value='nation'>Continental US</option>
+          <option value='nation'>Continental U.S.</option>
           <option value='state'>State</option>
           <option value='county'>County</option>
           <option value='censusTract'>Census tract</option>
@@ -241,8 +245,8 @@ const RegionalRisk = () => {
             }}
           >
             {isGeographyUnavailable
-              ? `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data`
-              : 'No data available'}
+              ? `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data.`
+              : 'No data available.'}
           </Box>
         )}
       </Box>
@@ -285,7 +289,8 @@ const RegionalRisk = () => {
                 key='download'
                 tooltip={
                   <>
-                    Download risk data for all buildings in {getRegionName()}.
+                    Download risk data for all buildings in {getRegionName()}
+                    {getRegionName().endsWith('.') ? ' ' : '. '}
                     For more information about these files, including data
                     schema, see the{' '}
                     <Link
@@ -312,7 +317,7 @@ const RegionalRisk = () => {
                     {geographyLevel === 'nation'
                       ? ' '
                       : ` each ${GEOGRAPHY_LABELS[geographyLevel]} in `}
-                    the continental US. For more information about these files,
+                    the continental U.S. For more information about these files,
                     including data schema, see the{' '}
                     <Link
                       sx={{ color: 'secondary' }}
