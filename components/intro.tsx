@@ -18,7 +18,7 @@ const Intro = () => {
         Open Climate Risk
       </Box>
       <Box sx={{ mb: 3, variant: 'description' }}>
-        This explorer shows wildfire risk across the continental United States.
+        This explorer shows wildfire risk across the contiguous United States.
         Search for an address or use the map to explore risk data. See our{' '}
         <Link href='/research/climate-risk-faq'>FAQ</Link>, read the{' '}
         <Link href='/research/climate-risk-explainer'>explainer</Link>, or{' '}
