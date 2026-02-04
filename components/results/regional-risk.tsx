@@ -22,7 +22,7 @@ import EyeCheckbox from '../eye-checkbox'
 import TooltipWrapper from '../tooltip'
 
 const GEOGRAPHY_LABELS = {
-  nation: 'continental U.S.',
+  nation: 'contiguous U.S.',
   state: 'state',
   county: 'county',
   censusTract: 'census tract',
@@ -317,7 +317,7 @@ const RegionalRisk = () => {
                     {geographyLevel === 'nation'
                       ? ' '
                       : ` each ${GEOGRAPHY_LABELS[geographyLevel]} in `}
-                    the continental U.S. For more information about these files,
+                    the contiguous U.S. For more information about these files,
                     including data schema, see the{' '}
                     <Link
                       sx={{ color: 'secondary' }}
