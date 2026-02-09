@@ -70,8 +70,8 @@ const Index = () => {
   return (
     <>
       <Meta
-        // card TK
-        description={'Explore fire risk across the continental U.S.'}
+        card='https://images.carbonplan.org/social/climate-risk.png'
+        description={'Explore fire risk across the contiguous U.S.'}
         title={'Open Climate Risk – CarbonPlan'}
       />
 

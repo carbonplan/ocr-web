@@ -1,6 +1,6 @@
 export const BASE_PATH = '/research/climate-risk'
 
-export const DATA_VERSION = 'v1.0.0'
+export const DATA_VERSION = 'v1.1.0'
 
 export const DATA_URLS = {
   vector: {

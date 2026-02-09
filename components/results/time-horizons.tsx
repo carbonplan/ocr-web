@@ -24,8 +24,8 @@ const getRiskOverHorizon = (
 
 const TOOLTIPS = {
   1: 'Risk of loss in a single year (equal to above).',
-  15: 'Risk of loss in any year over a 15 year time horizon.',
-  30: 'Risk of loss in any year over a 30 year time horizon.',
+  15: 'Risk of loss in any year over a 15-year time horizon.',
+  30: 'Risk of loss in any year over a 30-year time horizon.',
 }
 
 const TimeHorizons = () => {
