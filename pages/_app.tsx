@@ -1,7 +1,5 @@
 import { useEffect } from 'react'
 import type { AppProps } from 'next/app'
-// @ts-expect-error - carbonplan auth types not available
-import { AuthProvider } from '@carbonplan/auth'
 import { ThemeProvider } from 'theme-ui'
 import theme from '@/lib/theme'
 import { useStore } from '@/lib/store'
@@ -24,11 +22,9 @@ const App = ({ Component, pageProps }: AppProps) => {
   }, [toggleAdvancedMode])
 
   return (
-    <AuthProvider config={{ useLocalStorage: true }}>
-      <ThemeProvider theme={theme}>
-        <Component {...pageProps} />
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider theme={theme}>
+      <Component {...pageProps} />
+    </ThemeProvider>
   )
 }
 

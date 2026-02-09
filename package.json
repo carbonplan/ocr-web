@@ -5,13 +5,11 @@
   "prettier": "@carbonplan/prettier",
   "scripts": {
     "dev": "next dev",
-    "dev:noauth": "export AUTH_OVERRIDE=true && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@carbonplan/auth": "^1.1.0",
     "@carbonplan/charts": "^3.1.1",
     "@carbonplan/colormaps": "^4.0.0",
     "@carbonplan/components": "13.1.1",

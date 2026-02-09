@@ -28,7 +28,7 @@ const OtherFactors = () => {
         The risk described above does not account for several important factors,
         including those below, which could influence the actual wildfire risk of
         a given location. For more information on these factors, see our{' '}
-        <Link href='/research/climate-risk-faq'>FAQ</Link>.
+        <Link href='https://carbonplan.org/research/climate-risk-faq'>FAQ</Link>.
       </Box>
       <Table
         columns={3}

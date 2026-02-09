@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Box, Container, IconButton, Spinner } from 'theme-ui'
+import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan components types not available
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
@@ -16,13 +17,15 @@ import {
   MapLayers,
 } from '../components'
 import { useStore } from '@/lib/store'
-import { withAuthAndPlausible } from '@/hocs/with-auth-and-plausible'
+import { withPlausible } from '@/hocs/with-plausible'
 
 const AGREEMENT_KEY = 'ocr.agreement'
 
 const Index = () => {
   const [showIntro, setShowIntro] = useState(true)
   const [showAgreement, setShowAgreement] = useState(false)
+  const breakpointIndex = useBreakpointIndex({ defaultIndex: 2 })
+  const isMobile = breakpointIndex < 2
   const isLoading = useStore(
     (state) => state.mapLoading || state.reverseGeocodeLoading,
   )
@@ -89,40 +92,30 @@ const Index = () => {
         <Container>
           <Header
             menuItems={[
-              <Spinner
-                key='spinner'
-                size={28}
-                sx={{
-                  display: isLoading
-                    ? ['inherit', 'inherit', 'none', 'none']
-                    : 'none',
-                }}
-              />,
+              isMobile && isLoading && <Spinner key='spinner' size={28} />,
               <Dimmer key='dimmer' sx={{ mt: '-2px', color: 'primary' }} />,
-              <IconButton
-                key='info'
-                aria-label={showIntro ? 'Hide intro' : 'Show intro'}
-                aria-pressed={showIntro}
-                onPointerDown={(e) => {
-                  e.stopPropagation()
-                  setShowIntro((s) => !s)
-                }}
-                sx={{
-                  display: ['block', 'block', 'none'],
-                  color: showIntro ? 'secondary' : 'primary',
-                }}
-              >
-                <Info />
-              </IconButton>,
-            ]}
+              isMobile && (
+                <IconButton
+                  key='info'
+                  aria-label={showIntro ? 'Hide intro' : 'Show intro'}
+                  aria-pressed={showIntro}
+                  onPointerDown={(e) => {
+                    e.stopPropagation()
+                    setShowIntro((s) => !s)
+                  }}
+                  sx={{ color: showIntro ? 'secondary' : 'primary' }}
+                >
+                  <Info />
+                </IconButton>
+              ),
+            ].filter(Boolean)}
           />
           {showAgreement && <AgreementPopup onClick={handleAgreement} />}
 
-          {(showIntro || showAgreement) && (
+          {isMobile && (showIntro || showAgreement) && (
             <Box
               ref={modalRef}
               sx={{
-                display: ['block', 'block', 'none'],
                 p: 4,
                 mt: -2,
                 bg: 'background',
@@ -171,8 +164,7 @@ const Index = () => {
           overflowX: 'hidden',
         }}
       >
-        <Sidebar />
-        <MobileDrawer />
+        {isMobile ? <MobileDrawer /> : <Sidebar />}
         <Loading />
         <MapLayers />
         <Map />
@@ -182,4 +174,4 @@ const Index = () => {
   )
 }
 
-export default withAuthAndPlausible(Index)
+export default withPlausible(Index)

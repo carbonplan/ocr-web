@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useStore } from '@/lib/store'
+import { BASE_PATH } from '@/lib/config'
 
 export const useReverseGeocode = () => {
   const setReverseGeocodeLoading = useStore(
@@ -16,7 +17,7 @@ export const useReverseGeocode = () => {
       setReverseGeocodeLoading(true)
       try {
         const response = await fetch(
-          `/api/geocode/reverse?lat=${lat}&lng=${lng}`,
+          `${BASE_PATH}/api/geocode/reverse?lat=${lat}&lng=${lng}`,
           { signal: controller.signal },
         )
         if (response.ok) {

@@ -11,7 +11,7 @@ import { X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
 import { formatAddress } from '@/lib/address-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
-import { LAYERS } from '@/lib/config'
+import { BASE_PATH, LAYERS } from '@/lib/config'
 import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
@@ -108,7 +108,7 @@ const Geocode = () => {
   ): Promise<Suggestion[]> => {
     try {
       const response = await fetch(
-        `/api/geocode/autocomplete?q=${encodeURIComponent(query)}`,
+        `${BASE_PATH}/api/geocode/autocomplete?q=${encodeURIComponent(query)}`,
         { signal },
       )
       const data = await response.json()
@@ -179,7 +179,7 @@ const Geocode = () => {
     try {
       clearSelections()
       const locationResponse = await fetch(
-        `/api/geocode/lookup?id=${suggestion.id}`,
+        `${BASE_PATH}/api/geocode/lookup?id=${suggestion.id}`,
       )
       const location = await locationResponse.json()
 
