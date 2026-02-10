@@ -51,13 +51,26 @@ export default async function handler(
     return res.status(400).json({ message: 'Query parameter is required' })
   }
 
+  if (q.trim().length < 3) {
+    return res.status(200).json({ items: [] })
+  }
+
   const bbox = [-127, 23, -65, 50].join(',')
   const countryCode = 'USA'
   const limit = 5
+  const controller = new AbortController()
+
+  const abortUpstreamRequest = () => {
+    controller.abort()
+  }
+
+  req.on('close', abortUpstreamRequest)
+  req.on('aborted', abortUpstreamRequest)
 
   try {
     const response = await fetch(
       `https://autocomplete.search.hereapi.com/v1/autocomplete?q=${encodeURIComponent(q)}&in=countryCode:${countryCode}&in=bbox:${bbox}&limit=${limit}&apiKey=${process.env.HERE_API_KEY}`,
+      { signal: controller.signal },
     )
     const data: HereApiResponse = await response.json()
 
@@ -69,7 +82,14 @@ export default async function handler(
 
     res.status(200).json({ items: suggestions })
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      if (!res.writableEnded) res.end()
+      return
+    }
     console.error('Autocomplete error:', error)
     res.status(500).json({ message: 'Error fetching autocomplete results' })
+  } finally {
+    req.off('close', abortUpstreamRequest)
+    req.off('aborted', abortUpstreamRequest)
   }
 }
