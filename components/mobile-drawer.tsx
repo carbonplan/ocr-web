@@ -6,7 +6,8 @@ import { Drawer } from 'vaul'
 import ClimateSelector from './climate-selector'
 
 const MobileDrawer = () => {
-  const snapPoints = useMemo(() => ['140px', 0.54, 0.94], [])
+  // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
+  const snapPoints = useMemo(() => ['140px', 0.54, 0.94, 0.94, 0.94], [])
 
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
   const scrollContainerRef = useRef<HTMLDivElement>(null)
