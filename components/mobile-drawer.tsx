@@ -107,7 +107,7 @@ const MobileDrawer = () => {
                 px: 4,
                 overflowY: 'auto',
                 flex: 1,
-                pb: snap === snapPoints[1] ? '48vh' : 6, // Bottom padding for scroll space
+                pb: snap === snapPoints[1] ? '48vh' : '6vh', // Bottom padding for scroll space
                 WebkitOverflowScrolling: 'touch',
               }}
             >
