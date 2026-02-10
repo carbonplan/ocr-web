@@ -98,6 +98,7 @@ const ValueBadge = ({
           mb: '-5px',
           transition: 'all 0.2s',
           userSelect: typeof value == 'number' ? 'all' : 'none',
+          pt: ['1px', 0, 0, 0],
           ...colors,
           ...sx,
         }}
