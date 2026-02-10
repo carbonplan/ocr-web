@@ -42,8 +42,7 @@ const MobileDrawer = () => {
         dismissible={false}
         repositionInputs={false}
         preventScrollRestoration={true}
-        // scrollLockTimeout={1}
-        // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
+        handleOnly
       >
         {/* hidden accessibility elements */}
         <Drawer.Title
@@ -84,22 +83,33 @@ const MobileDrawer = () => {
               borderTop: '1px solid',
               borderColor: 'muted',
               height: '100%',
+              '[data-vaul-handle]': {
+                width: '100%',
+                height: 'auto',
+                background: 'transparent',
+              },
+              '[data-vaul-handle-hitarea]': {
+                position: 'static',
+              },
             }}
           >
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 0,
-                bg: 'background',
-                zIndex: 2,
-              }}
-            >
-              <Box as={Drawer.Handle} sx={{ mt: 2 }} />
+            <Drawer.Handle preventCycle>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 5,
+                  borderRadius: '1rem',
+                  bg: 'secondary',
+                  mx: 'auto',
+                  my: 2,
+                }}
+                aria-hidden='true'
+              />
               <Box sx={{ px: 4 }}>
                 <Geocode />
                 <ClimateSelector />
               </Box>
-            </Box>
+            </Drawer.Handle>
 
             <Box
               ref={scrollContainerRef}
