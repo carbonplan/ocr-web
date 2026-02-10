@@ -138,7 +138,11 @@ export const Download = () => {
   }
 
   return (
-    <Flex sx={{ gap: 3 }} role='group' aria-label='Download regional data'>
+    <Flex
+      sx={{ gap: 3, flexWrap: 'wrap' }}
+      role='group'
+      aria-label='Download regional data'
+    >
       <DownloadButton
         label='CSV'
         loading={loading.csv}

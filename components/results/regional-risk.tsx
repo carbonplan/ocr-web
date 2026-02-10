@@ -259,9 +259,9 @@ const RegionalRisk = () => {
 
       <Box>
         <Table
-          columns={3}
-          start={[1, 2]}
-          width={[1, 2]}
+          columns={[4, 3, 3, 3]}
+          start={[1, [3, 2, 2, 2]]}
+          width={[1, [3, 2, 2, 2]]}
           data={[
             [
               'Structures',
@@ -337,7 +337,7 @@ const RegionalRisk = () => {
                 sx={{ justifyContent: 'flex-start', gap: 3 }}
               >
                 <Flex
-                  sx={{ gap: 3 }}
+                  sx={{ gap: 3, flexWrap: 'wrap' }}
                   role='group'
                   aria-label='Download regional data'
                 >
