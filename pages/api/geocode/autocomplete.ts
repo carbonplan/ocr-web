@@ -65,7 +65,6 @@ export default async function handler(
   }
 
   req.on('close', abortUpstreamRequest)
-  req.on('aborted', abortUpstreamRequest)
 
   try {
     const response = await fetch(
@@ -90,6 +89,5 @@ export default async function handler(
     res.status(500).json({ message: 'Error fetching autocomplete results' })
   } finally {
     req.off('close', abortUpstreamRequest)
-    req.off('aborted', abortUpstreamRequest)
   }
 }
