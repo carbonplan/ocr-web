@@ -183,7 +183,13 @@ const RegionalRisk = () => {
       <Box as='h2' variant='sectionHeading'>
         Risk in the region
       </Box>
-      <Flex sx={{ alignItems: 'baseline', gap: 3 }}>
+      <Flex
+        sx={{
+          alignItems: 'baseline',
+          gap: 3,
+          flexDirection: ['column', 'row', 'row', 'row'],
+        }}
+      >
         <Select
           key='geography'
           aria-label='Select geographic level'
