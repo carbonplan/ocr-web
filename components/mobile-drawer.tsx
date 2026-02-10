@@ -6,8 +6,7 @@ import { Drawer } from 'vaul'
 import ClimateSelector from './climate-selector'
 
 const MobileDrawer = () => {
-  // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
-  const snapPoints = useMemo(() => ['140px', 0.54, 0.94, 0.94, 0.94], [])
+  const snapPoints = useMemo(() => ['140px', 0.54, 0.94], [])
 
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -42,6 +41,7 @@ const MobileDrawer = () => {
         dismissible={false}
         repositionInputs={false}
         preventScrollRestoration={true}
+        handleOnly
         // scrollLockTimeout={1}
         // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
       >
@@ -107,7 +107,7 @@ const MobileDrawer = () => {
                 px: 4,
                 overflowY: 'auto',
                 flex: 1,
-                pb: '48vh', // Bottom padding for scroll space
+                pb: snap === snapPoints[1] ? '48vh' : 6, // Bottom padding for scroll space
                 WebkitOverflowScrolling: 'touch',
               }}
             >
