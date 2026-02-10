@@ -41,7 +41,6 @@ const MobileDrawer = () => {
         dismissible={false}
         repositionInputs={false}
         preventScrollRestoration={true}
-        handleOnly
         // scrollLockTimeout={1}
         // autoFocus={true} // fixes aria warning but weird to auto focus the geocoder
       >
