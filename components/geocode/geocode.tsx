@@ -16,6 +16,8 @@ import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
 
+const MIN_QUERY_LENGTH = 3
+
 const Geocode = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
@@ -23,7 +25,7 @@ const Geocode = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [suggestionsQuery, setSuggestionsQuery] = useState('')
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const debouncedQuery = useDebounce(searchQuery, 300)
+  const debouncedQuery = useDebounce(searchQuery, 500)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -76,6 +78,7 @@ const Geocode = () => {
 
   useEffect(() => {
     if (!searchQuery.trim()) {
+      abortControllerRef.current?.abort()
       setSuggestions([])
       setSuggestionsQuery('')
       setErrorMessage('')
@@ -90,17 +93,23 @@ const Geocode = () => {
   }, [reverseGeocodeLoading])
 
   useEffect(() => {
-    if (debouncedQuery.trim() && searchQuery.trim() && isEditing) {
+    const trimmed = debouncedQuery.trim()
+    if (trimmed.length >= MIN_QUERY_LENGTH && isEditing) {
       abortControllerRef.current?.abort()
       const controller = new AbortController()
       abortControllerRef.current = controller
-      fetchSuggestions(debouncedQuery, controller.signal)
+      fetchSuggestions(trimmed, controller.signal)
+    } else {
+      abortControllerRef.current?.abort()
+      setSuggestions([])
+      setSuggestionsQuery('')
+      setErrorMessage('')
     }
 
     return () => {
       abortControllerRef.current?.abort()
     }
-  }, [debouncedQuery, searchQuery, isEditing])
+  }, [debouncedQuery, isEditing])
 
   const fetchSuggestions = async (
     query: string,
