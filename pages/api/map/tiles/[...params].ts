@@ -39,7 +39,7 @@ export default async function handler(
     const contentType = response.headers.get('content-type') || 'image/png'
     res.setHeader('Content-Type', contentType)
 
-    res.setHeader('Cache-Control', 'public, max-age=86400')
+    res.setHeader('Cache-Control', 'max-age=2592000, s-maxage=2592000') // 30 days
 
     const passthrough = new PassThrough()
     const readable = Readable.fromWeb(

@@ -94,6 +94,7 @@ export default async function handler(
       mapView: item.mapView,
     }
 
+    res.setHeader('Cache-Control', 'max-age=604800, s-maxage=604800') // 7 days
     res.status(200).json(location)
   } catch (error) {
     console.error('Reverse geocode error:', error)

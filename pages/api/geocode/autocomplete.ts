@@ -85,6 +85,8 @@ export default async function handler(
 
     const data: HereApiResponse = await response.json()
 
+    res.setHeader('Cache-Control', 'max-age=604800, s-maxage=604800') // 7 days
+
     if (!Array.isArray(data.items) || data.items.length === 0) {
       return res.status(200).json({ items: [] })
     }
