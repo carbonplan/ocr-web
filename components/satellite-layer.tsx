@@ -35,7 +35,7 @@ const SatelliteLayer = () => {
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'raster',
-        tiles: [`${BASE_PATH}/api/map/tiles/{z}/{x}/{y}?style=satellite.day`],
+        tiles: [`${BASE_PATH}/api/map/tiles/{z}/{x}/{y}`],
         tileSize: 512,
         attribution: `&copy; ${new Date().getFullYear()} HERE Technologies`,
       })
