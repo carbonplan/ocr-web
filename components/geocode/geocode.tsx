@@ -98,7 +98,7 @@ const Geocode = () => {
       abortControllerRef.current?.abort()
       const controller = new AbortController()
       abortControllerRef.current = controller
-      fetchSuggestions(trimmed, controller.signal)
+      fetchSuggestions(trimmed.toLowerCase(), controller.signal)
     } else {
       abortControllerRef.current?.abort()
       setSuggestions([])
@@ -190,6 +190,10 @@ const Geocode = () => {
       const locationResponse = await fetch(
         `${BASE_PATH}/api/geocode/lookup?id=${suggestion.id}`,
       )
+      if (!locationResponse.ok) {
+        console.error('Lookup error:', locationResponse.status)
+        return
+      }
       const location = await locationResponse.json()
 
       if (map && location) {
@@ -240,9 +244,10 @@ const Geocode = () => {
   }
 
   const handleEnterKeyPress = async () => {
-    if (!searchQuery.trim()) return
+    const normalized = searchQuery.trim().toLowerCase()
+    if (!normalized) return
 
-    if (suggestions.length > 0 && suggestionsQuery === searchQuery) {
+    if (suggestions.length > 0 && suggestionsQuery === normalized) {
       handleSuggestionSelect(suggestions[0])
       return
     }
@@ -251,7 +256,7 @@ const Geocode = () => {
     const controller = new AbortController()
     abortControllerRef.current = controller
 
-    const results = await fetchSuggestions(searchQuery, controller.signal)
+    const results = await fetchSuggestions(normalized, controller.signal)
     if (results.length > 0) {
       handleSuggestionSelect(results[0])
     }

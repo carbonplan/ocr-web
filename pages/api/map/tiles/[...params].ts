@@ -25,8 +25,12 @@ export default async function handler(
 
   const url = `https://maps.hereapi.com/v3/base/mc/${z}/${x}/${y}/png8?style=satellite.day&size=512&apiKey=${apiKey}`
 
+  const controller = new AbortController()
+  const abortUpstreamRequest = () => controller.abort()
+  req.on('close', abortUpstreamRequest)
+
   try {
-    const response = await fetch(url)
+    const response = await fetch(url, { signal: controller.signal })
 
     if (!response.ok || !response.body) {
       const errorText = await response.text()
@@ -39,23 +43,30 @@ export default async function handler(
     const contentType = response.headers.get('content-type') || 'image/png'
     res.setHeader('Content-Type', contentType)
 
-    res.setHeader('Cache-Control', 'public, max-age=86400')
+    res.setHeader('Cache-Control', 'max-age=2592000, s-maxage=2592000') // 30 days
 
     const passthrough = new PassThrough()
     const readable = Readable.fromWeb(
       response.body as ReadableStream<Uint8Array>,
     )
     readable.on('error', (err: Error) => {
+      if (err.name === 'AbortError') return
       console.error('Stream error:', err)
       res.destroy(err)
     })
     readable.pipe(passthrough)
     passthrough.pipe(res)
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      if (!res.writableEnded) res.end()
+      return
+    }
     console.error('Tile fetch error:', error)
     res.status(500).json({
       message: 'Error fetching map tile',
       details: error instanceof Error ? error.message : String(error),
     })
+  } finally {
+    req.off('close', abortUpstreamRequest)
   }
 }

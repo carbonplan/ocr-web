@@ -55,13 +55,36 @@ export default async function handler(
     const response = await fetch(
       `https://revgeocode.search.hereapi.com/v1/revgeocode?apiKey=${process.env.HERE_API_KEY}&at=${lat},${lng}&lang=en`,
     )
-    const data: HereApiResponse = await response.json()
 
-    if (data.items.length === 0) {
+    if (!response.ok) {
+      const body = await response.text().catch(() => '')
+      console.error(
+        `HERE reverse geocode API error: ${response.status}`,
+        body.slice(0, 200),
+      )
+      return res
+        .status(502)
+        .json({ message: 'Upstream geocoding service error' })
+    }
+
+    const data: unknown = await response.json()
+    const items = (data as HereApiResponse | null)?.items
+
+    if (!Array.isArray(items)) {
+      console.error(
+        'HERE reverse geocode API returned malformed data:',
+        JSON.stringify(data).slice(0, 200),
+      )
+      return res
+        .status(502)
+        .json({ message: 'Upstream geocoding service error' })
+    }
+
+    if (items.length === 0) {
       return res.status(404).json({ message: 'No location found' })
     }
 
-    const item = data.items[0]
+    const item = items[0]
     const location: Location = {
       title: item.title,
       id: item.id,
@@ -71,6 +94,7 @@ export default async function handler(
       mapView: item.mapView,
     }
 
+    res.setHeader('Cache-Control', 'max-age=604800, s-maxage=604800') // 7 days
     res.status(200).json(location)
   } catch (error) {
     console.error('Reverse geocode error:', error)
