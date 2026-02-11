@@ -71,7 +71,23 @@ export default async function handler(
       `https://autocomplete.search.hereapi.com/v1/autocomplete?q=${encodeURIComponent(q)}&in=countryCode:${countryCode}&in=bbox:${bbox}&limit=${limit}&apiKey=${process.env.HERE_API_KEY}`,
       { signal: controller.signal },
     )
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '')
+      console.error(
+        `HERE autocomplete API error: ${response.status}`,
+        body.slice(0, 200),
+      )
+      return res
+        .status(502)
+        .json({ message: 'Upstream geocoding service error' })
+    }
+
     const data: HereApiResponse = await response.json()
+
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      return res.status(200).json({ items: [] })
+    }
 
     const suggestions: Suggestion[] = data.items.map((item) => ({
       title: item.title,

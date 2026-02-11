@@ -51,7 +51,29 @@ export default async function handler(
     const response = await fetch(
       `https://lookup.search.hereapi.com/v1/lookup?apiKey=${process.env.HERE_API_KEY}&id=${id}`,
     )
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '')
+      console.error(
+        `HERE lookup API error: ${response.status}`,
+        body.slice(0, 200),
+      )
+      return res
+        .status(502)
+        .json({ message: 'Upstream geocoding service error' })
+    }
+
     const data: HereApiResponse = await response.json()
+
+    if (!data.title || !data.id || !data.address || !data.position) {
+      console.error(
+        'HERE lookup API returned malformed data:',
+        JSON.stringify(data).slice(0, 200),
+      )
+      return res
+        .status(502)
+        .json({ message: 'Upstream geocoding service error' })
+    }
 
     const location: Location = {
       title: data.title,

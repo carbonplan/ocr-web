@@ -190,6 +190,10 @@ const Geocode = () => {
       const locationResponse = await fetch(
         `${BASE_PATH}/api/geocode/lookup?id=${suggestion.id}`,
       )
+      if (!locationResponse.ok) {
+        console.error('Lookup error:', locationResponse.status)
+        return
+      }
       const location = await locationResponse.json()
 
       if (map && location) {
