@@ -87,6 +87,7 @@ const MobileDrawer = () => {
                 width: '100%',
                 height: 'auto',
                 background: 'transparent',
+                opacity: 1,
               },
               '[data-vaul-handle-hitarea]': {
                 position: 'static',
