@@ -52,7 +52,9 @@ const MapComponent = () => {
   const getInitialZoom = useCallback((): number => {
     const width = window.innerWidth
     const sidebarBreakpoint = theme?.breakpoints?.[1] ?? '64em'
-    const hasSidebar = window.matchMedia(`(min-width: ${sidebarBreakpoint})`).matches
+    const hasSidebar = window.matchMedia(
+      `(min-width: ${sidebarBreakpoint})`,
+    ).matches
     const mapWidth = hasSidebar ? width * (2 / 3) : width
     return Math.log2(mapWidth) - 6.3
   }, [theme.breakpoints])
@@ -187,7 +189,17 @@ const MapComponent = () => {
         zoom: zoom,
       })
       if (!selectedBuilding) {
-        updateGeographies()
+        if (map.isSourceLoaded('regions')) {
+          updateGeographies()
+        } else {
+          const handleSourceData = (e: MapSourceDataEvent) => {
+            if (e.sourceId === 'regions' && e.isSourceLoaded) {
+              map.off('sourcedata', handleSourceData)
+              updateGeographies()
+            }
+          }
+          map.on('sourcedata', handleSourceData)
+        }
       }
     }
     map.on('moveend', handleMoveEnd)
