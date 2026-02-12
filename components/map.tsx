@@ -189,17 +189,7 @@ const MapComponent = () => {
         zoom: zoom,
       })
       if (!selectedBuilding) {
-        if (map.isSourceLoaded('regions')) {
-          updateGeographies()
-        } else {
-          const handleSourceData = (e: MapSourceDataEvent) => {
-            if (e.sourceId === 'regions' && e.isSourceLoaded) {
-              map.off('sourcedata', handleSourceData)
-              updateGeographies()
-            }
-          }
-          map.on('sourcedata', handleSourceData)
-        }
+        updateGeographies()
       }
     }
     map.on('moveend', handleMoveEnd)
