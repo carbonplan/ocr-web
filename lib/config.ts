@@ -21,6 +21,9 @@ export const DATA_URLS = {
 }
 
 export const LAYERS = {
+  regions: {
+    sourceId: 'regions',
+  },
   buildings: {
     layerName: 'risk',
     sourceId: 'buildings',

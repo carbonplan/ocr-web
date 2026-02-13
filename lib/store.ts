@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
+import { ensureSourceLoaded } from './map-utils'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
@@ -141,9 +142,11 @@ export const useStore = create<Store>((set, get) => ({
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
-  queryGeographiesAtPoint: (lng: number, lat: number) => {
+  queryGeographiesAtPoint: async (lng: number, lat: number) => {
     const { map } = get()
     if (!map) return
+
+    await ensureSourceLoaded(map, LAYERS.regions.sourceId)
 
     const zoom = map.getZoom()
     const point = map.project([lng, lat])
