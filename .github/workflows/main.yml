@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-      - run: npm install
+      - run: npm ci
       - uses: actions/setup-python@v5
       - uses: pre-commit/action@v3.0.1
 
@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
-      - run: npm install
+      - run: npm ci
       - run: npm run typecheck
 
   build:
@@ -34,5 +34,5 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
-      - run: npm install
+      - run: npm ci
       - run: npm run build
