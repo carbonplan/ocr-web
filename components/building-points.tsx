@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react'
-import {
-  ExpressionSpecification,
-  MapMouseEvent,
-  MapSourceDataEvent,
-} from 'maplibre-gl'
+import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
+import { ensureSourceLoaded } from '@/lib/map-utils'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
@@ -71,21 +68,9 @@ const BuildingPoints = () => {
         if (feature.geometry.type !== 'Point') return
         const [lng, lat] = feature.geometry.coordinates
 
-        const handleMoveEnd = () => {
-          if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-            highlightBuildingAtLocation(lng, lat, { easeTo: false })
-          } else {
-            const handleSourceData = (e: MapSourceDataEvent) => {
-              if (
-                e.sourceId === LAYERS.buildings.sourceId &&
-                e.isSourceLoaded
-              ) {
-                map.off('sourcedata', handleSourceData)
-                highlightBuildingAtLocation(lng, lat, { easeTo: false })
-              }
-            }
-            map.on('sourcedata', handleSourceData)
-          }
+        const handleMoveEnd = async () => {
+          await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
+          highlightBuildingAtLocation(lng, lat, { easeTo: false })
         }
 
         map.once('moveend', handleMoveEnd)

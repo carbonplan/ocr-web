@@ -7,7 +7,6 @@ import {
   removeProtocol,
   LayerSpecification,
   SourceSpecification,
-  MapSourceDataEvent,
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
@@ -28,6 +27,7 @@ import {
   useMapControlStyles,
 } from './'
 import { LAYERS } from '@/lib/config'
+import { ensureSourceLoaded } from '@/lib/map-utils'
 import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
 import {
   getMapViewFromQuery,
@@ -52,9 +52,7 @@ const MapComponent = () => {
   const getInitialZoom = useCallback((): number => {
     const width = window.innerWidth
     const sidebarBreakpoint = theme?.breakpoints?.[1] ?? '64em'
-    const hasSidebar = window.matchMedia(
-      `(min-width: ${sidebarBreakpoint})`,
-    ).matches
+    const hasSidebar = window.matchMedia(`(min-width: ${sidebarBreakpoint})`).matches
     const mapWidth = hasSidebar ? width * (2 / 3) : width
     return Math.log2(mapWidth) - 6.3
   }, [theme.breakpoints])
@@ -203,7 +201,7 @@ const MapComponent = () => {
     if (!map) return
     const handleIdle = () => {
       const layerExists = map.getLayer(LAYERS.counties.layerIds.fill)
-      const sourceLoaded = map.isSourceLoaded('regions')
+      const sourceLoaded = map.isSourceLoaded(LAYERS.regions.sourceId)
 
       if (layerExists && sourceLoaded) {
         map.off('idle', handleIdle)
@@ -239,17 +237,15 @@ const MapComponent = () => {
     if (!selectionCoordinates) return
     const { lat, lng } = selectionCoordinates
 
-    const handleSourceData = (e: MapSourceDataEvent) => {
-      if (e.sourceId === LAYERS.buildings.sourceId && e.isSourceLoaded) {
-        map.off('sourcedata', handleSourceData)
-        const found = highlightBuildingAtLocation(lng, lat)
-        if (!found) {
-          clearSelections()
-          updateGeographies()
-        }
+    const init = async () => {
+      await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
+      const found = highlightBuildingAtLocation(lng, lat)
+      if (!found) {
+        clearSelections()
+        updateGeographies()
       }
     }
-    map.on('sourcedata', handleSourceData)
+    init()
   }, [
     map,
     router.isReady,

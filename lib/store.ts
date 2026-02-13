@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { Map, MapSourceDataEvent } from 'maplibre-gl'
+import { Map } from 'maplibre-gl'
+import { ensureSourceLoaded } from './map-utils'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
@@ -141,65 +142,49 @@ export const useStore = create<Store>((set, get) => ({
   advancedMode: process.env.NEXT_PUBLIC_ADVANCED_MODE === 'true',
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
-  queryGeographiesAtPoint: (lng: number, lat: number) => {
+  queryGeographiesAtPoint: async (lng: number, lat: number) => {
     const { map } = get()
     if (!map) return
 
-    const query = () => {
-      const zoom = map.getZoom()
-      const point = map.project([lng, lat])
+    await ensureSourceLoaded(map, LAYERS.regions.sourceId)
 
-      const queryIfZoom = (
-        minZoom: number,
-        layers: string[],
-      ): Geography | null => {
-        if (zoom < minZoom) return null
-        const features = map.queryRenderedFeatures(point, { layers })
-        return features.length > 0
-          ? (features[0].properties as Geography)
-          : null
-      }
+    const zoom = map.getZoom()
+    const point = map.project([lng, lat])
 
-      // Query nation from source tiles directly (rendered features can miss)
-      const queryNation = (): Geography | null => {
-        const features = map.querySourceFeatures(LAYERS.nation.sourceId, {
-          sourceLayer: LAYERS.nation.layerName,
-        })
-        return features.length > 0
-          ? (features[0].properties as Geography)
-          : null
-      }
+    const queryIfZoom = (
+      minZoom: number,
+      layers: string[],
+    ): Geography | null => {
+      if (zoom < minZoom) return null
+      const features = map.queryRenderedFeatures(point, { layers })
+      return features.length > 0 ? (features[0].properties as Geography) : null
+    }
 
-      set({
-        activeGeographies: {
-          nation: queryNation(),
-          state: queryIfZoom(GEOGRAPHY_MIN_ZOOM.state, [
-            LAYERS.states.layerIds.fill,
-          ]),
-          county: queryIfZoom(GEOGRAPHY_MIN_ZOOM.county, [
-            LAYERS.counties.layerIds.fill,
-          ]),
-          censusTract: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusTract, [
-            LAYERS.censusTracts.layerIds.fill,
-          ]),
-          censusBlock: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusBlock, [
-            LAYERS.censusBlocks.layerIds.fill,
-          ]),
-        },
+    // Query nation from source tiles directly (rendered features can miss)
+    const queryNation = (): Geography | null => {
+      const features = map.querySourceFeatures(LAYERS.nation.sourceId, {
+        sourceLayer: LAYERS.nation.layerName,
       })
+      return features.length > 0 ? (features[0].properties as Geography) : null
     }
 
-    if (map.isSourceLoaded('regions')) {
-      query()
-    } else {
-      const handleSourceData = (e: MapSourceDataEvent) => {
-        if (e.sourceId === 'regions' && e.isSourceLoaded) {
-          map.off('sourcedata', handleSourceData)
-          query()
-        }
-      }
-      map.on('sourcedata', handleSourceData)
-    }
+    set({
+      activeGeographies: {
+        nation: queryNation(),
+        state: queryIfZoom(GEOGRAPHY_MIN_ZOOM.state, [
+          LAYERS.states.layerIds.fill,
+        ]),
+        county: queryIfZoom(GEOGRAPHY_MIN_ZOOM.county, [
+          LAYERS.counties.layerIds.fill,
+        ]),
+        censusTract: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusTract, [
+          LAYERS.censusTracts.layerIds.fill,
+        ]),
+        censusBlock: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusBlock, [
+          LAYERS.censusBlocks.layerIds.fill,
+        ]),
+      },
+    })
   },
   clearSelections: () => {
     set({

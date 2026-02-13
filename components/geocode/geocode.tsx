@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
-import { MapSourceDataEvent } from 'maplibre-gl'
+import { ensureSourceLoaded } from '@/lib/map-utils'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
@@ -204,31 +204,14 @@ const Geocode = () => {
 
         // Highlight building after map movement completes
         if (location.address.houseNumber) {
-          const handleMoveEnd = () => {
-            if (map.isSourceLoaded(LAYERS.buildings.sourceId)) {
-              const success = highlightBuildingAtLocation(
-                location.position.lng,
-                location.position.lat,
-                { easeTo: false, fetchAddress: false },
-              )
-              if (success) setSelectedLocation(location)
-            } else {
-              const handleSourceData = (e: MapSourceDataEvent) => {
-                if (
-                  e.sourceId === LAYERS.buildings.sourceId &&
-                  e.isSourceLoaded
-                ) {
-                  map.off('sourcedata', handleSourceData)
-                  const success = highlightBuildingAtLocation(
-                    location.position.lng,
-                    location.position.lat,
-                    { easeTo: false, fetchAddress: false },
-                  )
-                  if (success) setSelectedLocation(location)
-                }
-              }
-              map.on('sourcedata', handleSourceData)
-            }
+          const handleMoveEnd = async () => {
+            await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
+            const success = highlightBuildingAtLocation(
+              location.position.lng,
+              location.position.lat,
+              { easeTo: false, fetchAddress: false },
+            )
+            if (success) setSelectedLocation(location)
           }
           map.once('moveend', handleMoveEnd)
         }
