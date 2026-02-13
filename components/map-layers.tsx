@@ -81,7 +81,7 @@ const LayersSelector = () => {
             <EyeCheckbox
               checked={riskRaster}
               onChange={(e) => setRiskRaster(e.target.checked)}
-              aria-label="Toggle risk raster visibility"
+              aria-label='Toggle risk raster visibility'
             />
             <Box
               sx={{
@@ -97,7 +97,7 @@ const LayersSelector = () => {
             <EyeCheckbox
               checked={satellite}
               onChange={(e) => setSatellite(e.target.checked)}
-              aria-label="Toggle satellite imagery visibility"
+              aria-label='Toggle satellite imagery visibility'
             />
             <Box
               sx={{

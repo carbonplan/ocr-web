@@ -18,13 +18,23 @@ interface Props {
 
 type Ref = HTMLDivElement
 const Menu = forwardRef<Ref, Props>(
-  ({ suggestions, selectedIndex, errorMessage, onSelectSuggestion, listboxId, errorId }, ref) => {
+  (
+    {
+      suggestions,
+      selectedIndex,
+      errorMessage,
+      onSelectSuggestion,
+      listboxId,
+      errorId,
+    },
+    ref,
+  ) => {
     return (
       <Box ref={ref}>
         {(suggestions.length > 0 || errorMessage) && (
           <Row
             id={listboxId}
-            role="listbox"
+            role='listbox'
             columns={4}
             sx={{
               position: 'absolute',
