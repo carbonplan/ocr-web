@@ -15,8 +15,7 @@ const ZarrLayer = () => {
   const setZarrLoading = useStore((state) => state.setZarrLoading)
   const layerRef = useRef<ZarrLayerClass | null>(null)
 
-  const riskAttribute =
-    timePeriod === 'current' ? 'rps_2011' : 'rps_2047'
+  const riskAttribute = timePeriod === 'current' ? 'rps_2011' : 'rps_2047'
 
   const customFrag = useMemo(() => {
     const boundaries = colorLimits.binBoundaries || []

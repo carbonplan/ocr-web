@@ -11,10 +11,9 @@
 
 **explore building scale climate risk data**
 
-This tool allows exploration of climate risk data we [developed](https://github.com/carbonplan/ocr). Read our [explainer](https://carbonplan.org/research/climate-risk-explainer), [methods](https://carbonplan.org/research/climate-risk-fire-methods), and [FAQ](https://carbonplan.org/research/climate-risk-faq) for more information. 
+This tool allows exploration of climate risk data we [developed](https://github.com/carbonplan/ocr). Read our [explainer](https://carbonplan.org/research/climate-risk-explainer), [methods](https://carbonplan.org/research/climate-risk-fire-methods), and [FAQ](https://carbonplan.org/research/climate-risk-faq) for more information.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
 
 ## local development
 

@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: npx prettier --write
+        language: system
+        files: "\\.(\
+          js|jsx\
+          |ts|tsx\
+          |json\
+          )$"
+      - id: lint
+        name: lint
+        entry: npx eslint --fix
+        language: system
+        files: "\\.(\
+          js|jsx\
+          |ts|tsx\
+          )$"
+      - id: typecheck
+        name: typecheck
+        entry: npm run typecheck
+        language: system
+        pass_filenames: false

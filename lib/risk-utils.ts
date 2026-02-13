@@ -25,8 +25,7 @@ export const getGeographyMedianRiskKey: (
 ) => (typeof GEOGRAPHY_ATTRIBUTE_KEYS)[keyof typeof GEOGRAPHY_ATTRIBUTE_KEYS] = (
   timePeriod: ScenarioKey,
 ) => {
-  const key =
-    timePeriod === 'current' ? 'rps_2011_median' : 'rps_2047_median'
+  const key = timePeriod === 'current' ? 'rps_2011_median' : 'rps_2047_median'
   return GEOGRAPHY_ATTRIBUTE_KEYS[key]
 }
 
