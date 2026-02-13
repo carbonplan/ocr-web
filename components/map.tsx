@@ -199,19 +199,11 @@ const MapComponent = () => {
   // initial region query
   useEffect(() => {
     if (!map) return
-    const handleIdle = () => {
-      const layerExists = map.getLayer(LAYERS.counties.layerIds.fill)
-      const sourceLoaded = map.isSourceLoaded(LAYERS.regions.sourceId)
-
-      if (layerExists && sourceLoaded) {
-        map.off('idle', handleIdle)
-        updateGeographies()
-      }
+    const init = async () => {
+      await ensureSourceLoaded(map, LAYERS.regions.sourceId)
+      updateGeographies()
     }
-    map.on('idle', handleIdle)
-    return () => {
-      map.off('idle', handleIdle)
-    }
+    init()
   }, [map, updateGeographies])
 
   useEffect(() => {
