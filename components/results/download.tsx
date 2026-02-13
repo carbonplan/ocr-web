@@ -117,11 +117,13 @@ export const Download = () => {
       document.body.removeChild(a)
 
       setLoading((prev) => ({ ...prev, [format]: false }))
-    } catch {
-      track('data_download_error', {
-        geography: selectedGeographyLevel,
-        geoid: geoid ?? '',
-      })
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        track('data_download_error', {
+          geography: selectedGeographyLevel,
+          geoid: geoid ?? '',
+        })
+      }
       setLoading((prev) => ({ ...prev, [format]: false }))
     }
   }
