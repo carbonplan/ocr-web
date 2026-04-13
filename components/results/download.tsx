@@ -63,8 +63,19 @@ const REGION_TYPES: Partial<Record<GeographyKey, string>> = {
 
 const S3_BUCKET = new URL(DATA_URLS.parquetBase).origin
 
-const RISK_COLUMNS =
-  'rps_2011, rps_2047, bp_2011, bp_2047, crps_scott, bp_2011_riley, bp_2047_riley'
+// Cast each score column to FLOAT to match the data's precision —
+// DuckDB-WASM otherwise promotes them to DOUBLE in the COPY pipeline
+const RISK_COLUMNS = [
+  'rps_2011',
+  'rps_2047',
+  'bp_2011',
+  'bp_2047',
+  'crps_scott',
+  'bp_2011_riley',
+  'bp_2047_riley',
+]
+  .map((c) => `${c}::FLOAT AS ${c}`)
+  .join(', ')
 
 function trimGeoid(geoid: string, regionType: string): string {
   if (regionType === 'county') return geoid.slice(0, 5)
@@ -191,14 +202,18 @@ async function downloadGeoJSON(
   const buffer = await copyParquetTo(
     geoid,
     regionType,
+    // Build properties manually so FLOAT::VARCHAR gives the same precision
+    // as the CSV output. to_json would promote FLOATs to DOUBLE precision.
     `'{"type":"Feature","geometry":' || ST_AsGeoJSON(ST_ReducePrecision(ST_Centroid(geometry), 0.000001))
-      || ',"properties":' || to_json({
-        GEOID: GEOID,
-        rps_2011: rps_2011, rps_2047: rps_2047,
-        bp_2011: bp_2011, bp_2047: bp_2047,
-        crps_scott: crps_scott,
-        bp_2011_riley: bp_2011_riley, bp_2047_riley: bp_2047_riley
-      }) || '},' AS feature`,
+      || ',"properties":{"GEOID":"' || GEOID
+      || '","rps_2011":' || rps_2011::FLOAT::VARCHAR
+      || ',"rps_2047":' || rps_2047::FLOAT::VARCHAR
+      || ',"bp_2011":' || bp_2011::FLOAT::VARCHAR
+      || ',"bp_2047":' || bp_2047::FLOAT::VARCHAR
+      || ',"crps_scott":' || crps_scott::FLOAT::VARCHAR
+      || ',"bp_2011_riley":' || bp_2011_riley::FLOAT::VARCHAR
+      || ',"bp_2047_riley":' || bp_2047_riley::FLOAT::VARCHAR
+      || '}},' AS feature`,
     outPath,
     `FORMAT CSV, HEADER false, QUOTE E'\\x01', DELIMITER E'\\x02'`,
   )
