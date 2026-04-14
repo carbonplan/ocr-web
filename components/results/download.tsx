@@ -63,19 +63,25 @@ const REGION_TYPES: Partial<Record<GeographyKey, string>> = {
 
 const S3_BUCKET = new URL(DATA_URLS.parquetBase).origin
 
-// Cast each score column to FLOAT to match the data's precision —
-// DuckDB-WASM otherwise promotes them to DOUBLE in the COPY pipeline
-const RISK_COLUMNS = [
-  'rps_2011',
-  'rps_2047',
-  'bp_2011',
-  'bp_2047',
-  'crps_scott',
-  'bp_2011_riley',
-  'bp_2047_riley',
+// Single source of truth for CSV output columns: [header-name, sql-expression].
+// Score columns are cast to FLOAT because DuckDB-WASM otherwise promotes them
+// to DOUBLE in the COPY pipeline.
+const CSV_COLUMNS: [string, string][] = [
+  ['GEOID', 'GEOID'],
+  ['centroid_longitude', 'ROUND(ST_X(ST_Centroid(geometry)), 6)'],
+  ['centroid_latitude', 'ROUND(ST_Y(ST_Centroid(geometry)), 6)'],
+  ['rps_2011', 'rps_2011::FLOAT'],
+  ['rps_2047', 'rps_2047::FLOAT'],
+  ['bp_2011', 'bp_2011::FLOAT'],
+  ['bp_2047', 'bp_2047::FLOAT'],
+  ['crps_scott', 'crps_scott::FLOAT'],
+  ['bp_2011_riley', 'bp_2011_riley::FLOAT'],
+  ['bp_2047_riley', 'bp_2047_riley::FLOAT'],
 ]
-  .map((c) => `${c}::FLOAT AS ${c}`)
-  .join(', ')
+const CSV_SELECT = CSV_COLUMNS.map(([name, expr]) => `${expr} AS ${name}`).join(
+  ', ',
+)
+const CSV_HEADER = CSV_COLUMNS.map(([name]) => name).join(',') + '\n'
 
 function trimGeoid(geoid: string, regionType: string): string {
   if (regionType === 'county') return geoid.slice(0, 5)
@@ -120,42 +126,54 @@ function triggerBlobDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-// Uses COPY TO so DuckDB streams through its pipeline without
-// materializing the full result — avoids the 2GB WASM memory limit.
+// One COPY per partition file, pulled out of the VFS between iterations —
+// keeps DuckDB's working set bounded by a single partition so very large
+// counties (e.g. LA) don't blow the WASM heap.
 async function copyParquetTo(
   geoid: string,
   regionType: string,
   select: string,
-  outPath: string,
   formatClause: string,
-) {
+): Promise<Uint8Array<ArrayBuffer>[]> {
   const [db, partitionUrls] = await Promise.all([
     getDuckDB(),
     getPartitionUrls(geoid),
   ])
   const conn = await db.connect()
   const trimmedGeoid = trimGeoid(geoid, regionType)
-  const urlList = partitionUrls.map((u) => `'${u}'`).join(', ')
+  // Per-call UUID so concurrent downloads (e.g. CSV + GeoJSON at once) can't
+  // collide on VFS paths.
+  const runId = crypto.randomUUID()
 
   try {
-    await conn.query(`
-      COPY (
-        SELECT ${select}
-        FROM read_parquet([${urlList}])
-        WHERE GEOID LIKE '${trimmedGeoid}%'
-      ) TO '${outPath}' (${formatClause})
-    `)
-    const buffer = await db.copyFileToBuffer(outPath)
-    if (buffer.length === 0) {
+    const chunks: Uint8Array<ArrayBuffer>[] = []
+    for (let i = 0; i < partitionUrls.length; i++) {
+      const outPath = `/tmp/dl-${runId}-${i}.out`
+      try {
+        await conn.query(`
+          COPY (
+            SELECT ${select}
+            FROM read_parquet('${partitionUrls[i]}')
+            WHERE GEOID LIKE '${trimmedGeoid}%'
+          ) TO '${outPath}' (${formatClause})
+        `)
+        const chunk = await db.copyFileToBuffer(outPath)
+        if (chunk.length > 0) {
+          chunks.push(chunk as Uint8Array<ArrayBuffer>)
+        }
+      } finally {
+        try {
+          await db.dropFile(outPath)
+        } catch {
+          // ignore cleanup errors
+        }
+      }
+    }
+    if (chunks.length === 0) {
       throw new Error(`No building data found for GEOID: ${trimmedGeoid}`)
     }
-    return buffer
+    return chunks
   } finally {
-    try {
-      await db.dropFile(outPath)
-    } catch {
-      // ignore cleanup errors
-    }
     await conn.close()
   }
 }
@@ -165,16 +183,11 @@ async function downloadCSV(
   regionType: string,
   filename: string,
 ) {
-  const outPath = `/tmp/dl-${geoid}-${Date.now()}.csv`
-  const buffer = await copyParquetTo(
+  const chunks = await copyParquetTo(
     geoid,
     regionType,
-    `GEOID,
-     ROUND(ST_X(ST_Centroid(geometry)), 6) AS centroid_longitude,
-     ROUND(ST_Y(ST_Centroid(geometry)), 6) AS centroid_latitude,
-     ${RISK_COLUMNS}`,
-    outPath,
-    'FORMAT CSV, HEADER',
+    CSV_SELECT,
+    'FORMAT CSV, HEADER false',
   )
 
   const metadata = `# OCR Dataset Version: ${DATA_VERSION}
@@ -185,11 +198,8 @@ async function downloadCSV(
 # Notice: ${LICENSE_INFO.notice}
 # ------------------------------------------
 `
-  // subarray is a view (slice would copy). Cast narrows ArrayBufferLike →
-  // ArrayBuffer so BlobPart accepts it.
-  const body = buffer.subarray() as Uint8Array<ArrayBuffer>
   triggerBlobDownload(
-    new Blob([metadata, body], { type: 'text/csv' }),
+    new Blob([metadata, CSV_HEADER, ...chunks], { type: 'text/csv' }),
     `${filename}.csv`,
   )
 }
@@ -201,8 +211,7 @@ async function downloadGeoJSON(
 ) {
   // Build each GeoJSON Feature entirely in SQL via ST_AsGeoJSON + to_json,
   // then COPY TO streams them to the VFS — no JS JSON parsing needed.
-  const outPath = `/tmp/dl-${geoid}-${Date.now()}.jsonl`
-  const buffer = await copyParquetTo(
+  const chunks = await copyParquetTo(
     geoid,
     regionType,
     // Build properties manually so FLOAT::VARCHAR gives the same precision
@@ -218,18 +227,17 @@ async function downloadGeoJSON(
       || ',"bp_2011_riley":' || COALESCE(bp_2011_riley::FLOAT::VARCHAR, 'null')
       || ',"bp_2047_riley":' || COALESCE(bp_2047_riley::FLOAT::VARCHAR, 'null')
       || '}},' AS feature`,
-    outPath,
     `FORMAT CSV, HEADER false, QUOTE E'\\x01', DELIMITER E'\\x02'`,
   )
 
-  // Buffer is one Feature JSON per line, each with trailing comma.
-  // Strip the last comma and wrap with FeatureCollection — zero-copy via Blob.
-  let end = buffer.length - 1
-  while (end > 0 && buffer[end] !== 44) end-- // find last comma (0x2C)
-
+  // Each chunk is one Feature JSON per line, each with trailing comma.
+  // Strip the last comma from the final chunk and wrap with FeatureCollection.
+  const last = chunks[chunks.length - 1]
+  let end = last.length - 1
+  while (end > 0 && last[end] !== 44) end-- // find last comma (0x2C)
   // subarray is a view (slice would copy). Cast narrows ArrayBufferLike →
   // ArrayBuffer so BlobPart accepts it.
-  const features = buffer.subarray(0, end) as Uint8Array<ArrayBuffer>
+  chunks[chunks.length - 1] = last.subarray(0, end) as Uint8Array<ArrayBuffer>
 
   const metadata = JSON.stringify({
     dataset_version: DATA_VERSION,
@@ -244,7 +252,7 @@ async function downloadGeoJSON(
     new Blob(
       [
         `{"type":"FeatureCollection","metadata":${metadata},"features":[\n`,
-        features,
+        ...chunks,
         '\n]}',
       ],
       { type: 'application/geo+json' },
