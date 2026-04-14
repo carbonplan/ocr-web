@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { Flex, Spinner } from 'theme-ui'
+import { useEffect, useRef, useState } from 'react'
+import { Flex, IconButton, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
-import { Down } from '@carbonplan/icons'
+import { Down, X } from '@carbonplan/icons'
 import { DATA_VERSION, DATA_URLS, LICENSE_INFO } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getGeographyName, getGeoid } from '@/lib/risk-utils'
@@ -89,13 +89,19 @@ function trimGeoid(geoid: string, regionType: string): string {
   return geoid
 }
 
-async function getPartitionUrls(geoid: string): Promise<string[]> {
+async function getPartitionUrls(
+  geoid: string,
+  signal?: AbortSignal,
+): Promise<string[]> {
   const stateFips = geoid.slice(0, 2)
   const countyFips = geoid.slice(2, 5)
   const prefix = DATA_URLS.parquetBase.replace(S3_BUCKET + '/', '')
   const partitionPrefix = `${prefix}/state_fips=${stateFips}/county_fips=${countyFips}/`
 
-  const res = await fetch(`${S3_BUCKET}/?list-type=2&prefix=${partitionPrefix}`)
+  const res = await fetch(
+    `${S3_BUCKET}/?list-type=2&prefix=${partitionPrefix}`,
+    { signal },
+  )
   const doc = new DOMParser().parseFromString(
     await res.text(),
     'application/xml',
@@ -134,20 +140,28 @@ async function copyParquetTo(
   regionType: string,
   select: string,
   formatClause: string,
+  signal?: AbortSignal,
 ): Promise<Uint8Array<ArrayBuffer>[]> {
   const [db, partitionUrls] = await Promise.all([
     getDuckDB(),
-    getPartitionUrls(geoid),
+    getPartitionUrls(geoid, signal),
   ])
+  signal?.throwIfAborted()
   const conn = await db.connect()
   const trimmedGeoid = trimGeoid(geoid, regionType)
   // Per-call UUID so concurrent downloads (e.g. CSV + GeoJSON at once) can't
   // collide on VFS paths.
   const runId = crypto.randomUUID()
+  // Best-effort interrupt the in-flight query when abort fires.
+  const onAbort = () => {
+    conn.cancelSent().catch(() => {})
+  }
+  signal?.addEventListener('abort', onAbort)
 
   try {
     const chunks: Uint8Array<ArrayBuffer>[] = []
     for (let i = 0; i < partitionUrls.length; i++) {
+      signal?.throwIfAborted()
       const outPath = `/tmp/dl-${runId}-${i}.out`
       try {
         await conn.query(`
@@ -157,6 +171,9 @@ async function copyParquetTo(
             WHERE GEOID LIKE '${trimmedGeoid}%'
           ) TO '${outPath}' (${formatClause})
         `)
+        // If abort fired during the query, surface as AbortError rather than
+        // whatever DuckDB threw from cancelSent.
+        signal?.throwIfAborted()
         const chunk = await db.copyFileToBuffer(outPath)
         if (chunk.length > 0) {
           chunks.push(chunk as Uint8Array<ArrayBuffer>)
@@ -174,6 +191,7 @@ async function copyParquetTo(
     }
     return chunks
   } finally {
+    signal?.removeEventListener('abort', onAbort)
     await conn.close()
   }
 }
@@ -182,12 +200,14 @@ async function downloadCSV(
   geoid: string,
   regionType: string,
   filename: string,
+  signal?: AbortSignal,
 ) {
   const chunks = await copyParquetTo(
     geoid,
     regionType,
     CSV_SELECT,
     'FORMAT CSV, HEADER false',
+    signal,
   )
 
   const metadata = `# OCR Dataset Version: ${DATA_VERSION}
@@ -208,6 +228,7 @@ async function downloadGeoJSON(
   geoid: string,
   regionType: string,
   filename: string,
+  signal?: AbortSignal,
 ) {
   // Build each GeoJSON Feature entirely in SQL via ST_AsGeoJSON + to_json,
   // then COPY TO streams them to the VFS — no JS JSON parsing needed.
@@ -228,6 +249,7 @@ async function downloadGeoJSON(
       || ',"bp_2047_riley":' || COALESCE(bp_2047_riley::FLOAT::VARCHAR, 'null')
       || '}},' AS feature`,
     `FORMAT CSV, HEADER false, QUOTE E'\\x01', DELIMITER E'\\x02'`,
+    signal,
   )
 
   // Each chunk is one Feature JSON per line, each with trailing comma.
@@ -264,6 +286,8 @@ async function downloadGeoJSON(
 export const Download = () => {
   const track = useTracking()
   const [loading, setLoading] = useState({ csv: false, geojson: false })
+  const abortRef = useRef<AbortController | null>(null)
+  useEffect(() => () => abortRef.current?.abort(), [])
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -286,7 +310,16 @@ export const Download = () => {
     filename = `Census-Block-${geoid}`
   }
 
+  const cancelDownload = (format: 'csv' | 'geojson') => {
+    abortRef.current?.abort()
+    setLoading((prev) => ({ ...prev, [format]: false }))
+  }
+
   const handleClick = async (format: 'csv' | 'geojson') => {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setLoading((prev) => ({ ...prev, [format]: true }))
     try {
       track('data_download', {
@@ -300,19 +333,23 @@ export const Download = () => {
       if (!regionType) throw new Error('Invalid geography level')
 
       if (format === 'csv') {
-        await downloadCSV(geoid, regionType, filename)
+        await downloadCSV(geoid, regionType, filename, controller.signal)
       } else {
-        await downloadGeoJSON(geoid, regionType, filename)
+        await downloadGeoJSON(geoid, regionType, filename, controller.signal)
       }
     } catch (error) {
-      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+      const isAbort =
+        controller.signal.aborted ||
+        (error instanceof DOMException && error.name === 'AbortError')
+      if (!isAbort) {
         track('data_download_error', {
           geography: selectedGeographyLevel,
           geoid: geoid ?? '',
         })
+        console.error('Download failed:', error)
       }
-      console.error('Download failed:', error)
     } finally {
+      if (abortRef.current === controller) abortRef.current = null
       setLoading((prev) => ({ ...prev, [format]: false }))
     }
   }
@@ -334,20 +371,56 @@ export const Download = () => {
       role='group'
       aria-label='Download regional data'
     >
-      <DownloadButton
-        label='CSV'
-        loading={loading.csv}
-        disabled={disabled}
-        onClick={() => handleClick('csv')}
-        ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as CSV`}
-      />
-      <DownloadButton
-        label='GeoJSON'
-        loading={loading.geojson}
-        disabled={disabled}
-        onClick={() => handleClick('geojson')}
-        ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as GeoJSON`}
-      />
+      <Flex sx={{ alignItems: 'center', gap: 1 }}>
+        <DownloadButton
+          label='CSV'
+          loading={loading.csv}
+          disabled={disabled}
+          onClick={() => handleClick('csv')}
+          ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as CSV`}
+        />
+        {loading.csv && (
+          <IconButton
+            onClick={() => cancelDownload('csv')}
+            aria-label='Cancel CSV download'
+            sx={{
+              cursor: 'pointer',
+              height: '12px',
+              width: '12px',
+              p: 0,
+              color: 'secondary',
+              '&:hover': { color: 'primary' },
+            }}
+          >
+            <X height='12px' width='12px' aria-hidden='true' />
+          </IconButton>
+        )}
+      </Flex>
+      <Flex sx={{ alignItems: 'center', gap: 1 }}>
+        <DownloadButton
+          label='GeoJSON'
+          loading={loading.geojson}
+          disabled={disabled}
+          onClick={() => handleClick('geojson')}
+          ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as GeoJSON`}
+        />
+        {loading.geojson && (
+          <IconButton
+            onClick={() => cancelDownload('geojson')}
+            aria-label='Cancel GeoJSON download'
+            sx={{
+              cursor: 'pointer',
+              height: '12px',
+              width: '12px',
+              p: 0,
+              color: 'secondary',
+              '&:hover': { color: 'primary' },
+            }}
+          >
+            <X height='12px' width='12px' aria-hidden='true' />
+          </IconButton>
+        )}
+      </Flex>
     </Flex>
   )
 }
