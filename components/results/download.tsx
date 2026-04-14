@@ -185,8 +185,11 @@ async function downloadCSV(
 # Notice: ${LICENSE_INFO.notice}
 # ------------------------------------------
 `
+  // subarray is a view (slice would copy). Cast narrows ArrayBufferLike →
+  // ArrayBuffer so BlobPart accepts it.
+  const body = buffer.subarray() as Uint8Array<ArrayBuffer>
   triggerBlobDownload(
-    new Blob([metadata, buffer.slice()], { type: 'text/csv' }),
+    new Blob([metadata, body], { type: 'text/csv' }),
     `${filename}.csv`,
   )
 }
@@ -224,6 +227,10 @@ async function downloadGeoJSON(
   let end = buffer.length - 1
   while (end > 0 && buffer[end] !== 44) end-- // find last comma (0x2C)
 
+  // subarray is a view (slice would copy). Cast narrows ArrayBufferLike →
+  // ArrayBuffer so BlobPart accepts it.
+  const features = buffer.subarray(0, end) as Uint8Array<ArrayBuffer>
+
   const metadata = JSON.stringify({
     dataset_version: DATA_VERSION,
     provider: LICENSE_INFO.provider,
@@ -237,9 +244,8 @@ async function downloadGeoJSON(
     new Blob(
       [
         `{"type":"FeatureCollection","metadata":${metadata},"features":[\n`,
-        buffer.slice(0, end), // features without last comma
-        buffer.slice(end + 1), // trailing newline
-        ']}',
+        features,
+        '\n]}',
       ],
       { type: 'application/geo+json' },
     ),
