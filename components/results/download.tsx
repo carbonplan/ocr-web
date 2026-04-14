@@ -204,15 +204,16 @@ async function downloadGeoJSON(
     regionType,
     // Build properties manually so FLOAT::VARCHAR gives the same precision
     // as the CSV output. to_json would promote FLOATs to DOUBLE precision.
+    // COALESCE to 'null' so a NULL column doesn't nullify the whole feature.
     `'{"type":"Feature","geometry":' || ST_AsGeoJSON(ST_ReducePrecision(ST_Centroid(geometry), 0.000001))
       || ',"properties":{"GEOID":"' || GEOID
-      || '","rps_2011":' || rps_2011::FLOAT::VARCHAR
-      || ',"rps_2047":' || rps_2047::FLOAT::VARCHAR
-      || ',"bp_2011":' || bp_2011::FLOAT::VARCHAR
-      || ',"bp_2047":' || bp_2047::FLOAT::VARCHAR
-      || ',"crps_scott":' || crps_scott::FLOAT::VARCHAR
-      || ',"bp_2011_riley":' || bp_2011_riley::FLOAT::VARCHAR
-      || ',"bp_2047_riley":' || bp_2047_riley::FLOAT::VARCHAR
+      || '","rps_2011":' || COALESCE(rps_2011::FLOAT::VARCHAR, 'null')
+      || ',"rps_2047":' || COALESCE(rps_2047::FLOAT::VARCHAR, 'null')
+      || ',"bp_2011":' || COALESCE(bp_2011::FLOAT::VARCHAR, 'null')
+      || ',"bp_2047":' || COALESCE(bp_2047::FLOAT::VARCHAR, 'null')
+      || ',"crps_scott":' || COALESCE(crps_scott::FLOAT::VARCHAR, 'null')
+      || ',"bp_2011_riley":' || COALESCE(bp_2011_riley::FLOAT::VARCHAR, 'null')
+      || ',"bp_2047_riley":' || COALESCE(bp_2047_riley::FLOAT::VARCHAR, 'null')
       || '}},' AS feature`,
     outPath,
     `FORMAT CSV, HEADER false, QUOTE E'\\x01', DELIMITER E'\\x02'`,
