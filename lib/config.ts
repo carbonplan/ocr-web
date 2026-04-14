@@ -17,21 +17,17 @@ export const DATA_URLS = {
   raster:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
     `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/pyramid/production/${DATA_VERSION}/pyramid.zarr`,
-  parquetBase: (() => {
-    const env = process.env.NEXT_PUBLIC_OCR_ENV ?? 'production'
-    const base =
-      'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/output/fire-risk/vector'
-    return env === 'production'
-      ? `${base}/production/${DATA_VERSION}/geoparquet/buildings.parquet`
-      : `${base}/${env}/geoparquet/buildings.parquet`
-  })(),
+  parquetBase:
+    process.env.NEXT_PUBLIC_GEOPARQUET_URL ??
+    `https://carbonplan-ocr.s3.us-west-2.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/geoparquet/buildings.parquet`,
 }
 
 export const LICENSE_INFO = {
   provider: 'CarbonPlan',
   termsOfAccess:
-    'https://github.com/carbonplan/ocr/blob/main/docs/terms-of-data-access.md',
-  dataSources: 'https://carbonplan.github.io/ocr/reference/data-sources',
+    'https://docs.carbonplan.org/ocr/en/latest/terms-of-data-access.html',
+  dataSources:
+    'https://docs.carbonplan.org/ocr/en/latest/reference/data-sources.html',
   licenseName: 'ODBL',
   licenseUrl: 'https://opendatacommons.org/licenses/odbl/',
   notice:
