@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Flex, IconButton, Spinner } from 'theme-ui'
+import { Box, Flex, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
@@ -28,30 +28,47 @@ export const DownloadButton = ({
   href?: string
   showSuffix?: boolean
 }) => {
+  const [hovered, setHovered] = useState(false)
+  const [keyboardFocused, setKeyboardFocused] = useState(false)
+  const showCancel = loading && (hovered || keyboardFocused)
+
   let suffix
   if (showSuffix) {
-    suffix = <Down sx={{ mt: -1 }} />
     if (loading) {
-      suffix = <Spinner sx={{ mt: -1 }} />
+      suffix = showCancel ? <X sx={{ mt: -1 }} /> : <Spinner sx={{ mt: -1 }} />
+    } else {
+      suffix = <Down sx={{ mt: -1 }} />
     }
   }
   return (
-    <Button
-      size='xs'
-      suffix={suffix}
-      disabled={loading || disabled}
-      onClick={onClick}
-      href={href}
-      aria-label={ariaLabel || label}
-      sx={{
-        '&:disabled': {
-          pointerEvents: 'none',
-          color: loading ? 'secondary' : 'muted',
-        },
+    <Box
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={(e) => {
+        if ((e.target as HTMLElement).matches?.(':focus-visible')) {
+          setKeyboardFocused(true)
+        }
       }}
+      onBlur={() => setKeyboardFocused(false)}
+      sx={{ display: 'inline-block' }}
     >
-      {label}
-    </Button>
+      <Button
+        size='xs'
+        suffix={suffix}
+        disabled={disabled}
+        onClick={onClick}
+        href={href}
+        aria-label={ariaLabel || label}
+        sx={{
+          '&:disabled': {
+            pointerEvents: 'none',
+            color: 'muted',
+          },
+        }}
+      >
+        {label}
+      </Button>
+    </Box>
   )
 }
 
@@ -310,12 +327,12 @@ export const Download = () => {
     filename = `Census-Block-${geoid}`
   }
 
-  const cancelDownload = (format: 'csv' | 'geojson') => {
-    abortRef.current?.abort()
-    setLoading((prev) => ({ ...prev, [format]: false }))
-  }
-
   const handleClick = async (format: 'csv' | 'geojson') => {
+    if (loading[format]) {
+      abortRef.current?.abort()
+      setLoading((prev) => ({ ...prev, [format]: false }))
+      return
+    }
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -371,56 +388,28 @@ export const Download = () => {
       role='group'
       aria-label='Download regional data'
     >
-      <Flex sx={{ alignItems: 'center', gap: 1 }}>
-        <DownloadButton
-          label='CSV'
-          loading={loading.csv}
-          disabled={disabled}
-          onClick={() => handleClick('csv')}
-          ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as CSV`}
-        />
-        {loading.csv && (
-          <IconButton
-            onClick={() => cancelDownload('csv')}
-            aria-label='Cancel CSV download'
-            sx={{
-              cursor: 'pointer',
-              height: '12px',
-              width: '12px',
-              p: 0,
-              color: 'secondary',
-              '&:hover': { color: 'primary' },
-            }}
-          >
-            <X height='12px' width='12px' aria-hidden='true' />
-          </IconButton>
-        )}
-      </Flex>
-      <Flex sx={{ alignItems: 'center', gap: 1 }}>
-        <DownloadButton
-          label='GeoJSON'
-          loading={loading.geojson}
-          disabled={disabled}
-          onClick={() => handleClick('geojson')}
-          ariaLabel={`Download ${disabled ? 'regional' : selectedGeographyLevel} data as GeoJSON`}
-        />
-        {loading.geojson && (
-          <IconButton
-            onClick={() => cancelDownload('geojson')}
-            aria-label='Cancel GeoJSON download'
-            sx={{
-              cursor: 'pointer',
-              height: '12px',
-              width: '12px',
-              p: 0,
-              color: 'secondary',
-              '&:hover': { color: 'primary' },
-            }}
-          >
-            <X height='12px' width='12px' aria-hidden='true' />
-          </IconButton>
-        )}
-      </Flex>
+      <DownloadButton
+        label='CSV'
+        loading={loading.csv}
+        disabled={disabled}
+        onClick={() => handleClick('csv')}
+        ariaLabel={
+          loading.csv
+            ? 'Cancel CSV download'
+            : `Download ${disabled ? 'regional' : selectedGeographyLevel} data as CSV`
+        }
+      />
+      <DownloadButton
+        label='GeoJSON'
+        loading={loading.geojson}
+        disabled={disabled}
+        onClick={() => handleClick('geojson')}
+        ariaLabel={
+          loading.geojson
+            ? 'Cancel GeoJSON download'
+            : `Download ${disabled ? 'regional' : selectedGeographyLevel} data as GeoJSON`
+        }
+      />
     </Flex>
   )
 }
