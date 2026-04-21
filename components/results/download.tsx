@@ -314,8 +314,16 @@ async function downloadGeoJSON(
 export const Download = () => {
   const track = useTracking()
   const [loading, setLoading] = useState({ csv: false, geojson: false })
-  const abortRef = useRef<AbortController | null>(null)
-  useEffect(() => () => abortRef.current?.abort(), [])
+  const abortRefs = useRef<Record<'csv' | 'geojson', AbortController | null>>({
+    csv: null,
+    geojson: null,
+  })
+  useEffect(() => {
+    return () => {
+      abortRefs.current.csv?.abort()
+      abortRefs.current.geojson?.abort()
+    }
+  }, [])
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -340,13 +348,12 @@ export const Download = () => {
 
   const handleClick = async (format: 'csv' | 'geojson') => {
     if (loading[format]) {
-      abortRef.current?.abort()
+      abortRefs.current[format]?.abort()
       setLoading((prev) => ({ ...prev, [format]: false }))
       return
     }
-    abortRef.current?.abort()
     const controller = new AbortController()
-    abortRef.current = controller
+    abortRefs.current[format] = controller
 
     setLoading((prev) => ({ ...prev, [format]: true }))
     const startTime = performance.now()
@@ -385,8 +392,13 @@ export const Download = () => {
         console.error('Download failed:', error)
       }
     } finally {
-      if (abortRef.current === controller) abortRef.current = null
-      setLoading((prev) => ({ ...prev, [format]: false }))
+      // A newer run for the same format may have replaced this controller —
+      // only clear loading/ref when we're still the active run, otherwise the
+      // retry gets its state wiped out mid-flight.
+      if (abortRefs.current[format] === controller) {
+        abortRefs.current[format] = null
+        setLoading((prev) => ({ ...prev, [format]: false }))
+      }
     }
   }
 
