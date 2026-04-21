@@ -85,8 +85,8 @@ const S3_BUCKET = new URL(DATA_URLS.parquetBase).origin
 // to DOUBLE in the COPY pipeline.
 const CSV_COLUMNS: [string, string][] = [
   ['GEOID', 'GEOID'],
-  ['centroid_longitude', 'ROUND(ST_X(ST_Centroid(geometry)), 6)'],
-  ['centroid_latitude', 'ROUND(ST_Y(ST_Centroid(geometry)), 6)'],
+  ['longitude', 'ROUND(ST_X(ST_Centroid(geometry)), 6)'],
+  ['latitude', 'ROUND(ST_Y(ST_Centroid(geometry)), 6)'],
   ['rps_2011', 'rps_2011::FLOAT'],
   ['rps_2047', 'rps_2047::FLOAT'],
   ['bp_2011', 'bp_2011::FLOAT'],
