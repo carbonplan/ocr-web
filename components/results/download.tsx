@@ -318,12 +318,6 @@ export const Download = () => {
     csv: null,
     geojson: null,
   })
-  useEffect(() => {
-    return () => {
-      abortRefs.current.csv?.abort()
-      abortRefs.current.geojson?.abort()
-    }
-  }, [])
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -337,6 +331,16 @@ export const Download = () => {
   const isDownloadableLevel =
     selectedGeographyLevel !== 'state' && selectedGeographyLevel !== 'nation'
   const disabled = !activeGeographies[selectedGeographyLevel]
+
+  useEffect(() => {
+    return () => {
+      abortRefs.current.csv?.abort()
+      abortRefs.current.geojson?.abort()
+      abortRefs.current.csv = null
+      abortRefs.current.geojson = null
+      setLoading({ csv: false, geojson: false })
+    }
+  }, [geoid, selectedGeographyLevel])
   let filename: string
   if (selectedGeographyLevel === 'county') {
     filename = `${countyName?.replaceAll(' ', '-')}-County-${geoid}`
