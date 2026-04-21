@@ -80,6 +80,17 @@ const REGION_TYPES: Partial<Record<GeographyKey, string>> = {
 
 const S3_BUCKET = new URL(DATA_URLS.parquetBase).origin
 
+const DURATION_BUCKETS: [number, string][] = [
+  [1000, '<1s'],
+  [5000, '1-5s'],
+  [15000, '5-15s'],
+  [60000, '15-60s'],
+  [180000, '1-3m'],
+  [300000, '3-5m'],
+]
+const bucketDuration = (ms: number) =>
+  DURATION_BUCKETS.find(([max]) => ms < max)?.[1] ?? '5m+'
+
 // Single source of truth for CSV output columns: [header-name, sql-expression].
 // Score columns are cast to FLOAT because DuckDB-WASM otherwise promotes them
 // to DOUBLE in the COPY pipeline.
@@ -338,6 +349,7 @@ export const Download = () => {
     abortRef.current = controller
 
     setLoading((prev) => ({ ...prev, [format]: true }))
+    const startTime = performance.now()
     try {
       track('data_download', {
         geography: selectedGeographyLevel,
@@ -358,7 +370,14 @@ export const Download = () => {
       const isAbort =
         controller.signal.aborted ||
         (error instanceof DOMException && error.name === 'AbortError')
-      if (!isAbort) {
+      if (isAbort) {
+        track('data_download_cancel', {
+          geography: selectedGeographyLevel,
+          geoid: geoid ?? '',
+          format,
+          duration_bucket: bucketDuration(performance.now() - startTime),
+        })
+      } else {
         track('data_download_error', {
           geography: selectedGeographyLevel,
           geoid: geoid ?? '',
