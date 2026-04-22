@@ -17,7 +17,21 @@ export const DATA_URLS = {
   raster:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
     `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/pyramid/production/${DATA_VERSION}/pyramid.zarr`,
-  downloads: `https://wywisai6r4dyxoib6aq2j2ewiy0sdsdg.lambda-url.us-west-2.on.aws/export`,
+  parquetBase:
+    process.env.NEXT_PUBLIC_GEOPARQUET_URL ??
+    `https://carbonplan-ocr.s3.us-west-2.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/geoparquet/buildings.parquet`,
+}
+
+export const LICENSE_INFO = {
+  provider: 'CarbonPlan',
+  termsOfAccess:
+    'https://docs.carbonplan.org/ocr/en/latest/terms-of-data-access.html',
+  dataSources:
+    'https://docs.carbonplan.org/ocr/en/latest/reference/data-sources.html',
+  licenseName: 'ODBL',
+  licenseUrl: 'https://opendatacommons.org/licenses/odbl/',
+  notice:
+    'Contains information from the Overture Maps Foundation database, which is made available here under the Open Database License (ODbL), a copy of which is available at https://opendatacommons.org/licenses/odbl/1-0/.',
 }
 
 export const LAYERS = {
