@@ -1,8 +1,15 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import { ensureSourceLoaded } from './map-utils'
-import { Location, Building, Geography, GeographyKey } from '../types/location'
+import {
+  Location,
+  Building,
+  Geography,
+  GeographyKey,
+  FireProperties,
+} from '../types/location'
 import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
+import { FIRE_MIN_YEAR } from './historic-utils'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
@@ -56,6 +63,13 @@ type Store = {
   }) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
+
+  historicMode: boolean
+  setHistoricMode: (historicMode: boolean) => void
+  selectedFires: FireProperties[] | null
+  setSelectedFires: (fires: FireProperties[] | null) => void
+  fireStartYear: number
+  setFireStartYear: (year: number) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
   riskConfig: RiskConfig
@@ -121,6 +135,12 @@ export const useStore = create<Store>((set, get) => ({
     set({ geographyLayerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
+  historicMode: false,
+  setHistoricMode: (historicMode) => set({ historicMode }),
+  selectedFires: null,
+  setSelectedFires: (selectedFires) => set({ selectedFires }),
+  fireStartYear: FIRE_MIN_YEAR,
+  setFireStartYear: (fireStartYear) => set({ fireStartYear }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS.fire,
@@ -191,6 +211,9 @@ export const useStore = create<Store>((set, get) => ({
     set({
       selectedLocation: null,
       selectedBuilding: null,
+      // Historic-mode fire selection is reset here too; the HistoricFires
+      // feature-state effect clears the map highlight when this goes null.
+      selectedFires: null,
       activeGeographies: {
         county: null,
         censusTract: null,

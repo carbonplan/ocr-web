@@ -22,6 +22,7 @@ import {
   GeographyLayer,
   SatelliteLayer,
   HillshadeLayer,
+  HistoricFires,
   ZarrLayer,
   MapControls,
   useMapControlStyles,
@@ -45,6 +46,7 @@ const MapComponent = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
   const riskRaster = useStore((state) => state.riskRaster)
+  const historicMode = useStore((state) => state.historicMode)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -249,6 +251,21 @@ const MapComponent = () => {
     updateGeographies,
   ])
 
+  // Building layers live in the base style and keep rendering even when their
+  // React components unmount, so hide them outright while in historic mode.
+  useEffect(() => {
+    if (!map || !styleLoaded) return
+    const visibility = historicMode ? 'none' : 'visible'
+    const buildingLayerIds = [
+      LAYERS.buildings.layerIds.fill,
+      LAYERS.buildings.layerIds.line,
+      LAYERS.buildingPoints.layerIds.circle,
+    ]
+    buildingLayerIds.forEach((id) => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visibility)
+    })
+  }, [map, styleLoaded, historicMode])
+
   return (
     <Box
       ref={mapContainer}
@@ -266,6 +283,7 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
+          <HistoricFires />
           {riskRaster && <ZarrLayer />}
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
@@ -278,9 +296,13 @@ const MapComponent = () => {
           />
           <GeographyLayer config={LAYERS.states} geographyKey='state' />
           <GeographyLayer config={LAYERS.nation} geographyKey='nation' />
-          <Buildings />
-          <BuildingPoints />
-          <SelectionMarker />
+          {!historicMode && (
+            <>
+              <Buildings />
+              <BuildingPoints />
+              <SelectionMarker />
+            </>
+          )}
         </>
       )}
     </Box>

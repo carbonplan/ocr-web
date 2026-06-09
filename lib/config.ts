@@ -13,6 +13,11 @@ export const DATA_URLS = {
     buildingPoints:
       process.env.NEXT_PUBLIC_BUILDING_POINTS_URL ??
       `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/building_centroids.pmtiles`,
+    // MTBS historic burned-area boundaries (1984-present). Currently a
+    // scratch location; move under the production prefix when finalized.
+    historicFires:
+      process.env.NEXT_PUBLIC_HISTORIC_FIRES_URL ??
+      'https://carbonplan-scratch.s3.us-west-2.amazonaws.com/ocr-explore/mtbs_perims.pmtiles',
   },
   raster:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
@@ -91,6 +96,15 @@ export const LAYERS = {
     sourceId: 'buildingPoints',
     layerIds: {
       circle: 'building-points-circle',
+    },
+  },
+  historicFires: {
+    layerName: 'mtbs_perims',
+    sourceId: 'historicFires',
+    layerIds: {
+      fill: 'historic-fires-fill',
+      line: 'historic-fires-line',
+      highlight: 'historic-fires-highlight',
     },
   },
 } as const

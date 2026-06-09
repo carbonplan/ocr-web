@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-import { Geocode, Results, Display } from '@/components'
+import { Geocode, Results, HistoricResults, Display } from '@/components'
 import { Drawer } from 'vaul'
 import ClimateSelector from './climate-selector'
 
@@ -13,13 +13,17 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedFires = useStore((state) => state.selectedFires)
   const advancedMode = useStore((state) => state.advancedMode)
+  const historicMode = useStore((state) => state.historicMode)
 
   useEffect(() => {
-    if (selectedBuilding) {
+    // Reveal the drawer when a building (or, in historic mode, a fire) is
+    // selected, so the newly selected details aren't hidden behind a low snap.
+    if (selectedBuilding || (selectedFires && selectedFires.length > 0)) {
       setSnap(snapPoints[1])
     }
-  }, [selectedBuilding, setSnap, snapPoints])
+  }, [selectedBuilding, selectedFires, setSnap, snapPoints])
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -122,7 +126,7 @@ const MobileDrawer = () => {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
-              <Results />
+              {historicMode ? <HistoricResults /> : <Results />}
               {advancedMode && <Display />}
             </Box>
           </Flex>

@@ -78,3 +78,14 @@ export type Suggestion = {
   id: string
   address: Address
 }
+
+// Attributes carried through the MTBS burned-area-boundaries vector tiles.
+export type FireProperties = {
+  event_id: string
+  incid_name: string
+  incid_type: string
+  asmnt_type: string
+  burnbndac: number
+  ig_date: string
+  year: number
+}

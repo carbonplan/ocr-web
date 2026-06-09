@@ -3,7 +3,7 @@ import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar } from '@carbonplan/layouts'
-import { Display, Geocode, Results } from '../components'
+import { Display, Geocode, Results, HistoricResults } from '../components'
 import Intro from './intro'
 import ClimateSelector from './climate-selector'
 
@@ -12,6 +12,7 @@ const SidebarComponent = () => {
   const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
   const advancedMode = useStore((state) => state.advancedMode)
+  const historicMode = useStore((state) => state.historicMode)
 
   useEffect(() => {
     const updateSidebarWidth = () => {
@@ -38,7 +39,7 @@ const SidebarComponent = () => {
           <Intro />
           <Geocode />
           <ClimateSelector />
-          <Results />
+          {historicMode ? <HistoricResults /> : <Results />}
           {advancedMode && <Display />}
         </div>
       </Sidebar>
