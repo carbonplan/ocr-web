@@ -35,9 +35,8 @@ const ZarrLayer = () => {
 
     return `
       float value = ${riskAttribute};
-      if (value == fillValue || value == 0.0) {
-        fragColor = vec4(0.0);
-        return;
+      if (isnan(value) || value == 0.0) {
+        discard;
       }
       float binIndex = 0.0;
       ${binConditions} else {
@@ -47,7 +46,7 @@ const ZarrLayer = () => {
       // +0.5 to center the bin in the colormap
       float rescaled = (binIndex + 1.5) / ${boundaries.length + 1}.0;
       vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
-      fragColor = vec4(c.rgb, opacity);
+      fragColor = vec4(c.rgb * opacity, opacity);
     `
   }, [colorLimits.binBoundaries, riskAttribute])
 
