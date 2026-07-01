@@ -122,12 +122,13 @@ const MapComponent = () => {
         const sw = [-135, 20]
         const ne = [-65, 55]
         const minZoom = 2
+        const maxZoom = 20
         return {
           center: new LngLat(
             Math.max(sw[0], Math.min(ne[0], center.lng)),
             Math.max(sw[1], Math.min(ne[1], center.lat)),
           ),
-          zoom: Math.max(minZoom, zoom),
+          zoom: Math.max(minZoom, Math.min(maxZoom, zoom)),
         }
       },
       attributionControl: false,
