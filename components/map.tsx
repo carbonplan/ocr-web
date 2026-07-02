@@ -122,7 +122,7 @@ const MapComponent = () => {
         const sw = [-135, 20]
         const ne = [-65, 55]
         const minZoom = 2
-        const maxZoom = 16.75
+        const maxZoom = 20
         return {
           center: new LngLat(
             Math.max(sw[0], Math.min(ne[0], center.lng)),
