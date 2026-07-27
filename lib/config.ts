@@ -2,25 +2,41 @@ export const BASE_PATH = '/research/climate-risk'
 
 export const DATA_VERSION = 'v1.1.0'
 
+// Source Coop's bucket name contains dots, so only path-style URLs work —
+// virtual-hosted style (bucket.s3.amazonaws.com) fails TLS validation.
+const S3_BUCKET_URL =
+  'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop'
+
+const dataUrl = (kind: 'vector' | 'pyramid', path: string) =>
+  `${S3_BUCKET_URL}/carbonplan/carbonplan-ocr/output/fire-risk/${kind}/production/${DATA_VERSION}/${path}`
+
 export const DATA_URLS = {
   vector: {
     buildings:
       process.env.NEXT_PUBLIC_BUILDING_URL ??
-      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/buildings.pmtiles`,
+      dataUrl('vector', 'pmtiles/buildings.pmtiles'),
     regions:
       process.env.NEXT_PUBLIC_REGIONS_URL ??
-      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/regions.pmtiles`,
+      dataUrl('vector', 'pmtiles/regions.pmtiles'),
     buildingPoints:
       process.env.NEXT_PUBLIC_BUILDING_POINTS_URL ??
-      `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/pmtiles/building_centroids.pmtiles`,
+      dataUrl('vector', 'pmtiles/building_centroids.pmtiles'),
   },
   raster:
-    process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
-    `https://carbonplan-ocr.s3.amazonaws.com/output/fire-risk/pyramid/production/${DATA_VERSION}/pyramid.zarr`,
+    process.env.NEXT_PUBLIC_RISK_ZARR_URL ?? dataUrl('pyramid', 'pyramid.zarr'),
   parquetBase:
     process.env.NEXT_PUBLIC_GEOPARQUET_URL ??
-    `https://carbonplan-ocr.s3.us-west-2.amazonaws.com/output/fire-risk/vector/production/${DATA_VERSION}/geoparquet/buildings.parquet`,
+    dataUrl('vector', 'geoparquet/buildings.parquet'),
+  regionAnalysisBase: dataUrl('vector', 'region-analysis'),
 }
+
+// Root for ListObjectsV2 requests against whichever bucket holds the parquet.
+// Path-style URLs put the bucket after the host; anything else is virtual-hosted.
+export const PARQUET_BUCKET_URL = DATA_URLS.parquetBase.startsWith(
+  S3_BUCKET_URL,
+)
+  ? S3_BUCKET_URL
+  : new URL(DATA_URLS.parquetBase).origin
 
 export const LICENSE_INFO = {
   provider: 'CarbonPlan',

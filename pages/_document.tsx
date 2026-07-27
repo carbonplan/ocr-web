@@ -21,10 +21,7 @@ class MyDocument extends Document {
             rel='preconnect'
             href='https://carbonplan-maps.s3.us-west-2.amazonaws.com'
           />
-          <link
-            rel='preconnect'
-            href='https://carbonplan-ocr.s3.amazonaws.com'
-          />
+          <link rel='preconnect' href='https://s3.us-west-2.amazonaws.com' />
           <link rel='preconnect' href='https://fonts.carbonplan.org' />
         </Head>
         <body>
