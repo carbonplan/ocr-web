@@ -4,7 +4,12 @@ import { Box, Flex, Spinner } from 'theme-ui'
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Down, X } from '@carbonplan/icons'
-import { DATA_VERSION, DATA_URLS, LICENSE_INFO } from '@/lib/config'
+import {
+  DATA_VERSION,
+  DATA_URLS,
+  LICENSE_INFO,
+  PARQUET_BUCKET_URL,
+} from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getGeographyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
@@ -78,8 +83,6 @@ const REGION_TYPES: Partial<Record<GeographyKey, string>> = {
   censusBlock: 'block',
 }
 
-const S3_BUCKET = new URL(DATA_URLS.parquetBase).origin
-
 const DURATION_BUCKETS: [number, string][] = [
   [1000, '<1s'],
   [5000, '1-5s'],
@@ -123,11 +126,11 @@ async function getPartitionUrls(
 ): Promise<string[]> {
   const stateFips = geoid.slice(0, 2)
   const countyFips = geoid.slice(2, 5)
-  const prefix = DATA_URLS.parquetBase.replace(S3_BUCKET + '/', '')
+  const prefix = DATA_URLS.parquetBase.replace(PARQUET_BUCKET_URL + '/', '')
   const partitionPrefix = `${prefix}/state_fips=${stateFips}/county_fips=${countyFips}/`
 
   const res = await fetch(
-    `${S3_BUCKET}/?list-type=2&prefix=${partitionPrefix}`,
+    `${PARQUET_BUCKET_URL}/?list-type=2&prefix=${partitionPrefix}`,
     { signal },
   )
   const doc = new DOMParser().parseFromString(
@@ -138,7 +141,7 @@ async function getPartitionUrls(
   const urls: string[] = []
   for (const el of doc.querySelectorAll('Contents > Key')) {
     const key = el.textContent
-    if (key?.endsWith('.parquet')) urls.push(`${S3_BUCKET}/${key}`)
+    if (key?.endsWith('.parquet')) urls.push(`${PARQUET_BUCKET_URL}/${key}`)
   }
 
   if (urls.length === 0) {

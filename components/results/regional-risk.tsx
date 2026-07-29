@@ -8,7 +8,7 @@ import { LngLatBounds } from 'maplibre-gl'
 import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import {
-  DATA_VERSION,
+  DATA_URLS,
   GEOGRAPHY_ATTRIBUTE_KEYS,
   GEOGRAPHY_MIN_ZOOM,
   STATISTICS_PATHS,
@@ -345,14 +345,14 @@ const RegionalRisk = () => {
                     label='CSV'
                     loading={false}
                     disabled={false}
-                    href={`https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${DATA_VERSION}/region-analysis/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
+                    href={`${DATA_URLS.regionAnalysisBase}/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
                     ariaLabel={`Download summary data as CSV`}
                   />
                   <DownloadButton
                     label='GeoJSON'
                     loading={false}
                     disabled={false}
-                    href={`https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${DATA_VERSION}/region-analysis/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
+                    href={`${DATA_URLS.regionAnalysisBase}/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
                     ariaLabel={`Download summary data as GeoJSON`}
                   />
                 </Flex>
