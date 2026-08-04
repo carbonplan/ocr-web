@@ -1,11 +1,25 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
+import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import { ensureSourceLoaded } from './map-utils'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
-import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
-import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
+import { GEOGRAPHY_MIN_ZOOM, LAYERS } from './config'
+import {
+  DEFAULT_HAZARD,
+  RISKS,
+  HazardId,
+  HazardConfig,
+  FutureWindow,
+} from './hazards'
+import {
+  clearSelectedBuildingUrl,
+  updateHazardUrl,
+  updateMapViewUrl,
+} from './url-utils'
 
-type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
+export type BuildingQueryState =
+  | { status: 'idle' | 'loading' | 'error' }
+  | { status: 'success'; value: number }
 
 type Store = {
   map: Map | null
@@ -56,10 +70,17 @@ type Store = {
   }) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
+  hazard: HazardId
+  setHazard: (hazard: HazardId) => void
+  futureWindow: FutureWindow
+  setFutureWindow: (futureWindow: FutureWindow) => void
+  buildingQuery: BuildingQueryState
+  setBuildingQuery: (buildingQuery: BuildingQueryState) => void
+  zarrLayer: ZarrLayer | null
+  setZarrLayer: (zarrLayer: ZarrLayer | null) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
-  riskConfig: RiskConfig
-  setRiskConfig: (riskConfig: RiskConfig) => void
+  riskConfig: HazardConfig
   colorLimits: {
     bounds: [number, number]
     binBoundaries: number[]
@@ -121,16 +142,47 @@ export const useStore = create<Store>((set, get) => ({
     set({ geographyLayerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
+  hazard: DEFAULT_HAZARD,
+  setHazard: (hazard) => {
+    if (hazard === get().hazard) return
+    const config = RISKS[hazard]
+    set({
+      hazard,
+      riskConfig: config,
+      colorLimits: {
+        bounds: [
+          config.binBoundaries[0],
+          config.binBoundaries[config.binBoundaries.length - 1],
+        ],
+        binBoundaries: [...config.binBoundaries],
+      },
+      buildingQuery: { status: 'idle' },
+      // query-mode hazards have transparent buildings, so the raster is the
+      // primary visual
+      riskRaster: config.buildingsMode === 'query',
+    })
+    updateHazardUrl(hazard, get().futureWindow)
+  },
+  futureWindow: 'fut1',
+  setFutureWindow: (futureWindow) => {
+    set({ futureWindow })
+    updateHazardUrl(get().hazard, futureWindow)
+  },
+  buildingQuery: { status: 'idle' },
+  setBuildingQuery: (buildingQuery) => set({ buildingQuery }),
+  zarrLayer: null,
+  setZarrLayer: (zarrLayer) => set({ zarrLayer }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
-  riskConfig: RISKS.fire,
-  setRiskConfig: (riskConfig) => set({ riskConfig: riskConfig }),
+  riskConfig: RISKS[DEFAULT_HAZARD],
   colorLimits: {
     bounds: [
-      RISKS.fire.binBoundaries[0],
-      RISKS.fire.binBoundaries[RISKS.fire.binBoundaries.length - 1],
+      RISKS[DEFAULT_HAZARD].binBoundaries[0],
+      RISKS[DEFAULT_HAZARD].binBoundaries[
+        RISKS[DEFAULT_HAZARD].binBoundaries.length - 1
+      ],
     ],
-    binBoundaries: [...RISKS.fire.binBoundaries],
+    binBoundaries: [...RISKS[DEFAULT_HAZARD].binBoundaries],
   },
   setColorLimits: (colorLimits) => set({ colorLimits: colorLimits }),
   mapLoading: false,
@@ -191,6 +243,7 @@ export const useStore = create<Store>((set, get) => ({
     set({
       selectedLocation: null,
       selectedBuilding: null,
+      buildingQuery: { status: 'idle' },
       activeGeographies: {
         county: null,
         censusTract: null,

@@ -5,6 +5,7 @@ import { useStore } from '@/lib/store'
 import { Sidebar } from '@carbonplan/layouts'
 import { Display, Geocode, Results } from '../components'
 import Intro from './intro'
+import RiskSelector from './risk-selector'
 import ClimateSelector from './climate-selector'
 
 const SidebarComponent = () => {
@@ -37,6 +38,7 @@ const SidebarComponent = () => {
         <div ref={sidebarRef}>
           <Intro />
           <Geocode />
+          <RiskSelector />
           <ClimateSelector />
           <Results />
           {advancedMode && <Display />}

@@ -4,12 +4,8 @@ import { Box, Flex, Spinner } from 'theme-ui'
 import { Button } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Down, X } from '@carbonplan/icons'
-import {
-  DATA_VERSION,
-  DATA_URLS,
-  LICENSE_INFO,
-  PARQUET_BUCKET_URL,
-} from '@/lib/config'
+import { DATA_VERSION, LICENSE_INFO } from '@/lib/config'
+import { RegionalDataConfig } from '@/lib/hazards'
 import { useStore } from '@/lib/store'
 import { getGeographyName, getGeoid } from '@/lib/risk-utils'
 import { GeographyKey } from '@/types/location'
@@ -94,25 +90,15 @@ const DURATION_BUCKETS: [number, string][] = [
 const bucketDuration = (ms: number) =>
   DURATION_BUCKETS.find(([max]) => ms < max)?.[1] ?? '5m+'
 
-// Single source of truth for CSV output columns: [header-name, sql-expression].
-// Score columns are cast to FLOAT because DuckDB-WASM otherwise promotes them
-// to DOUBLE in the COPY pipeline.
-const CSV_COLUMNS: [string, string][] = [
+// CSV output columns: [header-name, sql-expression], from the active hazard's
+// regional-data config. Value columns are cast to FLOAT because DuckDB-WASM
+// otherwise promotes them to DOUBLE in the COPY pipeline.
+const getCsvColumns = (columns: string[]): [string, string][] => [
   ['GEOID', 'GEOID'],
   ['longitude', 'ROUND(ST_X(ST_Centroid(geometry)), 6)'],
   ['latitude', 'ROUND(ST_Y(ST_Centroid(geometry)), 6)'],
-  ['rps_2011', 'rps_2011::FLOAT'],
-  ['rps_2047', 'rps_2047::FLOAT'],
-  ['bp_2011', 'bp_2011::FLOAT'],
-  ['bp_2047', 'bp_2047::FLOAT'],
-  ['crps_scott', 'crps_scott::FLOAT'],
-  ['bp_2011_riley', 'bp_2011_riley::FLOAT'],
-  ['bp_2047_riley', 'bp_2047_riley::FLOAT'],
+  ...columns.map((name): [string, string] => [name, `${name}::FLOAT`]),
 ]
-const CSV_SELECT = CSV_COLUMNS.map(([name, expr]) => `${expr} AS ${name}`).join(
-  ', ',
-)
-const CSV_HEADER = CSV_COLUMNS.map(([name]) => name).join(',') + '\n'
 
 function trimGeoid(geoid: string, regionType: string): string {
   if (regionType === 'county') return geoid.slice(0, 5)
@@ -121,16 +107,18 @@ function trimGeoid(geoid: string, regionType: string): string {
 }
 
 async function getPartitionUrls(
+  regionalData: RegionalDataConfig,
   geoid: string,
   signal?: AbortSignal,
 ): Promise<string[]> {
+  const { parquetBase, parquetBucketUrl } = regionalData
   const stateFips = geoid.slice(0, 2)
   const countyFips = geoid.slice(2, 5)
-  const prefix = DATA_URLS.parquetBase.replace(PARQUET_BUCKET_URL + '/', '')
+  const prefix = parquetBase.replace(parquetBucketUrl + '/', '')
   const partitionPrefix = `${prefix}/state_fips=${stateFips}/county_fips=${countyFips}/`
 
   const res = await fetch(
-    `${PARQUET_BUCKET_URL}/?list-type=2&prefix=${partitionPrefix}`,
+    `${parquetBucketUrl}/?list-type=2&prefix=${partitionPrefix}`,
     { signal },
   )
   const doc = new DOMParser().parseFromString(
@@ -141,7 +129,7 @@ async function getPartitionUrls(
   const urls: string[] = []
   for (const el of doc.querySelectorAll('Contents > Key')) {
     const key = el.textContent
-    if (key?.endsWith('.parquet')) urls.push(`${PARQUET_BUCKET_URL}/${key}`)
+    if (key?.endsWith('.parquet')) urls.push(`${parquetBucketUrl}/${key}`)
   }
 
   if (urls.length === 0) {
@@ -167,6 +155,7 @@ function triggerBlobDownload(blob: Blob, filename: string) {
 // keeps DuckDB's working set bounded by a single partition so very large
 // counties (e.g. LA) don't blow the WASM heap.
 async function copyParquetTo(
+  regionalData: RegionalDataConfig,
   geoid: string,
   regionType: string,
   select: string,
@@ -175,7 +164,7 @@ async function copyParquetTo(
 ): Promise<Uint8Array<ArrayBuffer>[]> {
   const [db, partitionUrls] = await Promise.all([
     getDuckDB(),
-    getPartitionUrls(geoid, signal),
+    getPartitionUrls(regionalData, geoid, signal),
   ])
   signal?.throwIfAborted()
   const conn = await db.connect()
@@ -228,15 +217,22 @@ async function copyParquetTo(
 }
 
 async function downloadCSV(
+  regionalData: RegionalDataConfig,
   geoid: string,
   regionType: string,
   filename: string,
   signal?: AbortSignal,
 ) {
+  const csvColumns = getCsvColumns(regionalData.columns)
+  const select = csvColumns
+    .map(([name, expr]) => `${expr} AS ${name}`)
+    .join(', ')
+  const header = csvColumns.map(([name]) => name).join(',') + '\n'
   const chunks = await copyParquetTo(
+    regionalData,
     geoid,
     regionType,
-    CSV_SELECT,
+    select,
     'FORMAT CSV, HEADER false',
     signal,
   )
@@ -250,34 +246,35 @@ async function downloadCSV(
 # ------------------------------------------
 `
   triggerBlobDownload(
-    new Blob([metadata, CSV_HEADER, ...chunks], { type: 'text/csv' }),
+    new Blob([metadata, header, ...chunks], { type: 'text/csv' }),
     `${filename}.csv`,
   )
 }
 
 async function downloadGeoJSON(
+  regionalData: RegionalDataConfig,
   geoid: string,
   regionType: string,
   filename: string,
   signal?: AbortSignal,
 ) {
+  // Build properties manually so FLOAT::VARCHAR gives the same precision
+  // as the CSV output. to_json would promote FLOATs to DOUBLE precision.
+  // COALESCE to 'null' so a NULL column doesn't nullify the whole feature.
+  const propertyConcat = regionalData.columns
+    .map(
+      (name) => `|| ',"${name}":' || COALESCE(${name}::FLOAT::VARCHAR, 'null')`,
+    )
+    .join('\n      ')
   // Build each GeoJSON Feature entirely in SQL via ST_AsGeoJSON + to_json,
   // then COPY TO streams them to the VFS — no JS JSON parsing needed.
   const chunks = await copyParquetTo(
+    regionalData,
     geoid,
     regionType,
-    // Build properties manually so FLOAT::VARCHAR gives the same precision
-    // as the CSV output. to_json would promote FLOATs to DOUBLE precision.
-    // COALESCE to 'null' so a NULL column doesn't nullify the whole feature.
     `'{"type":"Feature","geometry":' || ST_AsGeoJSON(ST_ReducePrecision(ST_Centroid(geometry), 0.000001))
-      || ',"properties":{"GEOID":"' || GEOID
-      || '","rps_2011":' || COALESCE(rps_2011::FLOAT::VARCHAR, 'null')
-      || ',"rps_2047":' || COALESCE(rps_2047::FLOAT::VARCHAR, 'null')
-      || ',"bp_2011":' || COALESCE(bp_2011::FLOAT::VARCHAR, 'null')
-      || ',"bp_2047":' || COALESCE(bp_2047::FLOAT::VARCHAR, 'null')
-      || ',"crps_scott":' || COALESCE(crps_scott::FLOAT::VARCHAR, 'null')
-      || ',"bp_2011_riley":' || COALESCE(bp_2011_riley::FLOAT::VARCHAR, 'null')
-      || ',"bp_2047_riley":' || COALESCE(bp_2047_riley::FLOAT::VARCHAR, 'null')
+      || ',"properties":{"GEOID":"' || GEOID || '"'
+      ${propertyConcat}
       || '}},' AS feature`,
     `FORMAT CSV, HEADER false, QUOTE E'\\x01', DELIMITER E'\\x02'`,
     signal,
@@ -321,6 +318,7 @@ export const Download = () => {
     csv: null,
     geojson: null,
   })
+  const regionalData = useStore((state) => state.riskConfig.regionalData)
   const selectedGeographyLevel = useStore(
     (state) => state.selectedGeographyLevel,
   )
@@ -371,14 +369,27 @@ export const Download = () => {
       })
 
       if (!geoid) throw new Error('No geography selected')
+      if (!regionalData) throw new Error('No regional data for this hazard')
 
       const regionType = REGION_TYPES[selectedGeographyLevel]
       if (!regionType) throw new Error('Invalid geography level')
 
       if (format === 'csv') {
-        await downloadCSV(geoid, regionType, filename, controller.signal)
+        await downloadCSV(
+          regionalData,
+          geoid,
+          regionType,
+          filename,
+          controller.signal,
+        )
       } else {
-        await downloadGeoJSON(geoid, regionType, filename, controller.signal)
+        await downloadGeoJSON(
+          regionalData,
+          geoid,
+          regionType,
+          filename,
+          controller.signal,
+        )
       }
     } catch (error) {
       const isAbort =

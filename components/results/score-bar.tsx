@@ -19,6 +19,7 @@ const ScoreBar = ({
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
+  const axisLabel = useStore((state) => state.riskConfig.axisLabel)
   const colormap = useColormap()
 
   const { score, color } = useScore(selectedBuilding, 'muted')
@@ -122,7 +123,7 @@ const ScoreBar = ({
               '& svg': { fill: 'secondary' },
             }}
           >
-            Risk of loss
+            {axisLabel}
           </AxisLabel>
         </Chart>
       </Box>

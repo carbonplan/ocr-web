@@ -18,7 +18,7 @@
     "@carbonplan/layouts": "^5.1.0",
     "@carbonplan/prettier": "^1.2.0",
     "@carbonplan/theme": "^8.1.0",
-    "@carbonplan/zarr-layer": "^0.6.0",
+    "@carbonplan/zarr-layer": "^0.6.1",
     "@duckdb/duckdb-wasm": "^1.32.0",
     "@emotion/react": "^11.14.0",
     "@protomaps/basemaps": "^5.0.1",

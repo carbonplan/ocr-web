@@ -1,4 +1,49 @@
 import { NextRouter } from 'next/router'
+import { DEFAULT_HAZARD, HazardId, FutureWindow, isHazardId } from './hazards'
+
+export type HazardParams = {
+  hazard: HazardId
+  futureWindow: FutureWindow | null
+}
+
+export function getHazardFromQuery(
+  query: NextRouter['query'],
+): HazardParams | null {
+  const { hazard, window: futureWindow } = query
+  if (!hazard || typeof hazard !== 'string' || !isHazardId(hazard)) return null
+
+  return {
+    hazard,
+    futureWindow:
+      futureWindow === 'fut1' || futureWindow === 'fut2' ? futureWindow : null,
+  }
+}
+
+export function updateHazardUrl(
+  hazard: HazardId,
+  futureWindow: FutureWindow,
+): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+
+  if (hazard === DEFAULT_HAZARD) {
+    url.searchParams.delete('hazard')
+    url.searchParams.delete('window')
+  } else {
+    url.searchParams.set('hazard', hazard)
+    if (futureWindow === 'fut1') {
+      url.searchParams.delete('window')
+    } else {
+      url.searchParams.set('window', futureWindow)
+    }
+  }
+
+  window.history.replaceState(
+    null,
+    '',
+    `${url.pathname}?${url.searchParams.toString()}`,
+  )
+}
 
 export type MapViewParams = {
   lat: number

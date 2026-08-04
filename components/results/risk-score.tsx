@@ -13,6 +13,7 @@ const RiskScore = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
+  const selectPrompt = useStore((state) => state.riskConfig.selectPrompt)
   const [abbreviate, setAbbreviate] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
 
@@ -20,7 +21,7 @@ const RiskScore = () => {
 
   let content: string | ReactNode = abbreviate
     ? 'Select a building'
-    : 'Select a building to view its wildfire risk.'
+    : selectPrompt
 
   if (reverseGeocodeLoading) {
     content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>

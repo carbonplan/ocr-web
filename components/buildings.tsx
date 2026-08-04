@@ -14,12 +14,16 @@ const Buildings = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const { selectBuilding } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const colormap = useColormap()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
+    // query-mode hazards have no per-building attributes in the tiles;
+    // buildings stay transparent (but clickable) over the raster
+    if (buildingsMode === 'query') return ['literal', 'transparent']
     if (!colormap?.length) return ['literal', 'transparent']
 
     const riskPercentExpression: ExpressionSpecification = [
@@ -51,7 +55,7 @@ const Buildings = () => {
     }
 
     return wrap(makeDiscrete()) as ExpressionSpecification
-  }, [colormap, riskAttribute, colorLimits.binBoundaries])
+  }, [colormap, riskAttribute, colorLimits.binBoundaries, buildingsMode])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {
     return [

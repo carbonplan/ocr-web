@@ -15,6 +15,7 @@ import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { useBuildingQuery } from '@/hooks/useBuildingQuery'
 import {
   Buildings,
   BuildingPoints,
@@ -45,6 +46,7 @@ const MapComponent = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
   const riskRaster = useStore((state) => state.riskRaster)
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -61,6 +63,7 @@ const MapComponent = () => {
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
+  useBuildingQuery()
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
@@ -266,7 +269,9 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
-          {riskRaster && <ZarrLayer />}
+          {/* query-mode hazards keep the layer mounted (hidden via opacity)
+              so point queries work while the raster is toggled off */}
+          {(riskRaster || buildingsMode === 'query') && <ZarrLayer />}
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

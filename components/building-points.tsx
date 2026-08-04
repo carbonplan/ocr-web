@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
+import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
@@ -10,14 +11,20 @@ import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 const ZOOM_THRESHOLD = 12
 
 const BuildingPoints = () => {
+  const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const colorLimits = useStore((state) => state.colorLimits)
   const timePeriod = useStore((state) => state.timePeriod)
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const colormap = useColormap()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const { highlightBuildingAtLocation } = useBuildingUtils()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
+    // query-mode hazards have no per-building attributes; keep the centroids
+    // visible as a muted click affordance over the raster
+    if (buildingsMode === 'query')
+      return ['literal', get(theme, 'rawColors.secondary')]
     if (!colormap?.length) return ['literal', 'transparent']
     const scoreExpression: ExpressionSpecification = [
       'to-number',
@@ -35,7 +42,7 @@ const BuildingPoints = () => {
       colormap[0],
       ...steps,
     ] as ExpressionSpecification
-  }, [colormap, colorLimits.binBoundaries, riskAttribute])
+  }, [colormap, colorLimits.binBoundaries, riskAttribute, buildingsMode, theme])
 
   const handlePointEnter = useCallback(() => {
     if (map && map.getZoom() > ZOOM_THRESHOLD) {
