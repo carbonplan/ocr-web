@@ -65,6 +65,12 @@ const ZarrLayer = () => {
     // unique id per dataset: removing and re-adding a custom layer under the
     // same id in one frame leaves the new layer uninitialized
     const layerId = `${LAYER_ID}-${dataset.source.split('/').pop()}-${dataset.variable}`
+    // resolved on the first loading-state emission with metadata complete —
+    // the point at which queryData becomes functional
+    let resolveReady: () => void
+    const ready = new Promise<void>((resolve) => {
+      resolveReady = resolve
+    })
     const layer = new ZarrLayerClass({
       id: layerId,
       source: dataset.source,
@@ -73,14 +79,20 @@ const ZarrLayer = () => {
       clim: colorLimits.bounds,
       customFrag,
       opacity: useStore.getState().riskRaster ? 1 : 0,
-      onLoadingStateChange: (state) => setZarrLoading(state.loading),
+      onLoadingStateChange: (state) => {
+        setZarrLoading(state.loading)
+        if (!state.metadata) resolveReady()
+        // on a static map nothing repaints once initialization or chunk
+        // loads land, leaving the layer unrendered; nudge a frame
+        map.triggerRepaint()
+      },
       ...(riskConfig.rasterOptions ?? {}),
     })
 
     layerRef.current = layer
     map.addLayer(layer, 'hillshade')
     map.triggerRepaint()
-    setZarrLayer(layer)
+    setZarrLayer(layer, ready)
 
     return () => {
       if (map.getLayer(layerId)) {

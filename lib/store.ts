@@ -77,7 +77,10 @@ type Store = {
   buildingQuery: BuildingQueryState
   setBuildingQuery: (buildingQuery: BuildingQueryState) => void
   zarrLayer: ZarrLayer | null
-  setZarrLayer: (zarrLayer: ZarrLayer | null) => void
+  // resolves once the layer's store metadata has loaded and queryData is
+  // functional (analogous to ensureSourceLoaded for maplibre sources)
+  zarrLayerReady: Promise<void> | null
+  setZarrLayer: (zarrLayer: ZarrLayer | null, ready?: Promise<void>) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
   riskConfig: HazardConfig
@@ -171,7 +174,9 @@ export const useStore = create<Store>((set, get) => ({
   buildingQuery: { status: 'idle' },
   setBuildingQuery: (buildingQuery) => set({ buildingQuery }),
   zarrLayer: null,
-  setZarrLayer: (zarrLayer) => set({ zarrLayer }),
+  zarrLayerReady: null,
+  setZarrLayer: (zarrLayer, ready) =>
+    set({ zarrLayer, zarrLayerReady: ready ?? null }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS[DEFAULT_HAZARD],
