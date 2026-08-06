@@ -3,7 +3,13 @@ import { Map } from 'maplibre-gl'
 import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import { ensureSourceLoaded } from './map-utils'
 import type { ChazPointData } from './chaz-query'
-import { Location, Building, Geography, GeographyKey } from '../types/location'
+import {
+  Location,
+  Building,
+  Coordinates,
+  Geography,
+  GeographyKey,
+} from '../types/location'
 import { GEOGRAPHY_MIN_ZOOM, LAYERS } from './config'
 import {
   DEFAULT_HAZARD,
@@ -40,6 +46,10 @@ type Store = {
   setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
+  // a clicked map point standing in for a building; mutually exclusive with
+  // selectedBuilding, feeds the same point query for query-mode hazards
+  selectedArea: Coordinates | null
+  setSelectedArea: (area: Coordinates | null) => void
   activeGeographies: {
     county: Geography | null
     censusTract: Geography | null
@@ -128,7 +138,11 @@ export const useStore = create<Store>((set, get) => ({
   riskRaster: false,
   setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
-  setSelectedBuilding: (building) => set({ selectedBuilding: building }),
+  setSelectedBuilding: (building) =>
+    set({ selectedBuilding: building, selectedArea: null }),
+  selectedArea: null,
+  setSelectedArea: (area) =>
+    set({ selectedArea: area, selectedBuilding: null }),
   activeGeographies: {
     county: null,
     censusTract: null,
@@ -285,6 +299,7 @@ export const useStore = create<Store>((set, get) => ({
     set({
       selectedLocation: null,
       selectedBuilding: null,
+      selectedArea: null,
       buildingQuery: { status: 'idle' },
       activeGeographies: {
         county: null,

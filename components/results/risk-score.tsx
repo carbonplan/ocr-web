@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/shallow'
 
 import { useStore } from '@/lib/store'
 import { getMapLayer } from '@/lib/hazards'
-import { formatAddress } from '@/lib/address-utils'
+import { formatAddress, formatRegionName } from '@/lib/address-utils'
 import { useScore } from '@/hooks/useScore'
 import { useColormap } from '@/lib/colormaps'
 import ValueBadge from './value-badge'
@@ -23,6 +23,7 @@ const getBinIndex = (value: number, bins: number[]) => {
 const RiskScore = () => {
   const ref = useRef<HTMLDivElement>()
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
   const riskConfig = useStore((state) => state.riskConfig)
@@ -37,12 +38,19 @@ const RiskScore = () => {
   const activeLayer = getMapLayer(riskConfig, mapLayer)
   const { score, color } = useScore(selectedBuilding, 'muted')
 
-  let content: string | ReactNode = abbreviate
-    ? 'Select a building'
-    : (activeLayer?.selectPrompt ?? riskConfig.selectPrompt)
+  // while a selection's address is resolving, keep the line empty; falling
+  // back to the multi-line select prompt makes the panel jump on every click
+  let content: string | ReactNode =
+    selectedBuilding || selectedArea
+      ? null
+      : abbreviate
+        ? 'Select a building'
+        : (activeLayer?.selectPrompt ?? riskConfig.selectPrompt)
 
   if (reverseGeocodeLoading) {
     content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
+  } else if (selectedArea && selectedLocation) {
+    content = formatRegionName(selectedLocation.address) || 'Selected area'
   } else if (selectedBuilding && selectedLocation) {
     content =
       formatAddress(selectedLocation.address, {
@@ -56,7 +64,13 @@ const RiskScore = () => {
     const shouldAbbreviate =
       !!ref.current && ref.current.clientHeight > lineHeight
     setAbbreviate(shouldAbbreviate)
-  }, [reverseGeocodeLoading, selectedBuilding, selectedLocation, index])
+  }, [
+    reverseGeocodeLoading,
+    selectedBuilding,
+    selectedArea,
+    selectedLocation,
+    index,
+  ])
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
@@ -92,7 +106,7 @@ const RiskScore = () => {
             unit={activeLayer.unit}
             color={layerColor}
             sx={{
-              fontSize: [3, 3, 3, 3],
+              fontSize: [4, 4, 4, 4],
               px: 3,
               pt: 0,
               height: 34,
@@ -121,19 +135,20 @@ const RiskScore = () => {
         </Box>
       </Flex>
       {activeLayer ? (
-        layerBinLabel && (
-          <Box
-            sx={{
-              fontSize: 1,
-              fontFamily: 'mono',
-              letterSpacing: 'mono',
-              textTransform: 'uppercase',
-              color: 'secondary',
-            }}
-          >
-            {layerBinLabel}
-          </Box>
-        )
+        // fixed-height slot so the label appearing/clearing doesn't shift
+        // the sections below
+        <Box
+          sx={{
+            fontSize: 1,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+            color: 'secondary',
+            minHeight: '20px',
+          }}
+        >
+          {layerBinLabel ?? ' '}
+        </Box>
       ) : (
         <ScoreBar labels />
       )}

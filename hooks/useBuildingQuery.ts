@@ -5,12 +5,14 @@ import { resolveHazardDataset } from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
 
 // For query-mode hazards, fetches the raster values at the selected
-// building's centroid whenever the selection or the active dataset changes.
-// Reads the store directly with zarrita (lib/chaz-query.ts), so the query is
-// independent of the render layer's initialization and returns every band
-// the detail panel shows, not just the rendered one.
+// building's centroid (or the selected map point) whenever the selection or
+// the active dataset changes. Reads the store directly with zarrita
+// (lib/chaz-query.ts), so the query is independent of the render layer's
+// initialization and returns every band the detail panel shows, not just the
+// rendered one.
 export const useBuildingQuery = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
@@ -18,16 +20,18 @@ export const useBuildingQuery = () => {
 
   useEffect(() => {
     if (riskConfig.buildingsMode !== 'query') return
-    if (!selectedBuilding) return
+    if (!selectedBuilding && !selectedArea) return
 
     const dataset = resolveHazardDataset(riskConfig, {
       timePeriod,
       futureWindow,
     })
-    const [lng, lat] = centerOfMass(selectedBuilding).geometry.coordinates as [
-      number,
-      number,
-    ]
+    const [lng, lat] = selectedArea
+      ? [selectedArea.lng, selectedArea.lat]
+      : (centerOfMass(selectedBuilding!).geometry.coordinates as [
+          number,
+          number,
+        ])
 
     const controller = new AbortController()
     setBuildingQuery({ status: 'loading' })
@@ -53,5 +57,12 @@ export const useBuildingQuery = () => {
       })
 
     return () => controller.abort()
-  }, [selectedBuilding, riskConfig, timePeriod, futureWindow, setBuildingQuery])
+  }, [
+    selectedBuilding,
+    selectedArea,
+    riskConfig,
+    timePeriod,
+    futureWindow,
+    setBuildingQuery,
+  ])
 }

@@ -15,13 +15,14 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
   const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
-    if (selectedBuilding) {
+    if (selectedBuilding || selectedArea) {
       setSnap(snapPoints[1])
     }
-  }, [selectedBuilding, setSnap, snapPoints])
+  }, [selectedBuilding, selectedArea, setSnap, snapPoints])
 
   useEffect(() => {
     if (scrollContainerRef.current) {

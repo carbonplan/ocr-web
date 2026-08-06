@@ -127,7 +127,7 @@ export function getMapViewFromQuery(
 export function updateMapViewUrl(params: MapViewParams): void {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
-  if (url.searchParams.has('selected')) return
+  if (url.searchParams.has('selected') || url.searchParams.has('area')) return
 
   url.searchParams.set('lat', params.lat.toFixed(5))
   url.searchParams.set('lng', params.lng.toFixed(5))
@@ -144,14 +144,12 @@ export type SelectionCoordinates = {
   lng: number
 }
 
-export function getSelectionCoordinatesFromQuery(
-  query: NextRouter['query'],
-): SelectionCoordinates | null {
-  const { selected } = query
+const parseCoordinateParam = (
+  value: NextRouter['query'][string],
+): SelectionCoordinates | null => {
+  if (!value || typeof value !== 'string') return null
 
-  if (!selected || typeof selected !== 'string') return null
-
-  const parts = selected.split(',')
+  const parts = value.split(',')
   if (parts.length !== 2) return null
 
   const parsedLat = parseFloat(parts[0])
@@ -174,14 +172,30 @@ export function getSelectionCoordinatesFromQuery(
   }
 }
 
-export function updateSelectedBuildingUrl(params: SelectionCoordinates): void {
+export function getSelectionCoordinatesFromQuery(
+  query: NextRouter['query'],
+): SelectionCoordinates | null {
+  return parseCoordinateParam(query.selected)
+}
+
+export function getAreaCoordinatesFromQuery(
+  query: NextRouter['query'],
+): SelectionCoordinates | null {
+  return parseCoordinateParam(query.area)
+}
+
+const updateSelectionParam = (
+  param: 'selected' | 'area',
+  params: SelectionCoordinates,
+): void => {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
   url.searchParams.delete('lat')
   url.searchParams.delete('lng')
   url.searchParams.delete('zoom')
+  url.searchParams.delete(param === 'selected' ? 'area' : 'selected')
   url.searchParams.set(
-    'selected',
+    param,
     `${params.lat.toFixed(6)},${params.lng.toFixed(6)}`,
   )
   window.history.replaceState(
@@ -191,10 +205,19 @@ export function updateSelectedBuildingUrl(params: SelectionCoordinates): void {
   )
 }
 
+export function updateSelectedBuildingUrl(params: SelectionCoordinates): void {
+  updateSelectionParam('selected', params)
+}
+
+export function updateSelectedAreaUrl(params: SelectionCoordinates): void {
+  updateSelectionParam('area', params)
+}
+
 export function clearSelectedBuildingUrl(): void {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
   url.searchParams.delete('selected')
+  url.searchParams.delete('area')
   window.history.replaceState(
     null,
     '',

@@ -15,7 +15,7 @@ const Buildings = () => {
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
-  const { selectBuilding } = useBuildingUtils()
+  const { selectBuilding, selectArea } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const colormap = useColormap()
@@ -209,11 +209,15 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
+      } else if (buildingsMode === 'query') {
+        // the raster is coarse enough that any point is meaningful, so a
+        // bare-map click selects the area under the cursor
+        selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
         clearSelections()
       }
     },
-    [map, selectBuilding, clearSelections],
+    [map, selectBuilding, selectArea, clearSelections, buildingsMode],
   )
 
   useEffect(() => {

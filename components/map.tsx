@@ -34,6 +34,7 @@ import {
   getMapViewFromQuery,
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
+  getAreaCoordinatesFromQuery,
 } from '@/lib/url-utils'
 
 const MapComponent = () => {
@@ -67,7 +68,7 @@ const MapComponent = () => {
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
-  const { highlightBuildingAtLocation } = useBuildingUtils()
+  const { highlightBuildingAtLocation, selectArea } = useBuildingUtils()
 
   const updateGeographies = useCallback(() => {
     if (!map) return
@@ -173,12 +174,19 @@ const MapComponent = () => {
     if (!router.isReady) return
 
     const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
-    if (!selectionCoordinates) return
-
-    map.jumpTo({
-      center: [selectionCoordinates.lng, selectionCoordinates.lat],
-      zoom: 16,
-    })
+    const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
+    if (selectionCoordinates) {
+      map.jumpTo({
+        center: [selectionCoordinates.lng, selectionCoordinates.lat],
+        zoom: 16,
+      })
+    } else if (areaCoordinates) {
+      // area selections describe coarse raster cells, so land well zoomed out
+      map.jumpTo({
+        center: [areaCoordinates.lng, areaCoordinates.lat],
+        zoom: 9,
+      })
+    }
   }, [map, router.isReady, router.query])
 
   useEffect(() => {
@@ -230,6 +238,16 @@ const MapComponent = () => {
   useEffect(() => {
     if (!map || !router.isReady) return
 
+    const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
+    if (areaCoordinates && buildingsMode === 'query') {
+      const initArea = async () => {
+        await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
+        selectArea(areaCoordinates.lng, areaCoordinates.lat)
+      }
+      initArea()
+      return
+    }
+
     const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
     if (!selectionCoordinates) return
     const { lat, lng } = selectionCoordinates
@@ -247,7 +265,9 @@ const MapComponent = () => {
     map,
     router.isReady,
     router.query,
+    buildingsMode,
     highlightBuildingAtLocation,
+    selectArea,
     clearSelections,
     updateGeographies,
   ])

@@ -9,7 +9,7 @@ import { SidebarDivider } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan icons types not available
 import { X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
-import { formatAddress } from '@/lib/address-utils'
+import { formatAddress, formatRegionName } from '@/lib/address-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { BASE_PATH, LAYERS } from '@/lib/config'
 import { Suggestion } from '../../types/location'
@@ -36,6 +36,7 @@ const Geocode = () => {
 
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const selectedLocation = useStore((state) => state.selectedLocation)
+  const selectedArea = useStore((state) => state.selectedArea)
   const map = useStore((state) => state.map)
   const clearSelections = useStore((state) => state.clearSelections)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
@@ -59,13 +60,17 @@ const Geocode = () => {
 
   useEffect(() => {
     if (selectedLocation) {
+      // area selections have no street address; show the same regional name
+      // as the marker and results panel
       setSearchQuery(
-        formatAddress(selectedLocation.address, { abbreviate: true }),
+        selectedArea
+          ? formatRegionName(selectedLocation.address)
+          : formatAddress(selectedLocation.address, { abbreviate: true }),
       )
     } else {
       setSearchQuery('')
     }
-  }, [selectedLocation])
+  }, [selectedLocation, selectedArea])
 
   useEffect(() => {
     if (!isEditing) {

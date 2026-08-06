@@ -19,7 +19,7 @@ const wind: HazardConfig = {
   unitScale: 100,
   buildingsMode: 'query',
   axisLabel: 'Expected annual loss',
-  selectPrompt: 'Select a building to view its wind risk.',
+  selectPrompt: 'Select a building or point on the map to view its wind risk.',
   climateTooltip:
     'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1981-2019). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
   // v2 stores: ead is the rendered band; the same store carries the
@@ -70,7 +70,8 @@ const wind: HazardConfig = {
       ],
       description:
         'Peak 1-minute sustained wind speed expected from a storm of the selected rarity, binned by Saffir-Simpson category.',
-      selectPrompt: 'Select a building to view its wind hazard.',
+      selectPrompt:
+        'Select a building or point on the map to view its wind hazard.',
       selector: {
         dim: 'return_period',
         values: [10, 25, 50, 100, 250, 1000],

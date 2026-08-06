@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Marker } from 'maplibre-gl'
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-import { formatAddress } from '@/lib/address-utils'
+import { formatAddress, formatRegionName } from '@/lib/address-utils'
 import { Building } from '@/types/location'
 
 const calculateTopMiddlePosition = (
@@ -34,24 +34,29 @@ const SelectionMarker = () => {
   const map = useStore((state) => state.map)
   const selectedLocation = useStore((state) => state.selectedLocation)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
   const markerPoint = useMemo(() => {
     if (selectedBuilding && selectedBuilding.geometry) {
       return calculateTopMiddlePosition(selectedBuilding.geometry)
     }
-    return null
-  }, [selectedBuilding])
-
-  const addressString = useMemo(() => {
-    if (selectedLocation) {
-      return formatAddress(selectedLocation.address, {
-        abbreviate: true,
-        requireStreet: true,
-      })
+    if (selectedArea) {
+      return [selectedArea.lng, selectedArea.lat] as [number, number]
     }
     return null
-  }, [selectedLocation])
+  }, [selectedBuilding, selectedArea])
+
+  const addressString = useMemo(() => {
+    if (!selectedLocation) return null
+    if (selectedArea) {
+      return formatRegionName(selectedLocation.address)
+    }
+    return formatAddress(selectedLocation.address, {
+      abbreviate: true,
+      requireStreet: true,
+    })
+  }, [selectedLocation, selectedArea])
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [container, setContainer] = useState<HTMLDivElement | null>(null)
@@ -90,7 +95,7 @@ const SelectionMarker = () => {
   }, [map, selectedLocation, selectedBuilding, markerPoint])
 
   if (
-    !selectedBuilding ||
+    (!selectedBuilding && !selectedArea) ||
     !selectedLocation ||
     !markerPoint ||
     !container ||
@@ -120,7 +125,8 @@ const SelectionMarker = () => {
           borderColor: 'secondary',
         }}
       >
-        {addressString || 'Selected building'}
+        {addressString ||
+          (selectedArea ? 'Selected area' : 'Selected building')}
       </Flex>
       <Box
         sx={{

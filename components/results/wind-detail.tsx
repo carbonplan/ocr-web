@@ -129,6 +129,7 @@ const WindSpeedTable = ({
 
 const WindDetail = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
@@ -174,11 +175,12 @@ const WindDetail = () => {
         <Box sx={{ mt: 3, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
           Values describe ~9 km grid cells, so nearby buildings share them.
         </Box>
-        {buildingQuery.status === 'error' && selectedBuilding && (
-          <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
-            No wind data is available for this building.
-          </Box>
-        )}
+        {buildingQuery.status === 'error' &&
+          (selectedBuilding || selectedArea) && (
+            <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
+              No wind data is available for this location.
+            </Box>
+          )}
       </Box>
     )
   }
@@ -249,11 +251,12 @@ const WindDetail = () => {
       <Box sx={{ mt: 3, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
         Values describe ~9 km grid cells, so nearby buildings share them.
       </Box>
-      {buildingQuery.status === 'error' && selectedBuilding && (
-        <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
-          No wind data is available for this building.
-        </Box>
-      )}
+      {buildingQuery.status === 'error' &&
+        (selectedBuilding || selectedArea) && (
+          <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
+            No wind data is available for this location.
+          </Box>
+        )}
     </Box>
   )
 }
