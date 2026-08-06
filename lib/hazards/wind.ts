@@ -22,22 +22,37 @@ const wind: HazardConfig = {
   selectPrompt: 'Select a building or point on the map to view its wind risk.',
   climateTooltip:
     'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1981-2019). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
+  // CHAZ stores are zarr v3; declaring it skips the render layer's 404ing
+  // probes for v2 metadata files
+  rasterOptions: {
+    zarrVersion: 3,
+  },
   // v2 stores: ead is the rendered band; the same store carries the
   // damage/wind curves along return_period and the recurrence bands the
-  // building query reads (see lib/chaz-query.ts)
+  // building query reads (see lib/chaz-query.ts). Bounds are per store
+  // because the ERA5 grid sits half a cell off the CMIP-median grids.
   datasets: {
     current: {
       source: chazUrl('chaz_conus_v2_ERA5_points'),
       variable: 'ead',
+      bounds: [-125.0, 24.0, -66.0, 50.5],
     },
     future: {
       fut1: {
         source: chazUrl('chaz_conus_v2_ssp370_fut1_CRH_median_points'),
         variable: 'ead',
+        bounds: [
+          -125.04166666666666, 23.958333333333336, -65.95833333333334,
+          50.541666666666664,
+        ],
       },
       fut2: {
         source: chazUrl('chaz_conus_v2_ssp370_fut2_CRH_median_points'),
         variable: 'ead',
+        bounds: [
+          -125.04166666666666, 23.958333333333336, -65.95833333333334,
+          50.541666666666664,
+        ],
       },
     },
   },

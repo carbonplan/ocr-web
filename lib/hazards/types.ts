@@ -20,6 +20,9 @@ export type HazardSelection = {
 export type HazardDataset = {
   source: string
   variable: string
+  // per-store grid edges, overriding rasterOptions.bounds; skips the render
+  // layer's coordinate-array fetch
+  bounds?: [number, number, number, number]
 }
 
 // Overrides for zarr stores whose metadata doesn't fully describe the grid
