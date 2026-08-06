@@ -1,27 +1,52 @@
 import { NextRouter } from 'next/router'
-import { DEFAULT_HAZARD, HazardId, FutureWindow, isHazardId } from './hazards'
+import {
+  DEFAULT_HAZARD,
+  RISKS,
+  RISK_LAYER_ID,
+  getMapLayer,
+  HazardId,
+  FutureWindow,
+  isHazardId,
+} from './hazards'
 
 export type HazardParams = {
   hazard: HazardId
   futureWindow: FutureWindow | null
+  mapLayer: string | null
+  selectorValue: number | null
 }
 
 export function getHazardFromQuery(
   query: NextRouter['query'],
 ): HazardParams | null {
-  const { hazard, window: futureWindow } = query
+  const { hazard, window: futureWindow, layer, rp } = query
   if (!hazard || typeof hazard !== 'string' || !isHazardId(hazard)) return null
+
+  const mapLayer =
+    typeof layer === 'string' && getMapLayer(RISKS[hazard], layer)
+      ? layer
+      : null
+  const selector = mapLayer
+    ? getMapLayer(RISKS[hazard], mapLayer)?.selector
+    : undefined
+  const parsedRp = typeof rp === 'string' ? Number(rp) : NaN
+  const selectorValue =
+    selector && selector.values.includes(parsedRp) ? parsedRp : null
 
   return {
     hazard,
     futureWindow:
       futureWindow === 'fut1' || futureWindow === 'fut2' ? futureWindow : null,
+    mapLayer,
+    selectorValue,
   }
 }
 
 export function updateHazardUrl(
   hazard: HazardId,
   futureWindow: FutureWindow,
+  mapLayer: string,
+  selectorValue: number | null,
 ): void {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
@@ -35,6 +60,22 @@ export function updateHazardUrl(
       url.searchParams.delete('window')
     } else {
       url.searchParams.set('window', futureWindow)
+    }
+  }
+
+  const layer = getMapLayer(RISKS[hazard], mapLayer)
+  if (mapLayer === RISK_LAYER_ID || !layer) {
+    url.searchParams.delete('layer')
+    url.searchParams.delete('rp')
+  } else {
+    url.searchParams.set('layer', mapLayer)
+    if (
+      selectorValue === null ||
+      selectorValue === layer.selector?.defaultValue
+    ) {
+      url.searchParams.delete('rp')
+    } else {
+      url.searchParams.set('rp', String(selectorValue))
     }
   }
 

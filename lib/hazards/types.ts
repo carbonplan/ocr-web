@@ -8,6 +8,7 @@
 // styling, legend, URL state, and results panel all derive from the config.
 
 import { ScenarioKey } from '@/types/location'
+import type { ChazPointData } from '../chaz-query'
 
 export type FutureWindow = 'fut1' | 'fut2'
 
@@ -38,6 +39,42 @@ export type RegionalDataConfig = {
   parquetBucketUrl: string
   // per-building value columns in the geoparquet, beyond GEOID + centroid
   columns: string[]
+}
+
+// Extra dimension the layer's variable is sliced along (e.g. return_period)
+export type HazardLayerSelector = {
+  dim: string
+  values: number[]
+  defaultValue: number
+  // button label in the selector sub-row
+  formatOption: (value: number) => string
+}
+
+// An alternate map layer for a hazard: the physical quantity itself rather
+// than the modeled loss (e.g. wind speed at a return period). Reads a
+// different variable from the same stores as the risk view.
+export type HazardMapLayer = {
+  id: string
+  // option label in the LAYER filter row
+  label: string
+  variable: string
+  // display unit; values are multiplied by unitScale into this unit
+  unit: string
+  unitScale: number
+  binBoundaries: number[]
+  // per-bin names shown with a selected building's value
+  binLabels?: string[]
+  // tooltip copy for the LAYER row while this layer is active
+  description: string
+  // replaces the hazard's selectPrompt while this layer is active
+  selectPrompt?: string
+  selector?: HazardLayerSelector
+  // reads this layer's value (in store units) for a selected building from
+  // the point-query result
+  pointValue?: (
+    detail: ChazPointData,
+    selectorValue: number | null,
+  ) => number | null
 }
 
 export type ResultSectionKey =
@@ -90,4 +127,8 @@ export type HazardConfig = {
   }
   results: ResultSection[]
   regionalData?: RegionalDataConfig
+  // alternate map layers; when present the LAYER filter row renders with the
+  // risk view (labeled riskLayerLabel) first
+  riskLayerLabel?: string
+  mapLayers?: HazardMapLayer[]
 }

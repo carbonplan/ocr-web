@@ -1,6 +1,9 @@
 import { Box, Flex, Spinner } from 'theme-ui'
 import { format } from 'd3-format'
+import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
+import { getMapLayer, HazardMapLayer } from '@/lib/hazards'
+import { useColormap } from '@/lib/colormaps'
 import TooltipWrapper from '../tooltip'
 import ValueBadge from './value-badge'
 import DamageCurve from './damage-curve'
@@ -58,12 +61,84 @@ const RecurrenceTable = ({
   )
 }
 
+// peak wind speed per return period, badges colored by Saffir-Simpson bin;
+// the row matching the map's selected return period is highlighted
+const WindSpeedTable = ({
+  layer,
+  returnPeriods,
+  windSpeed,
+  selectedRp,
+}: {
+  layer: HazardMapLayer
+  returnPeriods: number[]
+  windSpeed: (number | null)[]
+  selectedRp: number | null
+}) => {
+  const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
+  const colormap = useColormap()
+
+  const binColor = (value: number) => {
+    if (value === 0) return colormap[0]
+    for (let i = 0; i < bins.length - 1; i++) {
+      if (value < bins[i + 1]) return colormap[i + 1]
+    }
+    return colormap[bins.length]
+  }
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Flex sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <Box sx={monoLabelSx}>Storm rarity</Box>
+        <Box sx={monoLabelSx}>Peak winds</Box>
+      </Flex>
+      {returnPeriods.map((rp, i) => {
+        const value =
+          windSpeed[i] == null ? null : windSpeed[i]! * layer.unitScale
+        const selected = rp === selectedRp
+        return (
+          <Flex
+            key={rp}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              py: 2,
+              borderBottom: '1px solid',
+              borderColor: 'muted',
+            }}
+          >
+            <Box
+              sx={{
+                fontSize: [1, 1, 1, 2],
+                color: selected ? 'primary' : 'secondary',
+                transition: 'color 0.2s',
+              }}
+            >
+              1-in-{format(',')(rp)} year storm
+            </Box>
+            <ValueBadge
+              value={value === null ? null : `${Math.round(value)} mph`}
+              unit={layer.unit}
+              color={value === null ? undefined : binColor(value)}
+            />
+          </Flex>
+        )
+      })}
+    </Box>
+  )
+}
+
 const WindDetail = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
+  const mapLayer = useStore((state) => state.mapLayer)
+  const selectorValue = useStore((state) => state.mapLayerSelectorValue)
+
+  // in a hazard-layer view the loss sections don't apply; show the wind
+  // speed and recurrence tables, which describe the hazard itself
+  const activeLayer = getMapLayer(riskConfig, mapLayer)
 
   const periodLabel = riskConfig.timePeriodLabels
     ? timePeriod === 'current'
@@ -80,6 +155,33 @@ const WindDetail = () => {
           detail.eadUpper * riskConfig.unitScale,
         ] as [number, number])
       : null
+
+  if (activeLayer) {
+    return (
+      <Box>
+        <WindSpeedTable
+          layer={activeLayer}
+          returnPeriods={
+            detail?.returnPeriods ?? activeLayer.selector?.values ?? []
+          }
+          windSpeed={detail?.windSpeed ?? []}
+          selectedRp={selectorValue}
+        />
+        <RecurrenceTable
+          rp33={detail?.rpExceed33 ?? null}
+          rp50={detail?.rpExceed50 ?? null}
+        />
+        <Box sx={{ mt: 3, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
+          Values describe ~9 km grid cells, so nearby buildings share them.
+        </Box>
+        {buildingQuery.status === 'error' && selectedBuilding && (
+          <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
+            No wind data is available for this building.
+          </Box>
+        )}
+      </Box>
+    )
+  }
 
   return (
     <Box>

@@ -48,6 +48,44 @@ const wind: HazardConfig = {
       fut2: '2081-2100',
     },
   },
+  riskLayerLabel: 'Expected loss',
+  mapLayers: [
+    {
+      id: 'wind_speed',
+      label: 'Wind hazard',
+      variable: 'wind_speed',
+      unit: 'mph',
+      // m/s -> mph
+      unitScale: 2.23694,
+      // Saffir-Simpson category edges (1-min sustained wind, mph)
+      binBoundaries: [0, 39, 74, 96, 111, 130, 157],
+      binLabels: [
+        'Below tropical storm force',
+        'Tropical storm',
+        'Category 1 hurricane',
+        'Category 2 hurricane',
+        'Category 3 hurricane',
+        'Category 4 hurricane',
+        'Category 5 hurricane',
+      ],
+      description:
+        'Peak 1-minute sustained wind speed expected from a storm of the selected rarity, binned by Saffir-Simpson category.',
+      selectPrompt: 'Select a building to view its wind hazard.',
+      selector: {
+        dim: 'return_period',
+        values: [10, 25, 50, 100, 250, 1000],
+        defaultValue: 100,
+        formatOption: (value) => `${value} yr`,
+      },
+      pointValue: (detail, selectorValue) => {
+        const index =
+          selectorValue === null
+            ? -1
+            : detail.returnPeriods.indexOf(selectorValue)
+        return index >= 0 ? detail.windSpeed[index] : null
+      },
+    },
+  ],
   results: [
     { key: 'windDetail' },
     {

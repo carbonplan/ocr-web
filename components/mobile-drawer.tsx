@@ -4,6 +4,7 @@ import { useStore } from '@/lib/store'
 import { Geocode, Results, Display } from '@/components'
 import { Drawer } from 'vaul'
 import RiskSelector from './risk-selector'
+import LayerSelector from './layer-selector'
 import ClimateSelector from './climate-selector'
 
 const MobileDrawer = () => {
@@ -110,6 +111,7 @@ const MobileDrawer = () => {
               <Box sx={{ px: 4 }}>
                 <Geocode />
                 <RiskSelector />
+                <LayerSelector />
                 <ClimateSelector />
               </Box>
             </Drawer.Handle>

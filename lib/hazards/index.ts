@@ -1,6 +1,11 @@
 import fire from './fire'
 import wind from './wind'
-import { HazardConfig, HazardDataset, HazardSelection } from './types'
+import {
+  HazardConfig,
+  HazardDataset,
+  HazardMapLayer,
+  HazardSelection,
+} from './types'
 
 export * from './types'
 
@@ -16,6 +21,18 @@ export const DEFAULT_HAZARD: HazardId = 'fire'
 export const HAZARD_IDS = Object.keys(RISKS) as HazardId[]
 
 export const isHazardId = (value: string): value is HazardId => value in RISKS
+
+// the default map layer id: the hazard's risk view
+export const RISK_LAYER_ID = 'risk'
+
+// the active alternate map layer, or null when the risk view is selected
+export const getMapLayer = (
+  config: HazardConfig,
+  id: string,
+): HazardMapLayer | null =>
+  id === RISK_LAYER_ID
+    ? null
+    : (config.mapLayers?.find((layer) => layer.id === id) ?? null)
 
 export const resolveHazardDataset = (
   hazard: HazardConfig,

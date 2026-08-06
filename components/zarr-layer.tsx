@@ -2,7 +2,7 @@ import { useMemo, useEffect, useRef } from 'react'
 import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
-import { resolveHazardDataset } from '@/lib/hazards'
+import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
 
 const LAYER_ID = 'zarr-raster-layer'
 
@@ -16,9 +16,15 @@ const ZarrLayer = () => {
   const riskRaster = useStore((state) => state.riskRaster)
   const setZarrLoading = useStore((state) => state.setZarrLoading)
   const setZarrLayer = useStore((state) => state.setZarrLayer)
+  const mapLayerId = useStore((state) => state.mapLayer)
+  const selectorValue = useStore((state) => state.mapLayerSelectorValue)
   const layerRef = useRef<ZarrLayerClass | null>(null)
 
+  const activeLayer = getMapLayer(riskConfig, mapLayerId)
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
+  const variable = activeLayer?.variable ?? dataset.variable
+  const unitScale = activeLayer?.unitScale ?? riskConfig.unitScale
+  const selectorDim = activeLayer?.selector?.dim
 
   const customFrag = useMemo(() => {
     const boundaries = colorLimits.binBoundaries || []
@@ -38,9 +44,7 @@ const ZarrLayer = () => {
 
     // bin boundaries are in display units; scale raw store values to match
     const valueExpression =
-      riskConfig.unitScale === 1
-        ? dataset.variable
-        : `${dataset.variable} * ${riskConfig.unitScale.toFixed(1)}`
+      unitScale === 1 ? variable : `${variable} * ${unitScale.toFixed(6)}`
 
     return `
       float value = ${valueExpression};
@@ -57,14 +61,14 @@ const ZarrLayer = () => {
       vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
       fragColor = vec4(c.rgb * opacity, opacity);
     `
-  }, [colorLimits.binBoundaries, dataset.variable, riskConfig.unitScale])
+  }, [colorLimits.binBoundaries, variable, unitScale])
 
   useEffect(() => {
     if (!map) return
 
     // unique id per dataset: removing and re-adding a custom layer under the
     // same id in one frame leaves the new layer uninitialized
-    const layerId = `${LAYER_ID}-${dataset.source.split('/').pop()}-${dataset.variable}`
+    const layerId = `${LAYER_ID}-${dataset.source.split('/').pop()}-${variable}`
     // resolved on the first loading-state emission with metadata complete —
     // the point at which queryData becomes functional
     let resolveReady: () => void
@@ -74,7 +78,16 @@ const ZarrLayer = () => {
     const layer = new ZarrLayerClass({
       id: layerId,
       source: dataset.source,
-      variable: dataset.variable,
+      variable,
+      ...(selectorDim
+        ? {
+            selector: {
+              [selectorDim]:
+                useStore.getState().mapLayerSelectorValue ??
+                activeLayer!.selector!.defaultValue,
+            },
+          }
+        : {}),
       colormap,
       clim: colorLimits.bounds,
       customFrag,
@@ -116,6 +129,11 @@ const ZarrLayer = () => {
   useEffect(() => {
     layerRef.current?.setOpacity(riskRaster ? 1 : 0)
   }, [riskRaster])
+
+  useEffect(() => {
+    if (!selectorDim || selectorValue === null) return
+    layerRef.current?.setSelector({ [selectorDim]: selectorValue })
+  }, [selectorDim, selectorValue])
 
   return null
 }

@@ -8,6 +8,8 @@ import { GEOGRAPHY_MIN_ZOOM, LAYERS } from './config'
 import {
   DEFAULT_HAZARD,
   RISKS,
+  RISK_LAYER_ID,
+  getMapLayer,
   HazardId,
   HazardConfig,
   FutureWindow,
@@ -21,6 +23,11 @@ import {
 export type BuildingQueryState =
   | { status: 'idle' | 'loading' | 'error' }
   | { status: 'success'; value: number; detail?: ChazPointData }
+
+const syncHazardUrl = (get: () => Store) => {
+  const { hazard, futureWindow, mapLayer, mapLayerSelectorValue } = get()
+  updateHazardUrl(hazard, futureWindow, mapLayer, mapLayerSelectorValue)
+}
 
 type Store = {
   map: Map | null
@@ -75,6 +82,12 @@ type Store = {
   setHazard: (hazard: HazardId) => void
   futureWindow: FutureWindow
   setFutureWindow: (futureWindow: FutureWindow) => void
+  // RISK_LAYER_ID for the risk view, or a HazardMapLayer id
+  mapLayer: string
+  setMapLayer: (mapLayer: string) => void
+  // value along the active layer's selector dimension (e.g. return period)
+  mapLayerSelectorValue: number | null
+  setMapLayerSelectorValue: (value: number) => void
   buildingQuery: BuildingQueryState
   setBuildingQuery: (buildingQuery: BuildingQueryState) => void
   zarrLayer: ZarrLayer | null
@@ -153,6 +166,8 @@ export const useStore = create<Store>((set, get) => ({
     set({
       hazard,
       riskConfig: config,
+      mapLayer: RISK_LAYER_ID,
+      mapLayerSelectorValue: null,
       colorLimits: {
         bounds: [
           config.binBoundaries[0],
@@ -165,12 +180,33 @@ export const useStore = create<Store>((set, get) => ({
       // primary visual
       riskRaster: config.buildingsMode === 'query',
     })
-    updateHazardUrl(hazard, get().futureWindow)
+    syncHazardUrl(get)
   },
   futureWindow: 'fut1',
   setFutureWindow: (futureWindow) => {
     set({ futureWindow })
-    updateHazardUrl(get().hazard, futureWindow)
+    syncHazardUrl(get)
+  },
+  mapLayer: RISK_LAYER_ID,
+  setMapLayer: (mapLayer) => {
+    if (mapLayer === get().mapLayer) return
+    const config = get().riskConfig
+    const layer = getMapLayer(config, mapLayer)
+    const bins = layer ? layer.binBoundaries : config.binBoundaries
+    set({
+      mapLayer,
+      mapLayerSelectorValue: layer?.selector?.defaultValue ?? null,
+      colorLimits: {
+        bounds: [bins[0], bins[bins.length - 1]],
+        binBoundaries: [...bins],
+      },
+    })
+    syncHazardUrl(get)
+  },
+  mapLayerSelectorValue: null,
+  setMapLayerSelectorValue: (value) => {
+    set({ mapLayerSelectorValue: value })
+    syncHazardUrl(get)
   },
   buildingQuery: { status: 'idle' },
   setBuildingQuery: (buildingQuery) => set({ buildingQuery }),
