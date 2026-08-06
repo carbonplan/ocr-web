@@ -44,6 +44,26 @@ const BuildingPoints = () => {
     ] as ExpressionSpecification
   }, [colormap, colorLimits.binBoundaries, riskAttribute, buildingsMode, theme])
 
+  const opacityExpression: ExpressionSpecification = useMemo(() => {
+    // over the raster the dots are only a click affordance, and clicks only
+    // work above ZOOM_THRESHOLD; hide them at low zooms so the raster reads
+    // clean. In attribute mode they carry the data, so they stay.
+    const fadeIn: number[] =
+      buildingsMode === 'query'
+        ? [ZOOM_THRESHOLD - 1, 0, ZOOM_THRESHOLD, 1]
+        : []
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      ...fadeIn,
+      14,
+      1,
+      14.5,
+      0,
+    ] as ExpressionSpecification
+  }, [buildingsMode])
+
   const handlePointEnter = useCallback(() => {
     if (map && map.getZoom() > ZOOM_THRESHOLD) {
       map.getCanvas().style.cursor = 'pointer'
@@ -130,6 +150,15 @@ const BuildingPoints = () => {
       colorExpression,
     )
   }, [map, colorExpression])
+
+  useEffect(() => {
+    if (!map || !map.getLayer(LAYERS.buildingPoints.layerIds.circle)) return
+    map.setPaintProperty(
+      LAYERS.buildingPoints.layerIds.circle,
+      'circle-opacity',
+      opacityExpression,
+    )
+  }, [map, opacityExpression])
 
   return null
 }
