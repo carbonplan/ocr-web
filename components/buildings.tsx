@@ -64,9 +64,50 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       ['boolean', ['feature-state', 'hovered'], false],
       get(theme, 'rawColors.primary'),
-      get(theme, 'rawColors.secondary'),
+      // over the raster (query mode) outlines need to read against the bin
+      // colors, so use background to match the basemap linework; secondary
+      // is too subtle there but right for attribute-colored fills
+      buildingsMode === 'query'
+        ? get(theme, 'rawColors.background')
+        : get(theme, 'rawColors.secondary'),
     ] as ExpressionSpecification
-  }, [theme])
+  }, [theme, buildingsMode])
+
+  const lineWidthExpression: ExpressionSpecification = useMemo(() => {
+    const width = (selected: number, hovered: number, base: number) =>
+      [
+        'case',
+        ['boolean', ['feature-state', 'selected'], false],
+        selected,
+        ['boolean', ['feature-state', 'hovered'], false],
+        hovered,
+        base,
+      ] as ExpressionSpecification
+    // query-mode hazards render transparent fills, so the outline is the
+    // only visible building affordance and needs real weight at high zoom
+    if (buildingsMode === 'query') {
+      return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        width(2, 1, 0),
+        14,
+        width(2, 1, 0.5),
+        17,
+        width(2.5, 1.5, 1),
+      ] as ExpressionSpecification
+    }
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      width(2, 1, 0),
+      14,
+      width(2, 1, 0.3),
+    ] as ExpressionSpecification
+  }, [buildingsMode])
 
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
@@ -221,6 +262,15 @@ const Buildings = () => {
       lineColorExpression,
     )
   }, [map, lineColorExpression])
+
+  useEffect(() => {
+    if (!map || !map.getLayer(LAYERS.buildings.layerIds.line)) return
+    map.setPaintProperty(
+      LAYERS.buildings.layerIds.line,
+      'line-width',
+      lineWidthExpression,
+    )
+  }, [map, lineWidthExpression])
 
   return null
 }

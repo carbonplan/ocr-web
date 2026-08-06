@@ -21,29 +21,28 @@ const wind: HazardConfig = {
   axisLabel: 'Expected annual loss',
   selectPrompt: 'Select a building to view its wind risk.',
   climateTooltip:
-    'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1995-2014). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
+    'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1981-2019). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
+  // v2 stores: ead is the rendered band; the same store carries the
+  // damage/wind curves along return_period and the recurrence bands the
+  // building query reads (see lib/chaz-query.ts)
   datasets: {
     current: {
-      source: chazUrl('chaz_damage_fraction_conus_ERA5_points'),
+      source: chazUrl('chaz_conus_v2_ERA5_points'),
       variable: 'ead',
     },
     future: {
       fut1: {
-        source: chazUrl(
-          'chaz_damage_fraction_conus_ssp370_fut1_CRH_median_points',
-        ),
+        source: chazUrl('chaz_conus_v2_ssp370_fut1_CRH_median_points'),
         variable: 'ead',
       },
       fut2: {
-        source: chazUrl(
-          'chaz_damage_fraction_conus_ssp370_fut2_CRH_median_points',
-        ),
+        source: chazUrl('chaz_conus_v2_ssp370_fut2_CRH_median_points'),
         variable: 'ead',
       },
     },
   },
   timePeriodLabels: {
-    current: '1995-2014',
+    current: '1981-2019',
     future: {
       fut1: '2041-2060',
       fut2: '2081-2100',

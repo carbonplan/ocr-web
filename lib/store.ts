@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import { ensureSourceLoaded } from './map-utils'
+import type { ChazPointData } from './chaz-query'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { GEOGRAPHY_MIN_ZOOM, LAYERS } from './config'
 import {
@@ -19,7 +20,7 @@ import {
 
 export type BuildingQueryState =
   | { status: 'idle' | 'loading' | 'error' }
-  | { status: 'success'; value: number }
+  | { status: 'success'; value: number; detail?: ChazPointData }
 
 type Store = {
   map: Map | null
