@@ -22,9 +22,10 @@ const BuildingPoints = () => {
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     // query-mode hazards have no per-building attributes; keep the centroids
-    // visible as a muted click affordance over the raster
+    // visible as a muted click affordance over the raster, matching the
+    // outline color they hand off to at higher zoom
     if (buildingsMode === 'query')
-      return ['literal', get(theme, 'rawColors.secondary')]
+      return ['literal', get(theme, 'rawColors.muted')]
     if (!colormap?.length) return ['literal', 'transparent']
     const scoreExpression: ExpressionSpecification = [
       'to-number',

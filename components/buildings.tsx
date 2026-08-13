@@ -64,11 +64,12 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       ['boolean', ['feature-state', 'hovered'], false],
       get(theme, 'rawColors.primary'),
-      // over the raster (query mode) outlines need to read against the bin
-      // colors, so use background to match the basemap linework; secondary
-      // is too subtle there but right for attribute-colored fills
+      // in query mode outlines sit over the raster and need to read both
+      // against the bin colors and on the bare basemap where the raster is
+      // transparent (no risk); muted works in both, where background vanishes
+      // off-raster and secondary is too subtle on it
       buildingsMode === 'query'
-        ? get(theme, 'rawColors.background')
+        ? get(theme, 'rawColors.muted')
         : get(theme, 'rawColors.secondary'),
     ] as ExpressionSpecification
   }, [theme, buildingsMode])
