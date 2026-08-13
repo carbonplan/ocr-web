@@ -177,6 +177,8 @@ export const useStore = create<Store>((set, get) => ({
   setHazard: (hazard) => {
     if (hazard === get().hazard) return
     const config = RISKS[hazard]
+    const clearArea =
+      config.buildingsMode === 'attributes' && get().selectedArea !== null
     set({
       hazard,
       riskConfig: config,
@@ -193,7 +195,25 @@ export const useStore = create<Store>((set, get) => ({
       // query-mode hazards have transparent buildings, so the raster is the
       // primary visual
       riskRaster: config.buildingsMode === 'query',
+      ...(clearArea
+        ? {
+            selectedArea: null,
+            selectedLocation: null,
+          }
+        : {}),
     })
+    if (clearArea) {
+      clearSelectedBuildingUrl()
+      const map = get().map
+      if (map) {
+        const center = map.getCenter()
+        updateMapViewUrl({
+          lat: center.lat,
+          lng: center.lng,
+          zoom: map.getZoom(),
+        })
+      }
+    }
     syncHazardUrl(get)
   },
   futureWindow: 'fut1',

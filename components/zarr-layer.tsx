@@ -3,8 +3,7 @@ import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
 import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
-
-const LAYER_ID = 'zarr-raster-layer'
+import { getZarrLayerId } from '@/lib/raster-query'
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
@@ -66,9 +65,7 @@ const ZarrLayer = () => {
   useEffect(() => {
     if (!map) return
 
-    // unique id per dataset: removing and re-adding a custom layer under the
-    // same id in one frame leaves the new layer uninitialized
-    const layerId = `${LAYER_ID}-${dataset.source.split('/').pop()}-${variable}`
+    const layerId = getZarrLayerId(dataset.source, variable)
     // resolved on the first loading-state emission with metadata complete —
     // the point at which queryData becomes functional
     let resolveReady: () => void

@@ -32,6 +32,9 @@ export type HazardRasterOptions = {
   bounds?: [number, number, number, number]
   latIsAscending?: boolean
   zarrVersion?: 2 | 3
+  // proj4 definition for stores on a projected grid; bounds are then in the
+  // store's own units (e.g. metres) and the layer reprojects at render time
+  proj4?: string
 }
 
 // Regional stats + bulk-download endpoints. Absent while a hazard's regional
@@ -80,6 +83,27 @@ export type HazardMapLayer = {
   ) => number | null
 }
 
+// Datasets keyed by time period, or a single one for hazards with no time
+// dimension — which also hides the climate filter row.
+export type HazardDatasets =
+  | {
+      current: HazardDataset
+      future: HazardDataset | Record<FutureWindow, HazardDataset>
+    }
+  | { static: HazardDataset }
+
+// Selects direct multi-band store reads or a query against the rendered raster.
+// See docs/point-queries.md for their data-layout and pyramid-level tradeoffs.
+export type PointQuerySource = 'bands' | 'raster'
+
+// Present when the risk view reads as a measured quantity rather than a 1-10
+// loss score: the results panel shows the value itself and the score bar drops
+// its numerals to serve as a plain colorbar.
+export type HazardValueDisplay = {
+  // formats a value in display units for the results badge
+  format: (value: number) => string
+}
+
 export type ResultSectionKey =
   | 'riskCalculation'
   | 'timeHorizons'
@@ -88,6 +112,7 @@ export type ResultSectionKey =
   | 'fireAbout'
   | 'windDetail'
   | 'windAbout'
+  | 'floodAbout'
 
 export type ResultSection = {
   key: ResultSectionKey
@@ -112,14 +137,14 @@ export type HazardConfig = {
   // 'query': buildings transparent, values fetched from the zarr at the
   // selected building's centroid
   buildingsMode: 'attributes' | 'query'
+  pointQuery?: PointQuerySource
+  valueDisplay?: HazardValueDisplay
   axisLabel: string
   selectPrompt: string
-  climateTooltip: string
+  // copy for the climate filter row; omit alongside a static dataset
+  climateTooltip?: string
   rasterOptions?: HazardRasterOptions
-  datasets: {
-    current: HazardDataset
-    future: HazardDataset | Record<FutureWindow, HazardDataset>
-  }
+  datasets: HazardDatasets
   // escape hatch for hazards whose data doesn't fit the
   // current/future(/window) shape
   resolveDataset?: (selection: HazardSelection) => HazardDataset

@@ -1,15 +1,12 @@
 import { useEffect } from 'react'
 import { centerOfMass } from '@turf/turf'
-import { useStore } from '@/lib/store'
-import { resolveHazardDataset } from '@/lib/hazards'
+import { useStore, BuildingQueryState } from '@/lib/store'
+import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
+import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 
-// For query-mode hazards, fetches the raster values at the selected
-// building's centroid (or the selected map point) whenever the selection or
-// the active dataset changes. Reads the store directly with zarrita
-// (lib/chaz-query.ts), so the query is independent of the render layer's
-// initialization and returns every band the detail panel shows, not just the
-// rendered one.
+// Queries the selected building centroid or map point for query-mode hazards.
+// BuildingQueryState.value is normalized to display units.
 export const useBuildingQuery = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
@@ -17,6 +14,12 @@ export const useBuildingQuery = () => {
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
   const setBuildingQuery = useStore((state) => state.setBuildingQuery)
+  const mapLayerId = useStore((state) => state.mapLayer)
+  const map = useStore((state) => state.map)
+  const zarrLayer = useStore((state) => state.zarrLayer)
+  // only the raster path reads the render layer; holding it at null otherwise
+  // keeps a layer rebuild from re-firing the store-side query
+  const queryLayer = riskConfig.pointQuery === 'raster' ? zarrLayer : null
 
   useEffect(() => {
     if (riskConfig.buildingsMode !== 'query') return
@@ -26,29 +29,56 @@ export const useBuildingQuery = () => {
       timePeriod,
       futureWindow,
     })
-    const [lng, lat] = selectedArea
-      ? [selectedArea.lng, selectedArea.lat]
+    const point = selectedArea
+      ? ([selectedArea.lng, selectedArea.lat] as [number, number])
       : (centerOfMass(selectedBuilding!).geometry.coordinates as [
           number,
           number,
         ])
 
-    const controller = new AbortController()
+    const variable =
+      getMapLayer(riskConfig, mapLayerId)?.variable ?? dataset.variable
+
     setBuildingQuery({ status: 'loading' })
 
-    queryChazPoint(dataset.source, [lng, lat])
-      .then((detail) => {
+    // the layer is still initializing, or still belongs to the hazard being
+    // switched away from; the effect re-runs once the right one is in the store
+    if (
+      riskConfig.pointQuery === 'raster' &&
+      (!map || queryLayer?.id !== getZarrLayerId(dataset.source, variable))
+    ) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    const query = async (): Promise<BuildingQueryState> => {
+      if (riskConfig.pointQuery === 'raster') {
+        await useStore.getState().zarrLayerReady
+        const value = await queryRasterPoint(
+          map!,
+          queryLayer!,
+          variable,
+          point,
+          controller.signal,
+        )
+        if (value === null) return { status: 'error' }
+        return { status: 'success', value: value * riskConfig.unitScale }
+      }
+
+      const detail = await queryChazPoint(dataset.source, point)
+      if (!detail || detail.ead === null) return { status: 'error' }
+      return {
+        status: 'success',
+        value: detail.ead * riskConfig.unitScale,
+        detail,
+      }
+    }
+
+    query()
+      .then((state) => {
         if (controller.signal.aborted) return
-        if (!detail || detail.ead === null) {
-          setBuildingQuery({ status: 'error' })
-          return
-        }
-        setBuildingQuery({
-          status: 'success',
-          // display units, matching binBoundaries
-          value: detail.ead * riskConfig.unitScale,
-          detail,
-        })
+        setBuildingQuery(state)
       })
       .catch((error) => {
         if (controller.signal.aborted) return
@@ -64,5 +94,8 @@ export const useBuildingQuery = () => {
     timePeriod,
     futureWindow,
     setBuildingQuery,
+    mapLayerId,
+    map,
+    queryLayer,
   ])
 }

@@ -36,7 +36,9 @@ const RiskScore = () => {
   const index = useBreakpointIndex({ defaultIndex: 2 })
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
-  const { score, color } = useScore(selectedBuilding, 'muted')
+  const { score, value, color } = useScore(selectedBuilding, 'muted')
+
+  const valueDisplay = activeLayer ? undefined : riskConfig.valueDisplay
 
   // while a selection's address is resolving, keep the line empty; falling
   // back to the multi-line select prompt makes the panel jump on every click
@@ -93,7 +95,11 @@ const RiskScore = () => {
   return (
     <>
       <Box as='h2' variant='sectionHeading' sx={{ mt: 3, mb: 2 }}>
-        {activeLayer ? activeLayer.label : 'Risk score'}
+        {activeLayer
+          ? activeLayer.label
+          : valueDisplay
+            ? riskConfig.axisLabel
+            : 'Risk score'}
       </Box>
       <Flex sx={{ gap: 3, mb: 3 }}>
         {activeLayer ? (
@@ -119,9 +125,15 @@ const RiskScore = () => {
           />
         ) : (
           <ValueBadge
-            value={score}
+            value={
+              valueDisplay
+                ? value === null
+                  ? null
+                  : valueDisplay.format(value)
+                : score
+            }
             unit='#'
-            color={score ? color : undefined}
+            color={value === null ? undefined : color}
             sx={{
               fontSize: [4, 4, 4, 4],
               width: [80, 80, 80, 100],

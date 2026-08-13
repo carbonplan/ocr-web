@@ -18,6 +18,7 @@ const wind: HazardConfig = {
   // ead is stored as a fraction per year; display units are percent
   unitScale: 100,
   buildingsMode: 'query',
+  pointQuery: 'bands',
   axisLabel: 'Expected annual loss',
   selectPrompt: 'Select a building or point on the map to view its wind risk.',
   climateTooltip:

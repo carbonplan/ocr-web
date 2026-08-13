@@ -7,6 +7,7 @@ import OtherFactors from './other-factors'
 import FireAbout from './fire-about'
 import WindDetail from './wind-detail'
 import WindAbout from './wind-about'
+import FloodAbout from './flood-about'
 
 // Components render their own headings; title is used when a hazard config
 // marks the section as a placeholder.
@@ -21,4 +22,5 @@ export const RESULT_SECTIONS: Record<
   fireAbout: { component: FireAbout, title: 'About' },
   windDetail: { component: WindDetail, title: 'Expected annual loss' },
   windAbout: { component: WindAbout, title: 'About' },
+  floodAbout: { component: FloodAbout, title: 'About' },
 }

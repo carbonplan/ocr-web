@@ -11,6 +11,7 @@ import {
 import { SidebarDivider } from '@carbonplan/layouts'
 
 import { useStore } from '@/lib/store'
+import { hasTimePeriods } from '@/lib/hazards'
 import TooltipWrapper from './tooltip'
 
 const ClimateSelector = () => {
@@ -22,6 +23,9 @@ const ClimateSelector = () => {
   const timePeriodLabels = useStore(
     (state) => state.riskConfig.timePeriodLabels,
   )
+  const showClimate = useStore((state) => hasTimePeriods(state.riskConfig))
+
+  if (!showClimate) return null
 
   return (
     <Box
