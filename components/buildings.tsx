@@ -21,8 +21,6 @@ const Buildings = () => {
   const colormap = useColormap()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
-    // query-mode hazards have no per-building attributes in the tiles;
-    // buildings stay transparent (but clickable) over the raster
     if (buildingsMode === 'query') return ['literal', 'transparent']
     if (!colormap?.length) return ['literal', 'transparent']
 
@@ -64,10 +62,8 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       ['boolean', ['feature-state', 'hovered'], false],
       get(theme, 'rawColors.primary'),
-      // in query mode outlines sit over the raster and need to read both
-      // against the bin colors and on the bare basemap where the raster is
-      // transparent (no risk); muted works in both, where background vanishes
-      // off-raster and secondary is too subtle on it
+      // over the raster, muted reads against both the bin colors and the bare
+      // basemap where the raster is transparent
       buildingsMode === 'query'
         ? get(theme, 'rawColors.muted')
         : get(theme, 'rawColors.secondary'),
@@ -84,8 +80,6 @@ const Buildings = () => {
         hovered,
         base,
       ] as ExpressionSpecification
-    // query-mode hazards render transparent fills, so the outline is the
-    // only visible building affordance and needs real weight at high zoom
     if (buildingsMode === 'query') {
       return [
         'interpolate',
@@ -211,8 +205,7 @@ const Buildings = () => {
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
       } else if (buildingsMode === 'query') {
-        // the raster is coarse enough that any point is meaningful, so a
-        // bare-map click selects the area under the cursor
+        // the raster is coarse enough that any point is meaningful
         selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
         clearSelections()

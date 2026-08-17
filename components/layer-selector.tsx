@@ -13,9 +13,6 @@ import { useStore } from '@/lib/store'
 import { RISK_LAYER_ID, getMapLayer } from '@/lib/hazards'
 import TooltipWrapper from './tooltip'
 
-// Selects which quantity the map displays: the hazard's risk view or one of
-// its alternate map layers (e.g. wind speed at a return period). Renders
-// nothing for hazards without alternate layers.
 const LayerSelector = () => {
   const riskConfig = useStore((state) => state.riskConfig)
   const mapLayer = useStore((state) => state.mapLayer)

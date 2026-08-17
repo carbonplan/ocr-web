@@ -15,7 +15,7 @@ const wind: HazardConfig = {
   colormap: 'teals',
   // same score bins as fire (percent per year)
   binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
-  // ead is stored as a fraction per year; display units are percent
+  // ead is stored as a fraction per year
   unitScale: 100,
   buildingsMode: 'query',
   pointQuery: 'bands',
@@ -23,15 +23,13 @@ const wind: HazardConfig = {
   selectPrompt: 'Select a building or point on the map to view its wind risk.',
   climateTooltip:
     'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1981-2019). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
-  // CHAZ stores are zarr v3; declaring it skips the render layer's 404ing
-  // probes for v2 metadata files
+  // declaring v3 skips the render layer's 404ing probes for v2 metadata
   rasterOptions: {
     zarrVersion: 3,
   },
-  // v2 stores: ead is the rendered band; the same store carries the
-  // damage/wind curves along return_period and the recurrence bands the
-  // building query reads (see lib/chaz-query.ts). Bounds are per store
-  // because the ERA5 grid sits half a cell off the CMIP-median grids.
+  // ead is the rendered band; the same stores carry the curves and recurrence
+  // bands the building query reads (see lib/chaz-query.ts). Bounds are per
+  // store because the ERA5 grid sits half a cell off the CMIP-median grids.
   datasets: {
     current: {
       source: chazUrl('chaz_conus_v2_ERA5_points'),

@@ -27,7 +27,6 @@ export const useScore = (
   if (isGeography) {
     value = Number(geo[getGeographyMedianRiskKey(timePeriod)])
   } else if (buildingsMode === 'query') {
-    // building and area values come from the async raster point query
     if (geo || selectedArea) {
       value = buildingQuery.status === 'success' ? buildingQuery.value : null
     }

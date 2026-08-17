@@ -4,8 +4,6 @@ type Options = {
   abbreviate?: boolean
   requireStreet?: boolean
 }
-// regional label for an area selection: the containing city (or county, or
-// state), never a street address, since the value covers a wide grid cell
 export const formatRegionName = (address: Address) => {
   const parts = []
   if (address.city) {

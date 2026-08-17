@@ -1,7 +1,5 @@
 import { Box } from 'theme-ui'
 
-// Section shell for hazard data products still in production — shows what's
-// coming instead of silently omitting the section.
 const PlaceholderSection = ({
   title,
   copy,

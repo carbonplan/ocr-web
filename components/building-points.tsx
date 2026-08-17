@@ -21,9 +21,6 @@ const BuildingPoints = () => {
   const { highlightBuildingAtLocation } = useBuildingUtils()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
-    // query-mode hazards have no per-building attributes; keep the centroids
-    // visible as a muted click affordance over the raster, matching the
-    // outline color they hand off to at higher zoom
     if (buildingsMode === 'query')
       return ['literal', get(theme, 'rawColors.muted')]
     if (!colormap?.length) return ['literal', 'transparent']
@@ -46,9 +43,6 @@ const BuildingPoints = () => {
   }, [colormap, colorLimits.binBoundaries, riskAttribute, buildingsMode, theme])
 
   const opacityExpression: ExpressionSpecification = useMemo(() => {
-    // over the raster the dots are only a click affordance, and clicks only
-    // work above ZOOM_THRESHOLD; hide them at low zooms so the raster reads
-    // clean. In attribute mode they carry the data, so they stay.
     const fadeIn: number[] =
       buildingsMode === 'query'
         ? [ZOOM_THRESHOLD - 1, 0, ZOOM_THRESHOLD, 1]

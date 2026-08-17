@@ -72,14 +72,11 @@ export const useBuildingUtils = () => {
     ],
   )
 
-  // selects a bare map point (no building): reverse-geocodes it to a
-  // regional name and feeds the same point query a building selection would
   const selectArea = useCallback(
     (lng: number, lat: number) => {
       if (!map) return
 
-      // nothing to clear before the style is ready, and removeFeatureState
-      // throws if called while it is still loading
+      // removeFeatureState throws while the style is still loading
       if (map.isStyleLoaded()) {
         map.removeFeatureState({
           source: LAYERS.buildings.sourceId,

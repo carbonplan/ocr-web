@@ -13,16 +13,9 @@ import {
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
 
-// return periods served by the CHAZ stores; used to draw the placeholder
-// axes before a building is selected
 const DEFAULT_RETURN_PERIODS = [10, 25, 50, 100, 250, 1000]
 const PLACEHOLDER_Y_MAX = 20
 
-// Damage fraction vs. return period for the selected building's cell, on a
-// log return-period axis. Single series: color carries no identity, so it
-// uses the hazard accent; magnitude reads off the y axis and gridlines.
-// With no data it renders the empty axes frame, the chart analog of the
-// empty-badge placeholder used in the tables.
 const DamageCurve = ({
   returnPeriods = DEFAULT_RETURN_PERIODS,
   damageFraction = [],

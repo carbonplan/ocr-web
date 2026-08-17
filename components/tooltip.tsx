@@ -48,8 +48,7 @@ export const Tooltip = ({
           stroke: expanded ? 'primary' : 'secondary',
           opacity: disabled ? 0.5 : 1,
           transition: '0.1s',
-          // the circle's stroke extends past the viewBox edge; without this
-          // the default hidden overflow clips it
+          // the circle's stroke extends past the viewBox edge
           overflow: 'visible',
         }}
         aria-hidden='true'

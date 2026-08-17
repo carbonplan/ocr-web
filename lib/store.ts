@@ -47,7 +47,7 @@ type Store = {
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
   // a clicked map point standing in for a building; mutually exclusive with
-  // selectedBuilding, feeds the same point query for query-mode hazards
+  // selectedBuilding
   selectedArea: Coordinates | null
   setSelectedArea: (area: Coordinates | null) => void
   activeGeographies: {
@@ -95,14 +95,12 @@ type Store = {
   // RISK_LAYER_ID for the risk view, or a HazardMapLayer id
   mapLayer: string
   setMapLayer: (mapLayer: string) => void
-  // value along the active layer's selector dimension (e.g. return period)
   mapLayerSelectorValue: number | null
   setMapLayerSelectorValue: (value: number) => void
   buildingQuery: BuildingQueryState
   setBuildingQuery: (buildingQuery: BuildingQueryState) => void
   zarrLayer: ZarrLayer | null
-  // resolves once the layer's store metadata has loaded and queryData is
-  // functional (analogous to ensureSourceLoaded for maplibre sources)
+  // resolves once the store metadata has loaded and queryData is functional
   zarrLayerReady: Promise<void> | null
   setZarrLayer: (zarrLayer: ZarrLayer | null, ready?: Promise<void>) => void
   sidebarWidth: number
@@ -177,8 +175,6 @@ export const useStore = create<Store>((set, get) => ({
   setHazard: (hazard) => {
     if (hazard === get().hazard) return
     const config = RISKS[hazard]
-    const clearArea =
-      config.buildingsMode === 'attributes' && get().selectedArea !== null
     set({
       hazard,
       riskConfig: config,
@@ -192,28 +188,9 @@ export const useStore = create<Store>((set, get) => ({
         binBoundaries: [...config.binBoundaries],
       },
       buildingQuery: { status: 'idle' },
-      // query-mode hazards have transparent buildings, so the raster is the
-      // primary visual
+      // query-mode buildings are transparent, so the raster carries the view
       riskRaster: config.buildingsMode === 'query',
-      ...(clearArea
-        ? {
-            selectedArea: null,
-            selectedLocation: null,
-          }
-        : {}),
     })
-    if (clearArea) {
-      clearSelectedBuildingUrl()
-      const map = get().map
-      if (map) {
-        const center = map.getCenter()
-        updateMapViewUrl({
-          lat: center.lat,
-          lng: center.lng,
-          zoom: map.getZoom(),
-        })
-      }
-    }
     syncHazardUrl(get)
   },
   futureWindow: 'fut1',

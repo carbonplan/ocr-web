@@ -19,8 +19,7 @@ const monoLabelSx = {
   color: 'secondary',
 } as const
 
-// rows always render; a null value (nothing selected, or winds never reach
-// the threshold in the event set) shows the empty placeholder badge
+// a null value means the threshold is never reached in the event set
 const RecurrenceTable = ({
   rp33,
   rp50,
@@ -61,8 +60,6 @@ const RecurrenceTable = ({
   )
 }
 
-// peak wind speed per return period, badges colored by Saffir-Simpson bin;
-// the row matching the map's selected return period is highlighted
 const WindSpeedTable = ({
   layer,
   returnPeriods,
@@ -137,8 +134,6 @@ const WindDetail = () => {
   const mapLayer = useStore((state) => state.mapLayer)
   const selectorValue = useStore((state) => state.mapLayerSelectorValue)
 
-  // in a hazard-layer view the loss sections don't apply; show the wind
-  // speed and recurrence tables, which describe the hazard itself
   const activeLayer = getMapLayer(riskConfig, mapLayer)
 
   const periodLabel = riskConfig.timePeriodLabels

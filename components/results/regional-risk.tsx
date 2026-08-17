@@ -178,7 +178,6 @@ const RegionalRisk = () => {
 
   const isGeographyUnavailable = zoom < GEOGRAPHY_MIN_ZOOM[geographyLevel]
 
-  // hazards without regional stats render this section as a placeholder
   if (!regionalData) return null
 
   return (

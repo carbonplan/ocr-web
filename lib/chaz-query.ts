@@ -1,10 +1,8 @@
 import * as zarr from 'zarrita'
 
-// Point reader for the CHAZ v2 stores (chaz_conus_v2_*), which carry every
-// band the wind detail panel shows: the EAD summary plus its vulnerability
-// envelope, the recurrence of hurricane-force winds, and the damage/wind
-// curves along the return_period dimension. Reads level 0 (the native ~9 km
-// grid) directly with zarrita, independent of the render layer's lifecycle.
+// Point reader for the CHAZ v2 stores, which carry every band the wind detail
+// panel shows. Reads level 0 (the native ~9 km grid) directly with zarrita,
+// independent of the render layer's lifecycle.
 
 const VARS_2D = [
   'ead',
@@ -23,7 +21,7 @@ export type ChazPointData = {
   // years between threshold exceedances
   rpExceed33: number | null
   rpExceed50: number | null
-  // aligned arrays along the return_period dimension
+  // aligned along the return_period dimension
   returnPeriods: number[]
   damageFraction: (number | null)[]
   windSpeed: (number | null)[]
@@ -65,15 +63,14 @@ const openStore = (source: string): Promise<OpenedStore> => {
         arrays: Object.fromEntries(names.map((name, i) => [name, varArrs[i]])),
       }
     })()
-    // let a transient failure (offline, store mid-upload) retry next query
+    // let a transient failure retry on the next query
     entry.catch(() => cache.delete(source))
     cache.set(source, entry)
   }
   return entry
 }
 
-// index of the nearest coordinate, or null when the point falls outside the
-// grid by more than half a cell
+// null when the point falls outside the grid by more than half a cell
 const nearestIndex = (coords: number[], value: number): number | null => {
   let best = 0
   let bestDist = Infinity

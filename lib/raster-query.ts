@@ -2,10 +2,8 @@ import type { Map } from 'maplibre-gl'
 import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import { onceMapIdle } from './map-utils'
 
-// Identifies the render layer for a given dataset. Unique per dataset because
-// removing and re-adding a custom layer under one id in a single frame leaves
-// the new layer uninitialized; the point query matches on it to be sure it is
-// reading the hazard it was asked for.
+// Unique per dataset because removing and re-adding a custom layer under one id
+// in a single frame leaves the new layer uninitialized.
 export const getZarrLayerId = (source: string, variable: string): string =>
   `zarr-raster-layer-${source.split('/').pop()}-${variable}`
 
@@ -28,14 +26,9 @@ const readPoint = async (
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
 
-// Reads the rendered variable at a point back off the render layer, which owns
-// the store's projection. Suits hazards whose results panel needs only the
-// value already being drawn; one needing other bands has to open the store
-// itself (see lib/chaz-query.ts).
-//
-// The value comes from the pyramid level on screen, so it is the native one at
-// building zoom and a coarsened mean when a bare map point is picked from
-// further out — matching what the map draws at that zoom either way.
+// Reads the rendered variable back off the render layer, which owns the store's
+// projection. The value comes from the pyramid level on screen, so it is native
+// at building zoom and a coarsened mean from further out.
 export const queryRasterPoint = async (
   map: Map,
   layer: ZarrLayer,

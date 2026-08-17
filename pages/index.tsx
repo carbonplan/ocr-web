@@ -38,8 +38,8 @@ const Index = () => {
     setShowAgreement(localStorage.getItem(AGREEMENT_KEY) !== 'true')
   }, [])
 
-  // restore hazard state from the URL before any building selection is
-  // restored, so query-mode hazards query the right store
+  // must run before the building selection is restored, so query-mode hazards
+  // query the right store
   useEffect(() => {
     if (!router.isReady) return
     const params = getHazardFromQuery(router.query)

@@ -90,9 +90,9 @@ const DURATION_BUCKETS: [number, string][] = [
 const bucketDuration = (ms: number) =>
   DURATION_BUCKETS.find(([max]) => ms < max)?.[1] ?? '5m+'
 
-// CSV output columns: [header-name, sql-expression], from the active hazard's
-// regional-data config. Value columns are cast to FLOAT because DuckDB-WASM
-// otherwise promotes them to DOUBLE in the COPY pipeline.
+// Single source of truth for CSV output columns: [header-name, sql-expression].
+// Value columns are cast to FLOAT because DuckDB-WASM otherwise promotes them
+// to DOUBLE in the COPY pipeline.
 const getCsvColumns = (columns: string[]): [string, string][] => [
   ['GEOID', 'GEOID'],
   ['longitude', 'ROUND(ST_X(ST_Centroid(geometry)), 6)'],

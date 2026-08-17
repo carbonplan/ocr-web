@@ -66,8 +66,7 @@ const ZarrLayer = () => {
     if (!map) return
 
     const layerId = getZarrLayerId(dataset.source, variable)
-    // resolved on the first loading-state emission with metadata complete —
-    // the point at which queryData becomes functional
+    // resolves once metadata has landed and queryData becomes functional
     let resolveReady: () => void
     const ready = new Promise<void>((resolve) => {
       resolveReady = resolve
@@ -92,8 +91,7 @@ const ZarrLayer = () => {
       onLoadingStateChange: (state) => {
         setZarrLoading(state.loading)
         if (!state.metadata) resolveReady()
-        // on a static map nothing repaints once initialization or chunk
-        // loads land, leaving the layer unrendered; nudge a frame
+        // a static map won't repaint on its own once chunk loads land
         map.triggerRepaint()
       },
       ...(riskConfig.rasterOptions ?? {}),

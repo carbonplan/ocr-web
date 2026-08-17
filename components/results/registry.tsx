@@ -9,8 +9,7 @@ import WindDetail from './wind-detail'
 import WindAbout from './wind-about'
 import FloodAbout from './flood-about'
 
-// Components render their own headings; title is used when a hazard config
-// marks the section as a placeholder.
+// Components render their own headings; title is only used for placeholders.
 export const RESULT_SECTIONS: Record<
   ResultSectionKey,
   { component: ComponentType; title: string }

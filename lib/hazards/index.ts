@@ -24,10 +24,8 @@ export const HAZARD_IDS = Object.keys(RISKS) as HazardId[]
 
 export const isHazardId = (value: string): value is HazardId => value in RISKS
 
-// the default map layer id: the hazard's risk view
 export const RISK_LAYER_ID = 'risk'
 
-// the active alternate map layer, or null when the risk view is selected
 export const getMapLayer = (
   config: HazardConfig,
   id: string,
@@ -36,7 +34,6 @@ export const getMapLayer = (
     ? null
     : (config.mapLayers?.find((layer) => layer.id === id) ?? null)
 
-// false for hazards pinned to a single dataset, which hides the climate row
 export const hasTimePeriods = (hazard: HazardConfig): boolean =>
   !('static' in hazard.datasets)
 

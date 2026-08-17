@@ -60,8 +60,6 @@ const Geocode = () => {
 
   useEffect(() => {
     if (selectedLocation) {
-      // area selections have no street address; show the same regional name
-      // as the marker and results panel
       setSearchQuery(
         selectedArea
           ? formatRegionName(selectedLocation.address)

@@ -5,8 +5,7 @@ import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
 import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 
-// Queries the selected building centroid or map point for query-mode hazards.
-// BuildingQueryState.value is normalized to display units.
+// Normalizes BuildingQueryState.value to display units.
 export const useBuildingQuery = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
@@ -17,8 +16,7 @@ export const useBuildingQuery = () => {
   const mapLayerId = useStore((state) => state.mapLayer)
   const map = useStore((state) => state.map)
   const zarrLayer = useStore((state) => state.zarrLayer)
-  // only the raster path reads the render layer; holding it at null otherwise
-  // keeps a layer rebuild from re-firing the store-side query
+  // null off the raster path, so a layer rebuild doesn't re-fire those queries
   const queryLayer = riskConfig.pointQuery === 'raster' ? zarrLayer : null
 
   useEffect(() => {
@@ -41,8 +39,8 @@ export const useBuildingQuery = () => {
 
     setBuildingQuery({ status: 'loading' })
 
-    // the layer is still initializing, or still belongs to the hazard being
-    // switched away from; the effect re-runs once the right one is in the store
+    // the layer is initializing or still belongs to the previous hazard; the
+    // effect re-runs once the right one is in the store
     if (
       riskConfig.pointQuery === 'raster' &&
       (!map || queryLayer?.id !== getZarrLayerId(dataset.source, variable))

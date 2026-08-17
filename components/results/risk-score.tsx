@@ -11,8 +11,7 @@ import { useColormap } from '@/lib/colormaps'
 import ValueBadge from './value-badge'
 import ScoreBar from './score-bar'
 
-// bin index matching the raster shader: bin i covers [bins[i], bins[i+1]),
-// with the last bin open-ended
+// matches the raster shader: bin i covers [bins[i], bins[i+1]), last open-ended
 const getBinIndex = (value: number, bins: number[]) => {
   for (let i = 0; i < bins.length - 1; i++) {
     if (value < bins[i + 1]) return i
@@ -40,8 +39,8 @@ const RiskScore = () => {
 
   const valueDisplay = activeLayer ? undefined : riskConfig.valueDisplay
 
-  // while a selection's address is resolving, keep the line empty; falling
-  // back to the multi-line select prompt makes the panel jump on every click
+  // stays empty while an address resolves; falling back to the multi-line
+  // prompt makes the panel jump on every click
   let content: string | ReactNode =
     selectedBuilding || selectedArea
       ? null
@@ -147,8 +146,7 @@ const RiskScore = () => {
         </Box>
       </Flex>
       {activeLayer ? (
-        // fixed-height slot so the label appearing/clearing doesn't shift
-        // the sections below
+        // fixed height so the label clearing doesn't shift the sections below
         <Box
           sx={{
             fontSize: 1,

@@ -17,7 +17,7 @@ const flood: HazardConfig = {
     'Flood risk is the modeled probability that a location has suffered flood damage, from the USGS random-forest model of Collins et al. (2022).',
   colormap: 'blues',
   binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
-  // fdp is stored as a probability in [0, 1]; display units are percent
+  // fdp is stored as a probability in [0, 1]
   unitScale: 100,
   buildingsMode: 'query',
   pointQuery: 'raster',
@@ -26,15 +26,13 @@ const flood: HazardConfig = {
   selectPrompt:
     'Select a building or point on the map to view its flood damage probability.',
   // the pyramid stays on its native 100 m Albers grid, so bounds are metres
-  // and the layer reprojects at render time
   rasterOptions: {
     zarrVersion: 3,
     proj4: FDP_PROJ4,
     bounds: [-2493045.0, 177305.0, 2342655.0, 3310005.0],
     latIsAscending: false,
   },
-  // one historical surface: the predictors describe recent conditions and the
-  // model carries no climate scenario dimension
+  // the model carries no climate scenario dimension
   datasets: {
     static: {
       source: `${FDP_BASE}/flood_damage_probability`,
