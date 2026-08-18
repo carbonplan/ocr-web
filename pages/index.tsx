@@ -5,6 +5,7 @@ import { useBreakpointIndex } from '@theme-ui/match-media'
 import { Dimmer, Guide, Header, Meta } from '@carbonplan/components'
 //@ts-expect-error - carbonplan icons types not available
 import { Info, X } from '@carbonplan/icons'
+import { withAuth } from '@carbonplan/auth'
 import {
   Agreement,
   AgreementPopup,
@@ -174,4 +175,4 @@ const Index = () => {
   )
 }
 
-export default withPlausible(Index)
+export default withAuth(withPlausible(Index), ['admin'])
