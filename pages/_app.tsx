@@ -5,6 +5,8 @@ import theme from '@/lib/theme'
 import { useStore } from '@/lib/store'
 import '@carbonplan/components/fonts.css'
 import '@carbonplan/components/globals.css'
+import { AuthProvider } from '@carbonplan/auth'
+import { BASE_PATH } from '@/lib/config'
 
 const App = ({ Component, pageProps }: AppProps) => {
   const toggleAdvancedMode = useStore((state) => state.toggleAdvancedMode)
@@ -22,9 +24,17 @@ const App = ({ Component, pageProps }: AppProps) => {
   }, [toggleAdvancedMode])
 
   return (
-    <ThemeProvider theme={theme}>
-      <Component {...pageProps} />
-    </ThemeProvider>
+    <AuthProvider
+      config={{
+        useLocalStorage: false,
+        apiRoute: BASE_PATH + '/api/auth',
+        loginRoute: BASE_PATH + '/login',
+      }}
+    >
+      <ThemeProvider theme={theme}>
+        <Component {...pageProps} />
+      </ThemeProvider>
+    </AuthProvider>
   )
 }
 
