@@ -73,7 +73,7 @@ const TableCell = ({
 
 const sx = {
   tableHead: {
-    fontSize: 1,
+    fontSize: [1, 1, 1, 2],
     fontFamily: 'mono',
     letterSpacing: 'mono',
     textTransform: 'uppercase' as const,
