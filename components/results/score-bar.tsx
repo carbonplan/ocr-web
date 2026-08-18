@@ -62,7 +62,7 @@ const ScoreBar = ({
                               position: 'absolute',
                               height: `5px`,
                               bottom: '-12px',
-                              left: '-2.5px',
+                              left: '-1.5px',
                               color:
                                 color === colormap[i] ||
                                 color === colormap[i - 1]
@@ -76,9 +76,10 @@ const ScoreBar = ({
                           <Box
                             sx={{
                               position: 'absolute',
-                              bottom: '-28px',
-                              left: `-${displayText.length * 4.2}px`,
-                              fontSize: 0,
+                              bottom: ['-28px', '-28px', '-28px', '-31px'],
+                              left: '-1px',
+                              transform: 'translateX(-50%)',
+                              fontSize: [0, 0, 0, 1],
                               fontFamily: 'mono',
                               letterSpacing: 'mono',
                               color:

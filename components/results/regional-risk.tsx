@@ -201,7 +201,7 @@ const RegionalRisk = () => {
           }}
           sx={{
             '& select': {
-              fontSize: 1,
+              fontSize: [1, 1, 1, 2],
               fontFamily: 'mono',
               letterSpacing: 'mono',
               textTransform: 'uppercase',
@@ -224,7 +224,7 @@ const RegionalRisk = () => {
             fontFamily: 'mono',
             letterSpacing: 'mono',
             textTransform: 'uppercase',
-            fontSize: 1,
+            fontSize: [1, 1, 1, 2],
             cursor: 'pointer',
           }}
         >
@@ -370,7 +370,7 @@ const RegionalRisk = () => {
               letterSpacing: 'mono',
               textTransform: 'uppercase',
               color: 'secondary',
-              fontSize: 1,
+              fontSize: [1, 1, 1, 2],
               whiteSpace: 'nowrap',
             },
             '& tr td:last-of-type': {

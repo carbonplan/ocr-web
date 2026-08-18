@@ -89,7 +89,7 @@ const RiskCalculation = () => {
 
   return (
     <>
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 2, variant: 'description' }}>
         The risk scoring system is a categorical classification of continuous
         values of annual risk of loss, which is computed at every location with
         the following equation:
