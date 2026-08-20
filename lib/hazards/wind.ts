@@ -28,30 +28,20 @@ const wind: HazardConfig = {
     zarrVersion: 3,
   },
   // ead is the rendered band; the same stores carry the curves and recurrence
-  // bands the building query reads (see lib/chaz-query.ts). Bounds are per
-  // store because the ERA5 grid sits half a cell off the CMIP-median grids.
+  // bands the building query reads (see lib/chaz-query.ts)
   datasets: {
     current: {
       source: chazUrl('chaz_conus_v2_ERA5_points'),
       variable: 'ead',
-      bounds: [-125.0, 24.0, -66.0, 50.5],
     },
     future: {
       fut1: {
         source: chazUrl('chaz_conus_v2_ssp370_fut1_CRH_median_points'),
         variable: 'ead',
-        bounds: [
-          -125.04166666666666, 23.958333333333336, -65.95833333333334,
-          50.541666666666664,
-        ],
       },
       fut2: {
         source: chazUrl('chaz_conus_v2_ssp370_fut2_CRH_median_points'),
         variable: 'ead',
-        bounds: [
-          -125.04166666666666, 23.958333333333336, -65.95833333333334,
-          50.541666666666664,
-        ],
       },
     },
   },

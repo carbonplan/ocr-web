@@ -15,8 +15,6 @@ export type HazardSelection = {
 export type HazardDataset = {
   source: string
   variable: string
-  // overrides rasterOptions.bounds; skips the layer's coordinate-array fetch
-  bounds?: [number, number, number, number]
 }
 
 // Only needed for stores whose metadata doesn't fully describe the grid.

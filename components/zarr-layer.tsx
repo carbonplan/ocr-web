@@ -89,7 +89,6 @@ const ZarrLayer = () => {
         map.triggerRepaint()
       },
       ...(riskConfig.rasterOptions ?? {}),
-      ...(dataset.bounds ? { bounds: dataset.bounds } : {}),
     })
 
     layerRef.current = layer
