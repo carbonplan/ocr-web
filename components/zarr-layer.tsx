@@ -66,11 +66,6 @@ const ZarrLayer = () => {
     if (!map) return
 
     const layerId = getZarrLayerId(dataset.source, variable)
-    // resolves once metadata has landed and queryData becomes functional
-    let resolveReady: () => void
-    const ready = new Promise<void>((resolve) => {
-      resolveReady = resolve
-    })
     const layer = new ZarrLayerClass({
       id: layerId,
       source: dataset.source,
@@ -90,7 +85,6 @@ const ZarrLayer = () => {
       opacity: useStore.getState().riskRaster ? 1 : 0,
       onLoadingStateChange: (state) => {
         setZarrLoading(state.loading)
-        if (!state.metadata) resolveReady()
         // a static map won't repaint on its own once chunk loads land
         map.triggerRepaint()
       },
@@ -101,7 +95,7 @@ const ZarrLayer = () => {
     layerRef.current = layer
     map.addLayer(layer, 'hillshade')
     map.triggerRepaint()
-    setZarrLayer(layer, ready)
+    setZarrLayer(layer)
 
     return () => {
       if (map.getLayer(layerId)) {

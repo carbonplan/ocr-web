@@ -14,7 +14,6 @@ export const useBuildingQuery = () => {
   const futureWindow = useStore((state) => state.futureWindow)
   const setBuildingQuery = useStore((state) => state.setBuildingQuery)
   const mapLayerId = useStore((state) => state.mapLayer)
-  const map = useStore((state) => state.map)
   const zarrLayer = useStore((state) => state.zarrLayer)
   // null off the raster path, so a layer rebuild doesn't re-fire those queries
   const queryLayer = riskConfig.pointQuery === 'raster' ? zarrLayer : null
@@ -39,11 +38,11 @@ export const useBuildingQuery = () => {
 
     setBuildingQuery({ status: 'loading' })
 
-    // the layer is initializing or still belongs to the previous hazard; the
-    // effect re-runs once the right one is in the store
+    // the layer still belongs to the previous hazard; the effect re-runs once
+    // the right one is in the store
     if (
       riskConfig.pointQuery === 'raster' &&
-      (!map || queryLayer?.id !== getZarrLayerId(dataset.source, variable))
+      queryLayer?.id !== getZarrLayerId(dataset.source, variable)
     ) {
       return
     }
@@ -52,9 +51,7 @@ export const useBuildingQuery = () => {
 
     const query = async (): Promise<BuildingQueryState> => {
       if (riskConfig.pointQuery === 'raster') {
-        await useStore.getState().zarrLayerReady
         const value = await queryRasterPoint(
-          map!,
           queryLayer!,
           variable,
           point,
@@ -93,7 +90,6 @@ export const useBuildingQuery = () => {
     futureWindow,
     setBuildingQuery,
     mapLayerId,
-    map,
     queryLayer,
   ])
 }

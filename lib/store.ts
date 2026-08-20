@@ -100,9 +100,7 @@ type Store = {
   buildingQuery: BuildingQueryState
   setBuildingQuery: (buildingQuery: BuildingQueryState) => void
   zarrLayer: ZarrLayer | null
-  // resolves once the store metadata has loaded and queryData is functional
-  zarrLayerReady: Promise<void> | null
-  setZarrLayer: (zarrLayer: ZarrLayer | null, ready?: Promise<void>) => void
+  setZarrLayer: (zarrLayer: ZarrLayer | null) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
   riskConfig: HazardConfig
@@ -222,9 +220,7 @@ export const useStore = create<Store>((set, get) => ({
   buildingQuery: { status: 'idle' },
   setBuildingQuery: (buildingQuery) => set({ buildingQuery }),
   zarrLayer: null,
-  zarrLayerReady: null,
-  setZarrLayer: (zarrLayer, ready) =>
-    set({ zarrLayer, zarrLayerReady: ready ?? null }),
+  setZarrLayer: (zarrLayer) => set({ zarrLayer }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS[DEFAULT_HAZARD],
