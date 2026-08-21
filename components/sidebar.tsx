@@ -6,6 +6,7 @@ import { Sidebar } from '@carbonplan/layouts'
 import { Display, Geocode, Results } from '../components'
 import Intro from './intro'
 import RiskSelector from './risk-selector'
+import { StickyStack } from './sticky-stack'
 import LayerSelector from './layer-selector'
 import ClimateSelector from './climate-selector'
 
@@ -38,10 +39,12 @@ const SidebarComponent = () => {
       <Sidebar expanded={true} side='left' width={4}>
         <div ref={sidebarRef}>
           <Intro />
-          <Geocode />
-          <RiskSelector />
-          <LayerSelector />
-          <ClimateSelector />
+          <StickyStack>
+            <Geocode />
+            <RiskSelector />
+            <LayerSelector />
+            <ClimateSelector />
+          </StickyStack>
           <Results />
           {advancedMode && <Display />}
         </div>

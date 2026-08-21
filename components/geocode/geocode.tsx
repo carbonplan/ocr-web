@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { mix } from '@theme-ui/color'
 import { ensureSourceLoaded } from '@/lib/map-utils'
@@ -15,6 +15,7 @@ import { BASE_PATH, LAYERS } from '@/lib/config'
 import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
+import { useStickyBlock } from '../sticky-stack'
 
 const MIN_QUERY_LENGTH = 3
 
@@ -26,7 +27,17 @@ const Geocode = () => {
   const [suggestionsQuery, setSuggestionsQuery] = useState('')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 500)
-  const wrapperRef = useRef<HTMLDivElement>(null)
+  const wrapperRef = useRef<HTMLDivElement | null>(null)
+  const { ref: stickyRef, sx: stickySx } = useStickyBlock(0, {
+    fallbackTop: -25,
+  })
+  const setWrapperNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      wrapperRef.current = node
+      stickyRef(node)
+    },
+    [stickyRef],
+  )
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -255,10 +266,7 @@ const Geocode = () => {
   }
 
   return (
-    <Box
-      ref={wrapperRef}
-      sx={{ width: '100%', position: 'sticky', top: -25, zIndex: 10 }}
-    >
+    <Box ref={setWrapperNode} sx={{ width: '100%', ...stickySx }}>
       <Box
         onClick={() => inputRef.current?.focus()}
         sx={{

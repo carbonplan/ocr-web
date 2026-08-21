@@ -11,6 +11,7 @@ import {
 import { SidebarDivider } from '@carbonplan/layouts'
 
 import { useStore } from '@/lib/store'
+import { useStickyBlock } from './sticky-stack'
 import { hasTimePeriods } from '@/lib/hazards'
 import TooltipWrapper from './tooltip'
 
@@ -24,13 +25,14 @@ const ClimateSelector = () => {
     (state) => state.riskConfig.timePeriodLabels,
   )
   const showClimate = useStore((state) => hasTimePeriods(state.riskConfig))
+  const { ref: stickyRef, sx: stickySx } = useStickyBlock(3, {
+    fallbackTop: -25 + 55.59,
+  })
 
   if (!showClimate) return null
 
   return (
-    <Box
-      sx={{ width: '100%', position: 'sticky', top: -25 + 55.59, zIndex: 9 }}
-    >
+    <Box ref={stickyRef} sx={{ width: '100%', ...stickySx }}>
       <Box
         sx={{
           background: 'background',
