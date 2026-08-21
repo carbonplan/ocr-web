@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner } from 'theme-ui'
+import { Box, Flex, Spinner, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
 import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
@@ -12,13 +12,13 @@ import WindCurve from './wind-curve'
 const formatYears = (years: number) =>
   years < 10 ? format('.1~f')(years) : format(',.0f')(Math.round(years))
 
-const monoLabelSx = {
-  fontSize: 1,
+const monoLabelSx: ThemeUIStyleObject = {
+  fontSize: [1, 1, 1, 2],
   fontFamily: 'mono',
   letterSpacing: 'mono',
   textTransform: 'uppercase',
   color: 'secondary',
-} as const
+}
 
 // a null value means the threshold is never reached in the event set
 const RecurrenceTable = ({
@@ -142,7 +142,7 @@ const WindSpeedTable = ({
         )
       })}
       {windSpeedLower && windSpeedUpper && (
-        <Box sx={{ mt: 2, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
+        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           The shaded band and ranges span the CHAZ simulations driven by six
           CMIP6 climate models; the line and main values are their median.
         </Box>
@@ -204,12 +204,12 @@ const WindDetail = () => {
           rp33={detail?.rpExceed33 ?? null}
           rp50={detail?.rpExceed50 ?? null}
         />
-        <Box sx={{ mt: 3, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
+        <Box variant='description' sx={{ mt: 3, color: 'secondary' }}>
           Values describe ~9 km grid cells, so nearby buildings share them.
         </Box>
         {buildingQuery.status === 'error' &&
           (selectedBuilding || selectedArea) && (
-            <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
+            <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
               No wind data is available for this location.
             </Box>
           )}
@@ -233,17 +233,7 @@ const WindDetail = () => {
         tooltip='The range covers the middle 50% of damage-model fits to historical hurricane losses, the dominant uncertainty in absolute tropical cyclone risk.'
       >
         <Flex sx={{ gap: 3, alignItems: 'baseline' }}>
-          <Box
-            sx={{
-              fontSize: 1,
-              fontFamily: 'mono',
-              letterSpacing: 'mono',
-              textTransform: 'uppercase',
-              color: 'secondary',
-            }}
-          >
-            Annual loss
-          </Box>
+          <Box sx={monoLabelSx}>Annual loss</Box>
           {buildingQuery.status === 'loading' ? (
             <Spinner size={16} />
           ) : (
@@ -280,12 +270,12 @@ const WindDetail = () => {
         unitScale={riskConfig.unitScale}
         color={riskConfig.accentColor}
       />
-      <Box sx={{ mt: 3, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
+      <Box variant='description' sx={{ mt: 3, color: 'secondary' }}>
         Values describe ~9 km grid cells, so nearby buildings share them.
       </Box>
       {buildingQuery.status === 'error' &&
         (selectedBuilding || selectedArea) && (
-          <Box sx={{ mt: 2, color: 'secondary', fontSize: [1, 1, 1, 2] }}>
+          <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
             No wind data is available for this location.
           </Box>
         )}
