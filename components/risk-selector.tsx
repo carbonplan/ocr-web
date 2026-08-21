@@ -22,7 +22,7 @@ const RiskSelector = () => {
     <Box sx={{ width: '100%', pt: 3 }}>
       <Row columns={[6, 8, 4, 4]}>
         <Column start={[1]} width={1}>
-          <Box variant='label'>Risk</Box>
+          <Box variant='label'>Hazard</Box>
         </Column>
         <Column start={[3, 2, 2, 2]} width={[4, 7, 3, 3]} sx={{ mb: '-5px' }}>
           <TooltipWrapper
