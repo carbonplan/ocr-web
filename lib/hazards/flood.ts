@@ -11,6 +11,7 @@ const flood: HazardConfig = {
   description:
     'Flood risk is the modeled probability that a location has suffered flood damage, from the USGS random-forest model of Collins et al. (2022).',
   colormap: 'blues',
+  // placeholder decile score bins until flood scoring is calibrated
   binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
   // fdp is stored as a probability in [0, 1]
   unitScale: 100,

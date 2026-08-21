@@ -108,7 +108,7 @@ const ScoreBar = ({
                 )}
 
                 <ValueBadge
-                  value={valueDisplay ? ' ' : `${i}`}
+                  value={`${i}`}
                   unit='#'
                   color={colormap[i]}
                   sx={{
