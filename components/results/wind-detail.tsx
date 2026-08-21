@@ -7,6 +7,7 @@ import { useColormap } from '@/lib/colormaps'
 import TooltipWrapper from '../tooltip'
 import ValueBadge from './value-badge'
 import DamageCurve from './damage-curve'
+import WindCurve from './wind-curve'
 
 const formatYears = (years: number) =>
   years < 10 ? format('.1~f')(years) : format(',.0f')(Math.round(years))
@@ -64,11 +65,15 @@ const WindSpeedTable = ({
   layer,
   returnPeriods,
   windSpeed,
+  windSpeedLower,
+  windSpeedUpper,
   selectedRp,
 }: {
   layer: HazardMapLayer
   returnPeriods: number[]
   windSpeed: (number | null)[]
+  windSpeedLower: (number | null)[] | null
+  windSpeedUpper: (number | null)[] | null
   selectedRp: number | null
 }) => {
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
@@ -91,6 +96,15 @@ const WindSpeedTable = ({
       {returnPeriods.map((rp, i) => {
         const value =
           windSpeed[i] == null ? null : windSpeed[i]! * layer.unitScale
+        const lower = windSpeedLower?.[i]
+        const upper = windSpeedUpper?.[i]
+        const range =
+          lower == null || upper == null
+            ? null
+            : ([lower * layer.unitScale, upper * layer.unitScale] as [
+                number,
+                number,
+              ])
         const selected = rp === selectedRp
         return (
           <Flex
@@ -112,14 +126,27 @@ const WindSpeedTable = ({
             >
               1-in-{format(',')(rp)} year storm
             </Box>
-            <ValueBadge
-              value={value === null ? null : `${Math.round(value)} mph`}
-              unit={layer.unit}
-              color={value === null ? undefined : binColor(value)}
-            />
+            <Flex sx={{ gap: 2, alignItems: 'baseline' }}>
+              {range && (
+                <Box sx={{ color: 'secondary', fontSize: [1, 1, 1, 2] }}>
+                  {Math.round(range[0])}&ndash;{Math.round(range[1])}
+                </Box>
+              )}
+              <ValueBadge
+                value={value === null ? null : `${Math.round(value)} mph`}
+                unit={layer.unit}
+                color={value === null ? undefined : binColor(value)}
+              />
+            </Flex>
           </Flex>
         )
       })}
+      {windSpeedLower && windSpeedUpper && (
+        <Box sx={{ mt: 2, color: 'secondary', fontSize: [0, 0, 0, 1] }}>
+          The shaded band and ranges span the CHAZ simulations driven by six
+          CMIP6 climate models; the line and main values are their median.
+        </Box>
+      )}
     </Box>
   )
 }
@@ -155,12 +182,22 @@ const WindDetail = () => {
   if (activeLayer) {
     return (
       <Box>
+        <WindCurve
+          returnPeriods={detail?.returnPeriods}
+          windSpeed={detail?.windSpeed}
+          windSpeedLower={detail?.windSpeedLower}
+          windSpeedUpper={detail?.windSpeedUpper}
+          unitScale={activeLayer.unitScale}
+          color={riskConfig.accentColor}
+        />
         <WindSpeedTable
           layer={activeLayer}
           returnPeriods={
             detail?.returnPeriods ?? activeLayer.selector?.values ?? []
           }
           windSpeed={detail?.windSpeed ?? []}
+          windSpeedLower={detail?.windSpeedLower ?? null}
+          windSpeedUpper={detail?.windSpeedUpper ?? null}
           selectedRp={selectorValue}
         />
         <RecurrenceTable

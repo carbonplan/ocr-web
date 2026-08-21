@@ -12,6 +12,8 @@ const VARS_2D = [
   'rp_exceed_50',
 ] as const
 const VARS_3D = ['damage_fraction', 'wind_speed'] as const
+// GCM min/max envelope, carried only by the median (future) stores
+const VARS_3D_BOUNDS = ['wind_speed_lower', 'wind_speed_upper'] as const
 
 export type ChazPointData = {
   // fractions per year (multiply by unitScale for display)
@@ -25,6 +27,9 @@ export type ChazPointData = {
   returnPeriods: number[]
   damageFraction: (number | null)[]
   windSpeed: (number | null)[]
+  // min/max across the GCM members; null when the store has no member spread
+  windSpeedLower: (number | null)[] | null
+  windSpeedUpper: (number | null)[] | null
 }
 
 type NumericArray = zarr.Array<zarr.NumberDataType, zarr.FetchStore>
@@ -44,23 +49,33 @@ const openStore = (source: string): Promise<OpenedStore> => {
     entry = (async () => {
       const root = zarr.root(new zarr.FetchStore(source))
       const names = [...VARS_2D, ...VARS_3D]
-      const opened = await Promise.all(
-        ['lat', 'lon', 'return_period', ...names].map(
-          (name) =>
-            zarr.open.v3(root.resolve(`0/${name}`), {
-              kind: 'array',
-            }) as Promise<NumericArray>,
+      const openArray = (name: string) =>
+        zarr.open.v3(root.resolve(`0/${name}`), {
+          kind: 'array',
+        }) as Promise<NumericArray>
+      const [opened, boundArrs] = await Promise.all([
+        Promise.all(['lat', 'lon', 'return_period', ...names].map(openArray)),
+        Promise.all(
+          VARS_3D_BOUNDS.map((name) => openArray(name).catch(() => null)),
         ),
-      )
+      ])
       const [latArr, lonArr, rpArr, ...varArrs] = opened
       const [lat, lon, rp] = await Promise.all(
         [latArr, lonArr, rpArr].map((arr) => zarr.get(arr)),
       )
+      const arrays = Object.fromEntries(
+        names.map((name, i) => [name, varArrs[i]]),
+      )
+      if (boundArrs.every((arr) => arr !== null)) {
+        VARS_3D_BOUNDS.forEach((name, i) => {
+          arrays[name] = boundArrs[i]!
+        })
+      }
       return {
         lat: Array.from(lat.data as ArrayLike<number>),
         lon: Array.from(lon.data as ArrayLike<number>),
         returnPeriods: Array.from(rp.data as ArrayLike<number>),
-        arrays: Object.fromEntries(names.map((name, i) => [name, varArrs[i]])),
+        arrays,
       }
     })()
     // let a transient failure retry on the next query
@@ -97,18 +112,19 @@ export const queryChazPoint = async (
   const ix = nearestIndex(store.lon, lng)
   if (iy === null || ix === null) return null
 
+  const hasBounds = VARS_3D_BOUNDS.every((name) => name in store.arrays)
+  const curveNames = hasBounds ? [...VARS_3D, ...VARS_3D_BOUNDS] : [...VARS_3D]
   const [scalars, curves] = await Promise.all([
     Promise.all(
       VARS_2D.map((name) => zarr.get(store.arrays[name], [iy, ix])),
     ) as Promise<number[]>,
     Promise.all(
-      VARS_3D.map((name) => zarr.get(store.arrays[name], [null, iy, ix])),
+      curveNames.map((name) => zarr.get(store.arrays[name], [null, iy, ix])),
     ),
   ])
   const [ead, eadLower, eadUpper, rpExceed33, rpExceed50] = scalars
-  const [damageFraction, windSpeed] = curves.map((chunk) =>
-    Array.from(chunk.data as ArrayLike<number>, orNull),
-  )
+  const [damageFraction, windSpeed, windSpeedLower, windSpeedUpper] =
+    curves.map((chunk) => Array.from(chunk.data as ArrayLike<number>, orNull))
 
   return {
     ead: orNull(ead),
@@ -119,5 +135,7 @@ export const queryChazPoint = async (
     returnPeriods: store.returnPeriods,
     damageFraction,
     windSpeed,
+    windSpeedLower: windSpeedLower ?? null,
+    windSpeedUpper: windSpeedUpper ?? null,
   }
 }
