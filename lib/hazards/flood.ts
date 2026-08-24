@@ -18,8 +18,7 @@ const flood: HazardConfig = {
   buildingsMode: 'query',
   pointQuery: 'raster',
   axisLabel: 'Flood damage probability',
-  selectPrompt:
-    'Select a building or point on the map to view its flood damage probability.',
+  selectPrompt: 'Select a building to view its flood risk.',
   rasterOptions: {
     zarrVersion: 3,
   },

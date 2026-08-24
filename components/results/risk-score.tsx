@@ -37,14 +37,14 @@ const RiskScore = () => {
   const activeLayer = getMapLayer(riskConfig, mapLayer)
   const { score, value, color } = useScore(selectedBuilding, 'muted')
 
+  const prompt = abbreviate
+    ? 'Select a building.'
+    : (activeLayer?.selectPrompt ?? riskConfig.selectPrompt)
+
   // stays empty while an address resolves; falling back to the multi-line
   // prompt makes the panel jump on every click
   let content: string | ReactNode =
-    selectedBuilding || selectedArea
-      ? null
-      : abbreviate
-        ? 'Select a building'
-        : (activeLayer?.selectPrompt ?? riskConfig.selectPrompt)
+    selectedBuilding || selectedArea ? null : prompt
 
   if (reverseGeocodeLoading) {
     content = <Box sx={{ color: 'secondary' }}>Loading address...</Box>
@@ -69,6 +69,8 @@ const RiskScore = () => {
     selectedArea,
     selectedLocation,
     index,
+    activeLayer?.selectPrompt,
+    riskConfig.selectPrompt,
   ])
 
   const detail =
