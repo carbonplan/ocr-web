@@ -175,6 +175,9 @@ export const useStore = create<Store>((set, get) => ({
     const config = RISKS[hazard]
     set({
       hazard,
+      timePeriod: config.datasets[get().timePeriod]
+        ? get().timePeriod
+        : 'current', // fallback to current if future unavailable
       riskConfig: config,
       mapLayer: RISK_LAYER_ID,
       mapLayerSelectorValue: null,

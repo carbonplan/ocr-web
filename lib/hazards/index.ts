@@ -34,18 +34,17 @@ export const getMapLayer = (
     ? null
     : (config.mapLayers?.find((layer) => layer.id === id) ?? null)
 
-export const hasTimePeriods = (hazard: HazardConfig): boolean =>
-  !('static' in hazard.datasets)
-
 export const resolveHazardDataset = (
   hazard: HazardConfig,
   selection: HazardSelection,
 ): HazardDataset => {
   if (hazard.resolveDataset) return hazard.resolveDataset(selection)
   const datasets = hazard.datasets
-  if ('static' in datasets) return datasets.static
   if (selection.timePeriod === 'current') return datasets.current
   const future = datasets.future
+  if (!future) {
+    throw new Error(`No future data available for ${hazard.id}`)
+  }
   return 'source' in future
     ? (future as HazardDataset)
     : (future as Record<string, HazardDataset>)[selection.futureWindow]

@@ -10,6 +10,8 @@ const flood: HazardConfig = {
   accentColor: 'blue',
   description:
     'Flood risk is the modeled probability that a location has suffered flood damage, from the USGS random-forest model of Collins et al. (2022).',
+  climateTooltip:
+    'Current estimates are from models trained on flood damage events reported between 2006 and 2020.',
   colormap: 'blues',
   // placeholder decile score bins until flood scoring is calibrated
   binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
@@ -24,7 +26,7 @@ const flood: HazardConfig = {
   },
   // the model carries no climate scenario dimension
   datasets: {
-    static: {
+    current: {
       source: `${FDP_BASE}/flood_damage_probability`,
       variable: 'fdp',
     },

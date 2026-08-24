@@ -12,7 +12,6 @@ import { SidebarDivider } from '@carbonplan/layouts'
 
 import { useStore } from '@/lib/store'
 import { useStickyBlock } from './sticky-stack'
-import { hasTimePeriods } from '@/lib/hazards'
 import TooltipWrapper from './tooltip'
 
 const ClimateSelector = () => {
@@ -24,12 +23,12 @@ const ClimateSelector = () => {
   const timePeriodLabels = useStore(
     (state) => state.riskConfig.timePeriodLabels,
   )
-  const showClimate = useStore((state) => hasTimePeriods(state.riskConfig))
+  const hasFutureClimate = useStore(
+    (state) => !!state.riskConfig.datasets.future,
+  )
   const { ref: stickyRef, sx: stickySx } = useStickyBlock(3, {
     fallbackTop: -25 + 55.59,
   })
-
-  if (!showClimate) return null
 
   return (
     <Box ref={stickyRef} sx={{ width: '100%', ...stickySx }}>
@@ -56,17 +55,18 @@ const ClimateSelector = () => {
               sx={{ justifyContent: 'flex-start', gap: 3 }}
             >
               <Filter
+                // Remount to allow Filter to memo-ize options as they change
+                key={hasFutureClimate ? 'current-future' : 'current'}
                 role='group'
                 aria-label='Select climate period'
                 variant='filter'
                 values={{
                   current: timePeriod === 'current',
-                  future: timePeriod === 'future',
+                  ...(hasFutureClimate
+                    ? { future: timePeriod === 'future' }
+                    : {}),
                 }}
-                labels={{
-                  current: 'Current',
-                  future: 'Future',
-                }}
+                labels={{ current: 'Current', future: 'Future' }}
                 setValues={(values: Record<string, boolean>) => {
                   const selectedPeriod = Object.keys(values).find(
                     (key) => values[key],
@@ -77,6 +77,7 @@ const ClimateSelector = () => {
                     setTimePeriod('future')
                   }
                 }}
+                sx={hasFutureClimate ? {} : { mr: -2 }} // Filter always adds `mr` to each Tag, even when only 1 is rendered
               />
             </TooltipWrapper>
           </Column>

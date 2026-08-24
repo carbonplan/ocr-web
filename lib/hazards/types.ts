@@ -66,13 +66,10 @@ export type HazardMapLayer = {
   ) => number | null
 }
 
-// A static dataset also hides the climate filter row.
-export type HazardDatasets =
-  | {
-      current: HazardDataset
-      future: HazardDataset | Record<FutureWindow, HazardDataset>
-    }
-  | { static: HazardDataset }
+export type HazardDatasets = {
+  current: HazardDataset
+  future?: HazardDataset | Record<FutureWindow, HazardDataset>
+}
 
 // 'raster' reads the rendered variable back off the layer; 'bands' opens the
 // store directly, for panels needing bands the map isn't drawing
