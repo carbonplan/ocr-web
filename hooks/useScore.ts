@@ -13,16 +13,25 @@ export const useScore = (
 ) => {
   const colormap = useColormap()
   const timePeriod = useStore((state) => state.timePeriod)
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
+  const buildingQuery = useStore((state) => state.buildingQuery)
+  const selectedArea = useStore((state) => state.selectedArea)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
   const [min] = useStore(useShallow((state) => state.colorLimits.bounds))
 
   let value: number | null = null
-  if (geo) {
-    value =
-      GEOGRAPHY_ATTRIBUTE_KEYS.building_count in geo &&
-      GEOGRAPHY_ATTRIBUTE_KEYS.geoid in geo
-        ? Number(geo[getGeographyMedianRiskKey(timePeriod)])
-        : getRiskScore(geo, timePeriod)
+  const isGeography =
+    geo &&
+    GEOGRAPHY_ATTRIBUTE_KEYS.building_count in geo &&
+    GEOGRAPHY_ATTRIBUTE_KEYS.geoid in geo
+  if (isGeography) {
+    value = Number(geo[getGeographyMedianRiskKey(timePeriod)])
+  } else if (buildingsMode === 'query') {
+    if (geo || selectedArea) {
+      value = buildingQuery.status === 'success' ? buildingQuery.value : null
+    }
+  } else if (geo) {
+    value = getRiskScore(geo, timePeriod)
   }
 
   const score = useMemo(() => {

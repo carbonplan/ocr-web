@@ -19,15 +19,24 @@ const ScoreBar = ({
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
+  const axisLabel = useStore((state) => state.riskConfig.axisLabel)
+  const valueDisplay = useStore((state) => state.riskConfig.valueDisplay)
   const colormap = useColormap()
 
-  const { score, color } = useScore(selectedBuilding, 'muted')
+  const { score, value, color } = useScore(selectedBuilding, 'muted')
+
+  let selectionLabel = ''
+  if (score && valueDisplay) {
+    selectionLabel = `, selection reads ${valueDisplay.format(value!)}`
+  } else if (score) {
+    selectionLabel = `, selected building has risk score ${score} (${bins[Number(score) - 1]}% to ${bins[Number(score)]}%)`
+  }
 
   return (
     <>
       <Flex
         role='img'
-        aria-label={`Risk score scale from 0 to 10${score ? `, selected building has risk score ${score} (${bins[Number(score) - 1]}% to ${bins[Number(score)]}%)` : ''}`}
+        aria-label={`${valueDisplay ? `${axisLabel} scale` : 'Risk score scale from 0 to 10'}${selectionLabel}`}
         sx={{
           gap: '2px',
           alignItems: 'flex-start',
@@ -122,7 +131,7 @@ const ScoreBar = ({
               '& svg': { fill: 'secondary' },
             }}
           >
-            Risk of loss
+            {axisLabel}
           </AxisLabel>
         </Chart>
       </Box>

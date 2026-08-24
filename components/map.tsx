@@ -15,6 +15,7 @@ import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
+import { useBuildingQuery } from '@/hooks/useBuildingQuery'
 import {
   Buildings,
   BuildingPoints,
@@ -33,7 +34,10 @@ import {
   getMapViewFromQuery,
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
+  getAreaCoordinatesFromQuery,
+  getHazardFromQuery,
 } from '@/lib/url-utils'
+import { DEFAULT_HAZARD, RISKS } from '@/lib/hazards'
 
 const MapComponent = () => {
   const router = useRouter()
@@ -45,6 +49,7 @@ const MapComponent = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
   const riskRaster = useStore((state) => state.riskRaster)
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -61,10 +66,11 @@ const MapComponent = () => {
 
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
+  useBuildingQuery()
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
-  const { highlightBuildingAtLocation } = useBuildingUtils()
+  const { highlightBuildingAtLocation, selectArea } = useBuildingUtils()
 
   const updateGeographies = useCallback(() => {
     if (!map) return
@@ -170,12 +176,19 @@ const MapComponent = () => {
     if (!router.isReady) return
 
     const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
-    if (!selectionCoordinates) return
-
-    map.jumpTo({
-      center: [selectionCoordinates.lng, selectionCoordinates.lat],
-      zoom: 16,
-    })
+    const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
+    if (selectionCoordinates) {
+      map.jumpTo({
+        center: [selectionCoordinates.lng, selectionCoordinates.lat],
+        zoom: 16,
+      })
+    } else if (areaCoordinates) {
+      // area selections describe coarse raster cells, so land well zoomed out
+      map.jumpTo({
+        center: [areaCoordinates.lng, areaCoordinates.lat],
+        zoom: 9,
+      })
+    }
   }, [map, router.isReady, router.query])
 
   useEffect(() => {
@@ -224,8 +237,23 @@ const MapComponent = () => {
     mapLayers.forEach((layerSpec) => updateLayerProps(layerSpec.id, layerSpec))
   }, [mapLayers, map])
 
+  const restoredSelection = useRef(false)
+
   useEffect(() => {
-    if (!map || !router.isReady) return
+    if (!map || !router.isReady || restoredSelection.current) return
+    restoredSelection.current = true
+
+    const hazard = getHazardFromQuery(router.query)?.hazard ?? DEFAULT_HAZARD
+
+    const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
+    if (areaCoordinates && RISKS[hazard].buildingsMode === 'query') {
+      const initArea = async () => {
+        await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
+        selectArea(areaCoordinates.lng, areaCoordinates.lat)
+      }
+      initArea()
+      return
+    }
 
     const selectionCoordinates = getSelectionCoordinatesFromQuery(router.query)
     if (!selectionCoordinates) return
@@ -245,6 +273,7 @@ const MapComponent = () => {
     router.isReady,
     router.query,
     highlightBuildingAtLocation,
+    selectArea,
     clearSelections,
     updateGeographies,
   ])
@@ -266,7 +295,9 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
-          {riskRaster && <ZarrLayer />}
+          {/* query-mode keeps the layer mounted so point queries still work
+              while the raster is toggled off */}
+          {(riskRaster || buildingsMode === 'query') && <ZarrLayer />}
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

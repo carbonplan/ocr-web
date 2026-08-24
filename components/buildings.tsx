@@ -14,12 +14,14 @@ const Buildings = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
-  const { selectBuilding } = useBuildingUtils()
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
+  const { selectBuilding, selectArea } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const colormap = useColormap()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
+    if (buildingsMode === 'query') return ['literal', 'transparent']
     if (!colormap?.length) return ['literal', 'transparent']
 
     const riskPercentExpression: ExpressionSpecification = [
@@ -51,7 +53,7 @@ const Buildings = () => {
     }
 
     return wrap(makeDiscrete()) as ExpressionSpecification
-  }, [colormap, riskAttribute, colorLimits.binBoundaries])
+  }, [colormap, riskAttribute, colorLimits.binBoundaries, buildingsMode])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {
     return [
@@ -60,9 +62,47 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       ['boolean', ['feature-state', 'hovered'], false],
       get(theme, 'rawColors.primary'),
-      get(theme, 'rawColors.secondary'),
+      // over the raster, muted reads against both the bin colors and the bare
+      // basemap where the raster is transparent
+      buildingsMode === 'query'
+        ? get(theme, 'rawColors.muted')
+        : get(theme, 'rawColors.secondary'),
     ] as ExpressionSpecification
-  }, [theme])
+  }, [theme, buildingsMode])
+
+  const lineWidthExpression: ExpressionSpecification = useMemo(() => {
+    const width = (selected: number, hovered: number, base: number) =>
+      [
+        'case',
+        ['boolean', ['feature-state', 'selected'], false],
+        selected,
+        ['boolean', ['feature-state', 'hovered'], false],
+        hovered,
+        base,
+      ] as ExpressionSpecification
+    if (buildingsMode === 'query') {
+      return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        12,
+        width(2, 1, 0),
+        14,
+        width(2, 1, 0.5),
+        17,
+        width(2.5, 1.5, 1),
+      ] as ExpressionSpecification
+    }
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      width(2, 1, 0),
+      14,
+      width(2, 1, 0.3),
+    ] as ExpressionSpecification
+  }, [buildingsMode])
 
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
@@ -164,11 +204,14 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
+      } else if (buildingsMode === 'query') {
+        // the raster is coarse enough that any point is meaningful
+        selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
         clearSelections()
       }
     },
-    [map, selectBuilding, clearSelections],
+    [map, selectBuilding, selectArea, clearSelections, buildingsMode],
   )
 
   useEffect(() => {
@@ -217,6 +260,15 @@ const Buildings = () => {
       lineColorExpression,
     )
   }, [map, lineColorExpression])
+
+  useEffect(() => {
+    if (!map || !map.getLayer(LAYERS.buildings.layerIds.line)) return
+    map.setPaintProperty(
+      LAYERS.buildings.layerIds.line,
+      'line-width',
+      lineWidthExpression,
+    )
+  }, [map, lineWidthExpression])
 
   return null
 }

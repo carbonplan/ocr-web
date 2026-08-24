@@ -3,6 +3,8 @@ import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import { Geocode, Results, Display } from '@/components'
 import { Drawer } from 'vaul'
+import RiskSelector from './risk-selector'
+import LayerSelector from './layer-selector'
 import ClimateSelector from './climate-selector'
 
 const MobileDrawer = () => {
@@ -13,13 +15,14 @@ const MobileDrawer = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
   const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
-    if (selectedBuilding) {
+    if (selectedBuilding || selectedArea) {
       setSnap(snapPoints[1])
     }
-  }, [selectedBuilding, setSnap, snapPoints])
+  }, [selectedBuilding, selectedArea, setSnap, snapPoints])
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -108,6 +111,8 @@ const MobileDrawer = () => {
               />
               <Box sx={{ px: 4 }}>
                 <Geocode />
+                <RiskSelector />
+                <LayerSelector />
                 <ClimateSelector />
               </Box>
             </Drawer.Handle>

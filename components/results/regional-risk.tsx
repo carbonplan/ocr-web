@@ -8,7 +8,6 @@ import { LngLatBounds } from 'maplibre-gl'
 import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
 import {
-  DATA_URLS,
   GEOGRAPHY_ATTRIBUTE_KEYS,
   GEOGRAPHY_MIN_ZOOM,
   STATISTICS_PATHS,
@@ -38,6 +37,7 @@ const GEOGRAPHY_SUMMARY_LABELS = {
 }
 
 const RegionalRisk = () => {
+  const regionalData = useStore((state) => state.riskConfig.regionalData)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const map = useStore((state) => state.map)
   const geographyLevel = useStore((state) => state.selectedGeographyLevel)
@@ -177,6 +177,8 @@ const RegionalRisk = () => {
   }, [map])
 
   const isGeographyUnavailable = zoom < GEOGRAPHY_MIN_ZOOM[geographyLevel]
+
+  if (!regionalData) return null
 
   return (
     <>
@@ -345,14 +347,14 @@ const RegionalRisk = () => {
                     label='CSV'
                     loading={false}
                     disabled={false}
-                    href={`${DATA_URLS.regionAnalysisBase}/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
+                    href={`${regionalData.statsBase}/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
                     ariaLabel={`Download summary data as CSV`}
                   />
                   <DownloadButton
                     label='GeoJSON'
                     loading={false}
                     disabled={false}
-                    href={`${DATA_URLS.regionAnalysisBase}/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
+                    href={`${regionalData.statsBase}/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
                     ariaLabel={`Download summary data as GeoJSON`}
                   />
                 </Flex>

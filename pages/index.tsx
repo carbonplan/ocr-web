@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/router'
 import { Box, Container, IconButton, Spinner } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 //@ts-expect-error - carbonplan components types not available
@@ -18,11 +19,13 @@ import {
   MapLayers,
 } from '../components'
 import { useStore } from '@/lib/store'
+import { getHazardFromQuery } from '@/lib/url-utils'
 import { withPlausible } from '@/hocs/with-plausible'
 
 const AGREEMENT_KEY = 'ocr.agreement'
 
 const Index = () => {
+  const router = useRouter()
   const [showIntro, setShowIntro] = useState(true)
   const [showAgreement, setShowAgreement] = useState(false)
   const breakpointIndex = useBreakpointIndex({ defaultIndex: 2 })
@@ -35,6 +38,26 @@ const Index = () => {
   useEffect(() => {
     setShowAgreement(localStorage.getItem(AGREEMENT_KEY) !== 'true')
   }, [])
+
+  // must run before the building selection is restored, so query-mode hazards
+  // query the right store
+  useEffect(() => {
+    if (!router.isReady) return
+    const params = getHazardFromQuery(router.query)
+    if (params) {
+      const { setHazard, setFutureWindow } = useStore.getState()
+      if (params.futureWindow) setFutureWindow(params.futureWindow)
+      setHazard(params.hazard)
+      if (params.mapLayer) {
+        const { setMapLayer, setMapLayerSelectorValue } = useStore.getState()
+        setMapLayer(params.mapLayer)
+        if (params.selectorValue !== null) {
+          setMapLayerSelectorValue(params.selectorValue)
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady])
 
   useEffect(() => {
     if (!showIntro || showAgreement) return
@@ -72,7 +95,7 @@ const Index = () => {
     <>
       <Meta
         card='https://images.carbonplan.org/social/climate-risk.png'
-        description={'Explore fire risk across the contiguous U.S.'}
+        description={'Explore climate risk across the contiguous U.S.'}
         title={'Open Climate Risk – CarbonPlan'}
       />
 

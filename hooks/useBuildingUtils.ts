@@ -3,12 +3,16 @@ import { centerOfMass, distance } from '@turf/turf'
 import { LAYERS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { Building } from '@/types/location'
-import { updateSelectedBuildingUrl } from '@/lib/url-utils'
+import {
+  updateSelectedAreaUrl,
+  updateSelectedBuildingUrl,
+} from '@/lib/url-utils'
 import { useReverseGeocode } from '@/hooks/useReverseGeocode'
 
 export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
+  const setSelectedArea = useStore((state) => state.setSelectedArea)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
@@ -68,6 +72,37 @@ export const useBuildingUtils = () => {
     ],
   )
 
+  const selectArea = useCallback(
+    (lng: number, lat: number) => {
+      if (!map) return
+
+      // removeFeatureState throws while the style is still loading
+      if (map.isStyleLoaded()) {
+        map.removeFeatureState({
+          source: LAYERS.buildings.sourceId,
+          sourceLayer: LAYERS.buildings.layerName,
+        })
+      }
+      setSelectedArea({ lat, lng })
+      updateSelectedAreaUrl({ lat, lng })
+      queryGeographiesAtPoint(lng, lat)
+
+      setSelectedLocation(null)
+      fetchAddress(lat, lng).then((location) => {
+        if (location && useStore.getState().selectedArea) {
+          setSelectedLocation(location)
+        }
+      })
+    },
+    [
+      map,
+      setSelectedArea,
+      setSelectedLocation,
+      queryGeographiesAtPoint,
+      fetchAddress,
+    ],
+  )
+
   const highlightBuildingAtLocation = useCallback(
     (
       lng: number,
@@ -121,6 +156,7 @@ export const useBuildingUtils = () => {
 
   return {
     selectBuilding,
+    selectArea,
     highlightBuildingAtLocation,
   }
 }

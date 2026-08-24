@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
+import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
@@ -10,14 +11,18 @@ import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 const ZOOM_THRESHOLD = 12
 
 const BuildingPoints = () => {
+  const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const colorLimits = useStore((state) => state.colorLimits)
   const timePeriod = useStore((state) => state.timePeriod)
+  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const colormap = useColormap()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const { highlightBuildingAtLocation } = useBuildingUtils()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
+    if (buildingsMode === 'query')
+      return ['literal', get(theme, 'rawColors.muted')]
     if (!colormap?.length) return ['literal', 'transparent']
     const scoreExpression: ExpressionSpecification = [
       'to-number',
@@ -35,7 +40,24 @@ const BuildingPoints = () => {
       colormap[0],
       ...steps,
     ] as ExpressionSpecification
-  }, [colormap, colorLimits.binBoundaries, riskAttribute])
+  }, [colormap, colorLimits.binBoundaries, riskAttribute, buildingsMode, theme])
+
+  const opacityExpression: ExpressionSpecification = useMemo(() => {
+    const fadeIn: number[] =
+      buildingsMode === 'query'
+        ? [ZOOM_THRESHOLD - 1, 0, ZOOM_THRESHOLD, 1]
+        : []
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      ...fadeIn,
+      14,
+      1,
+      14.5,
+      0,
+    ] as ExpressionSpecification
+  }, [buildingsMode])
 
   const handlePointEnter = useCallback(() => {
     if (map && map.getZoom() > ZOOM_THRESHOLD) {
@@ -123,6 +145,15 @@ const BuildingPoints = () => {
       colorExpression,
     )
   }, [map, colorExpression])
+
+  useEffect(() => {
+    if (!map || !map.getLayer(LAYERS.buildingPoints.layerIds.circle)) return
+    map.setPaintProperty(
+      LAYERS.buildingPoints.layerIds.circle,
+      'circle-opacity',
+      opacityExpression,
+    )
+  }, [map, opacityExpression])
 
   return null
 }
