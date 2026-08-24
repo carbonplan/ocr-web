@@ -25,11 +25,12 @@ const ScoreBar = ({
 
   const { score, value, color } = useScore(selectedBuilding, 'muted')
 
-  const selectionLabel = score
-    ? valueDisplay
-      ? `, selection reads ${valueDisplay.format(value!)}`
-      : `, selected building has risk score ${score} (${bins[Number(score) - 1]}% to ${bins[Number(score)]}%)`
-    : ''
+  let selectionLabel = ''
+  if (score && valueDisplay) {
+    selectionLabel = `, selection reads ${valueDisplay.format(value!)}`
+  } else if (score) {
+    selectionLabel = `, selected building has risk score ${score} (${bins[Number(score) - 1]}% to ${bins[Number(score)]}%)`
+  }
 
   return (
     <>

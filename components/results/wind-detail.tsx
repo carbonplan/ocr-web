@@ -155,11 +155,13 @@ const WindDetail = () => {
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
 
-  const periodLabel = riskConfig.timePeriodLabels
-    ? timePeriod === 'current'
-      ? riskConfig.timePeriodLabels.current
-      : riskConfig.timePeriodLabels.future[futureWindow]
-    : null
+  let periodLabel
+  if (riskConfig.timePeriodLabels) {
+    periodLabel =
+      timePeriod === 'current'
+        ? riskConfig.timePeriodLabels.current
+        : riskConfig.timePeriodLabels.future[futureWindow]
+  }
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
