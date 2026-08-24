@@ -58,12 +58,29 @@ const RiskScore = () => {
       }) || 'Selected building'
   }
 
+  // whenever the displayed text changes, reset abbreviation flag.
   useLayoutEffect(() => {
-    const lineHeight = index > 2 ? 25 : 22
-    const shouldAbbreviate =
-      !!ref.current && ref.current.clientHeight > lineHeight
-    setAbbreviate(shouldAbbreviate)
+    setAbbreviate(false)
   }, [
+    reverseGeocodeLoading,
+    selectedBuilding,
+    selectedArea,
+    selectedLocation,
+    index,
+    activeLayer?.selectPrompt,
+    riskConfig.selectPrompt,
+  ])
+
+  // only ever abbreviates: the reset above is the sole way back, so this can
+  // never measure text it shortened itself
+  useLayoutEffect(() => {
+    if (abbreviate) return
+    const lineHeight = index > 2 ? 25 : 22
+    if (ref.current && ref.current.clientHeight > lineHeight) {
+      setAbbreviate(true)
+    }
+  }, [
+    abbreviate,
     reverseGeocodeLoading,
     selectedBuilding,
     selectedArea,
