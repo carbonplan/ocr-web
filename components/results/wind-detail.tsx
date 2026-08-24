@@ -12,14 +12,6 @@ import WindCurve from './wind-curve'
 const formatYears = (years: number) =>
   years < 10 ? format('.1~f')(years) : format(',.0f')(Math.round(years))
 
-const monoLabelSx: ThemeUIStyleObject = {
-  fontSize: [1, 1, 1, 2],
-  fontFamily: 'mono',
-  letterSpacing: 'mono',
-  textTransform: 'uppercase',
-  color: 'secondary',
-}
-
 // a null value means the threshold is never reached in the event set
 const RecurrenceTable = ({
   rp33,
@@ -36,8 +28,8 @@ const RecurrenceTable = ({
   return (
     <Box sx={{ mt: 3 }}>
       <Flex sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <Box sx={monoLabelSx}>Storm winds</Box>
-        <Box sx={monoLabelSx}>Once every</Box>
+        <Box variant='label'>Storm winds</Box>
+        <Box variant='label'>Once every</Box>
       </Flex>
       {rows.map(({ label, years }) => (
         <Flex
@@ -50,7 +42,7 @@ const RecurrenceTable = ({
             borderColor: 'muted',
           }}
         >
-          <Box sx={{ fontSize: [1, 1, 1, 2] }}>{label}</Box>
+          <Box>{label}</Box>
           <ValueBadge
             value={years === null ? null : `${formatYears(years)} yrs`}
             unit='yrs'
@@ -90,8 +82,8 @@ const WindSpeedTable = ({
   return (
     <Box sx={{ mt: 3 }}>
       <Flex sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <Box sx={monoLabelSx}>Storm rarity</Box>
-        <Box sx={monoLabelSx}>Peak winds</Box>
+        <Box variant='label'>Storm rarity</Box>
+        <Box variant='label'>Peak winds</Box>
       </Flex>
       {returnPeriods.map((rp, i) => {
         const value =
@@ -233,7 +225,7 @@ const WindDetail = () => {
         tooltip='The range covers the middle 50% of damage-model fits to historical hurricane losses, the dominant uncertainty in absolute tropical cyclone risk.'
       >
         <Flex sx={{ gap: 3, alignItems: 'baseline' }}>
-          <Box sx={monoLabelSx}>Annual loss</Box>
+          <Box variant='label'>Annual loss</Box>
           {buildingQuery.status === 'loading' ? (
             <Spinner size={16} />
           ) : (
