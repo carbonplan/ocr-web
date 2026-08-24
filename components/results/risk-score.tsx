@@ -37,8 +37,6 @@ const RiskScore = () => {
   const activeLayer = getMapLayer(riskConfig, mapLayer)
   const { score, value, color } = useScore(selectedBuilding, 'muted')
 
-  const valueDisplay = activeLayer ? undefined : riskConfig.valueDisplay
-
   // stays empty while an address resolves; falling back to the multi-line
   // prompt makes the panel jump on every click
   let content: string | ReactNode =
@@ -94,11 +92,7 @@ const RiskScore = () => {
   return (
     <>
       <Box as='h2' variant='sectionHeading' sx={{ mt: 3, mb: 2 }}>
-        {activeLayer
-          ? activeLayer.label
-          : valueDisplay
-            ? riskConfig.axisLabel
-            : 'Risk score'}
+        {activeLayer ? activeLayer.label : 'Risk score'}
       </Box>
       <Flex sx={{ gap: 3, mb: 3 }}>
         {activeLayer ? (
@@ -124,13 +118,7 @@ const RiskScore = () => {
           />
         ) : (
           <ValueBadge
-            value={
-              valueDisplay
-                ? value === null
-                  ? null
-                  : valueDisplay.format(value)
-                : score
-            }
+            value={score}
             unit='#'
             color={value === null ? undefined : color}
             sx={{

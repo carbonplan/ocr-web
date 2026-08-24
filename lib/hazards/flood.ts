@@ -17,7 +17,6 @@ const flood: HazardConfig = {
   unitScale: 100,
   buildingsMode: 'query',
   pointQuery: 'raster',
-  valueDisplay: { format: (value) => `${Math.round(value)}%` },
   axisLabel: 'Flood damage probability',
   selectPrompt:
     'Select a building or point on the map to view its flood damage probability.',
