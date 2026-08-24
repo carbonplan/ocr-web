@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner, ThemeUIStyleObject } from 'theme-ui'
+import { Box, Flex, Spinner } from 'theme-ui'
 import { format } from 'd3-format'
 import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
