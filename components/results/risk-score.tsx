@@ -78,16 +78,14 @@ const RiskScore = () => {
     const raw = activeLayer.pointValue(detail, selectorValue)
     layerValue = raw === null ? null : raw * activeLayer.unitScale
   }
-  const layerBinIndex =
-    layerValue === null ? null : getBinIndex(layerValue, bins)
-  const layerColor =
-    layerBinIndex === null
-      ? undefined
-      : layerValue === 0
-        ? colormap[0]
-        : colormap[layerBinIndex + 1]
-  const layerBinLabel =
-    layerBinIndex === null ? null : activeLayer?.binLabels?.[layerBinIndex]
+
+  let layerBinIndex, layerColor, layerBinLabel
+  if (layerValue !== null) {
+    layerBinIndex = getBinIndex(layerValue, bins)
+    // colormap[0] is the neutral "no value" swatch; bin i is colormap[i + 1]
+    layerColor = layerValue === 0 ? colormap[0] : colormap[layerBinIndex + 1]
+    layerBinLabel = activeLayer?.binLabels?.[layerBinIndex]
+  }
 
   return (
     <>
