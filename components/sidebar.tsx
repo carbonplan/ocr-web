@@ -4,11 +4,10 @@ import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar } from '@carbonplan/layouts'
 import { Display, Geocode, Results } from '../components'
-import Intro from './intro'
-import RiskSelector from './risk-selector'
 import { StickyStack } from './sticky-stack'
-import LayerSelector from './layer-selector'
+import HazardSelector from './hazard-selector'
 import ClimateSelector from './climate-selector'
+import TimePeriodSelector from './time-period-selector'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -38,13 +37,24 @@ const SidebarComponent = () => {
     <Box sx={{ display: ['none', 'none', 'block'] }}>
       <Sidebar expanded={true} side='left' width={4}>
         <div ref={sidebarRef}>
-          <Intro />
           <StickyStack>
-            <Geocode />
-            <RiskSelector />
-            <LayerSelector />
+            <Box
+              as='h1'
+              sx={{
+                fontSize: [4, 5, 5, 6],
+                fontFamily: 'heading',
+                letterSpacing: 'heading',
+                lineHeight: 'heading',
+                mb: 3,
+              }}
+            >
+              Open Climate Risk
+            </Box>
+            <HazardSelector />
             <ClimateSelector />
+            <TimePeriodSelector />
           </StickyStack>
+          <Geocode />
           <Results />
           {advancedMode && <Display />}
         </div>
