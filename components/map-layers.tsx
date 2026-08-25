@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { Box, Flex } from 'theme-ui'
-import { useBreakpointIndex } from '@theme-ui/match-media'
-//@ts-expect-error - carbonplan layouts types not available
-import { SidebarAttachment } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan components types not available
 import { Expander } from '@carbonplan/components'
 import { useStore } from '@/lib/store'
 import EyeCheckbox from './eye-checkbox'
+import Section from './section'
 
 const sx = {
   text: {
@@ -116,33 +114,5 @@ const LayersSelector = () => {
 }
 
 export default function MapLayers() {
-  const index = useBreakpointIndex({ defaultIndex: 2 })
-
-  if (index >= 2) {
-    return (
-      <SidebarAttachment
-        expanded={true}
-        side='left'
-        width={4}
-        sx={{ bottom: '10px', ml: '-6px' }}
-      >
-        <LayersSelector />
-      </SidebarAttachment>
-    )
-  }
-
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        zIndex: 1,
-        top: '60px',
-        right: '10px',
-        ml: 3,
-        mb: 2,
-      }}
-    >
-      <LayersSelector />
-    </Box>
-  )
+  return <Section label='Map layers'>TK</Section>
 }

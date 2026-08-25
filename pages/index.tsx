@@ -16,7 +16,6 @@ import {
   MobileDrawer,
   Intro,
   Loading,
-  MapLayers,
 } from '../components'
 import { useStore } from '@/lib/store'
 import { getHazardFromQuery } from '@/lib/url-utils'
@@ -190,7 +189,6 @@ const Index = () => {
       >
         {isMobile ? <MobileDrawer /> : <Sidebar />}
         <Loading />
-        <MapLayers />
         <Map />
         <Legend />
       </Box>

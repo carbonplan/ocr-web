@@ -56,8 +56,6 @@ export type HazardMapLayer = {
   binBoundaries: number[]
   binLabels?: string[]
   description: string
-  // replaces the hazard's selectPrompt while this layer is active
-  selectPrompt?: string
   selector?: HazardLayerSelector
   // reads this layer's value, in store units, off the point-query result
   pointValue?: (
@@ -82,24 +80,8 @@ export type HazardValueDisplay = {
   format: (value: number) => string
 }
 
-export type ResultSectionKey =
-  | 'riskCalculation'
-  | 'timeHorizons'
-  | 'regionalRisk'
-  | 'otherFactors'
-  | 'fireAbout'
-  | 'windDetail'
-  | 'windAbout'
-  | 'floodAbout'
-
-export type ResultSection = {
-  key: ResultSectionKey
-  // when set, replaces the component with this "in production" copy
-  placeholder?: string
-}
-
 export type HazardConfig = {
-  id: string
+  id: 'fire' | 'flood' | 'wind'
   label: string
   accentColor: string
   description: string
@@ -114,7 +96,6 @@ export type HazardConfig = {
   pointQuery?: PointQuerySource
   valueDisplay?: HazardValueDisplay
   axisLabel: string
-  selectPrompt: string
   climateTooltip?: string
   rasterOptions?: HazardRasterOptions
   datasets: HazardDatasets
@@ -122,7 +103,6 @@ export type HazardConfig = {
     current: string
     future?: string | Record<FutureWindow, string>
   }
-  results: ResultSection[]
   regionalData?: RegionalDataConfig
   // when mapLayers is present the LAYER row renders with the risk view
   // (labeled riskLayerLabel) first

@@ -20,7 +20,6 @@ const wind: HazardConfig = {
   buildingsMode: 'query',
   pointQuery: 'bands',
   axisLabel: 'Expected annual loss',
-  selectPrompt: 'Select a building to view its wind risk.',
   climateTooltip:
     'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1981-2019). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
   // declaring v3 skips the render layer's 404ing probes for v2 metadata
@@ -74,7 +73,6 @@ const wind: HazardConfig = {
       ],
       description:
         'Peak 1-minute sustained wind speed expected from a storm of the selected rarity, binned by Saffir-Simpson category.',
-      selectPrompt: 'Select a building or a point.',
       selector: {
         dim: 'return_period',
         values: [10, 25, 50, 100, 250, 1000],
@@ -89,14 +87,6 @@ const wind: HazardConfig = {
         return index >= 0 ? detail.windSpeed[index] : null
       },
     },
-  ],
-  results: [
-    { key: 'windDetail' },
-    {
-      key: 'regionalRisk',
-      placeholder: 'Regional wind statistics are in production.',
-    },
-    { key: 'windAbout' },
   ],
 }
 

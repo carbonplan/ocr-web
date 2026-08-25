@@ -12,7 +12,6 @@ const fire: HazardConfig = {
   unitScale: 1,
   buildingsMode: 'attributes',
   axisLabel: 'Risk of loss',
-  selectPrompt: 'Select a building to view its wildfire risk.',
   climateTooltip:
     'Current risk estimates are based on a climate circa 2004-2018, while future estimates use a climate representative of 2040-2054. Both estimates use vegetation from the early 2020s.',
   rasterOptions: {
@@ -28,13 +27,6 @@ const fire: HazardConfig = {
     current: { source: DATA_URLS.raster, variable: 'rps_2011' },
     future: { source: DATA_URLS.raster, variable: 'rps_2047' },
   },
-  results: [
-    { key: 'riskCalculation' },
-    { key: 'timeHorizons' },
-    { key: 'regionalRisk' },
-    { key: 'otherFactors' },
-    { key: 'fireAbout' },
-  ],
   timePeriodLabels: {
     current: '2004-2018',
     future: '2040-2054',

@@ -3,11 +3,15 @@ import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar } from '@carbonplan/layouts'
-import { Display, Geocode, Results } from '../components'
+import { Display, Geocode, MapLayers } from '../components'
 import { StickyStack } from './sticky-stack'
 import HazardSelector from './hazard-selector'
 import ClimateSelector from './climate-selector'
 import TimePeriodSelector from './time-period-selector'
+import Footer from './footer'
+import Colorbar from './colorbar'
+import About from './about'
+import RegionalInfo from './regional-info'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -54,8 +58,12 @@ const SidebarComponent = () => {
             <ClimateSelector />
             <TimePeriodSelector />
           </StickyStack>
+          <Colorbar />
           <Geocode />
-          <Results />
+          <MapLayers />
+          <RegionalInfo />
+          <About />
+          <Footer />
           {advancedMode && <Display />}
         </div>
       </Sidebar>

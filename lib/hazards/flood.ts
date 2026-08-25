@@ -9,7 +9,7 @@ const flood: HazardConfig = {
   label: 'Flood',
   accentColor: 'blue',
   description:
-    'Flood risk is the modeled probability that a location has suffered flood damage, from the USGS random-forest model of Collins et al. (2022).',
+    'Flood risk is the modeled probability that a location has suffered flood damage, from the USGS random-forest model.',
   climateTooltip:
     'Current estimates are from models trained on flood damage events reported between 2006 and 2020.',
   colormap: 'blues',
@@ -20,7 +20,6 @@ const flood: HazardConfig = {
   buildingsMode: 'query',
   pointQuery: 'raster',
   axisLabel: 'Flood damage probability',
-  selectPrompt: 'Select a building to view its flood risk.',
   rasterOptions: {
     zarrVersion: 3,
   },
@@ -34,13 +33,6 @@ const flood: HazardConfig = {
   timePeriodLabels: {
     current: '2006-2020',
   },
-  results: [
-    {
-      key: 'regionalRisk',
-      placeholder: 'Regional flood statistics are in production.',
-    },
-    { key: 'floodAbout' },
-  ],
 }
 
 export default flood
