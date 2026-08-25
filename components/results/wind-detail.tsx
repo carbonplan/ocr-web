@@ -148,20 +148,10 @@ const WindDetail = () => {
   const selectedArea = useStore((state) => state.selectedArea)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const riskConfig = useStore((state) => state.riskConfig)
-  const timePeriod = useStore((state) => state.timePeriod)
-  const futureWindow = useStore((state) => state.futureWindow)
   const mapLayer = useStore((state) => state.mapLayer)
   const selectorValue = useStore((state) => state.mapLayerSelectorValue)
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
-
-  let periodLabel
-  if (riskConfig.timePeriodLabels) {
-    periodLabel =
-      timePeriod === 'current'
-        ? riskConfig.timePeriodLabels.current
-        : riskConfig.timePeriodLabels.future[futureWindow]
-  }
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
@@ -219,8 +209,7 @@ const WindDetail = () => {
       <Box sx={{ mt: 2 }}>
         The risk score is a categorical classification of expected annual loss:
         the average share of a building&apos;s value expected to be lost each
-        year to tropical cyclone damage
-        {periodLabel ? ` (${periodLabel})` : ''}.
+        year to tropical cyclone damage.
       </Box>
       <TooltipWrapper
         sx={{ mt: 3, justifyContent: 'flex-start', gap: 3 }}

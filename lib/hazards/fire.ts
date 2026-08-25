@@ -35,6 +35,10 @@ const fire: HazardConfig = {
     { key: 'otherFactors' },
     { key: 'fireAbout' },
   ],
+  timePeriodLabels: {
+    current: '2004-2018',
+    future: '2040-2054',
+  },
   regionalData: {
     statsBase: DATA_URLS.regionAnalysisBase,
     parquetBase: DATA_URLS.parquetBase,

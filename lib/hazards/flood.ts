@@ -31,6 +31,9 @@ const flood: HazardConfig = {
       variable: 'fdp',
     },
   },
+  timePeriodLabels: {
+    current: '2006-2020',
+  },
   results: [
     {
       key: 'regionalRisk',

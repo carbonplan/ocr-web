@@ -118,12 +118,9 @@ export type HazardConfig = {
   climateTooltip?: string
   rasterOptions?: HazardRasterOptions
   datasets: HazardDatasets
-  // escape hatch for data that doesn't fit the current/future(/window) shape
-  resolveDataset?: (selection: HazardSelection) => HazardDataset
-  // omit to hide the time-period row
-  timePeriodLabels?: {
+  timePeriodLabels: {
     current: string
-    future: Record<FutureWindow, string>
+    future?: string | Record<FutureWindow, string>
   }
   results: ResultSection[]
   regionalData?: RegionalDataConfig

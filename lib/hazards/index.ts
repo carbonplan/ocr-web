@@ -38,7 +38,6 @@ export const resolveHazardDataset = (
   hazard: HazardConfig,
   selection: HazardSelection,
 ): HazardDataset => {
-  if (hazard.resolveDataset) return hazard.resolveDataset(selection)
   const datasets = hazard.datasets
   if (selection.timePeriod === 'current') return datasets.current
   const future = datasets.future
