@@ -15,7 +15,7 @@ const customVariants = {
   label: {
     fontFamily: 'mono',
     fontSize: [2, 2, 2, 3],
-    color: 'secondary',
+    color: 'primary',
     textTransform: 'uppercase' as const,
     letterSpacing: 'smallcaps',
   },

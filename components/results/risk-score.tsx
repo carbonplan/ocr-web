@@ -38,23 +38,7 @@ const RiskScore = () => {
 
   return (
     <Box sx={{ mt: 3 }}>
-      {activeLayer ? (
-        // fixed height so the label clearing doesn't shift the sections below
-        <Box
-          sx={{
-            fontSize: 1,
-            fontFamily: 'mono',
-            letterSpacing: 'mono',
-            textTransform: 'uppercase',
-            color: 'secondary',
-            minHeight: '20px',
-          }}
-        >
-          {layerBinLabel ?? ' '}
-        </Box>
-      ) : (
-        <ScoreBar labels />
-      )}
+      <ScoreBar labels />
     </Box>
   )
 }

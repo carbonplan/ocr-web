@@ -7,6 +7,8 @@ import {
 } from '@/lib/risk-utils'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
+import FireRisk from './fire-risk'
+import RiskOfLoss from './risk-of-loss'
 
 const FireLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -34,13 +36,17 @@ const FireLayers = () => {
         checked={mapLayer === RISK_LAYER_ID}
         setChecked={() => setMapLayer(RISK_LAYER_ID)}
         unit='#'
-      ></MapLayer>
+      >
+        <FireRisk />
+      </MapLayer>
       <MapLayer
         label='Risk of loss'
         checked={mapLayer === 'rps'}
         setChecked={() => setMapLayer('rps')}
         value={risk}
-      ></MapLayer>
+      >
+        <RiskOfLoss />
+      </MapLayer>
       <MapLayer
         label='Burn probability'
         checked={false}

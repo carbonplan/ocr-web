@@ -22,7 +22,7 @@ const Inner = () => {
 const MapLayers = () => {
   return (
     <Section label='Map layers'>
-      <Flex sx={{ flexDirection: 'column', gap: 3 }}>
+      <Flex sx={{ flexDirection: 'column', py: 2, gap: 3 }}>
         <Inner />
       </Flex>
     </Section>
