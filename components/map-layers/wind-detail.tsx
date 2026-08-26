@@ -5,7 +5,7 @@ import { useStore } from '@/lib/store'
 import { getMapLayer, HazardMapLayer } from '@/lib/hazards'
 import { useColormap } from '@/lib/colormaps'
 import TooltipWrapper from '../tooltip'
-import ValueBadge from './value-badge'
+import ValueBadge from '../results/value-badge'
 import DamageCurve from './damage-curve'
 import WindCurve from './wind-curve'
 

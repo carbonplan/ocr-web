@@ -6,10 +6,11 @@ import {
   getRiskScore,
 } from '@/lib/risk-utils'
 import { useScore } from '@/hooks/useScore'
+import { RISK_LAYER_ID } from '@/lib/hazards'
 
 const FireLayers = () => {
-  const riskRaster = useStore((state) => state.riskRaster)
-  const setRiskRaster = useStore((state) => state.setRiskRaster)
+  const mapLayer = useStore((state) => state.mapLayer)
+  const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
 
   const { score, color } = useScore(selectedBuilding, 'hinted')
@@ -30,14 +31,14 @@ const FireLayers = () => {
         label='Risk score'
         value={score}
         color={color}
-        checked
-        setChecked={() => {}}
+        checked={mapLayer === RISK_LAYER_ID}
+        setChecked={() => setMapLayer(RISK_LAYER_ID)}
         unit='#'
       ></MapLayer>
       <MapLayer
         label='Risk of loss'
-        checked={riskRaster}
-        setChecked={setRiskRaster}
+        checked={mapLayer === 'rps'}
+        setChecked={() => setMapLayer('rps')}
         value={risk}
       ></MapLayer>
       <MapLayer

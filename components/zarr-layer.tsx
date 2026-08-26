@@ -12,7 +12,6 @@ const ZarrLayer = () => {
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
   const riskConfig = useStore((state) => state.riskConfig)
-  const riskRaster = useStore((state) => state.riskRaster)
   const setZarrLoading = useStore((state) => state.setZarrLoading)
   const setZarrLayer = useStore((state) => state.setZarrLayer)
   const mapLayerId = useStore((state) => state.mapLayer)
@@ -82,7 +81,7 @@ const ZarrLayer = () => {
       colormap,
       clim: colorLimits.bounds,
       customFrag,
-      opacity: useStore.getState().riskRaster ? 1 : 0,
+      opacity: 1,
       onLoadingStateChange: (state) => {
         setZarrLoading(state.loading)
         // a static map won't repaint on its own once chunk loads land
@@ -114,10 +113,6 @@ const ZarrLayer = () => {
   useEffect(() => {
     layerRef.current?.setClim(colorLimits.bounds)
   }, [colorLimits.bounds])
-
-  useEffect(() => {
-    layerRef.current?.setOpacity(riskRaster ? 1 : 0)
-  }, [riskRaster])
 
   useEffect(() => {
     if (!selectorDim || selectorValue === null) return

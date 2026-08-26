@@ -4,7 +4,7 @@ import {
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
 } from '@/lib/risk-utils'
-import TooltipTable from './tooltip-table'
+import TooltipTable from '../results/tooltip-table'
 import { useMemo } from 'react'
 
 const getProbabilityOverHorizon = (horizon: number, bp: number | null) =>

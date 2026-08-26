@@ -51,7 +51,6 @@ const wind: HazardConfig = {
       fut2: '2081-2100',
     },
   },
-  riskLayerLabel: 'Expected loss',
   mapLayers: [
     {
       id: 'wind_speed',

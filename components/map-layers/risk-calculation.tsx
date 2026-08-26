@@ -6,7 +6,7 @@ import {
 } from '@/lib/risk-utils'
 
 import { useStore } from '@/lib/store'
-import TooltipTable from './tooltip-table'
+import TooltipTable from '../results/tooltip-table'
 
 const TOOLTIP = {
   rps: 'Annual risk of loss incorporates both the probability and relative consequence of wildfire to a structure at a given location. Also known as the expected annual net value change. This value is directly translated into the risk score. Values range from 0 to 100.',

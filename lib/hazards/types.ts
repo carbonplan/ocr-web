@@ -1,6 +1,5 @@
 // To add a hazard: create lib/hazards/<name>.ts exporting a HazardConfig and
-// register it in lib/hazards/index.ts. Hazard-specific results sections also
-// need a key in ResultSectionKey and a component in components/results/registry.tsx.
+// register it in lib/hazards/index.ts.
 
 import { ScenarioKey } from '@/types/location'
 import type { ChazPointData } from '../chaz-query'
@@ -49,7 +48,7 @@ export type HazardLayerSelector = {
 export type HazardMapLayer = {
   id: string
   label: string
-  variable: string
+  variable?: string
   // values are multiplied by unitScale into this unit
   unit: string
   unitScale: number
@@ -104,8 +103,5 @@ export type HazardConfig = {
     future?: string | Record<FutureWindow, string>
   }
   regionalData?: RegionalDataConfig
-  // when mapLayers is present the LAYER row renders with the risk view
-  // (labeled riskLayerLabel) first
-  riskLayerLabel?: string
   mapLayers?: HazardMapLayer[]
 }

@@ -6,8 +6,6 @@ import { useStore } from '../lib/store'
 const Display = () => {
   const satellite = useStore((state) => state.satellite)
   const setSatellite = useStore((state) => state.setSatellite)
-  const riskRaster = useStore((state) => state.riskRaster)
-  const setRiskRaster = useStore((state) => state.setRiskRaster)
   const geographyLayerVisibility = useStore(
     (state) => state.geographyLayerVisibility,
   )
@@ -49,17 +47,6 @@ const Display = () => {
                 nation: values.nation,
               })
             }}
-          />
-        </Column>
-      </Row>
-      <Row sx={{ my: 3 }} columns={[3, 3, 4, 4]}>
-        <Column start={1} width={1} variant='label' sx={{ textWrap: 'nowrap' }}>
-          Raw data
-        </Column>
-        <Column start={2} width={[2, 2, 3, 3]}>
-          <Toggle
-            value={riskRaster}
-            onClick={() => setRiskRaster(!riskRaster)}
           />
         </Column>
       </Row>

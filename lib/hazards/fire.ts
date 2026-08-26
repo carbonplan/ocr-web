@@ -31,6 +31,16 @@ const fire: HazardConfig = {
     current: '2004-2018',
     future: '2040-2054',
   },
+  mapLayers: [
+    {
+      id: 'rps',
+      label: 'Risk of loss',
+      unit: '%',
+      unitScale: 1,
+      binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
+      description: 'TK TK TK',
+    },
+  ],
   regionalData: {
     statsBase: DATA_URLS.regionAnalysisBase,
     parquetBase: DATA_URLS.parquetBase,

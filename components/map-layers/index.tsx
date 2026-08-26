@@ -2,6 +2,7 @@ import { Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import Section from '../section'
 import FireLayers from './fire'
+import WindLayers from './wind'
 
 const Inner = () => {
   const id = useStore((state) => state.riskConfig.id)
@@ -12,7 +13,7 @@ const Inner = () => {
     case 'flood':
       return 'TK'
     case 'wind':
-      return 'TK'
+      return <WindLayers />
     default:
       break
   }

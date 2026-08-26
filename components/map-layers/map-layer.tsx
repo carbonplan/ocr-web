@@ -8,7 +8,7 @@ interface Props {
   unit?: string
   color?: string
   checked: boolean
-  setChecked: (value: boolean) => void
+  setChecked: () => void
 }
 const MapLayer = ({
   label,
@@ -30,7 +30,7 @@ const MapLayer = ({
         />
         <EyeCheckbox
           checked={checked}
-          onChange={(e) => setChecked(e.target.checked)}
+          onChange={() => (checked ? null : setChecked())}
           aria-label={`Toggle ${label} visibility`}
         />
       </Flex>

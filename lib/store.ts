@@ -42,8 +42,6 @@ type Store = {
   setSelectedLocation: (location: Location | null) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
-  riskRaster: boolean
-  setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
   // a clicked map point standing in for a building; mutually exclusive with
@@ -131,8 +129,6 @@ export const useStore = create<Store>((set, get) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
-  riskRaster: false,
-  setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) =>
     set({ selectedBuilding: building, selectedArea: null }),
@@ -189,8 +185,6 @@ export const useStore = create<Store>((set, get) => ({
         binBoundaries: [...config.binBoundaries],
       },
       buildingQuery: { status: 'idle' },
-      // query-mode buildings are transparent, so the raster carries the view
-      riskRaster: config.buildingsMode === 'query',
     })
     syncHazardUrl(get)
   },
