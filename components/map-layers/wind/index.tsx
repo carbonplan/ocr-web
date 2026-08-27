@@ -11,6 +11,7 @@ const WindLayers = () => {
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const buildingQuery = useStore((state) => state.buildingQuery)
+  const returnPeriod = useStore((state) => state.mapLayerSelectorValue)
 
   const { score, color } = useScore(selectedBuilding, 'hinted')
 
@@ -39,7 +40,15 @@ const WindLayers = () => {
         label='Peak winds'
         checked={mapLayer === 'wind_speed'}
         setChecked={() => setMapLayer('wind_speed')}
-        value={null}
+        value={
+          buildingQuery.status === 'success'
+            ? buildingQuery.detail?.windSpeed.find(
+                (speed, i) =>
+                  buildingQuery.detail?.returnPeriods[i] === returnPeriod,
+              )
+            : null
+        }
+        toFixed={0}
         unit='#'
       >
         <PeakWinds />

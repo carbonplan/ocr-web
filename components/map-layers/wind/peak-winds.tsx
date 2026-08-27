@@ -1,9 +1,13 @@
 import { Box, Flex } from 'theme-ui'
 import { format } from 'd3-format'
-import { useShallow } from 'zustand/shallow'
+import {
+  Select,
+  //@ts-expect-error - carbonplan components types not available
+} from '@carbonplan/components'
+
 import { useStore } from '@/lib/store'
-import { getMapLayer, HazardMapLayer } from '@/lib/hazards'
-import { useColormap } from '@/lib/colormaps'
+import { getMapLayer } from '@/lib/hazards'
+
 import ValueBadge from '../../results/value-badge'
 import WindCurve from './wind-curve'
 
@@ -51,113 +55,42 @@ const RecurrenceTable = ({
   )
 }
 
-const WindSpeedTable = ({
-  layer,
-  returnPeriods,
-  windSpeed,
-  windSpeedLower,
-  windSpeedUpper,
-  selectedRp,
-}: {
-  layer: HazardMapLayer
-  returnPeriods: number[]
-  windSpeed: (number | null)[]
-  windSpeedLower: (number | null)[] | null
-  windSpeedUpper: (number | null)[] | null
-  selectedRp: number | null
-}) => {
-  const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
-  const colormap = useColormap()
-
-  const binColor = (value: number) => {
-    if (value === 0) return colormap[0]
-    for (let i = 0; i < bins.length - 1; i++) {
-      if (value < bins[i + 1]) return colormap[i + 1]
-    }
-    return colormap[bins.length]
-  }
-
-  return (
-    <Box sx={{ mt: 3 }}>
-      <Flex sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <Box variant='label'>Storm rarity</Box>
-        <Box variant='label'>Peak winds</Box>
-      </Flex>
-      {returnPeriods.map((rp, i) => {
-        const value =
-          windSpeed[i] == null ? null : windSpeed[i]! * layer.unitScale
-        const lower = windSpeedLower?.[i]
-        const upper = windSpeedUpper?.[i]
-        const range =
-          lower == null || upper == null
-            ? null
-            : ([lower * layer.unitScale, upper * layer.unitScale] as [
-                number,
-                number,
-              ])
-        const selected = rp === selectedRp
-        return (
-          <Flex
-            key={rp}
-            sx={{
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              py: 2,
-              borderBottom: '1px solid',
-              borderColor: 'muted',
-            }}
-          >
-            <Box
-              sx={{
-                fontSize: [1, 1, 1, 2],
-                color: selected ? 'primary' : 'secondary',
-                transition: 'color 0.2s',
-              }}
-            >
-              1-in-{format(',')(rp)} year storm
-            </Box>
-            <Flex sx={{ gap: 2, alignItems: 'baseline' }}>
-              {range && (
-                <Box sx={{ color: 'secondary', fontSize: [1, 1, 1, 2] }}>
-                  {Math.round(range[0])}&ndash;{Math.round(range[1])}
-                </Box>
-              )}
-              <ValueBadge
-                value={value === null ? null : `${Math.round(value)} mph`}
-                unit={layer.unit}
-                color={value === null ? undefined : binColor(value)}
-              />
-            </Flex>
-          </Flex>
-        )
-      })}
-      {windSpeedLower && windSpeedUpper && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
-          The shaded band and ranges span the CHAZ simulations driven by six
-          CMIP6 climate models; the line and main values are their median.
-        </Box>
-      )}
-    </Box>
-  )
-}
-
 const PeakWinds = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const riskConfig = useStore((state) => state.riskConfig)
   const mapLayer = useStore((state) => state.mapLayer)
-  const selectorValue = useStore((state) => state.mapLayerSelectorValue)
+  const returnPeriod = useStore((state) => state.mapLayerSelectorValue)
+  const setReturnPeriod = useStore((state) => state.setMapLayerSelectorValue)
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
 
-  if (!activeLayer) return
+  if (!activeLayer || !activeLayer.selector || !returnPeriod) return
+
+  const returnPeriods = activeLayer.selector.values
 
   return (
     <Box>
+      The peak 1-min sustained wind speed associated with a 1-in-
+      <Select
+        value={returnPeriod}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setReturnPeriod(Number(e.target.value))
+        }
+        size='xs'
+        sx={{ mb: ['-5px'] }}
+      >
+        {returnPeriods.map((rp) => (
+          <option key={rp} value={rp}>
+            {rp}
+          </option>
+        ))}
+      </Select>{' '}
+      year rarity storm at this location.
       <WindCurve
         returnPeriods={detail?.returnPeriods}
         windSpeed={detail?.windSpeed}
@@ -165,16 +98,6 @@ const PeakWinds = () => {
         windSpeedUpper={detail?.windSpeedUpper}
         unitScale={activeLayer.unitScale}
         color={riskConfig.accentColor}
-      />
-      <WindSpeedTable
-        layer={activeLayer}
-        returnPeriods={
-          detail?.returnPeriods ?? activeLayer.selector?.values ?? []
-        }
-        windSpeed={detail?.windSpeed ?? []}
-        windSpeedLower={detail?.windSpeedLower ?? null}
-        windSpeedUpper={detail?.windSpeedUpper ?? null}
-        selectedRp={selectorValue}
       />
       <RecurrenceTable
         rp33={detail?.rpExceed33 ?? null}
