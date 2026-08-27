@@ -4,7 +4,7 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { mix } from '@theme-ui/color'
-import { useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
 
 const Wrapper = ({
   lowValue,
@@ -19,6 +19,15 @@ const Wrapper = ({
     return <>{children}</>
   }
 }
+
+export interface Props {
+  value?: string | number | null
+  color?: string
+  unit?: string
+  toFixed?: number
+  sx?: ThemeUIStyleObject
+  whitespace?: boolean
+}
 const ValueBadge = ({
   value,
   color,
@@ -26,14 +35,7 @@ const ValueBadge = ({
   toFixed = 2,
   unit = '%',
   whitespace = true,
-}: {
-  value?: string | number | null
-  color?: string
-  unit?: string
-  toFixed?: number
-  sx?: ThemeUIStyleObject
-  whitespace?: boolean
-}) => {
+}: Props) => {
   const { theme } = useThemeUI()
   let formattedValue
   let lowValue = false
@@ -63,17 +65,19 @@ const ValueBadge = ({
     [value, unit],
   )
 
-  let content = (
-    <>
-      {formattedValue}
-      {unit === '%' ? '%' : ''}
-    </>
-  )
+  let content: string | ReactNode =
+    `${formattedValue}${unit === '%' ? '%' : ''}`
 
   if (value == null && whitespace) {
     content = <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
   } else if (value == null) {
     content = <>{unit}</>
+  } else if (
+    typeof content === 'string' &&
+    content.length === 1 &&
+    whitespace
+  ) {
+    content = <>&nbsp;&nbsp;{content}&nbsp;&nbsp;</>
   }
 
   return (

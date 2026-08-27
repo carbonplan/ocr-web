@@ -1,26 +1,21 @@
 import { Box, Flex } from 'theme-ui'
-import ValueBadge from '../results/value-badge'
+import ValueBadge, { Props as ValueBadgeProps } from '../results/value-badge'
 import EyeCheckbox from '../eye-checkbox'
 import AnimateHeight from 'react-animate-height'
 import { ReactNode } from 'react'
 
-interface Props {
+interface Props extends ValueBadgeProps {
   label: string
-  value: number | string | null
-  unit?: string
-  color?: string
   checked: boolean
   setChecked: () => void
   children?: ReactNode
 }
 const MapLayer = ({
   label,
-  value,
-  unit,
-  color,
   checked,
   setChecked,
   children,
+  ...props
 }: Props) => {
   return (
     <Box>
@@ -43,12 +38,7 @@ const MapLayer = ({
           {label}
         </Box>
         <Flex sx={{ gap: 2 }}>
-          <ValueBadge
-            value={value}
-            unit={unit}
-            color={color}
-            sx={{ flexShrink: 0 }}
-          />
+          <ValueBadge {...props} sx={{ flexShrink: 0 }} />
           <EyeCheckbox
             checked={checked}
             onChange={() => (checked ? null : setChecked())}

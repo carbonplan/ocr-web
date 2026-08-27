@@ -58,12 +58,13 @@ const FireLayers = () => {
         checked={false}
         setChecked={() => {}}
         value={conditionalRisk}
+        toFixed={1}
       ></MapLayer>
       <MapLayer
         label='Previous fires'
         checked={false}
         setChecked={() => {}}
-        value={'TK'}
+        value={null}
         unit='#'
       ></MapLayer>
     </>

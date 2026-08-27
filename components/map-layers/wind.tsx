@@ -24,13 +24,14 @@ const WindLayers = () => {
         label='Return period'
         checked={mapLayer === 'wind_speed'}
         setChecked={() => setMapLayer('wind_speed')}
-        value='TK'
+        value={null}
+        unit='#'
       ></MapLayer>
       <MapLayer
         label='Previous wind events'
         checked={false}
         setChecked={() => {}}
-        value={'TK'}
+        value={null}
         unit='#'
       ></MapLayer>
     </>
