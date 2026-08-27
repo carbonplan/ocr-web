@@ -1,12 +1,10 @@
-import { Box, Flex, Spinner } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import { format } from 'd3-format'
 import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
 import { getMapLayer, HazardMapLayer } from '@/lib/hazards'
 import { useColormap } from '@/lib/colormaps'
-import TooltipWrapper from '../tooltip'
-import ValueBadge from '../results/value-badge'
-import DamageCurve from './damage-curve'
+import ValueBadge from '../../results/value-badge'
 import WindCurve from './wind-curve'
 
 const formatYears = (years: number) =>
@@ -143,7 +141,7 @@ const WindSpeedTable = ({
   )
 }
 
-const WindDetail = () => {
+const PeakWinds = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const buildingQuery = useStore((state) => state.buildingQuery)
@@ -155,107 +153,33 @@ const WindDetail = () => {
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
-  const envelope =
-    detail && detail.eadLower !== null && detail.eadUpper !== null
-      ? ([
-          detail.eadLower * riskConfig.unitScale,
-          detail.eadUpper * riskConfig.unitScale,
-        ] as [number, number])
-      : null
 
-  if (activeLayer) {
-    return (
-      <Box>
-        <WindCurve
-          returnPeriods={detail?.returnPeriods}
-          windSpeed={detail?.windSpeed}
-          windSpeedLower={detail?.windSpeedLower}
-          windSpeedUpper={detail?.windSpeedUpper}
-          unitScale={activeLayer.unitScale}
-          color={riskConfig.accentColor}
-        />
-        <WindSpeedTable
-          layer={activeLayer}
-          returnPeriods={
-            detail?.returnPeriods ?? activeLayer.selector?.values ?? []
-          }
-          windSpeed={detail?.windSpeed ?? []}
-          windSpeedLower={detail?.windSpeedLower ?? null}
-          windSpeedUpper={detail?.windSpeedUpper ?? null}
-          selectedRp={selectorValue}
-        />
-        <RecurrenceTable
-          rp33={detail?.rpExceed33 ?? null}
-          rp50={detail?.rpExceed50 ?? null}
-        />
-        <Box variant='description' sx={{ mt: 3, color: 'secondary' }}>
-          Values describe ~9 km grid cells, so nearby buildings share them.
-        </Box>
-        {buildingQuery.status === 'error' &&
-          (selectedBuilding || selectedArea) && (
-            <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
-              No wind data is available for this location.
-            </Box>
-          )}
-      </Box>
-    )
-  }
+  if (!activeLayer) return
 
   return (
     <Box>
-      <Box as='h2' variant='sectionHeading'>
-        Expected annual loss
-      </Box>
-      <Box sx={{ mt: 2 }}>
-        The risk score is a categorical classification of expected annual loss:
-        the average share of a building&apos;s value expected to be lost each
-        year to tropical cyclone damage.
-      </Box>
-      <TooltipWrapper
-        sx={{ mt: 3, justifyContent: 'flex-start', gap: 3 }}
-        tooltip='The range covers the middle 50% of damage-model fits to historical hurricane losses, the dominant uncertainty in absolute tropical cyclone risk.'
-      >
-        <Flex sx={{ gap: 3, alignItems: 'baseline' }}>
-          <Box variant='label'>Annual loss</Box>
-          {buildingQuery.status === 'loading' ? (
-            <Spinner size={16} />
-          ) : (
-            <ValueBadge
-              value={
-                buildingQuery.status === 'success' ? buildingQuery.value : null
-              }
-              unit='%'
-            />
-          )}
-          {envelope && (
-            <Box sx={{ color: 'secondary', fontSize: [1, 1, 1, 2] }}>
-              ({format('.2~f')(envelope[0])}&ndash;
-              {format('.2~f')(envelope[1])}%)
-            </Box>
-          )}
-        </Flex>
-      </TooltipWrapper>
+      <WindCurve
+        returnPeriods={detail?.returnPeriods}
+        windSpeed={detail?.windSpeed}
+        windSpeedLower={detail?.windSpeedLower}
+        windSpeedUpper={detail?.windSpeedUpper}
+        unitScale={activeLayer.unitScale}
+        color={riskConfig.accentColor}
+      />
+      <WindSpeedTable
+        layer={activeLayer}
+        returnPeriods={
+          detail?.returnPeriods ?? activeLayer.selector?.values ?? []
+        }
+        windSpeed={detail?.windSpeed ?? []}
+        windSpeedLower={detail?.windSpeedLower ?? null}
+        windSpeedUpper={detail?.windSpeedUpper ?? null}
+        selectedRp={selectorValue}
+      />
       <RecurrenceTable
         rp33={detail?.rpExceed33 ?? null}
         rp50={detail?.rpExceed50 ?? null}
       />
-      <Box as='h2' variant='sectionHeading' sx={{ mt: 4 }}>
-        Loss by storm severity
-      </Box>
-      <Box sx={{ mt: 2, mb: 3 }}>
-        Expected loss from single events of increasing rarity, from a 1-in-10
-        year storm to a 1-in-1,000 year storm.
-      </Box>
-      <DamageCurve
-        returnPeriods={detail?.returnPeriods}
-        damageFraction={detail?.damageFraction}
-        windSpeed={detail?.windSpeed}
-        unitScale={riskConfig.unitScale}
-        color={riskConfig.accentColor}
-      />
-      <Box variant='description' sx={{ mt: 3, color: 'secondary' }}>
-        Values describe ~9 km grid cells, so nearby buildings share them.
-      </Box>
       {buildingQuery.status === 'error' &&
         (selectedBuilding || selectedArea) && (
           <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
@@ -266,4 +190,4 @@ const WindDetail = () => {
   )
 }
 
-export default WindDetail
+export default PeakWinds

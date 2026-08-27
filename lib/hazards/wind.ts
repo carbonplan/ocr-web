@@ -53,8 +53,15 @@ const wind: HazardConfig = {
   },
   mapLayers: [
     {
+      id: 'annual_loss',
+      unit: '%',
+      // same score bins as fire (percent per year)
+      binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
+      // ead is stored as a fraction per year
+      unitScale: 100,
+    },
+    {
       id: 'wind_speed',
-      label: 'Wind hazard',
       variable: 'wind_speed',
       unit: 'mph',
       // m/s -> mph
@@ -70,8 +77,6 @@ const wind: HazardConfig = {
         'Category 4 hurricane',
         'Category 5 hurricane',
       ],
-      description:
-        'Peak 1-minute sustained wind speed expected from a storm of the selected rarity, binned by Saffir-Simpson category.',
       selector: {
         dim: 'return_period',
         values: [10, 25, 50, 100, 250, 1000],

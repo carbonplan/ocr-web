@@ -47,14 +47,12 @@ export type HazardLayerSelector = {
 // loss (e.g. wind speed), read from a different variable in the same stores.
 export type HazardMapLayer = {
   id: string
-  label: string
   variable?: string
   // values are multiplied by unitScale into this unit
   unit: string
   unitScale: number
   binBoundaries: number[]
   binLabels?: string[]
-  description: string
   selector?: HazardLayerSelector
   // reads this layer's value, in store units, off the point-query result
   pointValue?: (

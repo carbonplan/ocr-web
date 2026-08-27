@@ -1,5 +1,5 @@
 import { Box } from 'theme-ui'
-import Histogram from '../regional-info/histogram'
+import Histogram from '../../regional-info/histogram'
 import { useStore } from '@/lib/store'
 import { useShallow } from 'zustand/shallow'
 import { getGeographyRisk } from '@/lib/risk-utils'
@@ -18,7 +18,7 @@ const RiskCalculation = () => {
 
   return (
     <>
-      <Box sx={{ mt: 2, variant: 'description' }}>
+      <Box>
         The risk scoring system is a categorical classification of continuous
         values of annual risk of loss.
       </Box>

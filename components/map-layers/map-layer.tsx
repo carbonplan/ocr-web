@@ -13,6 +13,7 @@ interface Props extends ValueBadgeProps {
 const MapLayer = ({
   label,
   checked,
+  color,
   setChecked,
   children,
   ...props
@@ -38,7 +39,11 @@ const MapLayer = ({
           {label}
         </Box>
         <Flex sx={{ gap: 2 }}>
-          <ValueBadge {...props} sx={{ flexShrink: 0 }} />
+          <ValueBadge
+            {...props}
+            color={checked ? color : undefined}
+            sx={{ flexShrink: 0 }}
+          />
           <EyeCheckbox
             checked={checked}
             onChange={() => (checked ? null : setChecked())}
@@ -51,7 +56,7 @@ const MapLayer = ({
         height={checked ? 'auto' : 0}
         easing={'linear'}
       >
-        {children}
+        <Box sx={{ pt: 2 }}>{children}</Box>
       </AnimateHeight>
     </Box>
   )

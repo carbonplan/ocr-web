@@ -1,4 +1,4 @@
-import MapLayer from './map-layer'
+import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import {
   getAdjustedBurnProbability,
@@ -44,6 +44,7 @@ const FireLayers = () => {
         checked={mapLayer === 'rps'}
         setChecked={() => setMapLayer('rps')}
         value={risk}
+        color={color}
       >
         <RiskOfLoss />
       </MapLayer>

@@ -5,7 +5,7 @@ import {
   getConditionalRiskUsfs,
   getRiskScore,
 } from '@/lib/risk-utils'
-import TooltipTable from '../results/tooltip-table'
+import TooltipTable from '../../results/tooltip-table'
 import { useMemo } from 'react'
 
 const getProbabilityOverHorizon = (horizon: number, bp: number | null) =>
@@ -119,6 +119,13 @@ const TimeHorizons = () => {
 
   return (
     <>
+      <Box>
+        An annual value that represents the expected relative risk of loss in a
+        given year, accounting for both the frequency and magnitude of a loss
+        event. This value is calculated at every pixel with the following
+        equation:
+      </Box>
+
       <Box sx={{ variant: 'srOnly' }}>
         Risk of loss (%) equals burn probability (#) times conditional risk (%).
         Each component has an information button with additional details.

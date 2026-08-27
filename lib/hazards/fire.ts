@@ -34,11 +34,9 @@ const fire: HazardConfig = {
   mapLayers: [
     {
       id: 'rps',
-      label: 'Risk of loss',
       unit: '%',
       unitScale: 1,
       binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
-      description: 'TK TK TK',
     },
   ],
   regionalData: {
