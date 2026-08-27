@@ -1,4 +1,4 @@
-import { Box } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
@@ -40,7 +40,14 @@ const SidebarComponent = () => {
   return (
     <Box sx={{ display: ['none', 'none', 'block'] }}>
       <Sidebar expanded={true} side='left' width={4}>
-        <div ref={sidebarRef}>
+        <Box
+          ref={sidebarRef}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100%',
+          }}
+        >
           <StickyStack>
             <Box
               as='h1'
@@ -58,14 +65,25 @@ const SidebarComponent = () => {
             <ClimateSelector />
             <TimePeriodSelector />
           </StickyStack>
-          <Colorbar />
-          <Geocode />
-          <MapLayers />
-          <RegionalInfo />
-          <About />
-          <Footer />
-          {advancedMode && <Display />}
-        </div>
+          <Flex
+            sx={{
+              flexDirection: 'column',
+              flex: '1 1 auto',
+              justifyContent: 'space-between',
+              gap: 3,
+            }}
+          >
+            <Box>
+              <Colorbar />
+              <Geocode />
+              <MapLayers />
+              <RegionalInfo />
+              <About />
+              {advancedMode && <Display />}
+            </Box>
+            <Footer />
+          </Flex>
+        </Box>
       </Sidebar>
     </Box>
   )

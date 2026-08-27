@@ -23,16 +23,18 @@ const Section = ({ label, children }: Props) => {
           cursor: 'pointer',
           transition: '.2s color',
           userSelect: 'none',
-          '&:hover': { color: 'secondary' },
+          '&:hover > div': { color: 'secondary' },
           '&:hover svg': { stroke: 'secondary' },
         }}
         as='label'
       >
-        <Box variant='label'>{label}</Box>
+        <Box variant='label' sx={{ transition: 'color 0.2s' }}>
+          {label}
+        </Box>
         <Expander
           onClick={() => setExpanded(!expanded)}
           value={expanded}
-          sx={{ stroke: 'primary', width: '10px', p: 0 }}
+          sx={{ stroke: 'primary', width: [12, 12, 12, 16], p: 0 }}
         />
       </Flex>
 
@@ -43,7 +45,7 @@ const Section = ({ label, children }: Props) => {
       >
         {children}
       </AnimateHeight>
-      <SidebarDivider sx={{ mt: 3 }} />
+      <SidebarDivider sx={{ mt: 3, mb: 0 }} />
     </Box>
   )
 }

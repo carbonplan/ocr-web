@@ -8,7 +8,6 @@ const Footer = () => {
   return (
     <Flex
       sx={{
-        mt: 5,
         color: 'secondary',
         fontSize: [1, 1, 1, 2],
         fontFamily: 'mono',

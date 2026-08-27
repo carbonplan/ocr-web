@@ -6,7 +6,7 @@ import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarDivider } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan icons types not available
-import { X } from '@carbonplan/icons'
+import { Search, X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
 import { formatAddress, formatRegionName } from '@/lib/address-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
@@ -318,24 +318,30 @@ const Geocode = () => {
                   },
                 }}
               />
-              {(selectedLocation || searchQuery.length > 0) && (
+              {selectedLocation || searchQuery.length > 0 ? (
                 <Button
                   size='xs'
                   onClick={handleDeselect}
                   inverted
                   aria-label='Clear address'
-                  sx={{ mr: ['-10px', '-12px', '-14px', '-17px'] }}
                 >
                   <X
                     id='close'
                     sx={{
                       transition: 'color 0.2s',
-                      width: [15, 15, 15, 20],
-                      height: [15, 15, 15, 20],
-                      mb: ['-4px', '-4px', '-4px', '-2px'],
+                      width: [12, 12, 12, 16],
+                      height: [12, 12, 12, 16],
+                      mb: ['-3px', '-3px', '-3px', '-4px'],
                     }}
                   />
                 </Button>
+              ) : (
+                <Search
+                  sx={{
+                    width: [12, 12, 12, 16],
+                    mb: ['-6px', '-6px', '-6px', '-6px'],
+                  }}
+                />
               )}
             </Flex>
           </Column>
