@@ -56,7 +56,7 @@ const SidebarComponent = () => {
                 fontFamily: 'heading',
                 letterSpacing: 'heading',
                 lineHeight: 'heading',
-                mb: 3,
+                mb: 2,
               }}
             >
               Open Climate Risk

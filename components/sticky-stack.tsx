@@ -28,7 +28,7 @@ export const StickyStack = ({ children }: { children: ReactNode }) => {
       }}
     >
       <Flex sx={{ flexDirection: 'column', gap: 3 }}>{children}</Flex>
-      <SidebarDivider sx={{ mt: 3 }} />
+      <SidebarDivider sx={{ mt: 3, mb: 0 }} />
     </Box>
   )
 }
