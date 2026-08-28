@@ -1,5 +1,5 @@
 import { Box, Flex } from 'theme-ui'
-import ValueBadge, { Props as ValueBadgeProps } from '../results/value-badge'
+import ValueBadge, { Props as ValueBadgeProps } from '../value-badge'
 import EyeCheckbox from '../eye-checkbox'
 import AnimateHeight from 'react-animate-height'
 import { ReactNode } from 'react'

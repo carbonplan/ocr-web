@@ -54,6 +54,8 @@ export type HazardMapLayer = {
   unitScale: number
   binBoundaries: number[]
   binLabels?: string[]
+  axisLabel?: string
+  customColormap?: boolean
   selector?: HazardLayerSelector
   // reads this layer's value, in store units, off the point-query result
   pointValue?: (

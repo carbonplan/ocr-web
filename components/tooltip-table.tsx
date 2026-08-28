@@ -8,7 +8,7 @@ import { useEffect, useRef, ReactNode, useState } from 'react'
 import AnimateHeight from 'react-animate-height'
 
 import ValueBadge from './value-badge'
-import { Tooltip } from '../tooltip'
+import { Tooltip } from './tooltip'
 
 const TableCell = ({
   value,

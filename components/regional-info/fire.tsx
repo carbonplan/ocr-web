@@ -15,7 +15,7 @@ import {
 import { GeographyKey } from '@/types/location'
 import { Download, DownloadButton } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
-import ValueBadge from '../results/value-badge'
+import ValueBadge from '../value-badge'
 import { useScore } from '@/hooks/useScore'
 import EyeCheckbox from '../eye-checkbox'
 import TooltipWrapper from '../tooltip'

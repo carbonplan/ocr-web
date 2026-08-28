@@ -63,19 +63,21 @@ const wind: HazardConfig = {
     {
       id: 'wind_speed',
       variable: 'wind_speed',
+      axisLabel: 'Wind speed',
       unit: 'mph',
       // m/s -> mph
       unitScale: 2.23694,
       // Saffir-Simpson category edges (1-min sustained wind, mph)
       binBoundaries: [0, 39, 74, 96, 111, 130, 157],
+      customColormap: true,
       binLabels: [
-        'Below tropical storm force',
+        '',
         'Tropical storm',
-        'Category 1 hurricane',
-        'Category 2 hurricane',
-        'Category 3 hurricane',
-        'Category 4 hurricane',
-        'Category 5 hurricane',
+        'Cat 1',
+        'Cat 2',
+        'Cat 3',
+        'Cat 4',
+        'Cat 5',
       ],
       selector: {
         dim: 'return_period',

@@ -8,9 +8,9 @@ import {
 import { useStore } from '@/lib/store'
 import { getMapLayer } from '@/lib/hazards'
 
-import ValueBadge from '../../results/value-badge'
+import ValueBadge from '../../value-badge'
 import WindCurve from './wind-curve'
-import { tableSx } from '../../results/tooltip-table'
+import { tableSx } from '../../tooltip-table'
 
 const formatYears = (years: number) =>
   years < 10 ? format('.1~f')(years) : format(',.0f')(Math.round(years))
