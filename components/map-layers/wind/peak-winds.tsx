@@ -10,6 +10,7 @@ import { getMapLayer } from '@/lib/hazards'
 
 import ValueBadge from '../../results/value-badge'
 import WindCurve from './wind-curve'
+import { tableSx } from '../../results/tooltip-table'
 
 const formatYears = (years: number) =>
   years < 10 ? format('.1~f')(years) : format(',.0f')(Math.round(years))
@@ -29,25 +30,33 @@ const RecurrenceTable = ({
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Flex sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <Box variant='label'>Storm winds</Box>
-        <Box variant='label'>Once every</Box>
+      <Flex
+        sx={{
+          ...tableSx.row,
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          py: 1,
+        }}
+      >
+        <Box sx={tableSx.tableHead}>Storm winds</Box>
+        <Box sx={tableSx.tableHead}>Frequency</Box>
       </Flex>
       {rows.map(({ label, years }) => (
         <Flex
           key={label}
           sx={{
+            ...tableSx.row,
             justifyContent: 'space-between',
             alignItems: 'baseline',
+            gap: 2,
             py: 2,
-            borderBottom: '1px solid',
-            borderColor: 'muted',
           }}
         >
           <Box>{label}</Box>
           <ValueBadge
             value={years === null ? null : `${formatYears(years)} yrs`}
             unit='yrs'
+            sx={{ flexShrink: 0 }}
           />
         </Flex>
       ))}
