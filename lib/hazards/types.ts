@@ -35,12 +35,13 @@ export type RegionalDataConfig = {
   columns: string[]
 }
 
+export type SelectorDimension = 'return_period'
+
 // Extra dimension the layer's variable is sliced along (e.g. return_period)
 export type HazardLayerSelector = {
-  dim: string
+  dim: SelectorDimension
   values: number[]
   defaultValue: number
-  formatOption: (value: number) => string
 }
 
 // An alternate map layer showing the physical quantity rather than the modeled

@@ -81,7 +81,6 @@ const wind: HazardConfig = {
         dim: 'return_period',
         values: [10, 25, 50, 100, 250, 1000],
         defaultValue: 100,
-        formatOption: (value) => `${value} yr`,
       },
       pointValue: (detail, selectorValue) => {
         const index =

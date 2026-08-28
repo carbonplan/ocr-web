@@ -16,11 +16,14 @@ const getBinIndex = (value: number, bins: number[]) => {
 const RiskScore = () => {
   const riskConfig = useStore((state) => state.riskConfig)
   const mapLayer = useStore((state) => state.mapLayer)
-  const selectorValue = useStore((state) => state.mapLayerSelectorValue)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
+  const selectorDim = activeLayer?.selector?.dim
+  const selectorValue = useStore((state) =>
+    selectorDim ? state.selectorValues[selectorDim] : null,
+  )
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined

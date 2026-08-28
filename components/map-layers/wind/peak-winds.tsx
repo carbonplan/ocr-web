@@ -61,8 +61,8 @@ const PeakWinds = () => {
   const buildingQuery = useStore((state) => state.buildingQuery)
   const riskConfig = useStore((state) => state.riskConfig)
   const mapLayer = useStore((state) => state.mapLayer)
-  const returnPeriod = useStore((state) => state.mapLayerSelectorValue)
-  const setReturnPeriod = useStore((state) => state.setMapLayerSelectorValue)
+  const returnPeriod = useStore((state) => state.selectorValues.return_period)
+  const setSelectorValues = useStore((state) => state.setSelectorValues)
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
 
@@ -79,7 +79,7 @@ const PeakWinds = () => {
       <Select
         value={returnPeriod}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setReturnPeriod(Number(e.target.value))
+          setSelectorValues({ return_period: Number(e.target.value) })
         }
         size='xs'
         sx={{ mb: ['-5px'] }}

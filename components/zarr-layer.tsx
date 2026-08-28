@@ -15,14 +15,15 @@ const ZarrLayer = () => {
   const setZarrLoading = useStore((state) => state.setZarrLoading)
   const setZarrLayer = useStore((state) => state.setZarrLayer)
   const mapLayerId = useStore((state) => state.mapLayer)
-  const selectorValue = useStore((state) => state.mapLayerSelectorValue)
-  const layerRef = useRef<ZarrLayerClass | null>(null)
-
   const activeLayer = getMapLayer(riskConfig, mapLayerId)
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
   const variable = activeLayer?.variable ?? dataset.variable
   const unitScale = activeLayer?.unitScale ?? riskConfig.unitScale
   const selectorDim = activeLayer?.selector?.dim
+  const selectorValue = useStore((state) =>
+    selectorDim ? state.selectorValues[selectorDim] : null,
+  )
+  const layerRef = useRef<ZarrLayerClass | null>(null)
 
   const customFrag = useMemo(() => {
     const boundaries = colorLimits.binBoundaries || []
@@ -69,14 +70,8 @@ const ZarrLayer = () => {
       id: layerId,
       source: dataset.source,
       variable,
-      ...(selectorDim
-        ? {
-            selector: {
-              [selectorDim]:
-                useStore.getState().mapLayerSelectorValue ??
-                activeLayer!.selector!.defaultValue,
-            },
-          }
+      ...(selectorDim && typeof selectorValue === 'number'
+        ? { selector: { [selectorDim]: selectorValue } }
         : {}),
       colormap,
       clim: colorLimits.bounds,

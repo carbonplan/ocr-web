@@ -11,7 +11,7 @@ const WindLayers = () => {
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const buildingQuery = useStore((state) => state.buildingQuery)
-  const returnPeriod = useStore((state) => state.mapLayerSelectorValue)
+  const returnPeriod = useStore((state) => state.selectorValues.return_period)
 
   const { score, color } = useScore(selectedBuilding, 'hinted')
 
