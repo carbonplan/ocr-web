@@ -4,7 +4,7 @@ import {
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { mix } from '@theme-ui/color'
-import { ReactNode, useCallback } from 'react'
+import { useCallback } from 'react'
 
 const Wrapper = ({
   lowValue,
@@ -19,6 +19,8 @@ const Wrapper = ({
     return <>{children}</>
   }
 }
+
+const MIN_CHARS = 6
 
 export interface Props {
   value?: string | number | null
@@ -65,20 +67,8 @@ const ValueBadge = ({
     [value, unit],
   )
 
-  let content: string | ReactNode =
-    `${formattedValue}${unit === '%' ? '%' : ''}`
-
-  if (value == null && whitespace) {
-    content = <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
-  } else if (value == null) {
-    content = <>{unit}</>
-  } else if (
-    typeof content === 'string' &&
-    content.length === 1 &&
-    whitespace
-  ) {
-    content = <>&nbsp;&nbsp;{content}&nbsp;&nbsp;</>
-  }
+  const content =
+    value == null ? unit : `${formattedValue}${unit === '%' ? '%' : ''}`
 
   return (
     <Wrapper lowValue={lowValue}>
@@ -103,6 +93,9 @@ const ValueBadge = ({
           transition: 'all 0.2s',
           userSelect: typeof value == 'number' ? 'all' : 'none',
           pt: ['1px', 0, 0, 0],
+          ...(whitespace
+            ? { fontFamily: 'mono', minWidth: `${MIN_CHARS}ch` }
+            : {}),
           ...colors,
           ...sx,
         }}
