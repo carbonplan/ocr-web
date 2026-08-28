@@ -1,10 +1,18 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-import { Geocode, Results, Display } from '@/components'
+//@ts-expect-error - carbonplan layouts types not available
+import { SidebarDivider } from '@carbonplan/layouts'
+
+import { Geocode, Display, MapLayers } from '@/components'
 import { Drawer } from 'vaul'
-import RiskSelector from './hazard-selector'
 import ClimateSelector from './climate-selector'
+import HazardSelector from './hazard-selector'
+import TimePeriodSelector from './time-period-selector'
+import Colorbar from './colorbar'
+import RegionalInfo from './regional-info'
+import About from './about'
+import Footer from './footer'
 
 const MobileDrawer = () => {
   // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
@@ -108,11 +116,12 @@ const MobileDrawer = () => {
                 }}
                 aria-hidden='true'
               />
-              <Box sx={{ px: 4 }}>
-                <Geocode />
-                <RiskSelector />
+              <Flex sx={{ flexDirection: 'column', gap: 3, px: 4 }}>
+                <HazardSelector />
                 <ClimateSelector />
-              </Box>
+                <TimePeriodSelector />
+                <SidebarDivider sx={{ mt: 3, mb: 0 }} />
+              </Flex>
             </Drawer.Handle>
 
             <Box
@@ -125,8 +134,24 @@ const MobileDrawer = () => {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
-              <Results />
-              {advancedMode && <Display />}
+              <Flex
+                sx={{
+                  flexDirection: 'column',
+                  flex: '1 1 auto',
+                  justifyContent: 'space-between',
+                  gap: 3,
+                }}
+              >
+                <Box>
+                  <Colorbar />
+                  <Geocode />
+                  <MapLayers />
+                  <RegionalInfo />
+                  <About />
+                </Box>
+                {advancedMode && <Display />}
+                <Footer />
+              </Flex>
             </Box>
           </Flex>
         </Drawer.Content>
