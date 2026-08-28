@@ -3,6 +3,7 @@ import { useStore } from '@/lib/store'
 import Section from '../section'
 import FireLayers from './fire'
 import WindLayers from './wind'
+import FloodLayers from './flood'
 
 const Inner = () => {
   const id = useStore((state) => state.riskConfig.id)
@@ -11,7 +12,7 @@ const Inner = () => {
     case 'fire':
       return <FireLayers />
     case 'flood':
-      return 'TK'
+      return <FloodLayers />
     case 'wind':
       return <WindLayers />
     default:

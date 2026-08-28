@@ -33,6 +33,14 @@ const flood: HazardConfig = {
   timePeriodLabels: {
     current: '2006-2020',
   },
+  mapLayers: [
+    {
+      id: 'fdp',
+      unit: '%',
+      unitScale: 100,
+      binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
+    },
+  ],
 }
 
 export default flood

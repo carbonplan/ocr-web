@@ -3,7 +3,6 @@ import { useStore } from '@/lib/store'
 import {
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
-  getRiskScore,
 } from '@/lib/risk-utils'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
@@ -15,11 +14,8 @@ const FireLayers = () => {
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
 
-  const { score, color } = useScore(selectedBuilding, 'hinted')
+  const { score, value, color } = useScore(selectedBuilding, 'hinted')
 
-  const risk = useStore((state) =>
-    getRiskScore(state.selectedBuilding, state.timePeriod),
-  )
   const bp = useStore((state) =>
     getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
   )
@@ -43,7 +39,7 @@ const FireLayers = () => {
         label='Risk of loss'
         checked={mapLayer === 'rps'}
         setChecked={() => setMapLayer('rps')}
-        value={risk}
+        value={value}
         color={color}
       >
         <RiskOfLoss />
