@@ -70,15 +70,7 @@ const wind: HazardConfig = {
       // Saffir-Simpson category edges (1-min sustained wind, mph)
       binBoundaries: [0, 39, 74, 96, 111, 130, 157],
       customColormap: true,
-      binLabels: [
-        '',
-        'Tropical storm',
-        'Cat 1',
-        'Cat 2',
-        'Cat 3',
-        'Cat 4',
-        'Cat 5',
-      ],
+      binLabels: ['', 'TS', 'Cat 1', 'Cat 2', 'Cat 3', 'Cat 4', 'Cat 5'],
       selector: {
         dim: 'return_period',
         values: [10, 25, 50, 100, 250, 1000],

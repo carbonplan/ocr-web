@@ -1,7 +1,7 @@
 import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
-import { RISK_LAYER_ID } from '@/lib/hazards'
+import { getMapLayer, RISK_LAYER_ID } from '@/lib/hazards'
 import AnnualLoss from './annual-loss'
 import WindRisk from './wind-risk'
 import PeakWinds from './peak-winds'
@@ -12,6 +12,8 @@ const WindLayers = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const returnPeriod = useStore((state) => state.selectorValues.return_period)
+  const riskConfig = useStore((state) => state.riskConfig)
+  const activeLayer = getMapLayer(riskConfig, mapLayer)
 
   const { score, color } = useScore(selectedBuilding, 'hinted')
 
@@ -42,11 +44,12 @@ const WindLayers = () => {
         setChecked={() => setMapLayer('wind_speed')}
         value={
           buildingQuery.status === 'success'
-            ? buildingQuery.detail?.windSpeed.find(
+            ? (buildingQuery.detail?.windSpeed.find(
                 (speed, i) =>
                   buildingQuery.detail?.returnPeriods[i] === returnPeriod,
-              )
-            : null
+              ) ?? 0) * (activeLayer?.unitScale ?? 1)
+            : // TODO: unitScale handling could probably be better centralized?
+              null
         }
         toFixed={0}
         unit='#'
