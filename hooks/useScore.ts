@@ -3,21 +3,39 @@ import { useShallow } from 'zustand/shallow'
 import { Geography, Building } from '@/types/location'
 import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { useStore } from '@/lib/store'
+import { getMapLayer } from '@/lib/hazards'
 import { useColormap } from '@/lib/colormaps'
 import { useMemo } from 'react'
 import { getGeographyMedianRiskKey, getRiskScore } from '@/lib/risk-utils'
+
+// colorLimits follows the displayed map layer; its bins only describe the score
+// when that layer has no `variable` of its own, and so renders the same
+// quantity the score is computed from.
+export const useScoreLimits = () => {
+  const showsRiskQuantity = useStore(
+    (state) => !getMapLayer(state.riskConfig, state.mapLayer)?.variable,
+  )
+  const hazardBins = useStore((state) => state.riskConfig.binBoundaries)
+  const displayBins = useStore(
+    useShallow((state) => state.colorLimits.binBoundaries),
+  )
+  const [displayMin] = useStore(useShallow((state) => state.colorLimits.bounds))
+
+  return showsRiskQuantity
+    ? { bins: displayBins, min: displayMin }
+    : { bins: hazardBins, min: hazardBins[0] }
+}
 
 export const useScore = (
   geo: Building | Geography | null,
   fallbackColor: string = 'secondary',
 ) => {
-  const colormap = useColormap()
   const timePeriod = useStore((state) => state.timePeriod)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const selectedArea = useStore((state) => state.selectedArea)
-  const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
-  const [min] = useStore(useShallow((state) => state.colorLimits.bounds))
+  const { bins, min } = useScoreLimits()
+  const colormap = useColormap({ count: bins.length })
 
   let value: number | null = null
   const isGeography =

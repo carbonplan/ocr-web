@@ -1,10 +1,13 @@
 import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
-import { getMapLayer, RISK_LAYER_ID } from '@/lib/hazards'
+import { RISK_LAYER_ID, toDisplayUnits } from '@/lib/hazards'
 import AnnualLoss from './annual-loss'
 import WindRisk from './wind-risk'
 import PeakWinds from './peak-winds'
+
+const ANNUAL_LOSS_LAYER_ID = 'annual_loss'
+const WIND_SPEED_LAYER_ID = 'wind_speed'
 
 const WindLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -13,9 +16,23 @@ const WindLayers = () => {
   const buildingQuery = useStore((state) => state.buildingQuery)
   const returnPeriod = useStore((state) => state.selectorValues.return_period)
   const riskConfig = useStore((state) => state.riskConfig)
-  const activeLayer = getMapLayer(riskConfig, mapLayer)
 
   const { score, color } = useScore(selectedBuilding, 'hinted')
+
+  const detail =
+    buildingQuery.status === 'success' ? buildingQuery.detail : undefined
+  const rpIndex = detail ? detail.returnPeriods.indexOf(returnPeriod) : -1
+
+  const annualLoss = toDisplayUnits(
+    riskConfig,
+    ANNUAL_LOSS_LAYER_ID,
+    detail?.ead,
+  )
+  const peakWind = toDisplayUnits(
+    riskConfig,
+    WIND_SPEED_LAYER_ID,
+    rpIndex === -1 ? null : detail?.windSpeed[rpIndex],
+  )
 
   return (
     <>
@@ -31,26 +48,18 @@ const WindLayers = () => {
       </MapLayer>
       <MapLayer
         label='Annual loss'
-        checked={mapLayer === 'annual_loss'}
+        checked={mapLayer === ANNUAL_LOSS_LAYER_ID}
         color={color}
-        setChecked={() => setMapLayer('annual_loss')}
-        value={buildingQuery.status === 'success' ? buildingQuery.value : null}
+        setChecked={() => setMapLayer(ANNUAL_LOSS_LAYER_ID)}
+        value={annualLoss}
       >
         <AnnualLoss />
       </MapLayer>
       <MapLayer
         label='Peak winds'
-        checked={mapLayer === 'wind_speed'}
-        setChecked={() => setMapLayer('wind_speed')}
-        value={
-          buildingQuery.status === 'success'
-            ? (buildingQuery.detail?.windSpeed.find(
-                (speed, i) =>
-                  buildingQuery.detail?.returnPeriods[i] === returnPeriod,
-              ) ?? 0) * (activeLayer?.unitScale ?? 1)
-            : // TODO: unitScale handling could probably be better centralized?
-              null
-        }
+        checked={mapLayer === WIND_SPEED_LAYER_ID}
+        setChecked={() => setMapLayer(WIND_SPEED_LAYER_ID)}
+        value={peakWind}
         toFixed={0}
         unit='#'
       >

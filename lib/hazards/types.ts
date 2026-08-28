@@ -2,7 +2,6 @@
 // register it in lib/hazards/index.ts.
 
 import { ScenarioKey } from '@/types/location'
-import type { ChazPointData } from '../chaz-query'
 
 export type FutureWindow = 'fut1' | 'fut2'
 
@@ -57,11 +56,6 @@ export type HazardMapLayer = {
   axisLabel?: string
   customColormap?: boolean
   selector?: HazardLayerSelector
-  // reads this layer's value, in store units, off the point-query result
-  pointValue?: (
-    detail: ChazPointData,
-    selectorValue: number | null,
-  ) => number | null
 }
 
 export type HazardDatasets = {

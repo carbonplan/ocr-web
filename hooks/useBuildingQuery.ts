@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { centerOfMass } from '@turf/turf'
 import { useStore, BuildingQueryState } from '@/lib/store'
-import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
+import { getMapLayer, getUnitScale, resolveHazardDataset } from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
 import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 
@@ -58,7 +58,12 @@ export const useBuildingQuery = () => {
           controller.signal,
         )
         if (value === null) return { status: 'error' }
-        return { status: 'success', value: value * riskConfig.unitScale }
+        // the raster path reads the active layer's variable, so it scales
+        // with that layer's unit
+        return {
+          status: 'success',
+          value: value * getUnitScale(riskConfig, mapLayerId),
+        }
       }
 
       const detail = await queryChazPoint(dataset.source, point)

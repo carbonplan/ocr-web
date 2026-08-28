@@ -2,7 +2,7 @@ import { useMemo, useEffect, useRef } from 'react'
 import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
-import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
+import { getMapLayer, getUnitScale, resolveHazardDataset } from '@/lib/hazards'
 import { getZarrLayerId } from '@/lib/raster-query'
 
 const ZarrLayer = () => {
@@ -18,7 +18,7 @@ const ZarrLayer = () => {
   const activeLayer = getMapLayer(riskConfig, mapLayerId)
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
   const variable = activeLayer?.variable ?? dataset.variable
-  const unitScale = activeLayer?.unitScale ?? riskConfig.unitScale
+  const unitScale = getUnitScale(riskConfig, mapLayerId)
   const selectorDim = activeLayer?.selector?.dim
   const selectorValue = useStore((state) =>
     selectorDim ? state.selectorValues[selectorDim] : null,

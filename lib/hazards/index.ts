@@ -34,6 +34,18 @@ export const getMapLayer = (
     ? null
     : (config.mapLayers?.find((layer) => layer.id === id) ?? null)
 
+// Store values are in each layer's native units (fraction/yr, m/s); the risk
+// view falls back to the hazard's own scale. Every display path scales through
+// here so a layer's value never picks up another layer's unit.
+export const getUnitScale = (config: HazardConfig, id: string): number =>
+  getMapLayer(config, id)?.unitScale ?? config.unitScale
+
+export const toDisplayUnits = (
+  config: HazardConfig,
+  id: string,
+  value: number | null | undefined,
+): number | null => (value == null ? null : value * getUnitScale(config, id))
+
 export const resolveHazardDataset = (
   hazard: HazardConfig,
   selection: HazardSelection,

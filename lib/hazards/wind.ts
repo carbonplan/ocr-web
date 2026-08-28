@@ -76,13 +76,6 @@ const wind: HazardConfig = {
         values: [10, 25, 50, 100, 250, 1000],
         defaultValue: 100,
       },
-      pointValue: (detail, selectorValue) => {
-        const index =
-          selectorValue === null
-            ? -1
-            : detail.returnPeriods.indexOf(selectorValue)
-        return index >= 0 ? detail.windSpeed[index] : null
-      },
     },
   ],
 }
