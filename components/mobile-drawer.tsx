@@ -3,16 +3,20 @@ import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarDivider } from '@carbonplan/layouts'
-
-import { Geocode, Display, MapLayers } from '@/components'
 import { Drawer } from 'vaul'
-import ClimateSelector from './climate-selector'
-import HazardSelector from './hazard-selector'
-import TimePeriodSelector from './time-period-selector'
-import Colorbar from './colorbar'
-import RegionalInfo from './regional-info'
-import About from './about'
-import Footer from './footer'
+
+import {
+  ClimateSelector,
+  HazardSelector,
+  TimePeriodSelector,
+  Colorbar,
+  RegionalInfo,
+  About,
+  Footer,
+  Geocode,
+  Display,
+  MapLayers,
+} from '@/components'
 
 const MobileDrawer = () => {
   // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
