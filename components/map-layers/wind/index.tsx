@@ -1,37 +1,32 @@
 import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
+import { usePeakWind, WIND_SPEED_LAYER_ID } from '@/hooks/usePeakWind'
 import { RISK_LAYER_ID, toDisplayUnits } from '@/lib/hazards'
 import AnnualLoss from './annual-loss'
 import WindRisk from './wind-risk'
 import PeakWinds from './peak-winds'
 
 const ANNUAL_LOSS_LAYER_ID = 'annual_loss'
-const WIND_SPEED_LAYER_ID = 'wind_speed'
 
 const WindLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const buildingQuery = useStore((state) => state.buildingQuery)
-  const returnPeriod = useStore((state) => state.selectorValues.return_period)
   const riskConfig = useStore((state) => state.riskConfig)
 
   const { score, color } = useScore(selectedBuilding, 'hinted')
+  // peak winds are binned by Saffir-Simpson category rather than by risk score,
+  // so that row carries its own color off the wind speed layer's scale
+  const { value: peakWind, color: peakWindColor } = usePeakWind()
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
-  const rpIndex = detail ? detail.returnPeriods.indexOf(returnPeriod) : -1
-
   const annualLoss = toDisplayUnits(
     riskConfig,
     ANNUAL_LOSS_LAYER_ID,
     detail?.ead,
-  )
-  const peakWind = toDisplayUnits(
-    riskConfig,
-    WIND_SPEED_LAYER_ID,
-    rpIndex === -1 ? null : detail?.windSpeed[rpIndex],
   )
 
   return (
@@ -60,6 +55,7 @@ const WindLayers = () => {
         checked={mapLayer === WIND_SPEED_LAYER_ID}
         setChecked={() => setMapLayer(WIND_SPEED_LAYER_ID)}
         value={peakWind}
+        color={peakWindColor}
         toFixed={0}
         unit='#'
       >

@@ -11,9 +11,8 @@ import {
   Colorbar as ColorbarBase,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-// @ts-expect-error - carbonplan colormaps types not available
-import { useThemedColormap } from '@carbonplan/colormaps'
 
+import { useColormap } from '@/lib/colormaps'
 import { getMapLayer } from '@/lib/hazards'
 import ScoreBar from '../score-bar'
 import { useStore } from '@/lib/store'
@@ -27,13 +26,15 @@ const Colorbar = () => {
   const riskConfig = useStore((state) => state.riskConfig)
   const mapLayer = useStore((state) => state.mapLayer)
   const activeLayer = getMapLayer(riskConfig, mapLayer)
-  const colormap = useThemedColormap(riskConfig.colormap, {
-    count: activeLayer?.binLabels?.length ?? 255,
-  })
+  const binLabels = activeLayer?.binLabels ?? []
+  // the same samples the raster paints with, minus its leading no-data swatch,
+  // so the bar describes the map rather than an independent sampling of the ramp
+  const colormap = useColormap({
+    count: binLabels.length > 0 ? binLabels.length : 255,
+  }).slice(1)
 
   let content = <ScoreBar labels />
   if (activeLayer?.customColormap) {
-    const binLabels = activeLayer.binLabels ?? []
     const binBoundaries = activeLayer.binBoundaries
     const discrete = binLabels.length > 0
     // one tick per bin edge, indexed into binBoundaries by bin

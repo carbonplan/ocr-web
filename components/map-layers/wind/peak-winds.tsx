@@ -6,6 +6,7 @@ import {
 } from '@carbonplan/components'
 
 import { useStore } from '@/lib/store'
+import { usePeakWind } from '@/hooks/usePeakWind'
 import { getMapLayer } from '@/lib/hazards'
 
 import ValueBadge from '../../value-badge'
@@ -72,6 +73,7 @@ const PeakWinds = () => {
   const mapLayer = useStore((state) => state.mapLayer)
   const returnPeriod = useStore((state) => state.selectorValues.return_period)
   const setSelectorValues = useStore((state) => state.setSelectorValues)
+  const { color: peakWindColor } = usePeakWind()
 
   const activeLayer = getMapLayer(riskConfig, mapLayer)
 
@@ -106,7 +108,7 @@ const PeakWinds = () => {
         windSpeedLower={detail?.windSpeedLower}
         windSpeedUpper={detail?.windSpeedUpper}
         unitScale={activeLayer.unitScale}
-        color={riskConfig.accentColor}
+        color={peakWindColor ?? riskConfig.accentColor}
       />
       <RecurrenceTable
         rp33={detail?.rpExceed33 ?? null}
