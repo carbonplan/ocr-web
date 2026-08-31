@@ -30,7 +30,7 @@ const Menu = forwardRef<Ref, Props>(
     ref,
   ) => {
     return (
-      <Box ref={ref}>
+      <Box ref={ref} sx={{ position: 'relative', zIndex: 1 }}>
         {(suggestions.length > 0 || errorMessage) && (
           <Row
             id={listboxId}
