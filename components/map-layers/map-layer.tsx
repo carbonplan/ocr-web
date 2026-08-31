@@ -34,6 +34,7 @@ const MapLayer = ({
           sx={{
             color: checked ? 'primary' : 'secondary',
             transition: 'color 0.2s',
+            fontSize: [1, 1, 1, 2],
           }}
         >
           {label}
