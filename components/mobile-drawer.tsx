@@ -14,7 +14,6 @@ import {
   About,
   Footer,
   Geocode,
-  Display,
   MapLayers,
 } from '@/components'
 
@@ -27,7 +26,6 @@ const MobileDrawer = () => {
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
-  const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
     if (selectedBuilding || selectedArea) {
@@ -153,7 +151,6 @@ const MobileDrawer = () => {
                   <RegionalInfo />
                   <About />
                 </Box>
-                {advancedMode && <Display />}
                 <Footer />
               </Flex>
             </Box>
