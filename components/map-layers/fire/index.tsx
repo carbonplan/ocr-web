@@ -47,6 +47,7 @@ const FireLayers = () => {
       <MapLayer
         label='Burn probability'
         checked={false}
+        unit='#'
         setChecked={() => {}}
         value={bp}
       ></MapLayer>
