@@ -47,6 +47,7 @@ const Menu = forwardRef<Ref, Props>(
               color: 'secondary',
               background: 'hinted',
               overflowY: 'auto',
+              overflowX: 'hidden',
             }}
           >
             <Column start={1} width={4}>
