@@ -25,14 +25,18 @@ const AnnualLoss = () => {
       <Box sx={{ mt: 2, mb: 3 }}>
         Expected loss from single events of increasing rarity, from a 1-in-10
         year storm to a 1-in-1,000 year storm.
-        {envelope && (
+        <br />
+        <br />
+        Accounting for the middle 50% of damage-model fits to historical
+        hurricane losses, annual loss is best understood as a range
+        {envelope ? (
           <>
-            <br />
-            <br />
-            Accounting for the middle 50% of damage-model fits to historical
-            hurricane losses, annual loss is best understood as a range from{' '}
-            {format('.2~f')(envelope[0])} to {format('.2~f')(envelope[1])}%.
+            {' '}
+            from {format('.2~f')(envelope[0])} to {format('.2~f')(envelope[1])}
+            %.,
           </>
+        ) : (
+          '.'
         )}
       </Box>
       <DamageCurve

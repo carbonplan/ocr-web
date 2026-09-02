@@ -78,9 +78,7 @@ const PeakWinds = () => {
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
 
-  if (!activeLayer || !activeLayer.selector || !returnPeriod) return
-
-  const returnPeriods = activeLayer.selector.values
+  const returnPeriods = activeLayer?.selector?.values ?? []
 
   return (
     <Box>
@@ -106,7 +104,7 @@ const PeakWinds = () => {
         windSpeed={detail?.windSpeed}
         windSpeedLower={detail?.windSpeedLower}
         windSpeedUpper={detail?.windSpeedUpper}
-        unitScale={activeLayer.unitScale}
+        unitScale={activeLayer?.unitScale}
         color={riskConfig.accentColor}
       />
       <RecurrenceTable

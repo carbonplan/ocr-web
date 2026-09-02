@@ -27,7 +27,7 @@ const WindCurve = ({
   windSpeed = [],
   windSpeedLower = null,
   windSpeedUpper = null,
-  unitScale,
+  unitScale = 1,
   color = 'teal',
   sx,
 }: {
@@ -36,7 +36,7 @@ const WindCurve = ({
   windSpeed?: (number | null)[]
   windSpeedLower?: (number | null)[] | null
   windSpeedUpper?: (number | null)[] | null
-  unitScale: number
+  unitScale?: number
   color?: string
   sx?: ThemeUIStyleObject
 }) => {
