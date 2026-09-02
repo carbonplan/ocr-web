@@ -21,9 +21,6 @@ const OtherFactors = () => {
 
   return (
     <Box>
-      <Box as='h2' variant='sectionHeading'>
-        Other factors
-      </Box>
       <Box variant='description'>
         The risk described above does not account for several important factors,
         including those below, which could influence the actual wildfire risk of

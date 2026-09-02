@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex } from 'theme-ui'
-import { mix } from '@theme-ui/color'
 import { ensureSourceLoaded } from '@/lib/map-utils'
 //@ts-expect-error - carbonplan components types not available
 import { Button, Input, Row, Column } from '@carbonplan/components'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarDivider } from '@carbonplan/layouts'
 //@ts-expect-error - carbonplan icons types not available
-import { X } from '@carbonplan/icons'
+import { Search, X } from '@carbonplan/icons'
 import { useStore } from '../../lib/store'
 import { formatAddress, formatRegionName } from '@/lib/address-utils'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
@@ -15,7 +14,6 @@ import { BASE_PATH, LAYERS } from '@/lib/config'
 import { Suggestion } from '../../types/location'
 import { useDebounce } from '@/hooks/useDebounce'
 import Menu from './menu'
-import { useStickyBlock } from '../sticky-stack'
 
 const MIN_QUERY_LENGTH = 3
 
@@ -28,16 +26,9 @@ const Geocode = () => {
   const [errorMessage, setErrorMessage] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 500)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
-  const { ref: stickyRef, sx: stickySx } = useStickyBlock(0, {
-    fallbackTop: -25,
-  })
-  const setWrapperNode = useCallback(
-    (node: HTMLDivElement | null) => {
-      wrapperRef.current = node
-      stickyRef(node)
-    },
-    [stickyRef],
-  )
+  const setWrapperNode = useCallback((node: HTMLDivElement | null) => {
+    wrapperRef.current = node
+  }, [])
   const inputRef = useRef<HTMLInputElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -266,7 +257,7 @@ const Geocode = () => {
   }
 
   return (
-    <Box ref={setWrapperNode} sx={{ width: '100%', ...stickySx }}>
+    <Box ref={setWrapperNode} sx={{ width: '100%' }}>
       <Box
         onClick={() => inputRef.current?.focus()}
         sx={{
@@ -274,11 +265,6 @@ const Geocode = () => {
           cursor: 'pointer',
           transition: 'background-color 0.15s',
           zIndex: 2,
-          px: [4, 5, 5, 6],
-          mx: [-4, -5, -5, -6],
-          '&:hover': {
-            background: mix('muted', 'background', 0.25),
-          },
           '&:hover #close': {
             color: 'primary',
           },
@@ -332,24 +318,30 @@ const Geocode = () => {
                   },
                 }}
               />
-              {(selectedLocation || searchQuery.length > 0) && (
+              {selectedLocation || searchQuery.length > 0 ? (
                 <Button
                   size='xs'
                   onClick={handleDeselect}
                   inverted
                   aria-label='Clear address'
-                  sx={{ mr: ['-10px', '-12px', '-14px', '-17px'] }}
                 >
                   <X
                     id='close'
                     sx={{
                       transition: 'color 0.2s',
-                      width: [15, 15, 15, 20],
-                      height: [15, 15, 15, 20],
-                      mb: ['-4px', '-4px', '-4px', '-2px'],
+                      width: [12, 12, 12, 16],
+                      height: [12, 12, 12, 16],
+                      mb: ['-3px', '-3px', '-3px', '-4px'],
                     }}
                   />
                 </Button>
+              ) : (
+                <Search
+                  sx={{
+                    width: [12, 12, 12, 16],
+                    mb: ['-6px', '-6px', '-6px', '-6px'],
+                  }}
+                />
               )}
             </Flex>
           </Column>

@@ -19,6 +19,7 @@ import {
   HazardId,
   HazardConfig,
   FutureWindow,
+  SelectorDimension,
 } from './hazards'
 import {
   clearSelectedBuildingUrl,
@@ -31,8 +32,8 @@ export type BuildingQueryState =
   | { status: 'success'; value: number; detail?: ChazPointData }
 
 const syncHazardUrl = (get: () => Store) => {
-  const { hazard, futureWindow, mapLayer, mapLayerSelectorValue } = get()
-  updateHazardUrl(hazard, futureWindow, mapLayer, mapLayerSelectorValue)
+  const { hazard, futureWindow, mapLayer } = get()
+  updateHazardUrl(hazard, futureWindow, mapLayer)
 }
 
 type Store = {
@@ -42,8 +43,6 @@ type Store = {
   setSelectedLocation: (location: Location | null) => void
   satellite: boolean
   setSatellite: (satellite: boolean) => void
-  riskRaster: boolean
-  setRiskRaster: (riskRaster: boolean) => void
   selectedBuilding: Building | null
   setSelectedBuilding: (building: Building) => void
   // a clicked map point standing in for a building; mutually exclusive with
@@ -95,8 +94,10 @@ type Store = {
   // RISK_LAYER_ID for the risk view, or a HazardMapLayer id
   mapLayer: string
   setMapLayer: (mapLayer: string) => void
-  mapLayerSelectorValue: number | null
-  setMapLayerSelectorValue: (value: number) => void
+  selectorValues: Record<SelectorDimension, number>
+  setSelectorValues: (
+    update: Partial<Record<SelectorDimension, number>>,
+  ) => void
   buildingQuery: BuildingQueryState
   setBuildingQuery: (buildingQuery: BuildingQueryState) => void
   zarrLayer: ZarrLayer | null
@@ -131,8 +132,6 @@ export const useStore = create<Store>((set, get) => ({
   setSelectedLocation: (location) => set({ selectedLocation: location }),
   satellite: false,
   setSatellite: (satellite) => set({ satellite }),
-  riskRaster: false,
-  setRiskRaster: (riskRaster) => set({ riskRaster }),
   selectedBuilding: null,
   setSelectedBuilding: (building) =>
     set({ selectedBuilding: building, selectedArea: null }),
@@ -180,7 +179,6 @@ export const useStore = create<Store>((set, get) => ({
         : 'current', // fallback to current if future unavailable
       riskConfig: config,
       mapLayer: RISK_LAYER_ID,
-      mapLayerSelectorValue: null,
       colorLimits: {
         bounds: [
           config.binBoundaries[0],
@@ -189,8 +187,6 @@ export const useStore = create<Store>((set, get) => ({
         binBoundaries: [...config.binBoundaries],
       },
       buildingQuery: { status: 'idle' },
-      // query-mode buildings are transparent, so the raster carries the view
-      riskRaster: config.buildingsMode === 'query',
     })
     syncHazardUrl(get)
   },
@@ -200,6 +196,9 @@ export const useStore = create<Store>((set, get) => ({
     syncHazardUrl(get)
   },
   mapLayer: RISK_LAYER_ID,
+  selectorValues: { return_period: 100 },
+  setSelectorValues: (values) =>
+    set({ selectorValues: { ...get().selectorValues, ...values } }),
   setMapLayer: (mapLayer) => {
     if (mapLayer === get().mapLayer) return
     const config = get().riskConfig
@@ -207,17 +206,11 @@ export const useStore = create<Store>((set, get) => ({
     const bins = layer ? layer.binBoundaries : config.binBoundaries
     set({
       mapLayer,
-      mapLayerSelectorValue: layer?.selector?.defaultValue ?? null,
       colorLimits: {
         bounds: [bins[0], bins[bins.length - 1]],
         binBoundaries: [...bins],
       },
     })
-    syncHazardUrl(get)
-  },
-  mapLayerSelectorValue: null,
-  setMapLayerSelectorValue: (value) => {
-    set({ mapLayerSelectorValue: value })
     syncHazardUrl(get)
   },
   buildingQuery: { status: 'idle' },

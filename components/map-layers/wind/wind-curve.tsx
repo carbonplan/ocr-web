@@ -22,19 +22,21 @@ const CATEGORY_EDGES = [74, 96, 111, 130, 157]
 const CATEGORY_LABELS = ['Cat 1', 'Cat 2', 'Cat 3', 'Cat 4', 'Cat 5']
 
 const WindCurve = ({
+  returnPeriod,
   returnPeriods = DEFAULT_RETURN_PERIODS,
   windSpeed = [],
   windSpeedLower = null,
   windSpeedUpper = null,
-  unitScale,
+  unitScale = 1,
   color = 'teal',
   sx,
 }: {
+  returnPeriod: number
   returnPeriods?: number[]
   windSpeed?: (number | null)[]
   windSpeedLower?: (number | null)[] | null
   windSpeedUpper?: (number | null)[] | null
-  unitScale: number
+  unitScale?: number
   color?: string
   sx?: ThemeUIStyleObject
 }) => {
@@ -126,6 +128,11 @@ const WindCurve = ({
             horizontal
             values={categories.map(({ edge }) => edge)}
             sx={{ borderColor: 'muted' }}
+          />
+          <Grid
+            vertical
+            values={[returnPeriod]}
+            sx={{ borderColor: 'secondary' }}
           />
           {/* no values: the log scale emits minor ticks between decades */}
           <Ticks bottom sx={{ borderColor: 'muted' }} />

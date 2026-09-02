@@ -112,6 +112,7 @@ const ScoreBar = ({
                   value={`${i}`}
                   unit='#'
                   color={colormap[i]}
+                  whitespace={false}
                   sx={{
                     width: '100%',
                     ...(i === 0 && score !== '0' ? { color: 'secondary' } : {}),

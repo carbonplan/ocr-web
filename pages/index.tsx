@@ -16,7 +16,6 @@ import {
   MobileDrawer,
   Intro,
   Loading,
-  MapLayers,
 } from '../components'
 import { useStore } from '@/lib/store'
 import { getHazardFromQuery } from '@/lib/url-utils'
@@ -49,11 +48,8 @@ const Index = () => {
       if (params.futureWindow) setFutureWindow(params.futureWindow)
       setHazard(params.hazard)
       if (params.mapLayer) {
-        const { setMapLayer, setMapLayerSelectorValue } = useStore.getState()
+        const { setMapLayer } = useStore.getState()
         setMapLayer(params.mapLayer)
-        if (params.selectorValue !== null) {
-          setMapLayerSelectorValue(params.selectorValue)
-        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -190,7 +186,6 @@ const Index = () => {
       >
         {isMobile ? <MobileDrawer /> : <Sidebar />}
         <Loading />
-        <MapLayers />
         <Map />
         <Legend />
       </Box>

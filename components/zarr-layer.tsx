@@ -2,7 +2,7 @@ import { useMemo, useEffect, useRef } from 'react'
 import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
-import { getMapLayer, resolveHazardDataset } from '@/lib/hazards'
+import { getMapLayer, getUnitScale, resolveHazardDataset } from '@/lib/hazards'
 import { getZarrLayerId } from '@/lib/raster-query'
 
 const ZarrLayer = () => {
@@ -12,18 +12,18 @@ const ZarrLayer = () => {
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
   const riskConfig = useStore((state) => state.riskConfig)
-  const riskRaster = useStore((state) => state.riskRaster)
   const setZarrLoading = useStore((state) => state.setZarrLoading)
   const setZarrLayer = useStore((state) => state.setZarrLayer)
   const mapLayerId = useStore((state) => state.mapLayer)
-  const selectorValue = useStore((state) => state.mapLayerSelectorValue)
-  const layerRef = useRef<ZarrLayerClass | null>(null)
-
   const activeLayer = getMapLayer(riskConfig, mapLayerId)
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
   const variable = activeLayer?.variable ?? dataset.variable
-  const unitScale = activeLayer?.unitScale ?? riskConfig.unitScale
+  const unitScale = getUnitScale(riskConfig, mapLayerId)
   const selectorDim = activeLayer?.selector?.dim
+  const selectorValue = useStore((state) =>
+    selectorDim ? state.selectorValues[selectorDim] : null,
+  )
+  const layerRef = useRef<ZarrLayerClass | null>(null)
 
   const customFrag = useMemo(() => {
     const boundaries = colorLimits.binBoundaries || []
@@ -70,19 +70,13 @@ const ZarrLayer = () => {
       id: layerId,
       source: dataset.source,
       variable,
-      ...(selectorDim
-        ? {
-            selector: {
-              [selectorDim]:
-                useStore.getState().mapLayerSelectorValue ??
-                activeLayer!.selector!.defaultValue,
-            },
-          }
+      ...(selectorDim && typeof selectorValue === 'number'
+        ? { selector: { [selectorDim]: selectorValue } }
         : {}),
       colormap,
       clim: colorLimits.bounds,
       customFrag,
-      opacity: useStore.getState().riskRaster ? 1 : 0,
+      opacity: 1,
       onLoadingStateChange: (state) => {
         setZarrLoading(state.loading)
         // a static map won't repaint on its own once chunk loads land
@@ -114,10 +108,6 @@ const ZarrLayer = () => {
   useEffect(() => {
     layerRef.current?.setClim(colorLimits.bounds)
   }, [colorLimits.bounds])
-
-  useEffect(() => {
-    layerRef.current?.setOpacity(riskRaster ? 1 : 0)
-  }, [riskRaster])
 
   useEffect(() => {
     if (!selectorDim || selectorValue === null) return

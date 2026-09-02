@@ -37,7 +37,7 @@ import {
   getAreaCoordinatesFromQuery,
   getHazardFromQuery,
 } from '@/lib/url-utils'
-import { DEFAULT_HAZARD, RISKS } from '@/lib/hazards'
+import { DEFAULT_HAZARD, RISK_LAYER_ID, RISKS } from '@/lib/hazards'
 
 const MapComponent = () => {
   const router = useRouter()
@@ -48,7 +48,7 @@ const MapComponent = () => {
   const sidebarWidth = useStore((state) => state.sidebarWidth)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const clearSelections = useStore((state) => state.clearSelections)
-  const riskRaster = useStore((state) => state.riskRaster)
+  const mapLayer = useStore((state) => state.mapLayer)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
@@ -295,9 +295,9 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
-          {/* query-mode keeps the layer mounted so point queries still work
-              while the raster is toggled off */}
-          {(riskRaster || buildingsMode === 'query') && <ZarrLayer />}
+          {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') && (
+            <ZarrLayer />
+          )}
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

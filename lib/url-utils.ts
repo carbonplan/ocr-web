@@ -46,7 +46,6 @@ export function updateHazardUrl(
   hazard: HazardId,
   futureWindow: FutureWindow,
   mapLayer: string,
-  selectorValue: number | null,
 ): void {
   if (typeof window === 'undefined') return
   const url = new URL(window.location.href)
@@ -69,14 +68,6 @@ export function updateHazardUrl(
     url.searchParams.delete('rp')
   } else {
     url.searchParams.set('layer', mapLayer)
-    if (
-      selectorValue === null ||
-      selectorValue === layer.selector?.defaultValue
-    ) {
-      url.searchParams.delete('rp')
-    } else {
-      url.searchParams.set('rp', String(selectorValue))
-    }
   }
 
   window.history.replaceState(

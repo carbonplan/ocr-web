@@ -8,7 +8,7 @@ import { useEffect, useRef, ReactNode, useState } from 'react'
 import AnimateHeight from 'react-animate-height'
 
 import ValueBadge from './value-badge'
-import { Tooltip } from '../tooltip'
+import { Tooltip } from './tooltip'
 
 const TableCell = ({
   value,
@@ -71,7 +71,7 @@ const TableCell = ({
   )
 }
 
-const sx = {
+export const tableSx = {
   tableHead: {
     fontSize: [1, 1, 1, 2],
     fontFamily: 'mono',
@@ -123,24 +123,24 @@ function TooltipTable<T extends string>({
 
   return (
     <Box>
-      <Row columns={3} sx={{ ...sx.row, mt: 2, py: 1 }}>
+      <Row columns={3} sx={{ ...tableSx.row, mt: 2, py: 1 }}>
         <Column start={1} width={1}>
-          <Box sx={sx.tableHead} id={`${values[0].key}-label`}>
+          <Box sx={tableSx.tableHead} id={`${values[0].key}-label`}>
             {values[0].label}
           </Box>
         </Column>
         <Column start={2} width={1}>
-          <Box sx={sx.tableHead} id={`${values[1].key}-label`}>
+          <Box sx={tableSx.tableHead} id={`${values[1].key}-label`}>
             {values[1].label}
           </Box>
         </Column>
         <Column start={3} width={1}>
-          <Box sx={sx.tableHead} id={`${values[2].key}-label`}>
+          <Box sx={tableSx.tableHead} id={`${values[2].key}-label`}>
             {values[2].label}
           </Box>
         </Column>
       </Row>
-      <Row columns={3} sx={{ ...sx.row, py: 2 }}>
+      <Row columns={3} sx={{ ...tableSx.row, py: 2 }}>
         {values.map(({ key, value, aria, ...rest }, i) => (
           <Column
             key={key}

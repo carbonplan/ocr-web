@@ -15,7 +15,7 @@ import {
 import { GeographyKey } from '@/types/location'
 import { Download, DownloadButton } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
-import ValueBadge from './value-badge'
+import ValueBadge from '../value-badge'
 import { useScore } from '@/hooks/useScore'
 import EyeCheckbox from '../eye-checkbox'
 import TooltipWrapper from '../tooltip'
@@ -36,7 +36,7 @@ const GEOGRAPHY_SUMMARY_LABELS = {
   censusBlock: 'Block stats',
 }
 
-const RegionalRisk = () => {
+const RegionalFire = () => {
   const regionalData = useStore((state) => state.riskConfig.regionalData)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const map = useStore((state) => state.map)
@@ -182,9 +182,6 @@ const RegionalRisk = () => {
 
   return (
     <>
-      <Box as='h2' variant='sectionHeading'>
-        Risk in the region
-      </Box>
       <Flex
         sx={{
           alignItems: 'baseline',
@@ -386,4 +383,4 @@ const RegionalRisk = () => {
   )
 }
 
-export default RegionalRisk
+export default RegionalFire

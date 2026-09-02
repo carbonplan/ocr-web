@@ -15,10 +15,15 @@ const OFFSET = 2
 
 export function useColormap(options?: ColormapOptions): string[] {
   const colormap = useStore((state) => state.riskConfig.colormap)
-  const count = useStore((state) => state.colorLimits.binBoundaries.length)
+  const displayCount = useStore(
+    (state) => state.colorLimits.binBoundaries.length,
+  )
   const [colorMode] = useColorMode()
   const { theme } = useThemeUI()
   const mode = colorMode === 'dark' ? 'dark' : 'light'
+  // sized to the displayed layer's bins unless a caller is coloring against a
+  // different set (e.g. risk scores while another layer is on the map)
+  const count = options?.count ?? displayCount
   const colormapBase = useColormapBase(colormap, {
     mode,
     format: 'hex',

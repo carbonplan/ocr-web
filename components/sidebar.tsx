@@ -1,20 +1,25 @@
-import { Box } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import { useRef, useEffect } from 'react'
 import { useStore } from '@/lib/store'
 //@ts-expect-error - carbonplan layouts types not available
 import { Sidebar } from '@carbonplan/layouts'
-import { Display, Geocode, Results } from '../components'
-import Intro from './intro'
-import RiskSelector from './risk-selector'
+import {
+  ClimateSelector,
+  HazardSelector,
+  TimePeriodSelector,
+  Colorbar,
+  RegionalInfo,
+  About,
+  Footer,
+  Geocode,
+  MapLayers,
+} from '@/components'
 import { StickyStack } from './sticky-stack'
-import LayerSelector from './layer-selector'
-import ClimateSelector from './climate-selector'
 
 const SidebarComponent = () => {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const map = useStore((state) => state.map)
   const setSidebarWidth = useStore((state) => state.setSidebarWidth)
-  const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
     const updateSidebarWidth = () => {
@@ -37,17 +42,49 @@ const SidebarComponent = () => {
   return (
     <Box sx={{ display: ['none', 'none', 'block'] }}>
       <Sidebar expanded={true} side='left' width={4}>
-        <div ref={sidebarRef}>
-          <Intro />
+        <Box
+          ref={sidebarRef}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100%',
+          }}
+        >
           <StickyStack>
-            <Geocode />
-            <RiskSelector />
-            <LayerSelector />
+            <Box
+              as='h1'
+              sx={{
+                fontSize: [4, 5, 5, 6],
+                fontFamily: 'heading',
+                letterSpacing: 'heading',
+                lineHeight: 'heading',
+                mb: 2,
+              }}
+            >
+              Open Climate Risk
+            </Box>
+            <HazardSelector />
             <ClimateSelector />
+            <TimePeriodSelector />
           </StickyStack>
-          <Results />
-          {advancedMode && <Display />}
-        </div>
+          <Flex
+            sx={{
+              flexDirection: 'column',
+              flex: '1 1 auto',
+              justifyContent: 'space-between',
+              gap: 3,
+            }}
+          >
+            <Box>
+              <Colorbar />
+              <Geocode />
+              <MapLayers />
+              <RegionalInfo />
+              <About />
+            </Box>
+            <Footer />
+          </Flex>
+        </Box>
       </Sidebar>
     </Box>
   )

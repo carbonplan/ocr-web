@@ -3,21 +3,12 @@ import { merge } from 'theme-ui'
 import baseTheme from '@carbonplan/theme'
 
 const customVariants = {
-  sectionHeading: {
-    fontFamily: 'heading',
-    letterSpacing: 'smallcaps',
-    textTransform: 'uppercase' as const,
-    fontSize: [2, 3, 3, 4],
-    mb: 2,
-    mt: 5,
-  },
-
   label: {
     fontFamily: 'mono',
+    letterSpacing: 'mono',
     fontSize: [2, 2, 2, 3],
-    color: 'secondary',
+    color: 'primary',
     textTransform: 'uppercase' as const,
-    letterSpacing: 'smallcaps',
   },
 
   description: {

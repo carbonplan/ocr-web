@@ -1,11 +1,21 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-import { Geocode, Results, Display } from '@/components'
+//@ts-expect-error - carbonplan layouts types not available
+import { SidebarDivider } from '@carbonplan/layouts'
 import { Drawer } from 'vaul'
-import RiskSelector from './risk-selector'
-import LayerSelector from './layer-selector'
-import ClimateSelector from './climate-selector'
+
+import {
+  ClimateSelector,
+  HazardSelector,
+  TimePeriodSelector,
+  Colorbar,
+  RegionalInfo,
+  About,
+  Footer,
+  Geocode,
+  MapLayers,
+} from '@/components'
 
 const MobileDrawer = () => {
   // weird bug, adding two extra final snap points fixes drawer not following drag in all cases.
@@ -16,7 +26,6 @@ const MobileDrawer = () => {
 
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
-  const advancedMode = useStore((state) => state.advancedMode)
 
   useEffect(() => {
     if (selectedBuilding || selectedArea) {
@@ -109,12 +118,12 @@ const MobileDrawer = () => {
                 }}
                 aria-hidden='true'
               />
-              <Box sx={{ px: 4 }}>
-                <Geocode />
-                <RiskSelector />
-                <LayerSelector />
+              <Flex sx={{ flexDirection: 'column', gap: 3, px: 4 }}>
+                <HazardSelector />
                 <ClimateSelector />
-              </Box>
+                <TimePeriodSelector />
+                <SidebarDivider sx={{ mt: 3, mb: 0 }} />
+              </Flex>
             </Drawer.Handle>
 
             <Box
@@ -127,8 +136,23 @@ const MobileDrawer = () => {
                 WebkitOverflowScrolling: 'touch',
               }}
             >
-              <Results />
-              {advancedMode && <Display />}
+              <Flex
+                sx={{
+                  flexDirection: 'column',
+                  flex: '1 1 auto',
+                  justifyContent: 'space-between',
+                  gap: 3,
+                }}
+              >
+                <Box>
+                  <Colorbar />
+                  <Geocode />
+                  <MapLayers />
+                  <RegionalInfo />
+                  <About />
+                </Box>
+                <Footer />
+              </Flex>
             </Box>
           </Flex>
         </Drawer.Content>

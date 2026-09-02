@@ -9,7 +9,7 @@ import {
 } from '@carbonplan/charts'
 import { Box, ThemeUIStyleObject } from 'theme-ui'
 import { format } from 'd3-format'
-import ScoreBar from './score-bar'
+import ScoreBar from '../score-bar'
 
 export const formatBuildingCount = (value: number) => {
   const abs = Math.abs(value)

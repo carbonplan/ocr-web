@@ -19,6 +19,17 @@ const Wrapper = ({
     return <>{children}</>
   }
 }
+
+const MIN_CHARS = 6
+
+export interface Props {
+  value?: string | number | null
+  color?: string
+  unit?: string
+  toFixed?: number
+  sx?: ThemeUIStyleObject
+  whitespace?: boolean
+}
 const ValueBadge = ({
   value,
   color,
@@ -26,14 +37,7 @@ const ValueBadge = ({
   toFixed = 2,
   unit = '%',
   whitespace = true,
-}: {
-  value?: string | number | null
-  color?: string
-  unit?: string
-  toFixed?: number
-  sx?: ThemeUIStyleObject
-  whitespace?: boolean
-}) => {
+}: Props) => {
   const { theme } = useThemeUI()
   let formattedValue
   let lowValue = false
@@ -63,18 +67,8 @@ const ValueBadge = ({
     [value, unit],
   )
 
-  let content = (
-    <>
-      {formattedValue}
-      {unit === '%' ? '%' : ''}
-    </>
-  )
-
-  if (value == null && whitespace) {
-    content = <>&nbsp;&nbsp;{unit}&nbsp;&nbsp;</>
-  } else if (value == null) {
-    content = <>{unit}</>
-  }
+  const content =
+    value == null ? unit : `${formattedValue}${unit === '%' ? '%' : ''}`
 
   return (
     <Wrapper lowValue={lowValue}>
@@ -99,6 +93,9 @@ const ValueBadge = ({
           transition: 'all 0.2s',
           userSelect: typeof value == 'number' ? 'all' : 'none',
           pt: ['1px', 0, 0, 0],
+          ...(whitespace
+            ? { fontFamily: 'mono', minWidth: `${MIN_CHARS}ch` }
+            : {}),
           ...colors,
           ...sx,
         }}
