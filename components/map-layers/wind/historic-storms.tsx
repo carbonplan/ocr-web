@@ -65,7 +65,13 @@ const Row = ({
     onMouseLeave={onHover ? () => onHover(false) : undefined}
   >
     <Box>{label}</Box>
-    <ValueBadge value={value} color={color} unit='#' sx={{ flexShrink: 0 }} />
+    <ValueBadge
+      value={value}
+      color={color}
+      unit='#'
+      toFixed={0}
+      sx={{ flexShrink: 0 }}
+    />
   </Flex>
 )
 
@@ -128,7 +134,7 @@ const HistoricStorms = () => {
                 }}
               >
                 <Box sx={tableSx.tableHead}>Storm</Box>
-                <Box sx={tableSx.tableHead}>Peak wind</Box>
+                <Box sx={tableSx.tableHead}>Modeled wind</Box>
               </Flex>
               {storms.map((storm) => (
                 <Row
