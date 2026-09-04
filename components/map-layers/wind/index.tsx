@@ -6,6 +6,8 @@ import { RISK_LAYER_ID, toDisplayUnits } from '@/lib/hazards'
 import AnnualLoss from './annual-loss'
 import WindRisk from './wind-risk'
 import PeakWinds from './peak-winds'
+import HistoricStorms, { useHistoricStorms } from './historic-storms'
+import { HISTORIC_STORMS_LAYER_ID } from '@/lib/historic-events'
 
 const ANNUAL_LOSS_LAYER_ID = 'annual_loss'
 
@@ -20,6 +22,7 @@ const WindLayers = () => {
   // peak winds are binned by Saffir-Simpson category rather than by risk score,
   // so that row carries its own color off the wind speed layer's scale
   const { value: peakWind, color: peakWindColor } = usePeakWind()
+  const { storms, strongestColor } = useHistoricStorms()
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
@@ -62,12 +65,16 @@ const WindLayers = () => {
         <PeakWinds />
       </MapLayer>
       <MapLayer
-        label='Previous wind events'
-        checked={false}
-        setChecked={() => {}}
-        value={null}
+        label='Previous storms'
+        checked={mapLayer === HISTORIC_STORMS_LAYER_ID}
+        setChecked={() => setMapLayer(HISTORIC_STORMS_LAYER_ID)}
+        value={storms ? storms.length : null}
+        color={strongestColor}
+        toFixed={0}
         unit='#'
-      ></MapLayer>
+      >
+        <HistoricStorms />
+      </MapLayer>
     </>
   )
 }

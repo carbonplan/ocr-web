@@ -47,6 +47,8 @@ export type HazardLayerSelector = {
 // loss (e.g. wind speed), read from a different variable in the same stores.
 export type HazardMapLayer = {
   id: string
+  // 'events' draws a vector overlay of historic events in place of the raster
+  kind?: 'raster' | 'events'
   variable?: string
   // values are multiplied by unitScale into this unit
   unit: string

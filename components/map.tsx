@@ -16,6 +16,7 @@ import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { useBuildingQuery } from '@/hooks/useBuildingQuery'
+import { useHistoricEvents } from '@/hooks/useHistoricEvents'
 import {
   Buildings,
   BuildingPoints,
@@ -24,6 +25,8 @@ import {
   SatelliteLayer,
   HillshadeLayer,
   ZarrLayer,
+  StormTracks,
+  FirePerimeters,
   MapControls,
   useMapControlStyles,
 } from './'
@@ -37,7 +40,12 @@ import {
   getAreaCoordinatesFromQuery,
   getHazardFromQuery,
 } from '@/lib/url-utils'
-import { DEFAULT_HAZARD, RISK_LAYER_ID, RISKS } from '@/lib/hazards'
+import {
+  DEFAULT_HAZARD,
+  RISK_LAYER_ID,
+  RISKS,
+  isEventsLayer,
+} from '@/lib/hazards'
 
 const MapComponent = () => {
   const router = useRouter()
@@ -50,6 +58,9 @@ const MapComponent = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const mapLayer = useStore((state) => state.mapLayer)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
+  const eventsLayer = useStore((state) =>
+    isEventsLayer(state.riskConfig, state.mapLayer),
+  )
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -67,6 +78,7 @@ const MapComponent = () => {
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
   useBuildingQuery()
+  useHistoricEvents()
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
@@ -295,9 +307,10 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
-          {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') && (
-            <ZarrLayer />
-          )}
+          {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') &&
+            !eventsLayer && <ZarrLayer />}
+          <StormTracks />
+          <FirePerimeters />
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

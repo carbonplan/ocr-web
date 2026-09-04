@@ -1,5 +1,6 @@
 import { DATA_URLS, PARQUET_BUCKET_URL } from '@/lib/config'
 import { HazardConfig } from './types'
+import { HISTORIC_FIRES_LAYER_ID } from '@/lib/historic-events'
 
 const fire: HazardConfig = {
   id: 'fire',
@@ -37,6 +38,16 @@ const fire: HazardConfig = {
       unit: '%',
       unitScale: 1,
       binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
+    },
+    {
+      id: HISTORIC_FIRES_LAYER_ID,
+      kind: 'events',
+      axisLabel: 'Ignition year',
+      unit: '',
+      unitScale: 1,
+      binBoundaries: [1984, 1990, 2000, 2010, 2020],
+      binLabels: ['80s', '90s', '00s', '10s', '20s'],
+      customColormap: true,
     },
   ],
   regionalData: {
