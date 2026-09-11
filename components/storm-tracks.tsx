@@ -5,7 +5,11 @@ import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
 import { RISKS, getMapLayer } from '@/lib/hazards'
-import { HISTORIC_STORMS_LAYER_ID, MPH_PER_KT } from '@/lib/historic-events'
+import {
+  HISTORIC_STORMS_LAYER_ID,
+  MPH_PER_KT,
+  TROPICAL_STORM_MPH,
+} from '@/lib/historic-events'
 
 const { sourceId, layerName, layerIds } = LAYERS.stormTracks
 const BEFORE_ID = 'address_label'
@@ -19,6 +23,13 @@ const HOVERED: ExpressionSpecification = [
   ['boolean', ['feature-state', 'hover'], false],
   ['boolean', ['feature-state', 'selected'], false],
 ]
+const SEGMENT_MPH: ExpressionSpecification = [
+  '*',
+  ['to-number', ['get', 'USA_WIND']],
+  MPH_PER_KT,
+]
+// segments below tropical-storm strength are drawn but not modeled
+const WEAK: ExpressionSpecification = ['<', SEGMENT_MPH, TROPICAL_STORM_MPH]
 
 // Track segments colored by their recorded wind on the same Saffir-Simpson
 // scale as the peak winds layer, with the storms that reached the selected
@@ -49,17 +60,12 @@ const StormTracks = () => {
   )
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
-    const mph: ExpressionSpecification = [
-      '*',
-      ['to-number', ['get', 'USA_WIND']],
-      MPH_PER_KT,
-    ]
     const steps = BINS.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]])
     return [
       'case',
       HOVERED,
       get(theme, 'rawColors.primary'),
-      ['step', mph, colormap[1], ...steps],
+      ['step', SEGMENT_MPH, colormap[1], ...steps],
     ] as ExpressionSpecification
   }, [colormap, theme])
 
@@ -74,22 +80,31 @@ const StormTracks = () => {
           0.12 * dim,
         ]
       : 0.75 * dim
-    return ['case', HOVERED, 1, base]
+    return [
+      'case',
+      HOVERED,
+      ['case', WEAK, 0.45, 1],
+      ['*', base, ['case', WEAK, 0.4, 1]],
+    ]
   }, [relevantSids, hoveredEventId, selectedStormId])
 
   const widthExpression: ExpressionSpecification = useMemo(() => {
     const width = (base: number): ExpressionSpecification => [
-      'case',
-      HOVERED,
-      base * 2.5,
-      relevantSids
-        ? [
-            'case',
-            ['in', ['get', 'SID'], ['literal', relevantSids]],
-            base * 1.5,
-            base,
-          ]
-        : base,
+      '*',
+      ['case', WEAK, 0.6, 1],
+      [
+        'case',
+        HOVERED,
+        base * 2.5,
+        relevantSids
+          ? [
+              'case',
+              ['in', ['get', 'SID'], ['literal', relevantSids]],
+              base * 1.5,
+              base,
+            ]
+          : base,
+      ],
     ]
     return [
       'interpolate',

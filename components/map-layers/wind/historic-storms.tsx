@@ -19,7 +19,7 @@ import { tableSx } from '../../tooltip-table'
 const FIRST_SEASON = 1980
 
 const MODELED_WIND_NOTE =
-  'The peak 1-minute sustained wind the wind hazard model attributes to this storm at this location. Each storm\u2019s NOAA best track (position and maximum wind) is run through the same parametric wind model (Holland 2008, via CLIMADA) and roughly 9 km grid used for the wind hazard maps, so the two are directly comparable. These are model estimates, not measurements: the wind at a specific address can differ by tens of mph, especially near the core of small storms.'
+  'The peak 1-minute sustained wind the wind hazard model attributes to this storm at this location. Each storm\u2019s NOAA best track (position and maximum wind) is run through the same parametric wind model (Holland 2008, via CLIMADA) and roughly 9 km grid used for the wind hazard maps, so the two are directly comparable. Track segments below tropical-storm strength (34 kt) are drawn faintly and not modeled. These are model estimates, not measurements: the wind at a specific address can differ by tens of mph, especially near the core of small storms.'
 
 // Storms at the selected point, strongest first, each colored by the
 // Saffir-Simpson bin of the wind it brought there.
