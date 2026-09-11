@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { ExpressionSpecification } from 'maplibre-gl'
+import { useThemeUI, get } from 'theme-ui'
+import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
@@ -8,6 +9,8 @@ import { HISTORIC_STORMS_LAYER_ID, MPH_PER_KT } from '@/lib/historic-events'
 
 const { sourceId, layerName, layerIds } = LAYERS.stormTracks
 const BEFORE_ID = 'address_label'
+// pixels around the cursor that count as hovering a track
+const HIT_TOLERANCE = 6
 
 const BINS =
   getMapLayer(RISKS.wind, HISTORIC_STORMS_LAYER_ID)?.binBoundaries ?? []
@@ -21,6 +24,7 @@ const HOVERED: ExpressionSpecification = [
 // scale as the peak winds layer, with the storms that reached the selected
 // point drawn over the rest.
 const StormTracks = () => {
+  const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const active = useStore(
     (state) =>
@@ -29,6 +33,7 @@ const StormTracks = () => {
   )
   const historicEvents = useStore((state) => state.historicEvents)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
+  const setHoveredEventId = useStore((state) => state.setHoveredEventId)
   const previousHoverRef = useRef<string | null>(null)
 
   const colormap = useColormap({ count: BINS.length })
@@ -48,15 +53,27 @@ const StormTracks = () => {
       MPH_PER_KT,
     ]
     const steps = BINS.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]])
-    return ['step', mph, colormap[1], ...steps] as ExpressionSpecification
-  }, [colormap])
+    return [
+      'case',
+      HOVERED,
+      get(theme, 'rawColors.primary'),
+      ['step', mph, colormap[1], ...steps],
+    ] as ExpressionSpecification
+  }, [colormap, theme])
 
+  // while a storm is hovered the rest recede, so its whole track reads clearly
   const opacityExpression: ExpressionSpecification = useMemo(() => {
+    const dim = hoveredEventId ? 0.4 : 1
     const base: ExpressionSpecification | number = relevantSids
-      ? ['case', ['in', ['get', 'SID'], ['literal', relevantSids]], 0.95, 0.12]
-      : 0.75
+      ? [
+          'case',
+          ['in', ['get', 'SID'], ['literal', relevantSids]],
+          0.95 * dim,
+          0.12 * dim,
+        ]
+      : 0.75 * dim
     return ['case', HOVERED, 1, base]
-  }, [relevantSids])
+  }, [relevantSids, hoveredEventId])
 
   const widthExpression: ExpressionSpecification = useMemo(() => {
     const width = (base: number): ExpressionSpecification => [
@@ -135,6 +152,37 @@ const StormTracks = () => {
     map.setPaintProperty(layerIds.line, 'line-opacity', opacityExpression)
     map.setPaintProperty(layerIds.line, 'line-width', widthExpression)
   }, [map, colorExpression, opacityExpression, widthExpression])
+
+  useEffect(() => {
+    if (!map || !active || !relevantSids) return
+    const handleMove = (e: MapMouseEvent) => {
+      const { x, y } = e.point
+      const features = map.queryRenderedFeatures(
+        [
+          [x - HIT_TOLERANCE, y - HIT_TOLERANCE],
+          [x + HIT_TOLERANCE, y + HIT_TOLERANCE],
+        ],
+        { layers: [layerIds.line] },
+      )
+      const hit = features.find((feature) =>
+        relevantSids.includes(String(feature.id)),
+      )
+      const sid = hit ? String(hit.id) : null
+      map.getCanvas().style.cursor = sid ? 'pointer' : ''
+      if (sid !== useStore.getState().hoveredEventId) setHoveredEventId(sid)
+    }
+    const handleLeave = () => {
+      map.getCanvas().style.cursor = ''
+      setHoveredEventId(null)
+    }
+    map.on('mousemove', handleMove)
+    map.on('mouseout', handleLeave)
+    return () => {
+      map.off('mousemove', handleMove)
+      map.off('mouseout', handleLeave)
+      map.getCanvas().style.cursor = ''
+    }
+  }, [map, active, relevantSids, setHoveredEventId])
 
   useEffect(() => {
     if (!map?.getSource(sourceId)) return

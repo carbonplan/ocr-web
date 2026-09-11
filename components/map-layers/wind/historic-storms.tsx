@@ -12,9 +12,13 @@ import {
 } from '@/lib/historic-events'
 import type { StormAtPoint } from '@/lib/historic-events/storm-winds'
 import ValueBadge from '../../value-badge'
+import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
 const FIRST_SEASON = 1980
+
+const MODELED_WIND_NOTE =
+  'The peak 1-minute sustained wind the wind hazard model attributes to this storm at this location. Each storm\u2019s NOAA best track (position and maximum wind) is run through the same parametric wind model (Holland 2008, via CLIMADA) and roughly 9 km grid used for the wind hazard maps, so the two are directly comparable. These are model estimates, not measurements: the wind at a specific address can differ by tens of mph, especially near the core of small storms.'
 
 // Storms at the selected point, strongest first, each colored by the
 // Saffir-Simpson bin of the wind it brought there.
@@ -124,18 +128,22 @@ const HistoricStorms = () => {
           />
           {storms.length > 0 && (
             <>
-              <Flex
-                sx={{
-                  ...tableSx.row,
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                  mt: 3,
-                  py: 1,
-                }}
+              <TooltipWrapper
+                tooltip={MODELED_WIND_NOTE}
+                sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
+                tooltipSx={{ mt: 2, mb: 0 }}
               >
-                <Box sx={tableSx.tableHead}>Storm</Box>
-                <Box sx={tableSx.tableHead}>Modeled wind</Box>
-              </Flex>
+                <Flex
+                  sx={{
+                    flex: 1,
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                  }}
+                >
+                  <Box sx={tableSx.tableHead}>Storm</Box>
+                  <Box sx={tableSx.tableHead}>Modeled wind</Box>
+                </Flex>
+              </TooltipWrapper>
               {storms.map((storm) => (
                 <Row
                   key={storm.sid}
