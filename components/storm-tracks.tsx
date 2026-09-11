@@ -15,9 +15,9 @@ const HIT_TOLERANCE = 6
 const BINS =
   getMapLayer(RISKS.wind, HISTORIC_STORMS_LAYER_ID)?.binBoundaries ?? []
 const HOVERED: ExpressionSpecification = [
-  'boolean',
-  ['feature-state', 'hover'],
-  false,
+  'any',
+  ['boolean', ['feature-state', 'hover'], false],
+  ['boolean', ['feature-state', 'selected'], false],
 ]
 
 // Track segments colored by their recorded wind on the same Saffir-Simpson
@@ -34,7 +34,9 @@ const StormTracks = () => {
   const historicEvents = useStore((state) => state.historicEvents)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
+  const selectedStormId = useStore((state) => state.selectedStormId)
   const previousHoverRef = useRef<string | null>(null)
+  const previousSelectedRef = useRef<string | null>(null)
 
   const colormap = useColormap({ count: BINS.length })
 
@@ -63,7 +65,7 @@ const StormTracks = () => {
 
   // while a storm is hovered the rest recede, so its whole track reads clearly
   const opacityExpression: ExpressionSpecification = useMemo(() => {
-    const dim = hoveredEventId ? 0.4 : 1
+    const dim = hoveredEventId || selectedStormId ? 0.4 : 1
     const base: ExpressionSpecification | number = relevantSids
       ? [
           'case',
@@ -73,7 +75,7 @@ const StormTracks = () => {
         ]
       : 0.75 * dim
     return ['case', HOVERED, 1, base]
-  }, [relevantSids, hoveredEventId])
+  }, [relevantSids, hoveredEventId, selectedStormId])
 
   const widthExpression: ExpressionSpecification = useMemo(() => {
     const width = (base: number): ExpressionSpecification => [
@@ -206,6 +208,29 @@ const StormTracks = () => {
       previousHoverRef.current = null
     }
   }, [map, hoveredEventId, active])
+
+  useEffect(() => {
+    if (!map?.getSource(sourceId)) return
+    if (previousSelectedRef.current) {
+      map.setFeatureState(
+        {
+          source: sourceId,
+          sourceLayer: layerName,
+          id: previousSelectedRef.current,
+        },
+        { selected: false },
+      )
+    }
+    if (selectedStormId && active) {
+      map.setFeatureState(
+        { source: sourceId, sourceLayer: layerName, id: selectedStormId },
+        { selected: true },
+      )
+      previousSelectedRef.current = selectedStormId
+    } else {
+      previousSelectedRef.current = null
+    }
+  }, [map, selectedStormId, active])
 
   return null
 }

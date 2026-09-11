@@ -118,6 +118,9 @@ type Store = {
   // SID or MTBS event id hovered in the sidebar list
   hoveredEventId: string | null
   setHoveredEventId: (id: string | null) => void
+  // storm whose modeled wind field is drawn
+  selectedStormId: string | null
+  setSelectedStormId: (id: string | null) => void
   zarrLayer: ZarrLayer | null
   setZarrLayer: (zarrLayer: ZarrLayer | null) => void
   sidebarWidth: number
@@ -207,6 +210,7 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
       historicEvents: { status: 'idle' },
       hoveredEventId: null,
+      selectedStormId: null,
     })
     syncHazardUrl(get)
   },
@@ -239,6 +243,8 @@ export const useStore = create<Store>((set, get) => ({
   setHistoricEvents: (historicEvents) => set({ historicEvents }),
   hoveredEventId: null,
   setHoveredEventId: (hoveredEventId) => set({ hoveredEventId }),
+  selectedStormId: null,
+  setSelectedStormId: (selectedStormId) => set({ selectedStormId }),
   zarrLayer: null,
   setZarrLayer: (zarrLayer) => set({ zarrLayer }),
   sidebarWidth: 0,
@@ -316,6 +322,7 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
       historicEvents: { status: 'idle' },
       hoveredEventId: null,
+      selectedStormId: null,
       activeGeographies: {
         county: null,
         censusTract: null,

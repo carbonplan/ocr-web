@@ -26,6 +26,7 @@ import {
   HillshadeLayer,
   ZarrLayer,
   StormTracks,
+  StormFootprint,
   FirePerimeters,
   MapControls,
   useMapControlStyles,
@@ -304,6 +305,7 @@ const MapComponent = () => {
           <HillshadeLayer />
           {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') &&
             !eventsLayer && <ZarrLayer />}
+          <StormFootprint />
           <StormTracks />
           <FirePerimeters />
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />

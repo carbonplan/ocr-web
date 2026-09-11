@@ -12,6 +12,7 @@ import {
 } from '@/lib/historic-events'
 import type { StormAtPoint } from '@/lib/historic-events/storm-winds'
 import ValueBadge from '../../value-badge'
+import EyeCheckbox from '../../eye-checkbox'
 import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
@@ -49,12 +50,14 @@ const Row = ({
   color,
   hovered = false,
   onHover,
+  eye,
 }: {
   label: React.ReactNode
   value: string | number | null
   color?: string
   hovered?: boolean
   onHover?: (hovered: boolean) => void
+  eye?: { checked: boolean; toggle: () => void; label: string }
 }) => (
   <Flex
     sx={{
@@ -78,13 +81,18 @@ const Row = ({
     onMouseLeave={onHover ? () => onHover(false) : undefined}
   >
     <Box>{label}</Box>
-    <ValueBadge
-      value={value}
-      color={color}
-      unit='#'
-      toFixed={0}
-      sx={{ flexShrink: 0 }}
-    />
+    <Flex sx={{ gap: 2, flexShrink: 0 }}>
+      <ValueBadge value={value} color={color} unit='#' toFixed={0} />
+      {eye && (
+        <Box as='label' sx={{ display: 'flex', cursor: 'pointer' }}>
+          <EyeCheckbox
+            checked={eye.checked}
+            onChange={eye.toggle}
+            aria-label={eye.label}
+          />
+        </Box>
+      )}
+    </Flex>
   </Flex>
 )
 
@@ -93,6 +101,8 @@ const HistoricStorms = () => {
   const selectedArea = useStore((state) => state.selectedArea)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
+  const selectedStormId = useStore((state) => state.selectedStormId)
+  const setSelectedStormId = useStore((state) => state.setSelectedStormId)
   const { status, storms, colorFor } = useHistoricStorms()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
 
@@ -171,6 +181,14 @@ const HistoricStorms = () => {
                   onHover={(hovered) =>
                     setHoveredEventId(hovered ? storm.sid : null)
                   }
+                  eye={{
+                    checked: selectedStormId === storm.sid,
+                    toggle: () =>
+                      setSelectedStormId(
+                        selectedStormId === storm.sid ? null : storm.sid,
+                      ),
+                    label: `Show ${formatStormName(storm.name)} ${storm.season} wind field`,
+                  }}
                 />
               ))}
             </>

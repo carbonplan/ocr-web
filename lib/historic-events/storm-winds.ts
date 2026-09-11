@@ -18,6 +18,8 @@ export type Storm = {
 }
 
 export type StormAtPoint = Storm & {
+  // position along the store's storm dimension
+  index: number
   // modeled peak 1-min sustained wind at the point, m/s (whole numbers)
   wind: number
 }
@@ -70,6 +72,8 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
   const column = await zarr.get(store.wind, [null, iy, ix])
   const winds = column.data as Uint8Array
   return store.storms
-    .flatMap((storm, i) => (winds[i] > 0 ? [{ ...storm, wind: winds[i] }] : []))
+    .flatMap((storm, i) =>
+      winds[i] > 0 ? [{ ...storm, index: i, wind: winds[i] }] : [],
+    )
     .sort((a, b) => b.wind - a.wind)
 }
