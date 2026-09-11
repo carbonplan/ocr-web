@@ -47,11 +47,13 @@ const Row = ({
   label,
   value,
   color,
+  hovered = false,
   onHover,
 }: {
   label: React.ReactNode
   value: string | number | null
   color?: string
+  hovered?: boolean
   onHover?: (hovered: boolean) => void
 }) => (
   <Flex
@@ -62,7 +64,14 @@ const Row = ({
       gap: 2,
       py: 2,
       ...(onHover
-        ? { cursor: 'default', '&:hover': { color: 'primary' } }
+        ? {
+            cursor: 'pointer',
+            mx: -2,
+            px: 2,
+            bg: hovered ? 'muted' : 'transparent',
+            color: hovered ? 'primary' : 'inherit',
+            transition: 'background-color 0.15s, color 0.15s',
+          }
         : {}),
     }}
     onMouseEnter={onHover ? () => onHover(true) : undefined}
@@ -83,6 +92,7 @@ const HistoricStorms = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
+  const hoveredEventId = useStore((state) => state.hoveredEventId)
   const { status, storms, colorFor } = useHistoricStorms()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
 
@@ -157,6 +167,7 @@ const HistoricStorms = () => {
                   }
                   value={`${Math.round(storm.wind * MPH_PER_MS)} mph`}
                   color={colorFor(storm)}
+                  hovered={hoveredEventId === storm.sid}
                   onHover={(hovered) =>
                     setHoveredEventId(hovered ? storm.sid : null)
                   }
