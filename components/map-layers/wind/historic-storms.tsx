@@ -40,7 +40,6 @@ export const useHistoricStorms = () => {
     status: historicEvents.status,
     storms,
     colorFor,
-    strongestColor: storms?.length ? colorFor(storms[0]) : undefined,
   }
 }
 

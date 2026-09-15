@@ -33,7 +33,6 @@ export const useHistoricFires = () => {
     fires,
     nearest,
     colorFor,
-    latestColor: fires?.length ? colorFor(fires[0]) : undefined,
   }
 }
 

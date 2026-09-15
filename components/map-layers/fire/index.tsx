@@ -24,7 +24,7 @@ const FireLayers = () => {
   const conditionalRisk = useStore((state) =>
     getConditionalRiskUsfs(state.selectedBuilding),
   )
-  const { fires, latestColor } = useHistoricFires()
+  const { fires } = useHistoricFires()
 
   return (
     <>
@@ -66,7 +66,6 @@ const FireLayers = () => {
         checked={mapLayer === HISTORIC_FIRES_LAYER_ID}
         setChecked={() => setMapLayer(HISTORIC_FIRES_LAYER_ID)}
         value={fires ? fires.length : null}
-        color={latestColor}
         toFixed={0}
         unit='#'
       >

@@ -22,7 +22,7 @@ const WindLayers = () => {
   // peak winds are binned by Saffir-Simpson category rather than by risk score,
   // so that row carries its own color off the wind speed layer's scale
   const { value: peakWind, color: peakWindColor } = usePeakWind()
-  const { storms, strongestColor } = useHistoricStorms()
+  const { storms } = useHistoricStorms()
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
@@ -69,7 +69,6 @@ const WindLayers = () => {
         checked={mapLayer === HISTORIC_STORMS_LAYER_ID}
         setChecked={() => setMapLayer(HISTORIC_STORMS_LAYER_ID)}
         value={storms ? storms.length : null}
-        color={strongestColor}
         toFixed={0}
         unit='#'
       >
