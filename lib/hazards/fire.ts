@@ -46,7 +46,6 @@ const fire: HazardConfig = {
       unit: '',
       unitScale: 1,
       binBoundaries: [1984, 1990, 2000, 2010, 2020],
-      binLabels: ['80s', '90s', '00s', '10s', '20s'],
       customColormap: true,
     },
   ],
