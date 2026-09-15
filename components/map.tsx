@@ -39,9 +39,8 @@ import {
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
   getAreaCoordinatesFromQuery,
-  getHazardFromQuery,
 } from '@/lib/url-utils'
-import { RISK_LAYER_ID, RISKS, isEventsLayer } from '@/lib/hazards'
+import { RISK_LAYER_ID, isEventsLayer } from '@/lib/hazards'
 
 const MapComponent = () => {
   const router = useRouter()
@@ -251,10 +250,8 @@ const MapComponent = () => {
     if (!map || !router.isReady || restoredSelection.current) return
     restoredSelection.current = true
 
-    const hazard = getHazardFromQuery(router.query).hazard
-
     const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
-    if (areaCoordinates && RISKS[hazard].buildingsMode === 'query') {
+    if (areaCoordinates) {
       const initArea = async () => {
         await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
         selectArea(areaCoordinates.lng, areaCoordinates.lat)

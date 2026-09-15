@@ -12,7 +12,6 @@ import { isEventsLayer } from '@/lib/hazards'
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
@@ -216,14 +215,11 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
-      } else if (buildingsMode === 'query') {
-        // the raster is coarse enough that any point is meaningful
-        selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
-        clearSelections()
+        selectArea(e.lngLat.lng, e.lngLat.lat)
       }
     },
-    [map, selectBuilding, selectArea, clearSelections, buildingsMode],
+    [map, selectBuilding, selectArea],
   )
 
   useEffect(() => {
