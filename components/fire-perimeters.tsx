@@ -35,16 +35,21 @@ const FirePerimeters = () => {
 
   const colormap = useColormap({ count: BINS.length })
 
-  const relevantIds = useMemo(
-    () =>
-      historicEvents.status === 'success' && historicEvents.kind === 'fires'
-        ? [
-            ...historicEvents.events.map((fire) => fire.id),
-            ...(historicEvents.nearest ? [historicEvents.nearest.id] : []),
-          ]
-        : null,
-    [historicEvents],
-  )
+  // held through 'loading' so clicking between points doesn't briefly undim
+  // every perimeter
+  const relevantIdsRef = useRef<string[] | null>(null)
+  const relevantIds = useMemo(() => {
+    if (historicEvents.status !== 'loading') {
+      relevantIdsRef.current =
+        historicEvents.status === 'success' && historicEvents.kind === 'fires'
+          ? [
+              ...historicEvents.events.map((fire) => fire.id),
+              ...(historicEvents.nearest ? [historicEvents.nearest.id] : []),
+            ]
+          : null
+    }
+    return relevantIdsRef.current
+  }, [historicEvents])
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     const steps = BINS.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]])

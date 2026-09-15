@@ -51,13 +51,18 @@ const StormTracks = () => {
 
   const colormap = useColormap({ count: BINS.length })
 
-  const relevantSids = useMemo(
-    () =>
-      historicEvents.status === 'success' && historicEvents.kind === 'storms'
-        ? historicEvents.events.map((storm) => storm.sid)
-        : null,
-    [historicEvents],
-  )
+  // held through 'loading' so clicking between points doesn't briefly undim
+  // every track
+  const relevantSidsRef = useRef<string[] | null>(null)
+  const relevantSids = useMemo(() => {
+    if (historicEvents.status !== 'loading') {
+      relevantSidsRef.current =
+        historicEvents.status === 'success' && historicEvents.kind === 'storms'
+          ? historicEvents.events.map((storm) => storm.sid)
+          : null
+    }
+    return relevantSidsRef.current
+  }, [historicEvents])
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
     const steps = BINS.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]])
