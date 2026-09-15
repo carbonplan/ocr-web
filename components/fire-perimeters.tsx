@@ -42,10 +42,7 @@ const FirePerimeters = () => {
     if (historicEvents.status !== 'loading') {
       relevantIdsRef.current =
         historicEvents.status === 'success' && historicEvents.kind === 'fires'
-          ? [
-              ...historicEvents.events.map((fire) => fire.id),
-              ...(historicEvents.nearest ? [historicEvents.nearest.id] : []),
-            ]
+          ? historicEvents.events.map((fire) => fire.id)
           : null
     }
     return relevantIdsRef.current
