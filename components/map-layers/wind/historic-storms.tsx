@@ -116,7 +116,7 @@ const HistoricStorms = () => {
       the peak 1-min sustained wind each brought here.
       {!hasSelection && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
-          Select a building to see the storms that affected it.
+          Select a location to see its storm history.
         </Box>
       )}
       {status === 'error' && hasSelection && (

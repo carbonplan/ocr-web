@@ -63,7 +63,7 @@ const HistoricFires = () => {
       not mapped.
       {!hasSelection && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
-          Select a building to see the fires that burned it.
+          Select a location to see its fire history.
         </Box>
       )}
       {status === 'error' && hasSelection && (
