@@ -36,11 +36,8 @@ export const useHistoricEvents = () => {
         const events = await queryStormsAtPoint(point)
         return { status: 'success', kind: 'storms', events }
       }
-      const { fires, nearest } = await queryFiresAtPoint(
-        point,
-        controller.signal,
-      )
-      return { status: 'success', kind: 'fires', events: fires, nearest }
+      const events = await queryFiresAtPoint(point, controller.signal)
+      return { status: 'success', kind: 'fires', events }
     }
 
     query()

@@ -1,16 +1,9 @@
 import { PMTiles } from 'pmtiles'
 import { VectorTile } from '@mapbox/vector-tile'
 import { PbfReader } from 'pbf'
-import {
-  booleanPointInPolygon,
-  lineString,
-  point,
-  pointToLineDistance,
-  polygonToLine,
-} from '@turf/turf'
-import type { Feature, MultiPolygon, Polygon, Position } from 'geojson'
+import { booleanPointInPolygon, point } from '@turf/turf'
+import type { Feature, MultiPolygon, Polygon } from 'geojson'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
-import { NEARBY_FIRE_KM } from './index'
 
 // Point-in-polygon against the MTBS perimeter tiles, read straight from the
 // pmtiles archive rather than the map: at max zoom the tile under the point
@@ -23,15 +16,6 @@ export type FireAtPoint = {
   year: number
   date: string
   acres: number
-  // 0 when the perimeter contains the point
-  distanceKm: number
-}
-
-export type FireQueryResult = {
-  // perimeters containing the point, most recent first
-  fires: FireAtPoint[]
-  // closest perimeter within NEARBY_FIRE_KM when none contains the point
-  nearest: FireAtPoint | null
 }
 
 type PerimeterFeature = Feature<Polygon | MultiPolygon, Record<string, unknown>>
@@ -78,7 +62,7 @@ const readTile = async (
   return features
 }
 
-const toFire = (feature: PerimeterFeature, distanceKm: number): FireAtPoint => {
+const toFire = (feature: PerimeterFeature): FireAtPoint => {
   const props = feature.properties
   return {
     id: String(props.event_id),
@@ -87,32 +71,14 @@ const toFire = (feature: PerimeterFeature, distanceKm: number): FireAtPoint => {
     year: Number(props.year),
     date: String(props.ig_date ?? ''),
     acres: Number(props.burnbndac),
-    distanceKm,
   }
 }
 
-const boundaryDistanceKm = (
-  feature: PerimeterFeature,
-  pt: ReturnType<typeof point>,
-): number => {
-  const lines = polygonToLine(feature)
-  const parts = 'features' in lines ? lines.features : [lines]
-  const rings: Position[][] = parts.flatMap((part) =>
-    part.geometry.type === 'MultiLineString'
-      ? part.geometry.coordinates
-      : [part.geometry.coordinates],
-  )
-  return Math.min(
-    ...rings.map((ring) =>
-      pointToLineDistance(pt, lineString(ring), { units: 'kilometers' }),
-    ),
-  )
-}
-
+// perimeters containing the point, most recent first
 export const queryFiresAtPoint = async (
   [lng, lat]: [number, number],
   signal?: AbortSignal,
-): Promise<FireQueryResult> => {
+): Promise<FireAtPoint[]> => {
   const header = await getArchive().getHeader()
   const z = header.maxZoom
   const [x, y] = tileCoords(lng, lat, z)
@@ -121,28 +87,9 @@ export const queryFiresAtPoint = async (
   const fires = new Map<string, FireAtPoint>()
   for (const feature of await readTile(z, x, y, signal)) {
     if (booleanPointInPolygon(pt, feature)) {
-      const fire = toFire(feature, 0)
+      const fire = toFire(feature)
       fires.set(fire.id, fire)
     }
   }
-  const contained = [...fires.values()].sort((a, b) => b.year - a.year)
-  if (contained.length > 0) return { fires: contained, nearest: null }
-
-  const neighbors: Promise<PerimeterFeature[]>[] = []
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dy = -1; dy <= 1; dy++) {
-      neighbors.push(readTile(z, x + dx, y + dy, signal))
-    }
-  }
-  let nearest: FireAtPoint | null = null
-  for (const feature of (await Promise.all(neighbors)).flat()) {
-    const distanceKm = boundaryDistanceKm(feature, pt)
-    if (
-      distanceKm <= NEARBY_FIRE_KM &&
-      (!nearest || distanceKm < nearest.distanceKm)
-    ) {
-      nearest = toFire(feature, distanceKm)
-    }
-  }
-  return { fires: [], nearest }
+  return [...fires.values()].sort((a, b) => b.year - a.year)
 }

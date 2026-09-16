@@ -10,9 +10,6 @@ export const MPH_PER_KT = 1.15078
 export const TROPICAL_STORM_MPH = 39
 export const HURRICANE_MPH = 74
 
-// fires are only reported as "nearby" within one max-zoom tile of the point
-export const NEARBY_FIRE_KM = 15
-
 export const formatStormName = (name: string): string =>
   name === 'NOT_NAMED' || !name
     ? 'Unnamed storm'

@@ -11,7 +11,6 @@ import { tableSx } from '../../tooltip-table'
 
 const FIRST_YEAR = 1984
 const formatAcres = format(',.0f')
-const formatKm = format('.1f')
 
 // Mapped fires whose perimeter contains the selected point, most recent
 // first, each colored by ignition decade.
@@ -21,17 +20,16 @@ export const useHistoricFires = () => {
     getMapLayer(RISKS.fire, HISTORIC_FIRES_LAYER_ID)?.binBoundaries ?? []
   const colormap = useColormap({ count: bins.length })
 
-  const isFires =
+  const fires =
     historicEvents.status === 'success' && historicEvents.kind === 'fires'
-  const fires = isFires ? historicEvents.events : null
-  const nearest = isFires ? historicEvents.nearest : null
+      ? historicEvents.events
+      : null
   const colorFor = (fire: FireAtPoint) =>
     colormap[getBinIndex(bins, fire.year) + 1]
 
   return {
     status: historicEvents.status,
     fires,
-    nearest,
     colorFor,
   }
 }
@@ -50,7 +48,7 @@ const HistoricFires = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
-  const { status, fires, nearest, colorFor } = useHistoricFires()
+  const { status, fires, colorFor } = useHistoricFires()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
 
   const hoverProps = (fire: FireAtPoint) => ({
@@ -76,13 +74,6 @@ const HistoricFires = () => {
       {fires && fires.length === 0 && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           No mapped fire has burned this location.
-          {nearest && (
-            <Box as='span' {...hoverProps(nearest)}>
-              {' '}
-              The nearest was the {formatFireName(nearest.name)} fire (
-              {nearest.year}), {formatKm(nearest.distanceKm)} km away.
-            </Box>
-          )}
         </Box>
       )}
       {fires && fires.length > 0 && (

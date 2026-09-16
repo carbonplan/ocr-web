@@ -40,7 +40,6 @@ export type HistoricEventsState =
       status: 'success'
       kind: 'fires'
       events: FireAtPoint[]
-      nearest: FireAtPoint | null
     }
 
 const syncHazardUrl = (get: () => Store) => {
