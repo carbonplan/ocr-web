@@ -4,10 +4,9 @@ import {
   AxisLabel,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
-import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
-import { useScore } from '@/hooks/useScore'
+import { useScore, useScoreLimits } from '@/hooks/useScore'
 import ValueBadge from './value-badge'
 
 const ScoreBar = ({
@@ -18,10 +17,10 @@ const ScoreBar = ({
   sx?: ThemeUIStyleObject
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const bins = useStore(useShallow((state) => state.colorLimits.binBoundaries))
+  const { bins } = useScoreLimits()
   const axisLabel = useStore((state) => state.riskConfig.axisLabel)
   const valueDisplay = useStore((state) => state.riskConfig.valueDisplay)
-  const colormap = useColormap()
+  const colormap = useColormap({ count: bins.length })
 
   const { score, value, color } = useScore(selectedBuilding, 'muted')
 
