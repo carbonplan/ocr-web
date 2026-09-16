@@ -38,6 +38,15 @@ export const PARQUET_BUCKET_URL = DATA_URLS.parquetBase.startsWith(
   ? S3_BUCKET_URL
   : new URL(DATA_URLS.parquetBase).origin
 
+const EXPLORE_URL =
+  'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/ocr-explore'
+
+export const HISTORIC_URLS = {
+  stormTracks: `${EXPLORE_URL}/ibtracs_conus_tracks.pmtiles`,
+  stormWinds: `${EXPLORE_URL}/ibtracs_conus_winds.zarr`,
+  firePerimeters: `${EXPLORE_URL}/mtbs_conus_perims.pmtiles`,
+}
+
 export const LICENSE_INFO = {
   provider: 'CarbonPlan',
   termsOfAccess:
@@ -107,6 +116,21 @@ export const LAYERS = {
     sourceId: 'buildingPoints',
     layerIds: {
       circle: 'building-points-circle',
+    },
+  },
+  stormTracks: {
+    layerName: 'tracks',
+    sourceId: 'stormTracks',
+    layerIds: {
+      line: 'storm-tracks-line',
+    },
+  },
+  firePerimeters: {
+    layerName: 'mtbs_perims',
+    sourceId: 'firePerimeters',
+    layerIds: {
+      fill: 'fire-perimeters-fill',
+      line: 'fire-perimeters-line',
     },
   },
 } as const

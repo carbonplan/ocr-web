@@ -20,6 +20,14 @@ const WindAbout = () => (
       .
     </Box>
     <Box sx={{ mt: 2 }}>
+      Previous storms are the tropical cyclone tracks in NOAA&apos;s{' '}
+      <Link href='https://www.ncei.noaa.gov/products/international-best-track-archive'>
+        IBTrACS
+      </Link>{' '}
+      archive since 1980. The wind each storm brought to a location is modeled
+      from its track with the same parametric wind model as the hazard maps.
+    </Box>
+    <Box sx={{ mt: 2 }}>
       Methods documentation for the wind hazard layer is in progress.
     </Box>
   </Box>

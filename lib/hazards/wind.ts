@@ -1,4 +1,13 @@
 import { HazardConfig } from './types'
+import { HISTORIC_STORMS_LAYER_ID } from '@/lib/historic-events'
+
+// Saffir-Simpson category edges (1-min sustained wind, mph)
+const SAFFIR_SIMPSON = {
+  binBoundaries: [0, 39, 74, 96, 111, 130, 157],
+  binLabels: ['', 'TS', 'Cat 1', 'Cat 2', 'Cat 3', 'Cat 4', 'Cat 5'],
+}
+// m/s -> mph
+const MPH_PER_MS = 2.23694
 
 const CHAZ_BASE =
   process.env.NEXT_PUBLIC_WIND_ZARR_BASE ??
@@ -65,17 +74,23 @@ const wind: HazardConfig = {
       variable: 'wind_speed',
       axisLabel: 'Wind speed',
       unit: 'mph',
-      // m/s -> mph
-      unitScale: 2.23694,
-      // Saffir-Simpson category edges (1-min sustained wind, mph)
-      binBoundaries: [0, 39, 74, 96, 111, 130, 157],
+      unitScale: MPH_PER_MS,
+      ...SAFFIR_SIMPSON,
       customColormap: true,
-      binLabels: ['', 'TS', 'Cat 1', 'Cat 2', 'Cat 3', 'Cat 4', 'Cat 5'],
       selector: {
         dim: 'return_period',
         values: [10, 25, 50, 100, 250, 1000],
         defaultValue: 100,
       },
+    },
+    {
+      id: HISTORIC_STORMS_LAYER_ID,
+      kind: 'events',
+      axisLabel: 'Peak wind',
+      unit: 'mph',
+      unitScale: MPH_PER_MS,
+      ...SAFFIR_SIMPSON,
+      customColormap: true,
     },
   ],
 }
