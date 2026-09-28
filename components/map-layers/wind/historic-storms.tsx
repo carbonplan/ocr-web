@@ -55,7 +55,7 @@ const Row = ({
   value: string | number | null
   color?: string
   hovered?: boolean
-  onHover?: (hovered: boolean) => void
+  onHover?: () => void
   eye?: { checked: boolean; toggle: () => void; label: string }
 }) => (
   <Flex
@@ -76,8 +76,7 @@ const Row = ({
           }
         : {}),
     }}
-    onMouseEnter={onHover ? () => onHover(true) : undefined}
-    onMouseLeave={onHover ? () => onHover(false) : undefined}
+    onMouseEnter={onHover}
   >
     <Box>{label}</Box>
     <Flex sx={{ gap: 2, flexShrink: 0 }}>
@@ -163,33 +162,33 @@ const HistoricStorms = () => {
                   <Box sx={tableSx.tableHead}>Modeled wind</Box>
                 </Flex>
               </TooltipWrapper>
-              {storms.map((storm) => (
-                <Row
-                  key={storm.sid}
-                  label={
-                    <>
-                      {formatStormName(storm.name)}{' '}
-                      <Box as='span' sx={{ color: 'secondary' }}>
-                        {storm.season}
-                      </Box>
-                    </>
-                  }
-                  value={`${Math.round(storm.wind * MPH_PER_MS)} mph`}
-                  color={colorFor(storm)}
-                  hovered={hoveredEventId === storm.sid}
-                  onHover={(hovered) =>
-                    setHoveredEventId(hovered ? storm.sid : null)
-                  }
-                  eye={{
-                    checked: selectedStormId === storm.sid,
-                    toggle: () =>
-                      setSelectedStormId(
-                        selectedStormId === storm.sid ? null : storm.sid,
-                      ),
-                    label: `Show ${formatStormName(storm.name)} ${storm.season} wind field`,
-                  }}
-                />
-              ))}
+              <Box onMouseLeave={() => setHoveredEventId(null)}>
+                {storms.map((storm) => (
+                  <Row
+                    key={storm.sid}
+                    label={
+                      <>
+                        {formatStormName(storm.name)}{' '}
+                        <Box as='span' sx={{ color: 'secondary' }}>
+                          {storm.season}
+                        </Box>
+                      </>
+                    }
+                    value={`${Math.round(storm.wind * MPH_PER_MS)} mph`}
+                    color={colorFor(storm)}
+                    hovered={hoveredEventId === storm.sid}
+                    onHover={() => setHoveredEventId(storm.sid)}
+                    eye={{
+                      checked: selectedStormId === storm.sid,
+                      toggle: () =>
+                        setSelectedStormId(
+                          selectedStormId === storm.sid ? null : storm.sid,
+                        ),
+                      label: `Show ${formatStormName(storm.name)} ${storm.season} wind field`,
+                    }}
+                  />
+                ))}
+              </Box>
             </>
           )}
         </Box>

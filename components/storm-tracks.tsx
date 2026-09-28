@@ -18,10 +18,16 @@ const HIT_TOLERANCE = 6
 
 const BINS =
   getMapLayer(RISKS.wind, HISTORIC_STORMS_LAYER_ID)?.binBoundaries ?? []
-const HOVERED: ExpressionSpecification = [
-  'any',
-  ['boolean', ['feature-state', 'hover'], false],
-  ['boolean', ['feature-state', 'selected'], false],
+const HIGHLIGHTED: ExpressionSpecification = [
+  'boolean',
+  ['feature-state', 'highlighted'],
+  false,
+]
+// set on the storms that reached the selected point
+const RELEVANT: ExpressionSpecification = [
+  'boolean',
+  ['feature-state', 'relevant'],
+  false,
 ]
 const SEGMENT_MPH: ExpressionSpecification = [
   '*',
@@ -30,6 +36,25 @@ const SEGMENT_MPH: ExpressionSpecification = [
 ]
 // segments below tropical-storm strength are drawn but not modeled
 const WEAK: ExpressionSpecification = ['<', SEGMENT_MPH, TROPICAL_STORM_MPH]
+
+const width = (base: number): ExpressionSpecification => [
+  '*',
+  ['case', WEAK, 0.6, 1],
+  ['case', HIGHLIGHTED, base * 2.5, RELEVANT, base * 1.5, base],
+]
+const WIDTH: ExpressionSpecification = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  2,
+  width(0.6),
+  5,
+  width(1.2),
+  8,
+  width(2),
+  12,
+  width(3.5),
+]
 
 // Track segments colored by their recorded wind on the same Saffir-Simpson
 // scale as the peak winds layer, with the storms that reached the selected
@@ -46,8 +71,6 @@ const StormTracks = () => {
   const hoveredEventId = useStore((state) => state.hoveredEventId)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
   const selectedStormId = useStore((state) => state.selectedStormId)
-  const previousHoverRef = useRef<string | null>(null)
-  const previousSelectedRef = useRef<string | null>(null)
 
   const colormap = useColormap({ count: BINS.length })
 
@@ -68,63 +91,27 @@ const StormTracks = () => {
     const steps = BINS.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]])
     return [
       'case',
-      HOVERED,
+      HIGHLIGHTED,
       get(theme, 'rawColors.primary'),
       ['step', SEGMENT_MPH, colormap[1], ...steps],
     ] as ExpressionSpecification
   }, [colormap, theme])
 
-  // while a storm is hovered the rest recede, so its whole track reads clearly
-  const opacityExpression: ExpressionSpecification = useMemo(() => {
-    const dim = hoveredEventId || selectedStormId ? 0.4 : 1
-    const base: ExpressionSpecification | number = relevantSids
-      ? [
-          'case',
-          ['in', ['get', 'SID'], ['literal', relevantSids]],
-          0.95 * dim,
-          0.12 * dim,
-        ]
-      : 0.75 * dim
-    return [
-      'case',
-      HOVERED,
-      ['case', WEAK, 0.45, 1],
-      ['*', base, ['case', WEAK, 0.4, 1]],
-    ]
-  }, [relevantSids, hoveredEventId, selectedStormId])
+  const hasPoint = relevantSids !== null
 
-  const widthExpression: ExpressionSpecification = useMemo(() => {
-    const width = (base: number): ExpressionSpecification => [
-      '*',
-      ['case', WEAK, 0.6, 1],
+  const opacityExpression: ExpressionSpecification = useMemo(
+    () => [
+      'case',
+      HIGHLIGHTED,
+      ['case', WEAK, 0.45, 1],
       [
-        'case',
-        HOVERED,
-        base * 2.5,
-        relevantSids
-          ? [
-              'case',
-              ['in', ['get', 'SID'], ['literal', relevantSids]],
-              base * 1.5,
-              base,
-            ]
-          : base,
+        '*',
+        hasPoint ? ['case', RELEVANT, 0.95, 0.12] : 0.75,
+        ['case', WEAK, 0.4, 1],
       ],
-    ]
-    return [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      2,
-      width(0.6),
-      5,
-      width(1.2),
-      8,
-      width(2),
-      12,
-      width(3.5),
-    ]
-  }, [relevantSids])
+    ],
+    [hasPoint],
+  )
 
   useEffect(() => {
     if (!map) return
@@ -150,7 +137,7 @@ const StormTracks = () => {
           paint: {
             'line-color': colorExpression,
             'line-opacity': opacityExpression,
-            'line-width': widthExpression,
+            'line-width': WIDTH,
           },
         },
         map.getLayer(BEFORE_ID) ? BEFORE_ID : undefined,
@@ -172,8 +159,7 @@ const StormTracks = () => {
     if (!map?.getLayer(layerIds.line)) return
     map.setPaintProperty(layerIds.line, 'line-color', colorExpression)
     map.setPaintProperty(layerIds.line, 'line-opacity', opacityExpression)
-    map.setPaintProperty(layerIds.line, 'line-width', widthExpression)
-  }, [map, colorExpression, opacityExpression, widthExpression])
+  }, [map, colorExpression, opacityExpression])
 
   useEffect(() => {
     if (!map || !active || !relevantSids) return
@@ -208,49 +194,20 @@ const StormTracks = () => {
 
   useEffect(() => {
     if (!map?.getSource(sourceId)) return
-    if (previousHoverRef.current) {
-      map.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerName,
-          id: previousHoverRef.current,
-        },
-        { hover: false },
-      )
+    map.removeFeatureState({ source: sourceId, sourceLayer: layerName })
+    if (!active) return
+    const target = (sid: string) => ({
+      source: sourceId,
+      sourceLayer: layerName,
+      id: sid,
+    })
+    relevantSids?.forEach((sid) =>
+      map.setFeatureState(target(sid), { relevant: true }),
+    )
+    for (const sid of [hoveredEventId, selectedStormId]) {
+      if (sid) map.setFeatureState(target(sid), { highlighted: true })
     }
-    if (hoveredEventId && active) {
-      map.setFeatureState(
-        { source: sourceId, sourceLayer: layerName, id: hoveredEventId },
-        { hover: true },
-      )
-      previousHoverRef.current = hoveredEventId
-    } else {
-      previousHoverRef.current = null
-    }
-  }, [map, hoveredEventId, active])
-
-  useEffect(() => {
-    if (!map?.getSource(sourceId)) return
-    if (previousSelectedRef.current) {
-      map.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerName,
-          id: previousSelectedRef.current,
-        },
-        { selected: false },
-      )
-    }
-    if (selectedStormId && active) {
-      map.setFeatureState(
-        { source: sourceId, sourceLayer: layerName, id: selectedStormId },
-        { selected: true },
-      )
-      previousSelectedRef.current = selectedStormId
-    } else {
-      previousSelectedRef.current = null
-    }
-  }, [map, selectedStormId, active])
+  }, [map, active, relevantSids, hoveredEventId, selectedStormId])
 
   return null
 }
