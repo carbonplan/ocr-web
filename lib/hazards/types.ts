@@ -77,7 +77,7 @@ export type HazardValueDisplay = {
 }
 
 export type HazardConfig = {
-  id: 'fire' | 'flood' | 'wind'
+  id: 'fire' | 'flood' | 'hurricane'
   label: string
   accentColor: string
   description: string

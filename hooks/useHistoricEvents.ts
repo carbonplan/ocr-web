@@ -15,7 +15,7 @@ export const useHistoricEvents = () => {
 
   useEffect(() => {
     if (!selectedBuilding && !selectedArea) return
-    if (hazard !== 'wind' && hazard !== 'fire') {
+    if (hazard !== 'hurricane' && hazard !== 'fire') {
       setHistoricEvents({ status: 'idle' })
       return
     }
@@ -32,7 +32,7 @@ export const useHistoricEvents = () => {
     const controller = new AbortController()
 
     const query = async (): Promise<HistoricEventsState> => {
-      if (hazard === 'wind') {
+      if (hazard === 'hurricane') {
         const events = await queryStormsAtPoint(point)
         return { status: 'success', kind: 'storms', events }
       }

@@ -15,12 +15,12 @@ const CHAZ_BASE =
 
 const chazUrl = (id: string) => `${CHAZ_BASE}/${id}`
 
-const wind: HazardConfig = {
-  id: 'wind',
-  label: 'Wind',
+const hurricane: HazardConfig = {
+  id: 'hurricane',
+  label: 'Hurricane',
   accentColor: 'teal',
   description:
-    'Wind risk represents the expected annual loss from tropical cyclone damage, derived from the CHAZ model.',
+    'Hurricane risk represents the expected annual loss from tropical cyclone damage, derived from the CHAZ model.',
   colormap: 'teals',
   // same score bins as fire (percent per year)
   binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
@@ -95,4 +95,4 @@ const wind: HazardConfig = {
   ],
 }
 
-export default wind
+export default hurricane

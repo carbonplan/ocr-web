@@ -17,7 +17,7 @@ const BEFORE_ID = 'address_label'
 const HIT_TOLERANCE = 6
 
 const BINS =
-  getMapLayer(RISKS.wind, HISTORIC_STORMS_LAYER_ID)?.binBoundaries ?? []
+  getMapLayer(RISKS.hurricane, HISTORIC_STORMS_LAYER_ID)?.binBoundaries ?? []
 const HIGHLIGHTED: ExpressionSpecification = [
   'boolean',
   ['feature-state', 'highlighted'],
@@ -64,7 +64,7 @@ const StormTracks = () => {
   const map = useStore((state) => state.map)
   const active = useStore(
     (state) =>
-      state.riskConfig.id === 'wind' &&
+      state.riskConfig.id === 'hurricane' &&
       state.mapLayer === HISTORIC_STORMS_LAYER_ID,
   )
   const historicEvents = useStore((state) => state.historicEvents)

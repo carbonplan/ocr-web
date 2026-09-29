@@ -9,7 +9,7 @@ import { buildBinFrag } from '@/lib/bin-frag'
 
 const VARIABLE = 'footprint'
 const BEFORE_ID = 'hillshade'
-const LAYER = getMapLayer(RISKS.wind, HISTORIC_STORMS_LAYER_ID)!
+const LAYER = getMapLayer(RISKS.hurricane, HISTORIC_STORMS_LAYER_ID)!
 
 // The selected storm's modeled wind field, drawn from the per-storm chunks of
 // the wind store on the Saffir-Simpson scale of the Previous storms layer.
@@ -17,7 +17,7 @@ const StormFootprint = () => {
   const map = useStore((state) => state.map)
   const active = useStore(
     (state) =>
-      state.riskConfig.id === 'wind' &&
+      state.riskConfig.id === 'hurricane' &&
       state.mapLayer === HISTORIC_STORMS_LAYER_ID,
   )
   const stormIndex = useStore((state) => {

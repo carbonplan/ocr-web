@@ -4,14 +4,14 @@ import { useScore } from '@/hooks/useScore'
 import { usePeakWind, WIND_SPEED_LAYER_ID } from '@/hooks/usePeakWind'
 import { RISK_LAYER_ID, toDisplayUnits } from '@/lib/hazards'
 import AnnualLoss from './annual-loss'
-import WindRisk from './wind-risk'
+import HurricaneRisk from './hurricane-risk'
 import PeakWinds from './peak-winds'
 import HistoricStorms, { useHistoricStorms } from './historic-storms'
 import { HISTORIC_STORMS_LAYER_ID } from '@/lib/historic-events'
 
 const ANNUAL_LOSS_LAYER_ID = 'annual_loss'
 
-const WindLayers = () => {
+const HurricaneLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -42,7 +42,7 @@ const WindLayers = () => {
         setChecked={() => setMapLayer(RISK_LAYER_ID)}
         unit='#'
       >
-        <WindRisk />
+        <HurricaneRisk />
       </MapLayer>
       <MapLayer
         label='Annual loss'
@@ -78,4 +78,4 @@ const WindLayers = () => {
   )
 }
 
-export default WindLayers
+export default HurricaneLayers

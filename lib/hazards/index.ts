@@ -1,6 +1,6 @@
 import fire from './fire'
 import flood from './flood'
-import wind from './wind'
+import hurricane from './hurricane'
 import {
   HazardConfig,
   HazardDataset,
@@ -12,7 +12,7 @@ export * from './types'
 
 export const RISKS = {
   fire,
-  wind,
+  hurricane,
   flood,
 } as const satisfies Record<string, HazardConfig>
 
