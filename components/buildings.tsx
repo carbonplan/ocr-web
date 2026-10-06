@@ -7,21 +7,26 @@ import { LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
+import { isEventsLayer } from '@/lib/hazards'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
-  const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
   const colorLimits = useStore((state) => state.colorLimits)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
+  const eventsLayer = useStore((state) =>
+    isEventsLayer(state.riskConfig, state.mapLayer),
+  )
   const { selectBuilding, selectArea } = useBuildingUtils()
   const riskAttribute = getBuildingRiskKey(timePeriod)
   const hoveredFeatureId = useRef<string | number | null>(null)
   const colormap = useColormap()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
-    if (buildingsMode === 'query') return ['literal', 'transparent']
+    if (buildingsMode === 'query' || eventsLayer) {
+      return ['literal', 'transparent']
+    }
     if (!colormap?.length) return ['literal', 'transparent']
 
     const riskPercentExpression: ExpressionSpecification = [
@@ -53,7 +58,13 @@ const Buildings = () => {
     }
 
     return wrap(makeDiscrete()) as ExpressionSpecification
-  }, [colormap, riskAttribute, colorLimits.binBoundaries, buildingsMode])
+  }, [
+    colormap,
+    riskAttribute,
+    colorLimits.binBoundaries,
+    buildingsMode,
+    eventsLayer,
+  ])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {
     return [
@@ -204,14 +215,11 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
-      } else if (buildingsMode === 'query') {
-        // the raster is coarse enough that any point is meaningful
-        selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
-        clearSelections()
+        selectArea(e.lngLat.lng, e.lngLat.lat)
       }
     },
-    [map, selectBuilding, selectArea, clearSelections, buildingsMode],
+    [map, selectBuilding, selectArea],
   )
 
   useEffect(() => {

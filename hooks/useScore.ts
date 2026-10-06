@@ -9,12 +9,13 @@ import { useMemo } from 'react'
 import { getGeographyMedianRiskKey, getRiskScore } from '@/lib/risk-utils'
 
 // colorLimits follows the displayed map layer; its bins only describe the score
-// when that layer has no `variable` of its own, and so renders the same
-// quantity the score is computed from.
+// when that layer is a raster with no `variable` of its own, and so renders the
+// same quantity the score is computed from.
 export const useScoreLimits = () => {
-  const showsRiskQuantity = useStore(
-    (state) => !getMapLayer(state.riskConfig, state.mapLayer)?.variable,
-  )
+  const showsRiskQuantity = useStore((state) => {
+    const layer = getMapLayer(state.riskConfig, state.mapLayer)
+    return !layer?.variable && layer?.kind !== 'events'
+  })
   const hazardBins = useStore((state) => state.riskConfig.binBoundaries)
   const displayBins = useStore(
     useShallow((state) => state.colorLimits.binBoundaries),

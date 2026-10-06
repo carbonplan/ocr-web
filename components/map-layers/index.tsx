@@ -2,7 +2,7 @@ import { Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import Section from '../section'
 import FireLayers from './fire'
-import WindLayers from './wind'
+import HurricaneLayers from './hurricane'
 import FloodLayers from './flood'
 
 const Inner = () => {
@@ -13,8 +13,8 @@ const Inner = () => {
       return <FireLayers />
     case 'flood':
       return <FloodLayers />
-    case 'wind':
-      return <WindLayers />
+    case 'hurricane':
+      return <HurricaneLayers />
     default:
       break
   }

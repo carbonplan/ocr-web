@@ -10,8 +10,8 @@ const Inner = () => {
       return <RegionalFire />
     case 'flood':
       return 'Not yet available for flood'
-    case 'wind':
-      return 'Not yet available for wind'
+    case 'hurricane':
+      return 'Not yet available for hurricane'
     default:
       break
   }

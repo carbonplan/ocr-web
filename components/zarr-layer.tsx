@@ -4,6 +4,7 @@ import { useStore } from '@/lib/store'
 import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
 import { getMapLayer, getUnitScale, resolveHazardDataset } from '@/lib/hazards'
 import { getZarrLayerId } from '@/lib/raster-query'
+import { buildBinFrag } from '@/lib/bin-frag'
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
@@ -25,42 +26,10 @@ const ZarrLayer = () => {
   )
   const layerRef = useRef<ZarrLayerClass | null>(null)
 
-  const customFrag = useMemo(() => {
-    const boundaries = colorLimits.binBoundaries || []
-
-    const binConditions = boundaries
-      .slice(0, -1)
-      .map((_, i) => {
-        const condition = i === 0 ? 'if' : 'else if'
-        return `
-      ${condition} (value < ${boundaries[i + 1].toFixed(6)}) {
-        binIndex = ${i}.0;
-      }`
-      })
-      .join('')
-
-    const lastBinIndex = boundaries.length - 1
-
-    // bin boundaries are in display units; scale raw store values to match
-    const valueExpression =
-      unitScale === 1 ? variable : `${variable} * ${unitScale.toFixed(6)}`
-
-    return `
-      float value = ${valueExpression};
-      if (isnan(value) || value == 0.0) {
-        discard;
-      }
-      float binIndex = 0.0;
-      ${binConditions} else {
-        binIndex = ${lastBinIndex}.0;
-      }
-      // Offset by 1 to match buildings layer which uses colormap[i+1] for bin i
-      // +0.5 to center the bin in the colormap
-      float rescaled = (binIndex + 1.5) / ${boundaries.length + 1}.0;
-      vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
-      fragColor = vec4(c.rgb * opacity, opacity);
-    `
-  }, [colorLimits.binBoundaries, variable, unitScale])
+  const customFrag = useMemo(
+    () => buildBinFrag(colorLimits.binBoundaries || [], variable, unitScale),
+    [colorLimits.binBoundaries, variable, unitScale],
+  )
 
   useEffect(() => {
     if (!map) return

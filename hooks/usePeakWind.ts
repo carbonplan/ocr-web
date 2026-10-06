@@ -7,7 +7,7 @@ export const WIND_SPEED_LAYER_ID = 'wind_speed'
 // mirrors the raster shader: the first bin whose upper edge the value clears,
 // with the last bin left open-ended. Bin i is colormap[i + 1], since the
 // colormap leads with a no-data swatch.
-const getBinIndex = (bins: number[], value: number) =>
+export const getBinIndex = (bins: number[], value: number) =>
   bins.findIndex((_, i) => i === bins.length - 1 || value < bins[i + 1])
 
 // Peak 1-min sustained wind at the selected return period, in display units,
