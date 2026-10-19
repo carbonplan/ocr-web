@@ -1,13 +1,11 @@
 import { PMTiles } from 'pmtiles'
-import { VectorTile } from '@mapbox/vector-tile'
-import { PbfReader } from 'pbf'
 import { booleanPointInPolygon, point } from '@turf/turf'
 import type { Feature, MultiPolygon, Polygon } from 'geojson'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
+import { readTileFeatures, tileCoords } from './vector-tiles'
 
-// Point-in-polygon against the MTBS perimeter tiles, read straight from the
-// pmtiles archive rather than the map: at max zoom the tile under the point
-// holds every perimeter covering it, whatever the viewport shows.
+// Point-in-polygon against the MTBS perimeter tiles: at max zoom the tile
+// under the point holds every perimeter covering it.
 
 export type FireAtPoint = {
   id: string
@@ -27,40 +25,26 @@ const getArchive = () => {
   return archive
 }
 
-const tileCoords = (lng: number, lat: number, z: number): [number, number] => {
-  const n = 2 ** z
-  const x = Math.floor(((lng + 180) / 360) * n)
-  const latRad = (lat * Math.PI) / 180
-  const y = Math.floor(
-    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n,
-  )
-  return [x, y]
-}
-
 const readTile = async (
   z: number,
   x: number,
   y: number,
   signal?: AbortSignal,
-): Promise<PerimeterFeature[]> => {
-  const tile = await getArchive().getZxy(z, x, y, signal)
-  if (!tile) return []
-  const layer = new VectorTile(new PbfReader(tile.data)).layers[
-    LAYERS.firePerimeters.layerName
-  ]
-  if (!layer) return []
-  const features: PerimeterFeature[] = []
-  for (let i = 0; i < layer.length; i++) {
-    const feature = layer.feature(i).toGeoJSON(x, y, z)
-    if (
+): Promise<PerimeterFeature[]> =>
+  (
+    await readTileFeatures(
+      getArchive(),
+      LAYERS.firePerimeters.layerName,
+      z,
+      x,
+      y,
+      signal,
+    )
+  ).filter(
+    (feature): feature is PerimeterFeature =>
       feature.geometry.type === 'Polygon' ||
-      feature.geometry.type === 'MultiPolygon'
-    ) {
-      features.push(feature as PerimeterFeature)
-    }
-  }
-  return features
-}
+      feature.geometry.type === 'MultiPolygon',
+  )
 
 const toFire = (feature: PerimeterFeature): FireAtPoint => {
   const props = feature.properties
