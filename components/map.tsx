@@ -28,6 +28,7 @@ import {
   StormTracks,
   StormFootprint,
   FirePerimeters,
+  FloodReports,
   MapControls,
   useMapControlStyles,
 } from './'
@@ -305,6 +306,7 @@ const MapComponent = () => {
           <StormFootprint />
           <StormTracks />
           <FirePerimeters />
+          <FloodReports />
           <GeographyLayer config={LAYERS.counties} geographyKey='county' />
           <GeographyLayer
             config={LAYERS.censusTracts}

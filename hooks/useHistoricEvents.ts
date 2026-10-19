@@ -3,6 +3,7 @@ import { centerOfMass } from '@turf/turf'
 import { useStore, HistoricEventsState } from '@/lib/store'
 import { queryStormsAtPoint } from '@/lib/historic-events/storm-winds'
 import { queryFiresAtPoint } from '@/lib/historic-events/fire-perimeters'
+import { queryFloodsNearPoint } from '@/lib/historic-events/flood-reports'
 
 // Looks up the historic events at the selected point for the active hazard.
 // Runs whether or not the events layer is showing, so the sidebar count is
@@ -15,10 +16,6 @@ export const useHistoricEvents = () => {
 
   useEffect(() => {
     if (!selectedBuilding && !selectedArea) return
-    if (hazard !== 'hurricane' && hazard !== 'fire') {
-      setHistoricEvents({ status: 'idle' })
-      return
-    }
 
     const point = selectedArea
       ? ([selectedArea.lng, selectedArea.lat] as [number, number])
@@ -35,6 +32,10 @@ export const useHistoricEvents = () => {
       if (hazard === 'hurricane') {
         const events = await queryStormsAtPoint(point)
         return { status: 'success', kind: 'storms', events }
+      }
+      if (hazard === 'flood') {
+        const events = await queryFloodsNearPoint(point, controller.signal)
+        return { status: 'success', kind: 'floods', events }
       }
       const events = await queryFiresAtPoint(point, controller.signal)
       return { status: 'success', kind: 'fires', events }

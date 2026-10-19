@@ -17,7 +17,11 @@ const FloodAbout = () => (
       <Link href='https://docs.overturemaps.org/guides/buildings/'>
         Overture Maps Foundation buildings dataset
       </Link>
-      .
+      . Previous floods are flood and flash flood reports from the{' '}
+      <Link href='https://www.ncei.noaa.gov/access/storm-events-database/'>
+        NOAA Storm Events Database
+      </Link>
+      , the same record the model was trained on.
     </Box>
     <Box sx={{ mt: 2 }}>
       The model was trained on NOAA Storm Events flood damage reports against

@@ -5,6 +5,7 @@ import { ensureSourceLoaded } from './map-utils'
 import type { ChazPointData } from './chaz-query'
 import type { StormAtPoint } from './historic-events/storm-winds'
 import type { FireAtPoint } from './historic-events/fire-perimeters'
+import type { FloodAtPoint } from './historic-events/flood-reports'
 import {
   Location,
   Building,
@@ -41,6 +42,7 @@ export type HistoricEventsState =
       kind: 'fires'
       events: FireAtPoint[]
     }
+  | { status: 'success'; kind: 'floods'; events: FloodAtPoint[] }
 
 const syncHazardUrl = (get: () => Store) => {
   const { hazard, futureWindow, mapLayer } = get()

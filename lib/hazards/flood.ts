@@ -1,4 +1,5 @@
 import { HazardConfig } from './types'
+import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
 
 const FDP_BASE =
   process.env.NEXT_PUBLIC_FLOOD_ZARR_BASE ??
@@ -39,6 +40,15 @@ const flood: HazardConfig = {
       unit: '%',
       unitScale: 100,
       binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
+    },
+    {
+      id: HISTORIC_FLOODS_LAYER_ID,
+      kind: 'events',
+      axisLabel: 'Report year',
+      unit: '',
+      unitScale: 1,
+      binBoundaries: [2005, 2010, 2015, 2020],
+      customColormap: true,
     },
   ],
 }

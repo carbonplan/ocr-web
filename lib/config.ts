@@ -45,6 +45,7 @@ export const HISTORIC_URLS = {
   stormTracks: `${EXPLORE_URL}/ibtracs_conus_tracks.pmtiles`,
   stormWinds: `${EXPLORE_URL}/ibtracs_conus_winds.zarr`,
   firePerimeters: `${EXPLORE_URL}/mtbs_conus_perims.pmtiles`,
+  floodReports: `${EXPLORE_URL}/storm_events_conus_floods.pmtiles`,
 }
 
 export const LICENSE_INFO = {
@@ -131,6 +132,15 @@ export const LAYERS = {
     layerIds: {
       fill: 'fire-perimeters-fill',
       line: 'fire-perimeters-line',
+    },
+  },
+  floodReports: {
+    layerName: 'floods',
+    sourceId: 'floodReports',
+    layerIds: {
+      fill: 'flood-reports-fill',
+      line: 'flood-reports-line',
+      circle: 'flood-reports-circle',
     },
   },
 } as const
