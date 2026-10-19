@@ -21,7 +21,8 @@ export type FloodAtPoint = {
   county: string
   location: string
   cause: string
-  damage: number
+  // null when NWS entered no estimate
+  damage: number | null
   deaths: number
   injuries: number
   distanceKm: number
@@ -46,7 +47,7 @@ const toFlood = (
   county: String(props.county ?? ''),
   location: String(props.location ?? ''),
   cause: String(props.cause ?? ''),
-  damage: Number(props.damage ?? 0),
+  damage: props.damage == null ? null : Number(props.damage),
   deaths: Number(props.deaths ?? 0),
   injuries: Number(props.injuries ?? 0),
   distanceKm,

@@ -9,8 +9,10 @@ import { NEAR_KM, type FloodAtPoint } from '@/lib/historic-events/flood-reports'
 import ValueBadge from '../../value-badge'
 import { tableSx } from '../../tooltip-table'
 
-const formatDollars = (value: number) =>
-  value > 0 ? format('$.2~s')(value).replace('G', 'B') : '$0'
+const formatDollars = (value: number | null) => {
+  if (value === null) return '–'
+  return value > 0 ? format('$.2~s')(value).replace('G', 'B') : '$0'
+}
 
 const formatMonth = (date: string) =>
   new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
@@ -65,8 +67,10 @@ const HistoricFloods = () => {
   return (
     <Box>
       Flood and flash flood reports from the National Weather Service within{' '}
-      {NEAR_KM} km of this location. Reports mark where flooding was observed or
-      caused damage; mapped locations begin in 2005 and are sparse before 2007.
+      {NEAR_KM} km of this location. A report marks flooding that threatened
+      life or property, such as a road closed by high water, so many carry no
+      dollar loss. Damage is the NWS estimate of property and crop losses.
+      Mapped locations begin in 2005 and are sparse before 2007.
       {!hasSelection && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its flood history.
