@@ -56,7 +56,7 @@ const FloodReports = () => {
     (state) =>
       state.riskConfig.id === 'flood' &&
       state.mapLayer === HISTORIC_FLOODS_LAYER_ID &&
-      state.floodSource === 'nws',
+      state.floodSource === 'noaa',
   )
   const relevantIds = useFloodHighlights(
     map,

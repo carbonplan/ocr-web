@@ -10,7 +10,7 @@ import { queryNewsFloodsNearPoint, type NewsFlood } from './flood-news'
 // of a member's start, or before a member's end when that member lasted no
 // longer than MAX_WINDOW_DAYS.
 
-export type FloodSource = 'satellite' | 'nws' | 'news'
+export type FloodSource = 'satellite' | 'noaa' | 'news'
 
 export type FloodEvent = {
   id: string
@@ -30,7 +30,7 @@ const toTime = (date: string) => new Date(`${date}T00:00:00Z`).getTime()
 
 type Dated = { start: number; joinUntil: number } & (
   | { source: 'satellite'; item: SatelliteFlood }
-  | { source: 'nws'; item: FloodAtPoint }
+  | { source: 'noaa'; item: FloodAtPoint }
   | { source: 'news'; item: NewsFlood }
 )
 
@@ -63,7 +63,7 @@ export const groupFloodEvents = (
     ...reports.map(
       (item): Dated => ({
         ...dated(item.beginDate, item.endDate),
-        source: 'nws',
+        source: 'noaa',
         item,
       }),
     ),
@@ -97,7 +97,7 @@ export const groupFloodEvents = (
     }
     const event = events[events.length - 1]
     if (record.source === 'satellite') event.satellite.push(record.item)
-    else if (record.source === 'nws') event.reports.push(record.item)
+    else if (record.source === 'noaa') event.reports.push(record.item)
     else event.news.push(record.item)
   }
   return events.reverse()

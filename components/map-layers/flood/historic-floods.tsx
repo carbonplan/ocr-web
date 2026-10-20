@@ -21,7 +21,7 @@ import { tableSx } from '../../tooltip-table'
 
 const SOURCE_LABELS: Record<FloodSource, string> = {
   satellite: 'Satellite',
-  nws: 'NWS',
+  noaa: 'NOAA',
   news: 'News',
 }
 
@@ -78,7 +78,7 @@ const satelliteLine = (event: FloodEvent) => {
   }${nearest.cause ? ` · ${nearest.cause}` : ''}${window}`
 }
 
-const nwsLine = (event: FloodEvent) => {
+const noaaLine = (event: FloodEvent) => {
   if (!event.reports.length) return null
   const nearest = Math.min(...event.reports.map((r) => r.distanceKm))
   if (event.reports.length === 1) {
@@ -140,9 +140,10 @@ const HistoricFloods = () => {
           trees.
         </li>
         <li>
-          NWS: National Weather Service flood reports within {NEAR_KM} km,
-          mapped from 2005. A report marks flooding that threatened life or
-          property, so many carry no dollar loss.
+          NOAA: National Weather Service flood reports from NOAA&apos;s Storm
+          Events Database within {NEAR_KM} km, mapped from 2005. A report marks
+          flooding that threatened life or property, so many carry no dollar
+          loss.
         </li>
         <li>
           News: places within {NEWS_NEAR_KM * 1000} m that news coverage of
@@ -155,7 +156,7 @@ const HistoricFloods = () => {
         <Filter
           values={{
             satellite: floodSource === 'satellite',
-            nws: floodSource === 'nws',
+            noaa: floodSource === 'noaa',
             news: floodSource === 'news',
           }}
           labels={SOURCE_LABELS}
@@ -193,7 +194,7 @@ const HistoricFloods = () => {
             }}
           >
             <Box sx={tableSx.tableHead}>Flood</Box>
-            <Box sx={tableSx.tableHead}>NWS damage</Box>
+            <Box sx={tableSx.tableHead}>NOAA damage</Box>
           </Flex>
           {events.map((event) => (
             <Box
@@ -223,13 +224,13 @@ const HistoricFloods = () => {
                 />
               </Flex>
               <SourceLine source='satellite'>{satelliteLine(event)}</SourceLine>
-              <SourceLine source='nws'>{nwsLine(event)}</SourceLine>
+              <SourceLine source='noaa'>{noaaLine(event)}</SourceLine>
               <SourceLine source='news'>{newsLine(event)}</SourceLine>
             </Box>
           ))}
           <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
             The sources cover different years, so a flood after 2018 has no
-            satellite record and one before 2005 rarely has an NWS report.
+            satellite record and one before 2005 rarely has a NOAA report.
           </Box>
         </Box>
       )}
