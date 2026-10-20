@@ -44,10 +44,10 @@ const flood: HazardConfig = {
     {
       id: HISTORIC_FLOODS_LAYER_ID,
       kind: 'events',
-      axisLabel: 'Report year',
+      axisLabel: 'Flood year',
       unit: '',
       unitScale: 1,
-      binBoundaries: [2005, 2010, 2015, 2020],
+      binBoundaries: [2000, 2005, 2010, 2015, 2020],
       customColormap: true,
     },
   ],

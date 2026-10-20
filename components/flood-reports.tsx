@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, FilterSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
@@ -6,6 +6,8 @@ import { useColormap } from '@/lib/colormaps'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
 import { RISKS, getMapLayer } from '@/lib/hazards'
 import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
+import type { FloodEvent } from '@/lib/historic-events/flood-history'
+import { useFloodHighlights } from '@/hooks/useFloodHighlights'
 
 const { sourceId, layerName, layerIds } = LAYERS.floodReports
 const FILL_BEFORE_ID = LAYERS.buildingPoints.layerIds.circle
@@ -29,45 +31,46 @@ const POINTS: FilterSpecification = ['==', ['geometry-type'], 'Point']
 // outlined and only filled while hovered
 const BOX_FILL_OPACITY: ExpressionSpecification = ['case', HOVERED, 0.3, 0]
 
+// colormap[0] is the no-data swatch; years before the second bin edge take
+// the first color
+export const yearColorExpression = (
+  bins: number[],
+  colormap: string[],
+): ExpressionSpecification =>
+  [
+    'step',
+    ['to-number', ['get', 'year']],
+    colormap[1],
+    ...bins.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]]),
+  ] as ExpressionSpecification
+
+const reportIds = (event: FloodEvent) => event.reports.map((r) => r.id)
+
 // NWS flood reports, each the box between its reported corners, a line when
-// the box is a sliver, or a point,
-// colored by year, with the ones near the selected point drawn over the rest.
+// the box is a sliver, or a point, colored by year, with the ones near the
+// selected point drawn over the rest.
 const FloodReports = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
   const active = useStore(
     (state) =>
       state.riskConfig.id === 'flood' &&
-      state.mapLayer === HISTORIC_FLOODS_LAYER_ID,
+      state.mapLayer === HISTORIC_FLOODS_LAYER_ID &&
+      state.floodSource === 'nws',
   )
-  const historicEvents = useStore((state) => state.historicEvents)
-  const hoveredEventId = useStore((state) => state.hoveredEventId)
-  const previousHoverRef = useRef<string | null>(null)
+  const relevantIds = useFloodHighlights(
+    map,
+    LAYERS.floodReports,
+    reportIds,
+    active,
+  )
 
   const colormap = useColormap({ count: BINS.length })
 
-  // held through 'loading' so clicking between points doesn't briefly undim
-  // every report
-  const relevantIdsRef = useRef<number[] | null>(null)
-  const relevantIds = useMemo(() => {
-    if (historicEvents.status !== 'loading') {
-      relevantIdsRef.current =
-        historicEvents.status === 'success' && historicEvents.kind === 'floods'
-          ? historicEvents.events.map((flood) => flood.id)
-          : null
-    }
-    return relevantIdsRef.current
-  }, [historicEvents])
-
-  const colorExpression: ExpressionSpecification = useMemo(() => {
-    const steps = BINS.slice(1).flatMap((edge, i) => [edge, colormap[i + 2]])
-    return [
-      'step',
-      ['to-number', ['get', 'year']],
-      colormap[1],
-      ...steps,
-    ] as ExpressionSpecification
-  }, [colormap])
+  const colorExpression = useMemo(
+    () => yearColorExpression(BINS, colormap),
+    [colormap],
+  )
 
   const isRelevant: ExpressionSpecification | null = useMemo(
     () =>
@@ -214,29 +217,6 @@ const FloodReports = () => {
       strokeOpacity,
     )
   }, [map, colorExpression, pointOpacity, highlightColor, strokeOpacity])
-
-  useEffect(() => {
-    if (!map?.getSource(sourceId)) return
-    if (previousHoverRef.current) {
-      map.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerName,
-          id: previousHoverRef.current,
-        },
-        { hover: false },
-      )
-    }
-    if (hoveredEventId && active) {
-      map.setFeatureState(
-        { source: sourceId, sourceLayer: layerName, id: hoveredEventId },
-        { hover: true },
-      )
-      previousHoverRef.current = hoveredEventId
-    } else {
-      previousHoverRef.current = null
-    }
-  }, [map, hoveredEventId, active])
 
   return null
 }

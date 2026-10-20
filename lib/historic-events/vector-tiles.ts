@@ -43,3 +43,28 @@ export const readTileFeatures = async (
   }
   return features
 }
+
+const KM_PER_DEGREE = 111.32
+
+// every max-zoom feature in the tiles covering `km` around the point; a
+// feature crossing tile edges comes back once per tile, clipped
+export const readFeaturesAround = async (
+  archive: PMTiles,
+  layerName: string,
+  [lng, lat]: [number, number],
+  km: number,
+  signal?: AbortSignal,
+): Promise<Feature<Geometry, Record<string, unknown>>[]> => {
+  const z = (await archive.getHeader()).maxZoom
+  const dLat = km / KM_PER_DEGREE
+  const dLng = dLat / Math.cos((lat * Math.PI) / 180)
+  const [x0, y0] = tileCoords(lng - dLng, lat + dLat, z)
+  const [x1, y1] = tileCoords(lng + dLng, lat - dLat, z)
+  const tiles = []
+  for (let x = x0; x <= x1; x++) {
+    for (let y = y0; y <= y1; y++) {
+      tiles.push(readTileFeatures(archive, layerName, z, x, y, signal))
+    }
+  }
+  return (await Promise.all(tiles)).flat()
+}

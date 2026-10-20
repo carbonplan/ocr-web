@@ -11,7 +11,7 @@ const FloodLayers = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
 
   const { score, value, color } = useScore(selectedBuilding, 'hinted')
-  const { floods } = useHistoricFloods()
+  const { events } = useHistoricFloods()
 
   return (
     <>
@@ -39,7 +39,7 @@ const FloodLayers = () => {
         label='Previous floods'
         checked={mapLayer === HISTORIC_FLOODS_LAYER_ID}
         setChecked={() => setMapLayer(HISTORIC_FLOODS_LAYER_ID)}
-        value={floods ? floods.length : null}
+        value={events ? events.length : null}
         toFixed={0}
         unit='#'
       >

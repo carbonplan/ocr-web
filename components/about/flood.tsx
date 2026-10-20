@@ -17,11 +17,22 @@ const FloodAbout = () => (
       <Link href='https://docs.overturemaps.org/guides/buildings/'>
         Overture Maps Foundation buildings dataset
       </Link>
-      . Previous floods are flood and flash flood reports from the{' '}
+      . Previous floods combine three records: flood and flash flood reports
+      from the{' '}
       <Link href='https://www.ncei.noaa.gov/access/storm-events-database/'>
         NOAA Storm Events Database
       </Link>
-      , the same record the model was trained on.
+      , the same record the model was trained on; flood water mapped from MODIS
+      imagery by the{' '}
+      <Link href='https://doi.org/10.1038/s41586-021-03695-w'>
+        Global Flood Database
+      </Link>{' '}
+      (Tellman et al. 2021, CC BY-NC 4.0); and places named in news coverage of
+      flooding from{' '}
+      <Link href='https://doi.org/10.5281/zenodo.18647054'>
+        Google Groundsource
+      </Link>{' '}
+      (CC BY 4.0).
     </Box>
     <Box sx={{ mt: 2 }}>
       The model was trained on NOAA Storm Events flood damage reports against

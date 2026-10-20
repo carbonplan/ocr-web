@@ -1,7 +1,7 @@
 import { PMTiles } from 'pmtiles'
 import { bbox, distance } from '@turf/turf'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
-import { readTileFeatures, tileCoords } from './vector-tiles'
+import { readFeaturesAround } from './vector-tiles'
 
 // NWS flood reports whose reported area lies within NEAR_KM of the point.
 // Each report is the box between its two reported corners (a line or point
@@ -9,13 +9,13 @@ import { readTileFeatures, tileCoords } from './vector-tiles'
 // the part nearest the point is always in one of the tiles covering the
 // search radius.
 
-export const NEAR_KM = 2
-const KM_PER_DEGREE = 111.32
+export const NEAR_KM = 3
 
 export type FloodAtPoint = {
   id: number
   type: string
   beginDate: string
+  endDate: string
   year: number
   state: string
   county: string
@@ -42,6 +42,7 @@ const toFlood = (
   id: Number(props.event_id),
   type: String(props.type ?? ''),
   beginDate: String(props.begin_date ?? ''),
+  endDate: String(props.end_date ?? ''),
   year: Number(props.year),
   state: String(props.state ?? ''),
   county: String(props.county ?? ''),
@@ -58,31 +59,15 @@ export const queryFloodsNearPoint = async (
   [lng, lat]: [number, number],
   signal?: AbortSignal,
 ): Promise<FloodAtPoint[]> => {
-  const header = await getArchive().getHeader()
-  const z = header.maxZoom
-  const dLat = NEAR_KM / KM_PER_DEGREE
-  const dLng = dLat / Math.cos((lat * Math.PI) / 180)
-  const [x0, y0] = tileCoords(lng - dLng, lat + dLat, z)
-  const [x1, y1] = tileCoords(lng + dLng, lat - dLat, z)
-
-  const tiles = []
-  for (let x = x0; x <= x1; x++) {
-    for (let y = y0; y <= y1; y++) {
-      tiles.push(
-        readTileFeatures(
-          getArchive(),
-          LAYERS.floodReports.layerName,
-          z,
-          x,
-          y,
-          signal,
-        ),
-      )
-    }
-  }
-
+  const features = await readFeaturesAround(
+    getArchive(),
+    LAYERS.floodReports.layerName,
+    [lng, lat],
+    NEAR_KM,
+    signal,
+  )
   const floods = new Map<number, FloodAtPoint>()
-  for (const feature of (await Promise.all(tiles)).flat()) {
+  for (const feature of features) {
     // clipped boxes stay axis-aligned, so the nearest point is the clamp; a
     // line's bbox is under 100 m wide, so it stands in for the line
     const [west, south, east, north] = bbox(feature)
