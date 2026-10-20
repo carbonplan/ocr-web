@@ -202,7 +202,7 @@ const HistoricFloods = () => {
               sx={{
                 ...tableSx.row,
                 py: 2,
-                cursor: 'pointer',
+                cursor: 'default',
                 '&:hover': { color: 'primary' },
               }}
               onMouseEnter={() => setHoveredEventId(event.id)}
