@@ -13,6 +13,8 @@ export const NEAR_KM = 3
 
 export type FloodAtPoint = {
   id: number
+  // NWS groups the reports from one storm system into an episode
+  episodeId: number | null
   type: string
   beginDate: string
   endDate: string
@@ -40,6 +42,7 @@ const toFlood = (
   distanceKm: number,
 ): FloodAtPoint => ({
   id: Number(props.event_id),
+  episodeId: props.episode_id == null ? null : Number(props.episode_id),
   type: String(props.type ?? ''),
   beginDate: String(props.begin_date ?? ''),
   endDate: String(props.end_date ?? ''),

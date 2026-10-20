@@ -5,10 +5,13 @@ import {
 } from './flood-satellite'
 import { queryNewsFloodsNearPoint, type NewsFlood } from './flood-news'
 
-// Flood records near a point from the three sources, grouped into events by
-// date. A record joins the event before it when it starts within GROUP_DAYS
-// of a member's start, or before a member's end when that member lasted no
-// longer than MAX_WINDOW_DAYS.
+// Flood records near a point from the three sources, grouped into events.
+// NOAA reports group by the NWS episode, one storm system. Satellite and news
+// records join the episode whose dates they fall in (within GROUP_DAYS of its
+// start, through the end of its reports), and the rest group among themselves
+// by date: a record joins the event before it when it starts within
+// GROUP_DAYS of a member's start, or before a member's end when that member
+// lasted no longer than MAX_WINDOW_DAYS.
 
 export type FloodSource = 'satellite' | 'noaa' | 'news'
 
@@ -47,23 +50,61 @@ const dated = (begin: string, end: string) => {
   }
 }
 
+const newEvent = (id: string, start: number): FloodEvent => {
+  const date = new Date(start).toISOString().slice(0, 10)
+  return {
+    id,
+    date,
+    year: Number(date.slice(0, 4)),
+    satellite: [],
+    reports: [],
+    news: [],
+  }
+}
+
+const add = (event: FloodEvent, record: Dated) => {
+  if (record.start < toTime(event.date)) {
+    event.date = new Date(record.start).toISOString().slice(0, 10)
+    event.year = Number(event.date.slice(0, 4))
+  }
+  if (record.source === 'satellite') event.satellite.push(record.item)
+  else if (record.source === 'noaa') event.reports.push(record.item)
+  else event.news.push(record.item)
+}
+
 export const groupFloodEvents = (
   satellite: SatelliteFlood[],
   reports: FloodAtPoint[],
   news: NewsFlood[],
 ): FloodEvent[] => {
-  const records: Dated[] = [
+  const episodes = new Map<string, { event: FloodEvent; joinUntil: number }>()
+  const byEpisode = new Map<string, Dated[]>()
+  for (const item of reports) {
+    const record: Dated = {
+      ...dated(item.beginDate, item.endDate),
+      source: 'noaa',
+      item,
+    }
+    if (!Number.isFinite(record.start)) continue
+    const key = String(item.episodeId ?? `report-${item.id}`)
+    byEpisode.set(key, [...(byEpisode.get(key) ?? []), record])
+  }
+  for (const [key, records] of byEpisode) {
+    const start = Math.min(...records.map((r) => r.start))
+    const event = newEvent(`noaa-${key}`, start)
+    records.forEach((r) => add(event, r))
+    episodes.set(key, {
+      event,
+      joinUntil: Math.max(...records.map((r) => r.joinUntil)),
+    })
+  }
+
+  const others: Dated[] = []
+  for (const record of [
     ...satellite.map(
       (item): Dated => ({
         ...dated(item.began, item.ended),
         source: 'satellite',
-        item,
-      }),
-    ),
-    ...reports.map(
-      (item): Dated => ({
-        ...dated(item.beginDate, item.endDate),
-        source: 'noaa',
         item,
       }),
     ),
@@ -74,33 +115,38 @@ export const groupFloodEvents = (
         item,
       }),
     ),
-  ]
-    .filter((r) => Number.isFinite(r.start))
-    .sort((a, b) => a.start - b.start)
+  ]) {
+    if (!Number.isFinite(record.start)) continue
+    let match: FloodEvent | null = null
+    let gap = Infinity
+    for (const { event, joinUntil } of episodes.values()) {
+      const episodeStart = toTime(event.date)
+      if (record.start < episodeStart - GROUP_DAYS * DAY_MS) continue
+      if (record.start > joinUntil) continue
+      const d = Math.abs(record.start - episodeStart)
+      if (d < gap) {
+        match = event
+        gap = d
+      }
+    }
+    if (match) add(match, record)
+    else others.push(record)
+  }
 
-  const events: FloodEvent[] = []
+  const events = [...episodes.values()].map(({ event }) => event)
   let joinUntil = -Infinity
-  for (const record of records) {
+  for (const record of others.sort((a, b) => a.start - b.start)) {
     if (record.start > joinUntil) {
-      const date = new Date(record.start).toISOString().slice(0, 10)
-      events.push({
-        id: `flood-${date}`,
-        date,
-        year: Number(date.slice(0, 4)),
-        satellite: [],
-        reports: [],
-        news: [],
-      })
+      const event = newEvent('', record.start)
+      event.id = `flood-${event.date}-${record.source}`
+      events.push(event)
       joinUntil = record.joinUntil
     } else {
       joinUntil = Math.max(joinUntil, record.joinUntil)
     }
-    const event = events[events.length - 1]
-    if (record.source === 'satellite') event.satellite.push(record.item)
-    else if (record.source === 'noaa') event.reports.push(record.item)
-    else event.news.push(record.item)
+    add(events[events.length - 1], record)
   }
-  return events.reverse()
+  return events.sort((a, b) => b.date.localeCompare(a.date))
 }
 
 // flood events near the point, most recent first
