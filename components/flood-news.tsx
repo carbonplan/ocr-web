@@ -36,7 +36,13 @@ const FloodNews = () => {
       state.mapLayer === HISTORIC_FLOODS_LAYER_ID &&
       state.floodSource === 'news',
   )
-  const relevantIds = useFloodHighlights(map, LAYERS.floodNews, newsIds, active)
+  const relevantIds = useFloodHighlights(
+    map,
+    LAYERS.floodNews,
+    newsIds,
+    active,
+    [layerIds.circle],
+  )
   const colormap = useColormap({ count: BINS.length })
   const colorExpression = useMemo(
     () => yearColorExpression(BINS, colormap),

@@ -50,7 +50,9 @@ const FloodReports = () => {
       state.mapLayer === HISTORIC_FLOODS_LAYER_ID &&
       state.floodSource === 'noaa',
   )
-  const relevantIds = useFloodHighlights(map, points, reportIds, active)
+  const relevantIds = useFloodHighlights(map, points, reportIds, active, [
+    points.layerIds.circle,
+  ])
   useFloodHighlights(map, boxes, reportIds, active)
 
   const colormap = useColormap({ count: BINS.length })

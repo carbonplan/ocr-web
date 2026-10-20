@@ -40,6 +40,7 @@ const FloodSatellite = () => {
     LAYERS.floodSatellite,
     satelliteIds,
     active,
+    [layerIds.fill],
   )
   const colormap = useColormap({ count: BINS.length })
   const colorExpression = useMemo(

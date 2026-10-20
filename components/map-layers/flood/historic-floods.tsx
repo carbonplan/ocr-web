@@ -123,6 +123,7 @@ const HistoricFloods = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
+  const hoveredEventId = useStore((state) => state.hoveredEventId)
   const floodSource = useStore((state) => state.floodSource)
   const setFloodSource = useStore((state) => state.setFloodSource)
   const { status, events, colorFor } = useHistoricFloods()
@@ -203,6 +204,7 @@ const HistoricFloods = () => {
                 ...tableSx.row,
                 py: 2,
                 cursor: 'default',
+                color: hoveredEventId === event.id ? 'primary' : undefined,
                 '&:hover': { color: 'primary' },
               }}
               onMouseEnter={() => setHoveredEventId(event.id)}
