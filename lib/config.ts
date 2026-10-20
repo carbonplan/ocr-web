@@ -46,6 +46,7 @@ export const HISTORIC_URLS = {
   stormWinds: `${EXPLORE_URL}/ibtracs_conus_winds.zarr`,
   firePerimeters: `${EXPLORE_URL}/mtbs_conus_perims.pmtiles`,
   floodReports: `${EXPLORE_URL}/storm_events_conus_floods.pmtiles`,
+  floodReportPoints: `${EXPLORE_URL}/storm_events_conus_flood_points.pmtiles`,
   floodSatellite: `${EXPLORE_URL}/gfd_conus_footprints.pmtiles`,
   floodNews: `${EXPLORE_URL}/groundsource_conus_centroids.pmtiles`,
 }
@@ -140,9 +141,14 @@ export const LAYERS = {
     layerName: 'floods',
     sourceId: 'floodReports',
     layerIds: {
-      fill: 'flood-reports-fill',
       line: 'flood-reports-line',
-      circle: 'flood-reports-circle',
+    },
+  },
+  floodReportPoints: {
+    layerName: 'floods',
+    sourceId: 'floodReportPoints',
+    layerIds: {
+      circle: 'flood-report-points-circle',
     },
   },
   floodSatellite: {

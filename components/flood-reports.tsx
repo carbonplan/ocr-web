@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { ExpressionSpecification, FilterSpecification } from 'maplibre-gl'
+import { ExpressionSpecification } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
@@ -9,9 +9,9 @@ import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
 import type { FloodEvent } from '@/lib/historic-events/flood-history'
 import { useFloodHighlights } from '@/hooks/useFloodHighlights'
 
-const { sourceId, layerName, layerIds } = LAYERS.floodReports
-const FILL_BEFORE_ID = LAYERS.buildingPoints.layerIds.circle
-const LINE_BEFORE_ID = 'address_label'
+const points = LAYERS.floodReportPoints
+const boxes = LAYERS.floodReports
+const BEFORE_ID = 'address_label'
 
 const BINS =
   getMapLayer(RISKS.flood, HISTORIC_FLOODS_LAYER_ID)?.binBoundaries ?? []
@@ -20,16 +20,8 @@ const HOVERED: ExpressionSpecification = [
   ['feature-state', 'hover'],
   false,
 ]
-const POLYGONS: FilterSpecification = ['==', ['geometry-type'], 'Polygon']
-const OUTLINES: FilterSpecification = [
-  'in',
-  ['geometry-type'],
-  ['literal', ['Polygon', 'LineString']],
-]
-const POINTS: FilterSpecification = ['==', ['geometry-type'], 'Point']
-// boxes bound the reported area rather than map the water, so they are
-// outlined and only filled while hovered
-const BOX_FILL_OPACITY: ExpressionSpecification = ['case', HOVERED, 0.3, 0]
+// the reported area, outlined only for the hovered event
+const BOX_OPACITY: ExpressionSpecification = ['case', HOVERED, 1, 0]
 
 // colormap[0] is the no-data swatch; years before the second bin edge take
 // the first color
@@ -46,9 +38,9 @@ export const yearColorExpression = (
 
 const reportIds = (event: FloodEvent) => event.reports.map((r) => r.id)
 
-// NWS flood reports, each the box between its reported corners, a line when
-// the box is a sliver, or a point, colored by year, with the ones near the
-// selected point drawn over the rest.
+// NWS flood reports as dots at their begin locations, colored by year, with
+// the ones near the selected point drawn over the rest. Nearness is measured
+// to each report's box, which is outlined while its event is hovered.
 const FloodReports = () => {
   const { theme } = useThemeUI()
   const map = useStore((state) => state.map)
@@ -58,125 +50,77 @@ const FloodReports = () => {
       state.mapLayer === HISTORIC_FLOODS_LAYER_ID &&
       state.floodSource === 'noaa',
   )
-  const relevantIds = useFloodHighlights(
-    map,
-    LAYERS.floodReports,
-    reportIds,
-    active,
-  )
+  const relevantIds = useFloodHighlights(map, points, reportIds, active)
+  useFloodHighlights(map, boxes, reportIds, active)
 
   const colormap = useColormap({ count: BINS.length })
-
   const colorExpression = useMemo(
     () => yearColorExpression(BINS, colormap),
     [colormap],
   )
+  const primary = get(theme, 'rawColors.primary') as string
 
-  const isRelevant: ExpressionSpecification | null = useMemo(
-    () =>
-      relevantIds
-        ? ['in', ['get', 'event_id'], ['literal', relevantIds]]
-        : null,
-    [relevantIds],
-  )
-
-  const pointOpacity: ExpressionSpecification = useMemo(
-    () => [
-      'case',
-      HOVERED,
-      0.85,
-      isRelevant ? ['case', isRelevant, 0.7, 0.1] : 0.4,
-    ],
-    [isRelevant],
-  )
-
-  const strokeOpacity: ExpressionSpecification = useMemo(
+  const opacity: ExpressionSpecification = useMemo(
     () => [
       'case',
       HOVERED,
       1,
-      isRelevant ? ['case', isRelevant, 1, 0.25] : 0.8,
+      relevantIds
+        ? [
+            'case',
+            ['in', ['get', 'event_id'], ['literal', relevantIds]],
+            0.9,
+            0.12,
+          ]
+        : 0.6,
     ],
-    [isRelevant],
-  )
-
-  const highlightColor = useMemo(
-    () =>
-      [
-        'case',
-        HOVERED,
-        get(theme, 'rawColors.primary'),
-        colorExpression,
-      ] as ExpressionSpecification,
-    [theme, colorExpression],
+    [relevantIds],
   )
 
   useEffect(() => {
     if (!map) return
-    if (!map.getSource(sourceId)) {
-      map.addSource(sourceId, {
-        type: 'vector',
-        url: `pmtiles://${HISTORIC_URLS.floodReports}`,
-        promoteId: 'event_id',
-      })
+    const before = map.getLayer(BEFORE_ID) ? BEFORE_ID : undefined
+    for (const [layer, url] of [
+      [points, HISTORIC_URLS.floodReportPoints],
+      [boxes, HISTORIC_URLS.floodReports],
+    ] as const) {
+      if (!map.getSource(layer.sourceId)) {
+        map.addSource(layer.sourceId, {
+          type: 'vector',
+          url: `pmtiles://${url}`,
+          promoteId: 'event_id',
+        })
+      }
     }
-    if (!map.getLayer(layerIds.fill)) {
+    if (!map.getLayer(boxes.layerIds.line)) {
       map.addLayer(
         {
-          id: layerIds.fill,
-          type: 'fill',
-          source: sourceId,
-          'source-layer': layerName,
-          filter: POLYGONS,
-          layout: { visibility: 'none' },
-          paint: {
-            'fill-color': colorExpression,
-            'fill-opacity': BOX_FILL_OPACITY,
-          },
-        },
-        map.getLayer(FILL_BEFORE_ID) ? FILL_BEFORE_ID : undefined,
-      )
-    }
-    if (!map.getLayer(layerIds.line)) {
-      map.addLayer(
-        {
-          id: layerIds.line,
+          id: boxes.layerIds.line,
           type: 'line',
-          source: sourceId,
-          'source-layer': layerName,
-          filter: OUTLINES,
+          source: boxes.sourceId,
+          'source-layer': boxes.layerName,
           layout: { visibility: 'none' },
           paint: {
-            'line-color': highlightColor,
-            'line-opacity': strokeOpacity,
-            'line-width': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              6,
-              ['case', HOVERED, 1.5, 0.4],
-              12,
-              ['case', HOVERED, 3, 1],
-            ],
+            'line-color': primary,
+            'line-opacity': BOX_OPACITY,
+            'line-width': 2,
           },
         },
-        map.getLayer(LINE_BEFORE_ID) ? LINE_BEFORE_ID : undefined,
+        before,
       )
     }
-    if (!map.getLayer(layerIds.circle)) {
+    if (!map.getLayer(points.layerIds.circle)) {
       map.addLayer(
         {
-          id: layerIds.circle,
+          id: points.layerIds.circle,
           type: 'circle',
-          source: sourceId,
-          'source-layer': layerName,
-          filter: POINTS,
+          source: points.sourceId,
+          'source-layer': points.layerName,
           layout: { visibility: 'none' },
           paint: {
             'circle-color': colorExpression,
-            'circle-opacity': pointOpacity,
-            'circle-stroke-color': highlightColor,
-            'circle-stroke-opacity': strokeOpacity,
+            'circle-opacity': opacity,
+            'circle-stroke-color': primary,
             'circle-stroke-width': ['case', HOVERED, 2, 0],
             'circle-radius': [
               'interpolate',
@@ -189,34 +133,30 @@ const FloodReports = () => {
             ],
           },
         },
-        map.getLayer(LINE_BEFORE_ID) ? LINE_BEFORE_ID : undefined,
+        before,
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map])
 
   useEffect(() => {
-    if (!map?.getLayer(layerIds.fill)) return
+    if (!map?.getLayer(points.layerIds.circle)) return
     const visibility = active ? 'visible' : 'none'
-    map.setLayoutProperty(layerIds.fill, 'visibility', visibility)
-    map.setLayoutProperty(layerIds.line, 'visibility', visibility)
-    map.setLayoutProperty(layerIds.circle, 'visibility', visibility)
+    map.setLayoutProperty(points.layerIds.circle, 'visibility', visibility)
+    map.setLayoutProperty(boxes.layerIds.line, 'visibility', visibility)
   }, [map, active])
 
   useEffect(() => {
-    if (!map?.getLayer(layerIds.fill)) return
-    map.setPaintProperty(layerIds.fill, 'fill-color', colorExpression)
-    map.setPaintProperty(layerIds.line, 'line-color', highlightColor)
-    map.setPaintProperty(layerIds.line, 'line-opacity', strokeOpacity)
-    map.setPaintProperty(layerIds.circle, 'circle-color', colorExpression)
-    map.setPaintProperty(layerIds.circle, 'circle-opacity', pointOpacity)
-    map.setPaintProperty(layerIds.circle, 'circle-stroke-color', highlightColor)
+    if (!map?.getLayer(points.layerIds.circle)) return
     map.setPaintProperty(
-      layerIds.circle,
-      'circle-stroke-opacity',
-      strokeOpacity,
+      points.layerIds.circle,
+      'circle-color',
+      colorExpression,
     )
-  }, [map, colorExpression, pointOpacity, highlightColor, strokeOpacity])
+    map.setPaintProperty(points.layerIds.circle, 'circle-opacity', opacity)
+    map.setPaintProperty(points.layerIds.circle, 'circle-stroke-color', primary)
+    map.setPaintProperty(boxes.layerIds.line, 'line-color', primary)
+  }, [map, colorExpression, opacity, primary])
 
   return null
 }
