@@ -39,6 +39,12 @@ const formatMonth = (date: string) =>
 const formatKm = (km: number) =>
   km < 0.05 ? 'at this location' : `${km.toFixed(1)} km away`
 
+const RECORDS: Record<FloodSource, (event: FloodEvent) => unknown[]> = {
+  satellite: (event) => event.satellite,
+  noaa: (event) => event.reports,
+  news: (event) => event.news,
+}
+
 const reportedDamage = (event: FloodEvent) => {
   const known = event.reports.filter((r) => r.damage !== null)
   return known.length ? known.reduce((sum, r) => sum + r.damage!, 0) : null
@@ -128,6 +134,7 @@ const HistoricFloods = () => {
   const setFloodSource = useStore((state) => state.setFloodSource)
   const { status, events, colorFor } = useHistoricFloods()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
+  const mapped = events?.filter((event) => RECORDS[floodSource](event).length)
 
   return (
     <Box>
@@ -184,7 +191,14 @@ const HistoricFloods = () => {
           No flood has been recorded near this location.
         </Box>
       )}
-      {events && events.length > 0 && (
+      {events && events.length > 0 && mapped?.length === 0 && (
+        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+          No {floodSource === 'noaa' ? 'NOAA' : floodSource} record of a flood
+          near this location. Map another source to see the{' '}
+          {events.length === 1 ? 'one' : events.length} recorded here.
+        </Box>
+      )}
+      {mapped && mapped.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Flex
             sx={{
@@ -197,7 +211,7 @@ const HistoricFloods = () => {
             <Box sx={tableSx.tableHead}>Flood</Box>
             <Box sx={tableSx.tableHead}>NOAA damage</Box>
           </Flex>
-          {events.map((event) => (
+          {mapped.map((event) => (
             <Box
               key={event.id}
               sx={{
