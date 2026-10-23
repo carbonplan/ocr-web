@@ -10,6 +10,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
+import { PROTOCOL, prefetch, registerProtocol } from 'geoparquet-lod/maplibre'
 import { Box, useThemeUI } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
@@ -17,16 +18,15 @@ import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import {
   Buildings,
-  BuildingPoints,
+  RegionHighlight,
   SelectionMarker,
-  GeographyLayer,
   SatelliteLayer,
   HillshadeLayer,
   ZarrLayer,
   MapControls,
   useMapControlStyles,
 } from './'
-import { LAYERS } from '@/lib/config'
+import { DATA_URLS, LAYERS } from '@/lib/config'
 import { ensureSourceLoaded } from '@/lib/map-utils'
 import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
 import {
@@ -34,6 +34,9 @@ import {
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
 } from '@/lib/url-utils'
+
+// Open the buildings file while the page hydrates, before the map asks for tiles.
+if (typeof window !== 'undefined') prefetch(DATA_URLS.vector.buildings)
 
 const MapComponent = () => {
   const router = useRouter()
@@ -86,6 +89,7 @@ const MapComponent = () => {
     setMapLoading(true)
     const protocol = new Protocol()
     addProtocol('pmtiles', protocol.tile)
+    registerProtocol({ addProtocol })
 
     const queryView = getMapViewFromQuery(router.query)
     const initialView = queryView || {
@@ -160,6 +164,7 @@ const MapComponent = () => {
       newMap.off('idle', handleLoadingOff)
       newMap.remove()
       removeProtocol('pmtiles')
+      removeProtocol(PROTOCOL)
       setMap(null)
       setStyleLoaded(false)
     }
@@ -201,11 +206,7 @@ const MapComponent = () => {
   // initial region query
   useEffect(() => {
     if (!map) return
-    const init = async () => {
-      await ensureSourceLoaded(map, LAYERS.regions.sourceId)
-      updateGeographies()
-    }
-    init()
+    updateGeographies()
   }, [map, updateGeographies])
 
   useEffect(() => {
@@ -267,19 +268,8 @@ const MapComponent = () => {
           <SatelliteLayer />
           <HillshadeLayer />
           {riskRaster && <ZarrLayer />}
-          <GeographyLayer config={LAYERS.counties} geographyKey='county' />
-          <GeographyLayer
-            config={LAYERS.censusTracts}
-            geographyKey='censusTract'
-          />
-          <GeographyLayer
-            config={LAYERS.censusBlocks}
-            geographyKey='censusBlock'
-          />
-          <GeographyLayer config={LAYERS.states} geographyKey='state' />
-          <GeographyLayer config={LAYERS.nation} geographyKey='nation' />
+          <RegionHighlight />
           <Buildings />
-          <BuildingPoints />
           <SelectionMarker />
         </>
       )}

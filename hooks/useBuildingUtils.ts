@@ -1,6 +1,12 @@
 import { useCallback } from 'react'
 import { centerOfMass, distance } from '@turf/turf'
-import { LAYERS } from '@/lib/config'
+import { readRow } from 'geoparquet-lod/maplibre'
+import {
+  BUILDING_DETAIL_COLUMNS,
+  BUILDING_TILE_PROPERTIES,
+  DATA_URLS,
+  LAYERS,
+} from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { Building } from '@/types/location'
 import { updateSelectedBuildingUrl } from '@/lib/url-utils'
@@ -30,7 +36,31 @@ export const useBuildingUtils = () => {
       const center = centerOfMass(building)
       const [lng, lat] = center.geometry.coordinates as [number, number]
 
-      setSelectedBuilding(building)
+      // geoparquet-lod tiles carry attribute values as display strings. A
+      // rendered feature's geometry is a getter that spreading drops.
+      const tileValues = Object.fromEntries(
+        BUILDING_TILE_PROPERTIES.map((key) => [
+          key,
+          Number(building.properties[key]),
+        ]),
+      )
+      const selected: Building = {
+        ...building,
+        geometry: building.geometry,
+        properties: { ...building.properties, ...tileValues },
+      }
+      setSelectedBuilding(selected)
+      readRow(DATA_URLS.vector.buildings, Number(selected.id), [
+        ...BUILDING_DETAIL_COLUMNS,
+      ])
+        .then((details) => {
+          if (useStore.getState().selectedBuilding?.id !== selected.id) return
+          setSelectedBuilding({
+            ...selected,
+            properties: { ...selected.properties, ...details },
+          })
+        })
+        .catch((error) => console.error('Building details failed:', error))
       updateSelectedBuildingUrl({ lat, lng })
       queryGeographiesAtPoint(lng, lat)
 

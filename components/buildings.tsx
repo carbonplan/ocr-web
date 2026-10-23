@@ -3,7 +3,7 @@ import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
-import { LAYERS } from '@/lib/config'
+import { BUILDING_SELECT_MIN_ZOOM, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getBuildingRiskKey } from '@/lib/risk-utils'
 import { Building } from '@/types/location'
@@ -118,7 +118,7 @@ const Buildings = () => {
   )
 
   const handleBuildingEnter = useCallback(() => {
-    if (map) {
+    if (map && map.getZoom() >= BUILDING_SELECT_MIN_ZOOM) {
       map.getCanvas().style.cursor = 'pointer'
     }
   }, [map])
@@ -145,9 +145,12 @@ const Buildings = () => {
     async (e: MapMouseEvent) => {
       if (!map) return
 
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [LAYERS.buildings.layerIds.fill],
-      })
+      const features =
+        map.getZoom() < BUILDING_SELECT_MIN_ZOOM
+          ? []
+          : map.queryRenderedFeatures(e.point, {
+              layers: [LAYERS.buildings.layerIds.fill],
+            })
 
       if (features.length > 0) {
         if (hoveredFeatureId.current !== null) {

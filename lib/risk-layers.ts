@@ -7,126 +7,39 @@ import {
   SourceSpecification,
   ExpressionSpecification,
 } from 'maplibre-gl'
-import { DATA_URLS, LAYERS, GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
+import { tileUrl } from 'geoparquet-lod/maplibre'
+import { DATA_URLS, LAYERS, BUILDING_TILE_PROPERTIES } from '@/lib/config'
 
 export const getRiskSources = (): Record<string, SourceSpecification> => ({
   [LAYERS.buildings.sourceId]: {
     type: 'vector',
-    url: `pmtiles://${DATA_URLS.vector.buildings}`,
-    minzoom: 6,
+    tiles: [
+      tileUrl({
+        url: DATA_URLS.vector.buildings,
+        layer: LAYERS.buildings.layerName,
+        properties: BUILDING_TILE_PROPERTIES,
+      }),
+    ],
   },
-  [LAYERS.buildingPoints.sourceId]: {
-    type: 'vector',
-    url: `pmtiles://${DATA_URLS.vector.buildingPoints}`,
-  },
-  regions: {
-    type: 'vector',
-    url: `pmtiles://${DATA_URLS.vector.regions}`,
-    promoteId: GEOGRAPHY_ATTRIBUTE_KEYS.geoid,
-  },
-})
-
-const createGeographyFillLayer = (config: {
-  layerName: string
-  sourceId: string
-  layerIds: { fill: string; line: string }
-}): LayerSpecification => ({
-  id: config.layerIds.fill,
-  type: 'fill',
-  source: config.sourceId,
-  'source-layer': config.layerName,
-  paint: {
-    'fill-color': 'transparent',
-    'fill-opacity': 0,
+  [LAYERS.regionHighlight.sourceId]: {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
   },
 })
 
-const createGeographyLineLayers = (config: {
-  layerName: string
-  sourceId: string
-  layerIds: { fill: string; line: string }
-}): LayerSpecification[] => [
+export const getRegionHighlightLayers = (): LayerSpecification[] => [
   {
-    id: config.layerIds.line,
+    id: LAYERS.regionHighlight.layerIds.line,
     type: 'line',
-    source: config.sourceId,
-    'source-layer': config.layerName,
+    source: LAYERS.regionHighlight.sourceId,
     paint: {
-      'line-opacity': 0,
-      'line-color': 'transparent',
-      'line-width': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        2,
-        0.1,
-        14,
-        0.5,
-      ] as ExpressionSpecification,
-    },
-  },
-  {
-    id: `${config.layerIds.line}-highlight`,
-    type: 'line',
-    source: config.sourceId,
-    'source-layer': config.layerName,
-    paint: {
-      'line-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'selected'], false],
-        1,
-        0,
-      ] as ExpressionSpecification,
       'line-color': 'transparent',
       'line-width': 1,
     },
   },
 ]
 
-export const getGeographyFillLayers = (): LayerSpecification[] => [
-  createGeographyFillLayer(LAYERS.counties),
-  createGeographyFillLayer(LAYERS.censusTracts),
-  createGeographyFillLayer(LAYERS.censusBlocks),
-  createGeographyFillLayer(LAYERS.states),
-  createGeographyFillLayer(LAYERS.nation),
-]
-
-export const getGeographyLineLayers = (): LayerSpecification[] => [
-  ...createGeographyLineLayers(LAYERS.counties),
-  ...createGeographyLineLayers(LAYERS.censusTracts),
-  ...createGeographyLineLayers(LAYERS.censusBlocks),
-  ...createGeographyLineLayers(LAYERS.states),
-  ...createGeographyLineLayers(LAYERS.nation),
-]
-
 export const getBuildingLayers = (): LayerSpecification[] => [
-  {
-    id: LAYERS.buildingPoints.layerIds.circle,
-    type: 'circle',
-    source: LAYERS.buildingPoints.sourceId,
-    'source-layer': LAYERS.buildingPoints.layerName,
-    paint: {
-      'circle-color': 'transparent',
-      'circle-radius': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        11,
-        1,
-        13,
-        2,
-      ] as ExpressionSpecification,
-      'circle-opacity': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        14,
-        1,
-        14.5,
-        0,
-      ] as ExpressionSpecification,
-    },
-  },
   {
     id: LAYERS.buildings.layerIds.fill,
     type: 'fill',
@@ -189,8 +102,11 @@ const insertBefore = (
 export const insertRiskLayers = (
   baseLayers: LayerSpecification[],
 ): LayerSpecification[] => {
-  let layers = insertBefore(baseLayers, getGeographyFillLayers(), 'landcover')
-  layers = insertBefore(layers, getGeographyLineLayers(), 'address_label')
+  let layers = insertBefore(
+    baseLayers,
+    getRegionHighlightLayers(),
+    'address_label',
+  )
   layers = insertBefore(layers, getBuildingLayers(), 'buildings')
   return layers
 }

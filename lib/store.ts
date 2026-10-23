@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import { ensureSourceLoaded } from './map-utils'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
-import { GEOGRAPHY_MIN_ZOOM, LAYERS, RISKS } from './config'
+import { LAYERS, RISKS } from './config'
+import { lookupGeographies } from './region-lookup'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
@@ -38,22 +38,6 @@ type Store = {
   setHasManuallySelectedGeography: (value: boolean) => void
   showGeographyHighlight: boolean
   setShowGeographyHighlight: (show: boolean) => void
-  geographyLayerVisibility: {
-    building: boolean
-    county: boolean
-    censusTract: boolean
-    censusBlock: boolean
-    state: boolean
-    nation: boolean
-  }
-  setGeographyLayerVisibility: (geographyLayerVisibility: {
-    building: boolean
-    county: boolean
-    censusTract: boolean
-    censusBlock: boolean
-    state: boolean
-    nation: boolean
-  }) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
   sidebarWidth: number
@@ -79,6 +63,9 @@ type Store = {
   queryGeographiesAtPoint: (lng: number, lat: number) => void
   clearSelections: () => void
 }
+
+// Region lookups resolve out of order; only the latest one is applied.
+let geographyQuery = 0
 
 export const useStore = create<Store>((set, get) => ({
   map: null,
@@ -109,16 +96,6 @@ export const useStore = create<Store>((set, get) => ({
     set({ hasManuallySelectedGeography: value }),
   showGeographyHighlight: false,
   setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
-  geographyLayerVisibility: {
-    building: true,
-    county: false,
-    censusTract: false,
-    censusBlock: false,
-    state: false,
-    nation: false,
-  },
-  setGeographyLayerVisibility: (geographyLayerVisibility) =>
-    set({ geographyLayerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   sidebarWidth: 0,
@@ -146,46 +123,13 @@ export const useStore = create<Store>((set, get) => ({
   queryGeographiesAtPoint: async (lng: number, lat: number) => {
     const { map } = get()
     if (!map) return
-
-    await ensureSourceLoaded(map, LAYERS.regions.sourceId)
-
-    const zoom = map.getZoom()
-    const point = map.project([lng, lat])
-
-    const queryIfZoom = (
-      minZoom: number,
-      layers: string[],
-    ): Geography | null => {
-      if (zoom < minZoom) return null
-      const features = map.queryRenderedFeatures(point, { layers })
-      return features.length > 0 ? (features[0].properties as Geography) : null
+    const query = ++geographyQuery
+    try {
+      const activeGeographies = await lookupGeographies(lng, lat, map.getZoom())
+      if (query === geographyQuery) set({ activeGeographies })
+    } catch (error) {
+      console.error('Region lookup failed:', error)
     }
-
-    // Query nation from source tiles directly (rendered features can miss)
-    const queryNation = (): Geography | null => {
-      const features = map.querySourceFeatures(LAYERS.nation.sourceId, {
-        sourceLayer: LAYERS.nation.layerName,
-      })
-      return features.length > 0 ? (features[0].properties as Geography) : null
-    }
-
-    set({
-      activeGeographies: {
-        nation: queryNation(),
-        state: queryIfZoom(GEOGRAPHY_MIN_ZOOM.state, [
-          LAYERS.states.layerIds.fill,
-        ]),
-        county: queryIfZoom(GEOGRAPHY_MIN_ZOOM.county, [
-          LAYERS.counties.layerIds.fill,
-        ]),
-        censusTract: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusTract, [
-          LAYERS.censusTracts.layerIds.fill,
-        ]),
-        censusBlock: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusBlock, [
-          LAYERS.censusBlocks.layerIds.fill,
-        ]),
-      },
-    })
   },
   clearSelections: () => {
     set({

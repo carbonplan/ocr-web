@@ -10,17 +10,16 @@ const S3_BUCKET_URL =
 const dataUrl = (kind: 'vector' | 'pyramid', path: string) =>
   `${S3_BUCKET_URL}/carbonplan/carbonplan-ocr/output/fire-risk/${kind}/production/${DATA_VERSION}/${path}`
 
+const LOD_BASE_URL = `https://carbonplan-ocr.s3.us-west-2.amazonaws.com/ocr-explore/geoparquet-lod/fire-risk/${DATA_VERSION}`
+
 export const DATA_URLS = {
   vector: {
+    // geoparquet-lod file: building footprints with display overviews
     buildings:
       process.env.NEXT_PUBLIC_BUILDING_URL ??
-      dataUrl('vector', 'pmtiles/buildings.pmtiles'),
-    regions:
-      process.env.NEXT_PUBLIC_REGIONS_URL ??
-      dataUrl('vector', 'pmtiles/regions.pmtiles'),
-    buildingPoints:
-      process.env.NEXT_PUBLIC_BUILDING_POINTS_URL ??
-      dataUrl('vector', 'pmtiles/building_centroids.pmtiles'),
+      `${LOD_BASE_URL}/buildings.lod.parquet`,
+    // GeoParquet region files; tracts and blocks are split by county
+    regions: process.env.NEXT_PUBLIC_REGIONS_URL ?? `${LOD_BASE_URL}/regions`,
   },
   raster:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ?? dataUrl('pyramid', 'pyramid.zarr'),
@@ -51,9 +50,6 @@ export const LICENSE_INFO = {
 }
 
 export const LAYERS = {
-  regions: {
-    sourceId: 'regions',
-  },
   buildings: {
     layerName: 'risk',
     sourceId: 'buildings',
@@ -62,64 +58,40 @@ export const LAYERS = {
       line: 'risk-buildings-line',
     },
   },
-  counties: {
-    layerName: 'counties',
-    sourceId: 'regions',
+  regionHighlight: {
+    sourceId: 'region-highlight',
     layerIds: {
-      fill: 'risk-counties-fill',
-      line: 'risk-counties-line',
-    },
-  },
-  censusTracts: {
-    layerName: 'tracts',
-    sourceId: 'regions',
-    layerIds: {
-      fill: 'risk-census-tracts-fill',
-      line: 'risk-census-tracts-line',
-    },
-  },
-  censusBlocks: {
-    layerName: 'blocks',
-    sourceId: 'regions',
-    layerIds: {
-      fill: 'risk-census-blocks-fill',
-      line: 'risk-census-blocks-line',
-    },
-  },
-  states: {
-    layerName: 'states',
-    sourceId: 'regions',
-    layerIds: {
-      fill: 'risk-states-fill',
-      line: 'risk-states-line',
-    },
-  },
-  nation: {
-    layerName: 'nation',
-    sourceId: 'regions',
-    layerIds: {
-      fill: 'risk-nation-fill',
-      line: 'risk-nation-line',
-    },
-  },
-  buildingPoints: {
-    layerName: 'risk',
-    sourceId: 'buildingPoints',
-    layerIds: {
-      circle: 'building-points-circle',
+      line: 'region-highlight-line',
     },
   },
 } as const
 
 export const BUILDING_ATTRIBUTE_KEYS = {
-  rps_2011: '0', // strings for map expressions
-  rps_2047: '1',
-  bp_2011: '2',
-  bp_2047: '3',
-  crps_scott: '4',
-  bp_2011_riley: '5',
-  bp_2047_riley: '6',
+  rps_2011: 'rps_2011',
+  rps_2047: 'rps_2047',
+  bp_2011: 'bp_2011',
+  bp_2047: 'bp_2047',
+  crps_scott: 'crps_scott',
+  bp_2011_riley: 'bp_2011_riley',
+  bp_2047_riley: 'bp_2047_riley',
 } as const
+
+// carried in the building tiles for styling; the rest are read on selection
+export const BUILDING_TILE_PROPERTIES = [
+  BUILDING_ATTRIBUTE_KEYS.rps_2011,
+  BUILDING_ATTRIBUTE_KEYS.rps_2047,
+]
+export const BUILDING_DETAIL_COLUMNS = [
+  BUILDING_ATTRIBUTE_KEYS.bp_2011,
+  BUILDING_ATTRIBUTE_KEYS.bp_2047,
+  BUILDING_ATTRIBUTE_KEYS.crps_scott,
+  BUILDING_ATTRIBUTE_KEYS.bp_2011_riley,
+  BUILDING_ATTRIBUTE_KEYS.bp_2047_riley,
+]
+
+// Below this zoom the building overviews hold only buildings with nonzero
+// risk, so a click there is not a building selection.
+export const BUILDING_SELECT_MIN_ZOOM = 6
 
 export const GEOGRAPHY_ATTRIBUTE_KEYS = {
   building_count: '0',

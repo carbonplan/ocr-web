@@ -75,7 +75,7 @@ const RegionalRisk = () => {
   )
 
   const previousBoundsRef = useRef<LngLatBounds | null>(null)
-  const previousBuildingIDRef = useRef<string | null>(null)
+  const previousBuildingIDRef = useRef<number | null>(null)
 
   function getRegionName(args: { mode: 'short' }): string | null
   function getRegionName(args?: { mode: 'long' }): string
