@@ -14,6 +14,7 @@ export const useBuildingUtils = () => {
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
+  const queryGeographiesById = useStore((state) => state.queryGeographiesById)
   const { fetchAddress } = useReverseGeocode()
 
   const selectBuilding = useCallback(
@@ -38,19 +39,25 @@ export const useBuildingUtils = () => {
         properties: { ...building.properties },
       }
       setSelectedBuilding(selected)
+      // the building's block GEOID names the regions it belongs to
       readRow(DATA_URLS.vector.buildings, Number(selected.id), [
         ...BUILDING_DETAIL_COLUMNS,
+        'GEOID',
       ])
-        .then((details) => {
+        .then(({ GEOID, ...details }) => {
           if (useStore.getState().selectedBuilding?.id !== selected.id) return
           setSelectedBuilding({
             ...selected,
             properties: { ...selected.properties, ...details },
           })
+          if (typeof GEOID === 'string') queryGeographiesById(GEOID)
+          else queryGeographiesAtPoint(lng, lat)
         })
-        .catch((error) => console.error('Building details failed:', error))
+        .catch((error) => {
+          console.error('Building details failed:', error)
+          queryGeographiesAtPoint(lng, lat)
+        })
       updateSelectedBuildingUrl({ lat, lng })
-      queryGeographiesAtPoint(lng, lat)
 
       map.removeFeatureState({
         source: LAYERS.buildings.sourceId,
@@ -82,6 +89,7 @@ export const useBuildingUtils = () => {
       setSelectedBuilding,
       setSelectedLocation,
       queryGeographiesAtPoint,
+      queryGeographiesById,
       fetchAddress,
     ],
   )

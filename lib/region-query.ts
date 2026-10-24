@@ -26,6 +26,9 @@ type PageBounds = {
   ymin: number
   xmax: number
   ymax: number
+  // GEOID range, when the file keeps GEOID statistics
+  geoidMin?: string
+  geoidMax?: string
 }
 
 export type RegionFile = {
@@ -33,6 +36,8 @@ export type RegionFile = {
   metadata: FileMetaData
   groupStarts: number[]
   pageBounds: Map<number, Promise<PageBounds[]>>
+  // every row's GEOID, read once when the file is not in GEOID order
+  geoids?: Promise<string[]>
 }
 
 const BBOX = ['xmin', 'ymin', 'xmax', 'ymax'] as const
@@ -104,6 +109,18 @@ const readPageBounds = async (
       )
     }),
   )
+  const geoidChunk = chunks.find(
+    (c) => c.meta_data?.path_in_schema.join('.') === 'GEOID',
+  )
+  const geoids = geoidChunk?.column_index_offset
+    ? readColumnIndex(
+        await view(
+          geoidChunk.column_index_offset,
+          geoidChunk.column_index_length,
+        ),
+        leaf(tree, ['GEOID']).element,
+      )
+    : null
   const xmin = chunkFor('xmin')
   const locations = readOffsetIndex(
     await view(xmin.offset_index_offset, xmin.offset_index_length),
@@ -121,6 +138,8 @@ const readPageBounds = async (
     ymin: Number(indexes[1].min_values[i]),
     xmax: Number(indexes[2].max_values[i]),
     ymax: Number(indexes[3].max_values[i]),
+    geoidMin: geoids ? String(geoids.min_values[i]) : undefined,
+    geoidMax: geoids ? String(geoids.max_values[i]) : undefined,
   }))
 }
 
@@ -251,29 +270,89 @@ export const readRows = (
     useOffsetIndex: true,
   })
 
-/** The row whose polygon contains (x, y), with `columns` and its geometry. */
-export const findRegion = async (
+export type Found = RegionRow & { geometry: RegionGeometry }
+
+// `columns` and geometry of the candidate pages in one round of reads, then
+// the first row `matches` accepts.
+const findInPages = async (
   region: RegionFile,
-  x: number,
-  y: number,
+  groups: number[],
+  isCandidate: (page: PageBounds) => boolean,
+  matches: (row: Found) => boolean,
   columns: string[],
-): Promise<(RegionRow & { geometry: RegionGeometry }) | null> => {
-  const groups = region.metadata.row_groups
-    .map((_, g) => g)
-    .filter((g) => groupContains(region.metadata, g, x, y))
+): Promise<Found | null> => {
   const candidates = (await Promise.all(groups.map((g) => pagesOf(region, g))))
     .flat()
-    .filter((p) => p.xmin <= x && x <= p.xmax && p.ymin <= y && y <= p.ymax)
-  // geometry and the requested columns of the candidates in one round of reads
+    .filter(isCandidate)
   const read = [...new Set([...columns, 'geometry'])]
   const batches = await Promise.all(
     mergeRanges(candidates).map(([start, end]) =>
       readRows(region, start, end, read),
     ),
   )
-  for (const row of batches.flat()) {
-    const geometry = row.geometry as RegionGeometry
-    if (containsPoint(geometry, x, y)) return { ...row, geometry }
+  return (batches.flat() as Found[]).find(matches) ?? null
+}
+
+const allGroups = (region: RegionFile) =>
+  region.metadata.row_groups.map((_, g) => g)
+
+/** The row whose polygon contains (x, y), with `columns` and its geometry. */
+export const findRegion = (
+  region: RegionFile,
+  x: number,
+  y: number,
+  columns: string[],
+): Promise<Found | null> =>
+  findInPages(
+    region,
+    allGroups(region).filter((g) => groupContains(region.metadata, g, x, y)),
+    (p) => p.xmin <= x && x <= p.xmax && p.ymin <= y && y <= p.ymax,
+    (row) => containsPoint(row.geometry, x, y),
+    columns,
+  )
+
+// Pages whose GEOID ranges ascend without overlapping are in GEOID order.
+const inGeoidOrder = (pages: PageBounds[]) =>
+  pages.every(
+    (page, i) =>
+      page.geoidMin !== undefined &&
+      page.geoidMax !== undefined &&
+      (i === 0 || pages[i - 1].geoidMax! <= page.geoidMin),
+  )
+
+/** The row with this GEOID, with `columns` and its geometry. A file in GEOID
+ * order finds its page from the page statistics; any other file reads its
+ * GEOID column once. `geoidOf` reads a row's GEOID from `columns`. */
+export const findRegionById = async (
+  region: RegionFile,
+  geoid: string,
+  columns: string[],
+  geoidOf: (row: RegionRow) => string,
+): Promise<Found | null> => {
+  const groups = allGroups(region)
+  const pages = (
+    await Promise.all(groups.map((g) => pagesOf(region, g)))
+  ).flat()
+  if (inGeoidOrder(pages)) {
+    return findInPages(
+      region,
+      groups,
+      (p) => p.geoidMin! <= geoid && geoid <= p.geoidMax!,
+      (row) => geoidOf(row) === geoid,
+      columns,
+    )
   }
-  return null
+  if (!region.geoids) {
+    const rows = Number(region.metadata.num_rows)
+    region.geoids = readRows(region, 0, rows, ['GEOID']).then((all) =>
+      all.map((row) => String(row.GEOID)),
+    )
+    region.geoids.catch(() => (region.geoids = undefined))
+  }
+  const row = (await region.geoids).indexOf(geoid)
+  if (row === -1) return null
+  const [found] = await readRows(region, row, row + 1, [
+    ...new Set([...columns, 'geometry']),
+  ])
+  return (found as Found) ?? null
 }

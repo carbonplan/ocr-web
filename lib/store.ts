@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import { Location, Building, Geography, GeographyKey } from '../types/location'
 import { LAYERS, RISKS } from './config'
-import { lookupGeographies } from './region-lookup'
+import { lookupGeographies, lookupGeographiesById } from './region-lookup'
 import { clearSelectedBuildingUrl, updateMapViewUrl } from './url-utils'
 
 type RiskConfig = (typeof RISKS)[keyof typeof RISKS]
@@ -61,6 +61,7 @@ type Store = {
   advancedMode: boolean
   toggleAdvancedMode: () => void
   queryGeographiesAtPoint: (lng: number, lat: number) => void
+  queryGeographiesById: (blockGeoid: string) => void
   clearSelections: () => void
 }
 
@@ -126,6 +127,20 @@ export const useStore = create<Store>((set, get) => ({
     const query = ++geographyQuery
     try {
       const activeGeographies = await lookupGeographies(lng, lat, map.getZoom())
+      if (query === geographyQuery) set({ activeGeographies })
+    } catch (error) {
+      console.error('Region lookup failed:', error)
+    }
+  },
+  queryGeographiesById: async (blockGeoid: string) => {
+    const { map } = get()
+    if (!map) return
+    const query = ++geographyQuery
+    try {
+      const activeGeographies = await lookupGeographiesById(
+        blockGeoid,
+        map.getZoom(),
+      )
       if (query === geographyQuery) set({ activeGeographies })
     } catch (error) {
       console.error('Region lookup failed:', error)

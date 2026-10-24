@@ -2,6 +2,8 @@ import type { AsyncBuffer } from 'hyparquet'
 import {
   containsPoint,
   findRegion,
+  findRegionById,
+  Found,
   openRegionFile,
   readRows,
   RegionFile,
@@ -160,6 +162,16 @@ const last = new Map<
   { geography: Geography; geometry: RegionGeometry }
 >()
 
+const remember = (level: GeographyKey, url: string, row: Found) => {
+  const geography = toGeography(row, bounds(row.geometry))
+  geometries.set(
+    geometryKey(level, geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]),
+    row.geometry,
+  )
+  last.set(url, { geography, geometry: row.geometry })
+  return geography
+}
+
 const lookup = async (
   level: GeographyKey,
   m: Manifest,
@@ -172,14 +184,29 @@ const lookup = async (
   const cached = last.get(target.url)
   if (cached && containsPoint(cached.geometry, x, y)) return cached.geography
   const row = await findRegion(await openFile(target), x, y, COLUMNS)
-  if (!row) return null
-  const geography = toGeography(row, bounds(row.geometry))
-  geometries.set(
-    geometryKey(level, geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]),
-    row.geometry,
+  return row ? remember(level, target.url, row) : null
+}
+
+const geoidOf = (row: RegionRow) =>
+  (JSON.parse(String(row.stats)) as Stats).GEOID
+
+const lookupById = async (
+  level: GeographyKey,
+  m: Manifest,
+  geoid: string,
+): Promise<Geography | null> => {
+  const target = fileFor(m, level, geoid.slice(0, 5))
+  if (!target) return null
+  const cached = last.get(target.url)
+  if (cached?.geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid] === geoid)
+    return cached.geography
+  const row = await findRegionById(
+    await openFile(target),
+    geoid,
+    COLUMNS,
+    geoidOf,
   )
-  last.set(target.url, { geography, geometry: row.geometry })
-  return geography
+  return row ? remember(level, target.url, row) : null
 }
 
 // The nation file holds one row, shown at every zoom.
@@ -206,6 +233,36 @@ export const prefetchRegions = () => {
   getManifest()
     .then(nationOf)
     .catch(() => undefined)
+}
+
+// GEOID characters that name each level within a 15-digit block GEOID
+const GEOID_LENGTH: Record<Exclude<GeographyKey, 'nation'>, number> = {
+  state: 2,
+  county: 5,
+  censusTract: 11,
+  censusBlock: 15,
+}
+
+/** The regions a building belongs to, from its block GEOID: exact, and with
+ * every level looked up at once. */
+export const lookupGeographiesById = async (
+  blockGeoid: string,
+  zoom: number,
+): Promise<ActiveGeographies> => {
+  const m = await getManifest()
+  const at = (level: Exclude<GeographyKey, 'nation'>) =>
+    zoom >= GEOGRAPHY_MIN_ZOOM[level]
+      ? lookupById(level, m, blockGeoid.slice(0, GEOID_LENGTH[level]))
+      : null
+  const [nationGeography, state, county, censusTract, censusBlock] =
+    await Promise.all([
+      nationOf(m),
+      at('state'),
+      at('county'),
+      at('censusTract'),
+      at('censusBlock'),
+    ])
+  return { nation: nationGeography, state, county, censusTract, censusBlock }
 }
 
 export const lookupGeographies = async (
