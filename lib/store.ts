@@ -158,9 +158,11 @@ export const useStore = create<Store>((set, get) => ({
       if (query === geographyQuery) set({ activeGeographies: NO_GEOGRAPHIES })
     }
   },
-  // a lookup still in flight no longer applies, as when another building is selected
+  // as when another building is selected: lookups in flight no longer apply,
+  // and the regions shown belong to the last selection, so they are cleared
   cancelGeographyQueries: () => {
     geographyQuery++
+    set({ activeGeographies: NO_GEOGRAPHIES })
   },
   clearSelections: () => {
     set({

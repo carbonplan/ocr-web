@@ -216,7 +216,7 @@ const groupContains = (
     xmax === undefined ||
     ymax === undefined
   )
-    return true
+    throw new Error('region file has no bbox statistics')
   return xmin <= x && x <= xmax && ymin <= y && y <= ymax
 }
 

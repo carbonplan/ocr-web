@@ -11,9 +11,6 @@ export const useBuildingUtils = () => {
   const map = useStore((state) => state.map)
   const setSelectedBuilding = useStore((state) => state.setSelectedBuilding)
   const setSelectedLocation = useStore((state) => state.setSelectedLocation)
-  const queryGeographiesAtPoint = useStore(
-    (state) => state.queryGeographiesAtPoint,
-  )
   const queryGeographiesById = useStore((state) => state.queryGeographiesById)
   const cancelGeographyQueries = useStore(
     (state) => state.cancelGeographyQueries,
@@ -43,7 +40,8 @@ export const useBuildingUtils = () => {
         properties: { ...building.properties },
       }
       setSelectedBuilding(selected)
-      // the last building's lookup, still in flight, must not land on this one
+      // the last building's regions, and any lookup of them still in flight,
+      // no longer apply; region actions wait for this building's regions
       cancelGeographyQueries()
       // the building's block GEOID names the regions it belongs to
       readRow(DATA_URLS.vector.buildings, Number(selected.id), [
@@ -56,14 +54,9 @@ export const useBuildingUtils = () => {
             ...selected,
             properties: { ...selected.properties, ...details },
           })
-          if (typeof GEOID === 'string') queryGeographiesById(GEOID)
-          else queryGeographiesAtPoint(lng, lat)
+          queryGeographiesById(String(GEOID))
         })
-        .catch((error) => {
-          console.error('Building details failed:', error)
-          if (useStore.getState().selectedBuilding?.id !== selected.id) return
-          queryGeographiesAtPoint(lng, lat)
-        })
+        .catch((error) => console.error('Building details failed:', error))
       updateSelectedBuildingUrl({ lat, lng })
 
       map.removeFeatureState({
@@ -95,7 +88,6 @@ export const useBuildingUtils = () => {
       map,
       setSelectedBuilding,
       setSelectedLocation,
-      queryGeographiesAtPoint,
       queryGeographiesById,
       cancelGeographyQueries,
       fetchAddress,

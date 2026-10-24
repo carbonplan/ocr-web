@@ -221,7 +221,7 @@ const candidateRuns = async (
     return []
   const indexed = [geoid, ...bbox]
   if (indexed.some((c) => !c?.column_index_offset || !c.offset_index_offset))
-    return [[start, start + rows]]
+    throw new Error('buildings file has no GEOID or bbox page index')
   // page statistics of GEOID and the bbox, and page locations of the columns
   // read next; fetched together, so the coalescing reader merges what is close
   const read = columns.filter((c) =>

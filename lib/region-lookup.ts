@@ -122,13 +122,25 @@ export const loadRegionGeometry = async (
   level: GeographyKey,
   geoid: string,
 ): Promise<RegionGeometry | null> => {
-  const known = geometries.get(geometryKey(level, geoid))
-  if (known || level !== 'nation') return known ?? null
-  const file = await openFile(fileFor(await getManifest(), 'nation')!)
-  const [row] = await readRows(file, 0, 1, ['geometry'])
-  const geometry = (row?.geometry as RegionGeometry) ?? null
-  if (geometry)
-    keep(geometries, geometryKey(level, geoid), geometry, GEOMETRY_LIMIT)
+  const key = geometryKey(level, geoid)
+  const known = geometries.get(key)
+  if (known) {
+    keep(geometries, key, known, GEOMETRY_LIMIT)
+    return known
+  }
+  // an outline evicted since its lookup is read again by its GEOID
+  const m = await getManifest()
+  const target = fileFor(m, level, geoid.slice(0, 5))
+  if (!target) return null
+  const file = await openFile(target)
+  const geometry =
+    level === 'nation'
+      ? (((await readRows(file, 0, 1, ['geometry']))[0]?.geometry as
+          | RegionGeometry
+          | undefined) ?? null)
+      : ((await findRegionById(file, geoid, COLUMNS, geoidOf))?.geometry ??
+        null)
+  if (geometry) keep(geometries, key, geometry, GEOMETRY_LIMIT)
   return geometry
 }
 
