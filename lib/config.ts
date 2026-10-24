@@ -23,19 +23,8 @@ export const DATA_URLS = {
   },
   raster:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ?? dataUrl('pyramid', 'pyramid.zarr'),
-  parquetBase:
-    process.env.NEXT_PUBLIC_GEOPARQUET_URL ??
-    dataUrl('vector', 'geoparquet/buildings.parquet'),
   regionAnalysisBase: dataUrl('vector', 'region-analysis'),
 }
-
-// Root for ListObjectsV2 requests against whichever bucket holds the parquet.
-// Path-style URLs put the bucket after the host; anything else is virtual-hosted.
-export const PARQUET_BUCKET_URL = DATA_URLS.parquetBase.startsWith(
-  S3_BUCKET_URL,
-)
-  ? S3_BUCKET_URL
-  : new URL(DATA_URLS.parquetBase).origin
 
 export const LICENSE_INFO = {
   provider: 'CarbonPlan',
