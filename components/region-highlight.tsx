@@ -3,7 +3,7 @@ import type { GeoJSONSource } from 'maplibre-gl'
 import { useThemeUI, get } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import { LAYERS } from '@/lib/config'
-import { getRegionGeometry } from '@/lib/region-lookup'
+import { loadRegionGeometry } from '@/lib/region-lookup'
 import { getGeoid } from '@/lib/risk-utils'
 
 const RegionHighlight = () => {
@@ -24,14 +24,23 @@ const RegionHighlight = () => {
       LAYERS.regionHighlight.sourceId,
     )
     if (!source) return
-    const geometry =
-      showGeographyHighlight && geoid
-        ? getRegionGeometry(selectedGeographyLevel, geoid)
-        : null
-    source.setData({
-      type: 'FeatureCollection',
-      features: geometry ? [{ type: 'Feature', geometry, properties: {} }] : [],
-    })
+    let current = true
+    const show = (geometry: GeoJSON.Geometry | null) =>
+      source.setData({
+        type: 'FeatureCollection',
+        features: geometry
+          ? [{ type: 'Feature', geometry, properties: {} }]
+          : [],
+      })
+    show(null)
+    if (showGeographyHighlight && geoid) {
+      loadRegionGeometry(selectedGeographyLevel, geoid)
+        .then((geometry) => current && show(geometry))
+        .catch((error) => console.error('Region outline failed:', error))
+    }
+    return () => {
+      current = false
+    }
   }, [map, selectedGeographyLevel, showGeographyHighlight, geoid])
 
   useEffect(() => {

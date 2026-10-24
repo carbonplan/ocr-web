@@ -1,12 +1,7 @@
 import { useCallback } from 'react'
 import { centerOfMass, distance } from '@turf/turf'
 import { readRow } from 'geoparquet-lod/maplibre'
-import {
-  BUILDING_DETAIL_COLUMNS,
-  BUILDING_TILE_PROPERTIES,
-  DATA_URLS,
-  LAYERS,
-} from '@/lib/config'
+import { BUILDING_DETAIL_COLUMNS, DATA_URLS, LAYERS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { Building } from '@/types/location'
 import { updateSelectedBuildingUrl } from '@/lib/url-utils'
@@ -36,18 +31,11 @@ export const useBuildingUtils = () => {
       const center = centerOfMass(building)
       const [lng, lat] = center.geometry.coordinates as [number, number]
 
-      // geoparquet-lod tiles carry attribute values as display strings. A
-      // rendered feature's geometry is a getter that spreading drops.
-      const tileValues = Object.fromEntries(
-        BUILDING_TILE_PROPERTIES.map((key) => [
-          key,
-          Number(building.properties[key]),
-        ]),
-      )
+      // a rendered feature's geometry is a getter that spreading drops
       const selected: Building = {
         ...building,
         geometry: building.geometry,
-        properties: { ...building.properties, ...tileValues },
+        properties: { ...building.properties },
       }
       setSelectedBuilding(selected)
       readRow(DATA_URLS.vector.buildings, Number(selected.id), [

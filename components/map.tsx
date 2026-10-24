@@ -29,14 +29,19 @@ import {
 import { DATA_URLS, LAYERS } from '@/lib/config'
 import { ensureSourceLoaded } from '@/lib/map-utils'
 import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
+import { prefetchRegions } from '@/lib/region-lookup'
 import {
   getMapViewFromQuery,
   updateMapViewUrl,
   getSelectionCoordinatesFromQuery,
 } from '@/lib/url-utils'
 
-// Open the buildings file while the page hydrates, before the map asks for tiles.
-if (typeof window !== 'undefined') prefetch(DATA_URLS.vector.buildings)
+// Open the buildings and region files while the page hydrates, before the map
+// asks for tiles or regions.
+if (typeof window !== 'undefined') {
+  prefetch(DATA_URLS.vector.buildings)
+  prefetchRegions()
+}
 
 const MapComponent = () => {
   const router = useRouter()

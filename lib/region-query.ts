@@ -9,15 +9,15 @@ import type { AsyncBuffer, FileMetaData, SchemaTree } from 'hyparquet'
 
 // Region files are GeoParquet with a bbox covering, written with a row cap per
 // page so every column breaks pages at the same rows. A point lookup reads the
-// bbox page statistics, then geometry for the candidate pages only, then the
-// requested columns for the one region that contains the point.
+// bbox page statistics, then the requested columns for the candidate pages
+// only, and keeps the row whose polygon contains the point.
 
 type Polygon = number[][][]
 export type RegionGeometry =
   | { type: 'Polygon'; coordinates: Polygon }
   | { type: 'MultiPolygon'; coordinates: Polygon[] }
 
-export type RegionRow = Record<string, unknown> & { geometry: RegionGeometry }
+export type RegionRow = Record<string, unknown>
 
 type PageBounds = {
   rowStart: number
@@ -36,32 +36,29 @@ export type RegionFile = {
 }
 
 const BBOX = ['xmin', 'ymin', 'xmax', 'ymax'] as const
-const FOOTER_PROBE = 16 * 1024
+// The footer and, for most region files, the page indexes before it fit here.
+const TAIL_BYTES = 16 * 1024
 // Files this small are read in one request and queried in memory.
-const WHOLE_FILE_BYTES = 512 * 1024
+const WHOLE_FILE_BYTES = 128 * 1024
 
-const memoized = (file: AsyncBuffer): AsyncBuffer => {
-  const cache = new Map<string, Promise<ArrayBuffer>>()
+/** An AsyncBuffer that serves any range inside one it has already fetched. */
+const rangeCache = (file: AsyncBuffer): AsyncBuffer => {
+  const spans: { start: number; end: number; data: Promise<ArrayBuffer> }[] = []
   return {
     byteLength: file.byteLength,
     slice(start, end = file.byteLength) {
-      const key = `${start}-${end}`
-      let hit = cache.get(key)
-      if (!hit) {
-        hit = Promise.resolve(file.slice(start, end))
-        hit.catch(() => cache.delete(key))
-        cache.set(key, hit)
+      const span = spans.find((s) => s.start <= start && end <= s.end)
+      if (span) {
+        return span.data.then((data) =>
+          data.slice(start - span.start, end - span.start),
+        )
       }
-      return hit
+      const data = Promise.resolve(file.slice(start, end))
+      const entry = { start, end, data }
+      spans.push(entry)
+      data.catch(() => spans.splice(spans.indexOf(entry), 1))
+      return data
     },
-  }
-}
-
-const inMemory = async (file: AsyncBuffer): Promise<AsyncBuffer> => {
-  const buffer = await file.slice(0, file.byteLength)
-  return {
-    byteLength: file.byteLength,
-    slice: (start, end) => buffer.slice(start, end),
   }
 }
 
@@ -76,11 +73,10 @@ const leaf = (tree: SchemaTree, path: string[]): SchemaTree => {
 }
 
 const readPageBounds = async (
-  file: AsyncBuffer,
-  metadata: FileMetaData,
+  region: RegionFile,
   group: number,
-  groupStart: number,
 ): Promise<PageBounds[]> => {
+  const { file, metadata } = region
   const tree = parquetSchema(metadata)
   const chunks = metadata.row_groups[group].columns
   const chunkFor = (name: string) => {
@@ -92,31 +88,27 @@ const readPageBounds = async (
     }
     return chunk
   }
-  const ranges = BBOX.map((name) => {
-    const chunk = chunkFor(name)
-    return [
-      Number(chunk.column_index_offset),
-      Number(chunk.column_index_offset) + chunk.column_index_length!,
-    ]
-  })
-  const xminChunk = chunkFor('xmin')
-  const offsetStart = Number(xminChunk.offset_index_offset)
-  const offsetEnd = offsetStart + xminChunk.offset_index_length!
-  // Page indexes sit together before the footer; one request covers all five.
-  const start = Math.min(offsetStart, ...ranges.map(([s]) => s))
-  const end = Math.max(offsetEnd, ...ranges.map(([, e]) => e))
-  const buffer = await file.slice(start, end)
-  const view = (s: number, e: number) => ({
-    view: new DataView(buffer, s - start, e - s),
-    offset: 0,
-  })
-  const indexes = BBOX.map((name, i) =>
-    readColumnIndex(
-      view(ranges[i][0], ranges[i][1]),
-      leaf(tree, ['bbox', name]).element,
-    ),
+  const view = async (offset: bigint | undefined, length = 0) => {
+    const start = Number(offset)
+    return {
+      view: new DataView(await file.slice(start, start + length)),
+      offset: 0,
+    }
+  }
+  const indexes = await Promise.all(
+    BBOX.map(async (name) => {
+      const chunk = chunkFor(name)
+      return readColumnIndex(
+        await view(chunk.column_index_offset, chunk.column_index_length),
+        leaf(tree, ['bbox', name]).element,
+      )
+    }),
   )
-  const locations = readOffsetIndex(view(offsetStart, offsetEnd)).page_locations
+  const xmin = chunkFor('xmin')
+  const locations = readOffsetIndex(
+    await view(xmin.offset_index_offset, xmin.offset_index_length),
+  ).page_locations
+  const groupStart = region.groupStarts[group]
   const groupRows = Number(metadata.row_groups[group].num_rows)
   return locations.map((page, i) => ({
     rowStart: groupStart + Number(page.first_row_index),
@@ -132,16 +124,37 @@ const readPageBounds = async (
   }))
 }
 
+/** The page indexes of every row group, which sit together before the footer. */
+const pageIndexSpan = (metadata: FileMetaData): [number, number] | null => {
+  let start = Infinity
+  let end = 0
+  for (const group of metadata.row_groups) {
+    for (const chunk of group.columns) {
+      for (const [offset, length] of [
+        [chunk.column_index_offset, chunk.column_index_length],
+        [chunk.offset_index_offset, chunk.offset_index_length],
+      ] as const) {
+        if (offset === undefined || !length) continue
+        start = Math.min(start, Number(offset))
+        end = Math.max(end, Number(offset) + length)
+      }
+    }
+  }
+  return end > start ? [start, end] : null
+}
+
 export const openRegionFile = async (
   source: AsyncBuffer,
 ): Promise<RegionFile> => {
-  const file =
-    source.byteLength <= WHOLE_FILE_BYTES
-      ? await inMemory(source)
-      : memoized(source)
-  const metadata = await parquetMetadataAsync(file, {
-    initialFetchSize: FOOTER_PROBE,
-  })
+  const file = rangeCache(source)
+  const tail =
+    file.byteLength <= WHOLE_FILE_BYTES
+      ? file.byteLength
+      : Math.min(TAIL_BYTES, file.byteLength)
+  await file.slice(file.byteLength - tail, file.byteLength)
+  const metadata = await parquetMetadataAsync(file, { initialFetchSize: tail })
+  const span = pageIndexSpan(metadata)
+  if (span) await file.slice(span[0], span[1])
   let groupStart = 0
   const groupStarts = metadata.row_groups.map((group) => {
     const start = groupStart
@@ -154,12 +167,7 @@ export const openRegionFile = async (
 const pagesOf = (region: RegionFile, group: number) => {
   let pages = region.pageBounds.get(group)
   if (!pages) {
-    pages = readPageBounds(
-      region.file,
-      region.metadata,
-      group,
-      region.groupStarts[group],
-    )
+    pages = readPageBounds(region, group)
     pages.catch(() => region.pageBounds.delete(group))
     region.pageBounds.set(group, pages)
   }
@@ -228,12 +236,12 @@ const mergeRanges = (pages: PageBounds[]) => {
   return ranges
 }
 
-const readRows = (
+export const readRows = (
   region: RegionFile,
   rowStart: number,
   rowEnd: number,
   columns: string[],
-) =>
+): Promise<RegionRow[]> =>
   parquetReadObjects({
     file: region.file,
     metadata: region.metadata,
@@ -243,34 +251,29 @@ const readRows = (
     useOffsetIndex: true,
   })
 
+/** The row whose polygon contains (x, y), with `columns` and its geometry. */
 export const findRegion = async (
   region: RegionFile,
   x: number,
   y: number,
   columns: string[],
-): Promise<RegionRow | null> => {
+): Promise<(RegionRow & { geometry: RegionGeometry }) | null> => {
   const groups = region.metadata.row_groups
     .map((_, g) => g)
     .filter((g) => groupContains(region.metadata, g, x, y))
   const candidates = (await Promise.all(groups.map((g) => pagesOf(region, g))))
     .flat()
     .filter((p) => p.xmin <= x && x <= p.xmax && p.ymin <= y && y <= p.ymax)
-  const ranges = mergeRanges(candidates)
-  const geometries = await Promise.all(
-    ranges.map(([start, end]) => readRows(region, start, end, ['geometry'])),
+  // geometry and the requested columns of the candidates in one round of reads
+  const read = [...new Set([...columns, 'geometry'])]
+  const batches = await Promise.all(
+    mergeRanges(candidates).map(([start, end]) =>
+      readRows(region, start, end, read),
+    ),
   )
-  for (const [r, rows] of geometries.entries()) {
-    const hit = rows.findIndex((row) =>
-      containsPoint(row.geometry as RegionGeometry, x, y),
-    )
-    if (hit === -1) continue
-    const row = ranges[r][0] + hit
-    const geometry = rows[hit].geometry as RegionGeometry
-    const others = columns.filter((c) => c !== 'geometry')
-    const [values] = others.length
-      ? await readRows(region, row, row + 1, others)
-      : [{}]
-    return { ...values, geometry }
+  for (const row of batches.flat()) {
+    const geometry = row.geometry as RegionGeometry
+    if (containsPoint(geometry, x, y)) return { ...row, geometry }
   }
   return null
 }

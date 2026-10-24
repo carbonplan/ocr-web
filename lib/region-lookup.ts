@@ -1,8 +1,9 @@
-import { asyncBufferFromUrl, parquetReadObjects } from 'hyparquet'
+import type { AsyncBuffer } from 'hyparquet'
 import {
   containsPoint,
   findRegion,
   openRegionFile,
+  readRows,
   RegionFile,
   RegionGeometry,
   RegionRow,
@@ -16,38 +17,84 @@ import { Geography, GeographyKey } from '@/types/location'
 
 export type ActiveGeographies = Record<GeographyKey, Geography | null>
 
-const COLUMNS = [
-  'GEOID',
-  'building_count',
-  'rps_2011_mean',
-  'rps_2047_mean',
-  'rps_2011_median',
-  'rps_2047_median',
-  'risk_score_2011_hist',
-  'risk_score_2047_hist',
-  'geometry',
-]
-const NAMED_COLUMNS = [...COLUMNS, 'NAME']
+// `stats` is JSON with the values the tool shows, so a lookup reads one
+// column for them rather than one per value.
+const COLUMNS = ['stats']
 
-const fileUrl = (level: GeographyKey, countyGeoid?: string) => {
+type Stats = {
+  GEOID: string
+  building_count: number
+  rps_2011_median: number
+  rps_2047_median: number
+  risk_score_2011_hist: number[]
+  risk_score_2047_hist: number[]
+  NAME?: string
+}
+
+// Byte size of every region file, keyed like the files: tracts and blocks by
+// county GEOID. A county with no tracts or blocks has no entry.
+type Manifest = {
+  nation: number
+  states: number
+  counties: number
+  tracts: Record<string, number>
+  blocks: Record<string, number>
+}
+
+let manifest: Promise<Manifest> | null = null
+
+const getManifest = () => {
+  manifest ??= fetch(`${DATA_URLS.vector.regions}/manifest.json`).then(
+    (response) => {
+      if (!response.ok) throw new Error(`region manifest: ${response.status}`)
+      return response.json()
+    },
+  )
+  manifest.catch(() => (manifest = null))
+  return manifest
+}
+
+const fileFor = (
+  m: Manifest,
+  level: GeographyKey,
+  countyGeoid?: string,
+): { url: string; byteLength: number } | null => {
   const base = DATA_URLS.vector.regions
   if (level === 'censusTract' || level === 'censusBlock') {
     const dir = level === 'censusTract' ? 'tracts' : 'blocks'
-    return `${base}/${dir}/state_fips=${countyGeoid!.slice(0, 2)}/county_fips=${countyGeoid!.slice(2, 5)}/data.parquet`
+    const byteLength = countyGeoid ? m[dir][countyGeoid] : undefined
+    if (!byteLength) return null
+    return {
+      url: `${base}/${dir}/state_fips=${countyGeoid!.slice(0, 2)}/county_fips=${countyGeoid!.slice(2, 5)}/data.parquet`,
+      byteLength,
+    }
   }
-  const name = { nation: 'nation', state: 'states', county: 'counties' }[level]
-  return `${base}/${name}.parquet`
+  const name = (
+    { nation: 'nation', state: 'states', county: 'counties' } as const
+  )[level]
+  return { url: `${base}/${name}.parquet`, byteLength: m[name] }
 }
 
-// Opened files, by URL. A county with no tracts or blocks has no file.
-const files = new Map<string, Promise<RegionFile | null>>()
+// Range requests only: the manifest gives each file's size, so no HEAD.
+const rangeSource = (url: string, byteLength: number): AsyncBuffer => ({
+  byteLength,
+  async slice(start, end = byteLength) {
+    const response = await fetch(url, {
+      headers: { Range: `bytes=${start}-${end - 1}` },
+    })
+    if (!response.ok) throw new Error(`${url}: ${response.status}`)
+    return response.arrayBuffer()
+  },
+})
 
-const openFile = (url: string) => {
+// Opened files, by URL.
+const files = new Map<string, Promise<RegionFile>>()
+
+const openFile = ({ url, byteLength }: { url: string; byteLength: number }) => {
   let file = files.get(url)
   if (!file) {
-    file = asyncBufferFromUrl({ url })
-      .then(openRegionFile)
-      .catch(() => null)
+    file = openRegionFile(rangeSource(url, byteLength))
+    file.catch(() => files.delete(url))
     files.set(url, file)
   }
   return file
@@ -57,8 +104,19 @@ const openFile = (url: string) => {
 const geometries = new Map<string, RegionGeometry>()
 const geometryKey = (level: GeographyKey, geoid: string) => `${level}:${geoid}`
 
-export const getRegionGeometry = (level: GeographyKey, geoid: string) =>
-  geometries.get(geometryKey(level, geoid)) ?? null
+/** The outline of a region a lookup has returned; the nation's is read on demand. */
+export const loadRegionGeometry = async (
+  level: GeographyKey,
+  geoid: string,
+): Promise<RegionGeometry | null> => {
+  const known = geometries.get(geometryKey(level, geoid))
+  if (known || level !== 'nation') return known ?? null
+  const file = await openFile(fileFor(await getManifest(), 'nation')!)
+  const [row] = await readRows(file, 0, 1, ['geometry'])
+  const geometry = (row?.geometry as RegionGeometry) ?? null
+  if (geometry) geometries.set(geometryKey(level, geoid), geometry)
+  return geometry
+}
 
 const bounds = (geometry: RegionGeometry) => {
   let [xmin, ymin, xmax, ymax] = [Infinity, Infinity, -Infinity, -Infinity]
@@ -66,40 +124,37 @@ const bounds = (geometry: RegionGeometry) => {
     geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
   for (const polygon of polygons) {
     for (const [x, y] of polygon[0]) {
-      if (x < xmin) xmin = x
-      if (y < ymin) ymin = y
-      if (x > xmax) xmax = x
-      if (y > ymax) ymax = y
+      xmin = Math.min(xmin, x)
+      ymin = Math.min(ymin, y)
+      xmax = Math.max(xmax, x)
+      ymax = Math.max(ymax, y)
     }
   }
   return [xmin, ymin, xmax, ymax]
 }
 
-const toGeography = (level: GeographyKey, row: RegionRow): Geography => {
-  const geoid = String(row.GEOID)
-  geometries.set(geometryKey(level, geoid), row.geometry)
+const toGeography = (row: RegionRow, extent: number[]): Geography => {
+  const stats = JSON.parse(String(row.stats)) as Stats
   const geography: Geography = {
-    [GEOGRAPHY_ATTRIBUTE_KEYS.building_count]: Number(row.building_count),
-    [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2011]: Number(row.rps_2011_mean),
-    [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2047]: Number(row.rps_2047_mean),
-    [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2011_median]: Number(row.rps_2011_median),
-    [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2047_median]: Number(row.rps_2047_median),
+    [GEOGRAPHY_ATTRIBUTE_KEYS.building_count]: stats.building_count,
+    [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2011_median]: stats.rps_2011_median,
+    [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2047_median]: stats.rps_2047_median,
     [GEOGRAPHY_ATTRIBUTE_KEYS.risk_score_2011_hist]: JSON.stringify(
-      row.risk_score_2011_hist,
+      stats.risk_score_2011_hist,
     ),
     [GEOGRAPHY_ATTRIBUTE_KEYS.risk_score_2047_hist]: JSON.stringify(
-      row.risk_score_2047_hist,
+      stats.risk_score_2047_hist,
     ),
-    [GEOGRAPHY_ATTRIBUTE_KEYS.geoid]: geoid,
-    [GEOGRAPHY_ATTRIBUTE_KEYS.bbox]: JSON.stringify(bounds(row.geometry)),
+    [GEOGRAPHY_ATTRIBUTE_KEYS.geoid]: stats.GEOID,
+    [GEOGRAPHY_ATTRIBUTE_KEYS.bbox]: JSON.stringify(extent),
   }
-  if (row.NAME !== undefined && row.NAME !== null) {
-    geography[GEOGRAPHY_ATTRIBUTE_KEYS.name] = String(row.NAME)
+  if (stats.NAME !== undefined && stats.NAME !== null) {
+    geography[GEOGRAPHY_ATTRIBUTE_KEYS.name] = stats.NAME
   }
   return geography
 }
 
-// The last match per level; a point still inside it needs no reads.
+// The last match per file; a point still inside it needs no reads.
 const last = new Map<
   string,
   { geography: Geography; geometry: RegionGeometry }
@@ -107,68 +162,72 @@ const last = new Map<
 
 const lookup = async (
   level: GeographyKey,
-  url: string,
+  m: Manifest,
   x: number,
   y: number,
+  countyGeoid?: string,
 ): Promise<Geography | null> => {
-  const cached = last.get(url)
+  const target = fileFor(m, level, countyGeoid)
+  if (!target) return null
+  const cached = last.get(target.url)
   if (cached && containsPoint(cached.geometry, x, y)) return cached.geography
-  const file = await openFile(url)
-  if (!file) return null
-  const columns =
-    level === 'state' || level === 'county' ? NAMED_COLUMNS : COLUMNS
-  const row = await findRegion(file, x, y, columns)
+  const row = await findRegion(await openFile(target), x, y, COLUMNS)
   if (!row) return null
-  const geography = toGeography(level, row)
-  last.set(url, { geography, geometry: row.geometry })
+  const geography = toGeography(row, bounds(row.geometry))
+  geometries.set(
+    geometryKey(level, geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]),
+    row.geometry,
+  )
+  last.set(target.url, { geography, geometry: row.geometry })
   return geography
 }
 
 // The nation file holds one row, shown at every zoom.
-const readNation = async () => {
-  const file = await openFile(fileUrl('nation'))
-  if (!file) return null
-  const [row] = await parquetReadObjects({
-    file: file.file,
-    metadata: file.metadata,
-    columns: NAMED_COLUMNS,
-  })
-  return row ? toGeography('nation', row as RegionRow) : null
+let nation: Promise<Geography | null> | null = null
+
+const readNation = async (m: Manifest) => {
+  const file = await openFile(fileFor(m, 'nation')!)
+  const [row] = await readRows(file, 0, 1, [...COLUMNS, 'bbox'])
+  if (!row) return null
+  const bbox = row.bbox as Record<'xmin' | 'ymin' | 'xmax' | 'ymax', number>
+  return toGeography(row, [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax])
 }
 
-let nation: Promise<Geography | null> | null = null
+const nationOf = (m: Manifest) => {
+  if (!nation) {
+    nation = readNation(m)
+    nation.catch(() => (nation = null))
+  }
+  return nation
+}
+
+/** Fetch the manifest and the nation row now, before the first lookup. */
+export const prefetchRegions = () => {
+  getManifest()
+    .then(nationOf)
+    .catch(() => undefined)
+}
 
 export const lookupGeographies = async (
   lng: number,
   lat: number,
   zoom: number,
 ): Promise<ActiveGeographies> => {
-  nation ??= readNation().then((row) => {
-    if (!row) nation = null
-    return row
-  })
+  const m = await getManifest()
   const at = (level: GeographyKey) => zoom >= GEOGRAPHY_MIN_ZOOM[level]
   const [nationGeography, state, county] = await Promise.all([
-    nation,
-    at('state') ? lookup('state', fileUrl('state'), lng, lat) : null,
-    at('county') ? lookup('county', fileUrl('county'), lng, lat) : null,
+    nationOf(m),
+    at('state') ? lookup('state', m, lng, lat) : null,
+    at('county') ? lookup('county', m, lng, lat) : null,
   ])
   const countyGeoid = county?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
-  const [censusTract, censusBlock] = countyGeoid
-    ? await Promise.all([
-        at('censusTract')
-          ? lookup('censusTract', fileUrl('censusTract', countyGeoid), lng, lat)
-          : null,
-        at('censusBlock')
-          ? lookup('censusBlock', fileUrl('censusBlock', countyGeoid), lng, lat)
-          : null,
-      ])
-    : [null, null]
-  return {
-    nation: nationGeography,
-    state,
-    county,
-    censusTract,
-    censusBlock,
-  }
+  const [censusTract, censusBlock] = await Promise.all([
+    at('censusTract') && countyGeoid
+      ? lookup('censusTract', m, lng, lat, countyGeoid)
+      : null,
+    at('censusBlock') && countyGeoid
+      ? lookup('censusBlock', m, lng, lat, countyGeoid)
+      : null,
+  ])
+  return { nation: nationGeography, state, county, censusTract, censusBlock }
 }

@@ -62,8 +62,8 @@ export type Building = Omit<MapGeoJSONFeature, 'properties'> & {
 
 export type Geography = {
   [GEOGRAPHY_ATTRIBUTE_KEYS.building_count]: number
-  [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2011]: number
-  [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2047]: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2011]?: number
+  [GEOGRAPHY_ATTRIBUTE_KEYS.mean_rps_2047]?: number
   [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2011_median]: number
   [GEOGRAPHY_ATTRIBUTE_KEYS.rps_2047_median]: number
   [GEOGRAPHY_ATTRIBUTE_KEYS.risk_score_2011_hist]: string // stringified number[]
