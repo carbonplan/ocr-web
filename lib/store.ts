@@ -62,11 +62,20 @@ type Store = {
   toggleAdvancedMode: () => void
   queryGeographiesAtPoint: (lng: number, lat: number) => void
   queryGeographiesById: (blockGeoid: string) => void
+  cancelGeographyQueries: () => void
   clearSelections: () => void
 }
 
 // Region lookups resolve out of order; only the latest one is applied.
 let geographyQuery = 0
+
+const NO_GEOGRAPHIES = {
+  county: null,
+  censusTract: null,
+  censusBlock: null,
+  state: null,
+  nation: null,
+}
 
 export const useStore = create<Store>((set, get) => ({
   map: null,
@@ -130,6 +139,8 @@ export const useStore = create<Store>((set, get) => ({
       if (query === geographyQuery) set({ activeGeographies })
     } catch (error) {
       console.error('Region lookup failed:', error)
+      // show no regions rather than the last location's
+      if (query === geographyQuery) set({ activeGeographies: NO_GEOGRAPHIES })
     }
   },
   queryGeographiesById: async (blockGeoid: string) => {
@@ -144,7 +155,12 @@ export const useStore = create<Store>((set, get) => ({
       if (query === geographyQuery) set({ activeGeographies })
     } catch (error) {
       console.error('Region lookup failed:', error)
+      if (query === geographyQuery) set({ activeGeographies: NO_GEOGRAPHIES })
     }
+  },
+  // a lookup still in flight no longer applies, as when another building is selected
+  cancelGeographyQueries: () => {
+    geographyQuery++
   },
   clearSelections: () => {
     set({

@@ -160,6 +160,8 @@ async function downloadCSV(
 # Notice: ${LICENSE_INFO.notice}
 # ------------------------------------------
 `
+  // a download cancelled while its last rows arrived is not saved
+  signal?.throwIfAborted()
   triggerBlobDownload(
     new Blob([metadata, CSV_HEADER, '\n', ...lines, '\n'], {
       type: 'text/csv',
@@ -194,6 +196,8 @@ async function downloadGeoJSON(
     notice: LICENSE_INFO.notice,
   })
 
+  // a download cancelled while its last rows arrived is not saved
+  signal?.throwIfAborted()
   triggerBlobDownload(
     new Blob(
       [

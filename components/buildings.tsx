@@ -87,7 +87,7 @@ const Buildings = () => {
             )
           }
 
-          if (feature.id && feature.properties) {
+          if (feature.id !== undefined && feature.properties) {
             hoveredFeatureId.current = feature.id
 
             map.setFeatureState(

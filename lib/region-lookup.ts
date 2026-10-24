@@ -89,6 +89,17 @@ const rangeSource = (url: string, byteLength: number): AsyncBuffer => ({
   },
 })
 
+// Caches hold the most recently used entries; a session browsing many
+// counties keeps a few files and outlines, not all of them.
+const FILE_LIMIT = 24
+const GEOMETRY_LIMIT = 32
+
+const keep = <K, V>(map: Map<K, V>, key: K, value: V, limit: number) => {
+  map.delete(key)
+  map.set(key, value)
+  if (map.size > limit) map.delete(map.keys().next().value as K)
+}
+
 // Opened files, by URL.
 const files = new Map<string, Promise<RegionFile>>()
 
@@ -97,7 +108,7 @@ const openFile = ({ url, byteLength }: { url: string; byteLength: number }) => {
   if (!file) {
     file = openRegionFile(rangeSource(url, byteLength))
     file.catch(() => files.delete(url))
-    files.set(url, file)
+    keep(files, url, file, FILE_LIMIT)
   }
   return file
 }
@@ -116,7 +127,8 @@ export const loadRegionGeometry = async (
   const file = await openFile(fileFor(await getManifest(), 'nation')!)
   const [row] = await readRows(file, 0, 1, ['geometry'])
   const geometry = (row?.geometry as RegionGeometry) ?? null
-  if (geometry) geometries.set(geometryKey(level, geoid), geometry)
+  if (geometry)
+    keep(geometries, geometryKey(level, geoid), geometry, GEOMETRY_LIMIT)
   return geometry
 }
 
@@ -164,11 +176,13 @@ const last = new Map<
 
 const remember = (level: GeographyKey, url: string, row: Found) => {
   const geography = toGeography(row, bounds(row.geometry))
-  geometries.set(
+  keep(
+    geometries,
     geometryKey(level, geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]),
     row.geometry,
+    GEOMETRY_LIMIT,
   )
-  last.set(url, { geography, geometry: row.geometry })
+  keep(last, url, { geography, geometry: row.geometry }, FILE_LIMIT)
   return geography
 }
 

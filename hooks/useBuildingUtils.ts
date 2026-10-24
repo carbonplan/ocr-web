@@ -15,6 +15,9 @@ export const useBuildingUtils = () => {
     (state) => state.queryGeographiesAtPoint,
   )
   const queryGeographiesById = useStore((state) => state.queryGeographiesById)
+  const cancelGeographyQueries = useStore(
+    (state) => state.cancelGeographyQueries,
+  )
   const { fetchAddress } = useReverseGeocode()
 
   const selectBuilding = useCallback(
@@ -25,7 +28,8 @@ export const useBuildingUtils = () => {
         fetchAddress: true,
       },
     ) => {
-      if (!map || !building.id) return
+      // ids are row numbers, so 0 is a building
+      if (!map || building.id === undefined || building.id === null) return
 
       const { easeTo = true, fetchAddress: shouldFetchAddress = true } = options
 
@@ -39,6 +43,8 @@ export const useBuildingUtils = () => {
         properties: { ...building.properties },
       }
       setSelectedBuilding(selected)
+      // the last building's lookup, still in flight, must not land on this one
+      cancelGeographyQueries()
       // the building's block GEOID names the regions it belongs to
       readRow(DATA_URLS.vector.buildings, Number(selected.id), [
         ...BUILDING_DETAIL_COLUMNS,
@@ -55,6 +61,7 @@ export const useBuildingUtils = () => {
         })
         .catch((error) => {
           console.error('Building details failed:', error)
+          if (useStore.getState().selectedBuilding?.id !== selected.id) return
           queryGeographiesAtPoint(lng, lat)
         })
       updateSelectedBuildingUrl({ lat, lng })
@@ -90,6 +97,7 @@ export const useBuildingUtils = () => {
       setSelectedLocation,
       queryGeographiesAtPoint,
       queryGeographiesById,
+      cancelGeographyQueries,
       fetchAddress,
     ],
   )

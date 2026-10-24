@@ -33,47 +33,57 @@ export type DownloadRow = {
   scores: (number | null)[]
 }
 
-type Opened = { file: AsyncBuffer; metadata: FileMetaData }
+type Opened = { source: AsyncBuffer; metadata: FileMetaData }
 
+// rows decoded at once; a run longer than this is read in pieces
+const BATCH_ROWS = 262_144
+
+/** Serves ranges inside ones it has fetched, and forgets a range whose
+ * request failed so a retry asks again. */
+const rangeCache = (source: AsyncBuffer): AsyncBuffer => {
+  const spans: { start: number; end: number; data: Promise<ArrayBuffer> }[] = []
+  return {
+    byteLength: source.byteLength,
+    slice(start, end = source.byteLength) {
+      const span = spans.find((s) => s.start <= start && end <= s.end)
+      if (span) {
+        return span.data.then((d) =>
+          d.slice(start - span.start, end - span.start),
+        )
+      }
+      const entry = {
+        start,
+        end,
+        data: Promise.resolve(source.slice(start, end)),
+      }
+      spans.push(entry)
+      entry.data.catch(() => spans.splice(spans.indexOf(entry), 1))
+      return entry.data
+    },
+  }
+}
+
+// The footer is kept per file; fetched pages are kept only while their row
+// group is read, so memory follows one row group, not every download so far.
 const opened = new Map<string, Promise<Opened>>()
 
-/** Ranges are merged when close and kept once fetched, so a row group's page
- * index arrives in one read and its pages in a few. */
 const open = (url: string) => {
   let file = opened.get(url)
   if (!file) {
     file = (async () => {
-      const merged = coalescing(await httpSource([url]), {
+      // ranges requested together are merged when the gap is cheaper than a request
+      const source = coalescing(await httpSource([url]), {
         maxGap: 256 * 1024,
         minGap: 64 * 1024,
         windowMs: 5,
         maxRun: 16 * 1024 * 1024,
       })
-      const spans: {
-        start: number
-        end: number
-        data: Promise<ArrayBuffer>
-      }[] = []
-      const cached: AsyncBuffer = {
-        byteLength: merged.byteLength,
-        slice(start, end = merged.byteLength) {
-          const span = spans.find((s) => s.start <= start && end <= s.end)
-          if (span) {
-            return span.data.then((d) =>
-              d.slice(start - span.start, end - span.start),
-            )
-          }
-          const data = merged.slice(start, end)
-          spans.push({ start, end, data })
-          return data
-        },
-      }
       // geometry stays WKB; a download needs only the centroid
-      const metadata = await parquetMetadataAsync(cached, {
+      const metadata = await parquetMetadataAsync(rangeCache(source), {
         initialFetchSize: 512 * 1024,
         geoparquet: false,
       })
-      return { file: cached, metadata }
+      return { source, metadata }
     })()
     file.catch(() => opened.delete(url))
     opened.set(url, file)
@@ -81,13 +91,21 @@ const open = (url: string) => {
   return file
 }
 
-/** Area-weighted centroid of a WKB Polygon or MultiPolygon, holes subtracted. */
+/** Area-weighted centroid of a WKB Polygon or MultiPolygon, holes subtracted.
+ * A shape with no area falls back, as GEOS does, to the length-weighted
+ * centroid of its rings, then to the mean of its points. */
 export const wkbCentroid = (wkb: Uint8Array): [number, number] => {
   const view = new DataView(wkb.buffer, wkb.byteOffset, wkb.byteLength)
   let offset = 0
   let area = 0
   let sx = 0
   let sy = 0
+  let length = 0
+  let lx = 0
+  let ly = 0
+  let points = 0
+  let px = 0
+  let py = 0
   const readGeometry = () => {
     const little = view.getUint8(offset) === 1
     const type = view.getUint32(offset + 1, little) % 1000
@@ -100,14 +118,14 @@ export const wkbCentroid = (wkb: Uint8Array): [number, number] => {
     }
     if (type !== 3) throw new Error(`unsupported WKB geometry type ${type}`)
     for (let r = 0; r < count; r++) {
-      const points = view.getUint32(offset, little)
+      const size = view.getUint32(offset, little)
       offset += 4
       let a = 0
       let cx = 0
       let cy = 0
       const x0 = view.getFloat64(offset, little)
       const y0 = view.getFloat64(offset + 8, little)
-      for (let i = 0; i < points - 1; i++) {
+      for (let i = 0; i < size - 1; i++) {
         const at = offset + i * 16
         const x1 = view.getFloat64(at, little) - x0
         const y1 = view.getFloat64(at + 8, little) - y0
@@ -117,8 +135,17 @@ export const wkbCentroid = (wkb: Uint8Array): [number, number] => {
         a += cross
         cx += (x1 + x2) * cross
         cy += (y1 + y2) * cross
+        const segment = Math.hypot(x2 - x1, y2 - y1)
+        length += segment
+        lx += segment * ((x1 + x2) / 2 + x0)
+        ly += segment * ((y1 + y2) / 2 + y0)
       }
-      offset += points * 16
+      for (let i = 0; i < size; i++) {
+        px += view.getFloat64(offset + i * 16, little)
+        py += view.getFloat64(offset + i * 16 + 8, little)
+      }
+      points += size
+      offset += size * 16
       // the exterior ring adds area and holes remove it, whatever their winding
       const sign = (r === 0 ? 1 : -1) * Math.sign(a)
       area += sign * a
@@ -127,7 +154,9 @@ export const wkbCentroid = (wkb: Uint8Array): [number, number] => {
     }
   }
   readGeometry()
-  return area === 0 ? [NaN, NaN] : [sx / area, sy / area]
+  if (area > 0) return [sx / area, sy / area]
+  if (length > 0) return [lx / length, ly / length]
+  return points ? [px / points, py / points] : [NaN, NaN]
 }
 
 export type Bbox = [number, number, number, number]
@@ -155,7 +184,8 @@ const intersect = (a: Runs, b: Runs): Runs => {
  * state line spans every GEOID between its states, so its bbox must also meet
  * the region's. */
 const candidateRuns = async (
-  { file, metadata }: Opened,
+  file: AsyncBuffer,
+  metadata: FileMetaData,
   group: number,
   start: number,
   prefix: string,
@@ -265,43 +295,64 @@ export async function* regionBuildings(
   bbox: Bbox,
   signal?: AbortSignal,
 ): AsyncGenerator<DownloadRow[]> {
-  const lod = await open(url)
+  const { source, metadata } = await open(url)
   let start = 0
-  for (let g = 0; g < lod.metadata.row_groups.length; g++) {
+  for (let g = 0; g < metadata.row_groups.length; g++) {
     signal?.throwIfAborted()
-    const runs = await candidateRuns(lod, g, start, prefix, bbox)
-    start += Number(lod.metadata.row_groups[g].num_rows)
-    if (!runs.length) continue
-    const batches = await Promise.all(
-      runs.map(([rowStart, rowEnd]) =>
-        parquetReadObjects({
-          file: lod.file,
-          metadata: lod.metadata,
-          rowStart,
-          rowEnd,
-          columns: COLUMNS,
-          useOffsetIndex: true,
-          compressors,
-          // byte arrays without a string type, the WKB, stay bytes
-          utf8: false,
-        }),
-      ),
-    )
-    const out: DownloadRow[] = []
-    for (const row of batches.flat()) {
-      const geoid = String(row.GEOID)
-      if (!geoid.startsWith(prefix)) continue
-      const [lng, lat] = wkbCentroid(row.geometry as Uint8Array)
-      out.push({
-        geoid,
-        lng,
-        lat,
-        scores: SCORE_COLUMNS.map((c) =>
-          row[c] === null || row[c] === undefined ? null : Number(row[c]),
+    const file = rangeCache(source)
+    const runs = await candidateRuns(file, metadata, g, start, prefix, bbox)
+    start += Number(metadata.row_groups[g].num_rows)
+    // runs cut into pieces, read a batch of pieces at a time
+    const pieces = runs.flatMap(([a, b]) => {
+      const out: [number, number][] = []
+      for (let at = a; at < b; at += BATCH_ROWS)
+        out.push([at, Math.min(b, at + BATCH_ROWS)])
+      return out
+    })
+    while (pieces.length) {
+      const batch: [number, number][] = []
+      let rows = 0
+      while (
+        pieces.length &&
+        (!batch.length || rows + pieces[0][1] - pieces[0][0] <= BATCH_ROWS)
+      ) {
+        const piece = pieces.shift()!
+        batch.push(piece)
+        rows += piece[1] - piece[0]
+      }
+      signal?.throwIfAborted()
+      const read = await Promise.all(
+        batch.map(([rowStart, rowEnd]) =>
+          parquetReadObjects({
+            file,
+            metadata,
+            rowStart,
+            rowEnd,
+            columns: COLUMNS,
+            useOffsetIndex: true,
+            compressors,
+            // byte arrays without a string type, the WKB, stay bytes
+            utf8: false,
+          }),
         ),
-      })
+      )
+      signal?.throwIfAborted()
+      const out: DownloadRow[] = []
+      for (const row of read.flat()) {
+        const geoid = String(row.GEOID)
+        if (!geoid.startsWith(prefix)) continue
+        const [lng, lat] = wkbCentroid(row.geometry as Uint8Array)
+        out.push({
+          geoid,
+          lng,
+          lat,
+          scores: SCORE_COLUMNS.map((c) =>
+            row[c] === null || row[c] === undefined ? null : Number(row[c]),
+          ),
+        })
+      }
+      if (out.length) yield out
     }
-    yield out
   }
 }
 
@@ -314,6 +365,8 @@ export const round6 = (x: number) =>
 export const formatFloat = (value: number | null): string => {
   if (value === null || Number.isNaN(value)) return ''
   if (value === 0) return Object.is(value, -0) ? '-0.0' : '0.0'
+  // a whole number prints exactly, as DuckDB does, even past float32's 2^24
+  if (Number.isInteger(value) && Math.abs(value) < 1e16) return `${value}.0`
   // the shortest digits that read back as the same float32; a precision where
   // the value falls exactly halfway between two candidates is passed over
   const exact = Math.abs(value).toExponential().split('e')[0].replace('.', '')
