@@ -8,7 +8,12 @@ import {
   ExpressionSpecification,
 } from 'maplibre-gl'
 import { tileUrl } from 'geoparquet-lod/maplibre'
-import { DATA_URLS, LAYERS, BUILDING_TILE_PROPERTIES } from '@/lib/config'
+import {
+  BUILDING_MAX_ZOOM,
+  BUILDING_TILE_PROPERTIES,
+  DATA_URLS,
+  LAYERS,
+} from '@/lib/config'
 
 export const getRiskSources = (): Record<string, SourceSpecification> => ({
   [LAYERS.buildings.sourceId]: {
@@ -20,6 +25,7 @@ export const getRiskSources = (): Record<string, SourceSpecification> => ({
         properties: BUILDING_TILE_PROPERTIES,
       }),
     ],
+    maxzoom: BUILDING_MAX_ZOOM,
   },
   [LAYERS.regionHighlight.sourceId]: {
     type: 'geojson',

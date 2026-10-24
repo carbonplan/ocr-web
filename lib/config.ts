@@ -89,6 +89,11 @@ export const BUILDING_DETAIL_COLUMNS = [
   BUILDING_ATTRIBUTE_KEYS.bp_2047_riley,
 ]
 
+// The finest zoom with building overviews; MapLibre overzooms those tiles
+// beyond it, as it does PMTiles, rather than asking the reader for tiles drawn
+// from the original geometry, which read far more.
+export const BUILDING_MAX_ZOOM = 14
+
 // Below this zoom the building overviews hold only buildings with nonzero
 // risk, so a click there is not a building selection.
 export const BUILDING_SELECT_MIN_ZOOM = 6
