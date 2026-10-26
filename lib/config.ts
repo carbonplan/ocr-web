@@ -17,9 +17,11 @@ export const DATA_URLS = {
     // geoparquet-lod file: building footprints with display overviews
     buildings:
       process.env.NEXT_PUBLIC_BUILDING_URL ??
-      `${LOD_BASE_URL}/buildings.lod.parquet`,
-    // GeoParquet region files; tracts and blocks are split by county
-    regions: process.env.NEXT_PUBLIC_REGIONS_URL ?? `${LOD_BASE_URL}/regions`,
+      `${LOD_BASE_URL}/buildings-uniform.lod.parquet`,
+    // GeoParquet region files; tracts and blocks are partitioned by county
+    regions:
+      process.env.NEXT_PUBLIC_REGIONS_URL ??
+      `${LOD_BASE_URL}/regions-full-county`,
   },
   raster:
     process.env.NEXT_PUBLIC_RISK_ZARR_URL ?? dataUrl('pyramid', 'pyramid.zarr'),

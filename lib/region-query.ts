@@ -6,6 +6,7 @@ import {
   readOffsetIndex,
 } from 'hyparquet'
 import type { AsyncBuffer, FileMetaData, SchemaTree } from 'hyparquet'
+import { compressors } from 'hyparquet-compressors'
 
 // Region files are GeoParquet with a bbox covering, written with a row cap per
 // page so every column breaks pages at the same rows. A point lookup reads the
@@ -77,13 +78,54 @@ const leaf = (tree: SchemaTree, path: string[]): SchemaTree => {
   return node
 }
 
+const INDEXED = ['GEOID', ...BBOX.map((name) => `bbox.${name}`)]
+
+// Index entries this close together are fetched in one request.
+const INDEX_GAP = 8 * 1024
+
+/** Fetch, in as few requests as their placement allows, a row group's column
+ * indexes for the indexed columns and offset indexes for those and `read`. */
+const fetchGroupIndexes = (
+  region: RegionFile,
+  group: number,
+  read: string[],
+) => {
+  const ranges: [number, number][] = []
+  for (const chunk of region.metadata.row_groups[group].columns) {
+    const path = chunk.meta_data?.path_in_schema ?? []
+    const indexed = INDEXED.includes(path.join('.'))
+    const entries = [
+      indexed && [chunk.column_index_offset, chunk.column_index_length],
+      (indexed || read.includes(path[0])) && [
+        chunk.offset_index_offset,
+        chunk.offset_index_length,
+      ],
+    ] as const
+    for (const entry of entries) {
+      if (!entry || entry[0] === undefined || !entry[1]) continue
+      ranges.push([Number(entry[0]), Number(entry[0]) + Number(entry[1])])
+    }
+  }
+  ranges.sort((a, b) => a[0] - b[0])
+  const merged: [number, number][] = []
+  for (const range of ranges) {
+    const last = merged[merged.length - 1]
+    if (last && range[0] - last[1] <= INDEX_GAP)
+      last[1] = Math.max(last[1], range[1])
+    else merged.push([...range])
+  }
+  return Promise.all(merged.map(([a, b]) => region.file.slice(a, b)))
+}
+
 const readPageBounds = async (
   region: RegionFile,
   group: number,
+  read: string[],
 ): Promise<PageBounds[]> => {
   const { file, metadata } = region
   const tree = parquetSchema(metadata)
   const chunks = metadata.row_groups[group].columns
+  await fetchGroupIndexes(region, group, read)
   const chunkFor = (name: string) => {
     const chunk = chunks.find(
       (c) => c.meta_data?.path_in_schema.join('.') === `bbox.${name}`,
@@ -143,25 +185,6 @@ const readPageBounds = async (
   }))
 }
 
-/** The page indexes of every row group, which sit together before the footer. */
-const pageIndexSpan = (metadata: FileMetaData): [number, number] | null => {
-  let start = Infinity
-  let end = 0
-  for (const group of metadata.row_groups) {
-    for (const chunk of group.columns) {
-      for (const [offset, length] of [
-        [chunk.column_index_offset, chunk.column_index_length],
-        [chunk.offset_index_offset, chunk.offset_index_length],
-      ] as const) {
-        if (offset === undefined || !length) continue
-        start = Math.min(start, Number(offset))
-        end = Math.max(end, Number(offset) + length)
-      }
-    }
-  }
-  return end > start ? [start, end] : null
-}
-
 export const openRegionFile = async (
   source: AsyncBuffer,
 ): Promise<RegionFile> => {
@@ -172,8 +195,6 @@ export const openRegionFile = async (
       : Math.min(TAIL_BYTES, file.byteLength)
   await file.slice(file.byteLength - tail, file.byteLength)
   const metadata = await parquetMetadataAsync(file, { initialFetchSize: tail })
-  const span = pageIndexSpan(metadata)
-  if (span) await file.slice(span[0], span[1])
   let groupStart = 0
   const groupStarts = metadata.row_groups.map((group) => {
     const start = groupStart
@@ -183,10 +204,12 @@ export const openRegionFile = async (
   return { file, metadata, groupStarts, pageBounds: new Map() }
 }
 
-const pagesOf = (region: RegionFile, group: number) => {
+// `read` names the columns the first lookup in the group reads, whose offset
+// indexes are fetched with the page bounds.
+const pagesOf = (region: RegionFile, group: number, read: string[]) => {
   let pages = region.pageBounds.get(group)
   if (!pages) {
-    pages = readPageBounds(region, group)
+    pages = readPageBounds(region, group, read)
     pages.catch(() => region.pageBounds.delete(group))
     region.pageBounds.set(group, pages)
   }
@@ -255,6 +278,7 @@ const mergeRanges = (pages: PageBounds[]) => {
   return ranges
 }
 
+/** Reads `columns` that the file has; levels differ, e.g. only some have NAME. */
 export const readRows = (
   region: RegionFile,
   rowStart: number,
@@ -266,7 +290,12 @@ export const readRows = (
     metadata: region.metadata,
     rowStart,
     rowEnd,
-    columns,
+    columns: columns.filter((name) =>
+      parquetSchema(region.metadata).children.some(
+        (child) => child.element.name === name,
+      ),
+    ),
+    compressors,
     useOffsetIndex: true,
   })
 
@@ -281,10 +310,12 @@ const findInPages = async (
   matches: (row: Found) => boolean,
   columns: string[],
 ): Promise<Found | null> => {
-  const candidates = (await Promise.all(groups.map((g) => pagesOf(region, g))))
+  const read = [...new Set([...columns, 'geometry'])]
+  const candidates = (
+    await Promise.all(groups.map((g) => pagesOf(region, g, read)))
+  )
     .flat()
     .filter(isCandidate)
-  const read = [...new Set([...columns, 'geometry'])]
   const batches = await Promise.all(
     mergeRanges(candidates).map(([start, end]) =>
       readRows(region, start, end, read),
@@ -295,6 +326,21 @@ const findInPages = async (
 
 const allGroups = (region: RegionFile) =>
   region.metadata.row_groups.map((_, g) => g)
+
+/** Row groups whose GEOID statistics can hold `geoid`. */
+const groupsWith = (region: RegionFile, geoid: string) =>
+  allGroups(region).filter((g) => {
+    const stats = region.metadata.row_groups[g].columns.find(
+      (c) => c.meta_data?.path_in_schema.join('.') === 'GEOID',
+    )?.meta_data?.statistics
+    const min = stats?.min_value
+    const max = stats?.max_value
+    return (
+      min === undefined ||
+      max === undefined ||
+      (String(min) <= geoid && geoid <= String(max))
+    )
+  })
 
 /** The row whose polygon contains (x, y), with `columns` and its geometry. */
 export const findRegion = (
@@ -329,9 +375,10 @@ export const findRegionById = async (
   columns: string[],
   geoidOf: (row: RegionRow) => string,
 ): Promise<Found | null> => {
-  const groups = allGroups(region)
+  const groups = groupsWith(region, geoid)
+  const read = [...new Set([...columns, 'geometry'])]
   const pages = (
-    await Promise.all(groups.map((g) => pagesOf(region, g)))
+    await Promise.all(groups.map((g) => pagesOf(region, g, read)))
   ).flat()
   if (inGeoidOrder(pages)) {
     return findInPages(
