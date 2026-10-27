@@ -68,6 +68,11 @@ type Store = {
 
 // Region lookups resolve out of order; only the latest one is applied.
 let geographyQuery = 0
+// The last region query, run again when the panel changes level.
+let lastGeographyQuery:
+  | { kind: 'point'; lng: number; lat: number }
+  | { kind: 'id'; geoid: string }
+  | null = null
 
 const NO_GEOGRAPHIES = {
   county: null,
@@ -100,7 +105,15 @@ export const useStore = create<Store>((set, get) => ({
       activeGeographies: { county, censusTract, censusBlock, state, nation },
     }),
   selectedGeographyLevel: 'nation',
-  setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
+  setSelectedGeographyLevel: (level) => {
+    if (get().selectedGeographyLevel === level) return
+    set({ selectedGeographyLevel: level })
+    // lookups read only the level shown, so a new level is looked up again
+    const last = lastGeographyQuery
+    if (last?.kind === 'point')
+      get().queryGeographiesAtPoint(last.lng, last.lat)
+    if (last?.kind === 'id') get().queryGeographiesById(last.geoid)
+  },
   hasManuallySelectedGeography: false,
   setHasManuallySelectedGeography: (value) =>
     set({ hasManuallySelectedGeography: value }),
@@ -131,11 +144,17 @@ export const useStore = create<Store>((set, get) => ({
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
   queryGeographiesAtPoint: async (lng: number, lat: number) => {
-    const { map } = get()
+    const { map, selectedGeographyLevel } = get()
     if (!map) return
     const query = ++geographyQuery
+    lastGeographyQuery = { kind: 'point', lng, lat }
     try {
-      const activeGeographies = await lookupGeographies(lng, lat, map.getZoom())
+      const activeGeographies = await lookupGeographies(
+        lng,
+        lat,
+        map.getZoom(),
+        selectedGeographyLevel,
+      )
       if (query === geographyQuery) set({ activeGeographies })
     } catch (error) {
       console.error('Region lookup failed:', error)
@@ -144,13 +163,15 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
   queryGeographiesById: async (blockGeoid: string) => {
-    const { map } = get()
+    const { map, selectedGeographyLevel } = get()
     if (!map) return
     const query = ++geographyQuery
+    lastGeographyQuery = { kind: 'id', geoid: blockGeoid }
     try {
       const activeGeographies = await lookupGeographiesById(
         blockGeoid,
         map.getZoom(),
+        selectedGeographyLevel,
       )
       if (query === geographyQuery) set({ activeGeographies })
     } catch (error) {
@@ -162,6 +183,8 @@ export const useStore = create<Store>((set, get) => ({
   // and the regions shown belong to the last selection, so they are cleared
   cancelGeographyQueries: () => {
     geographyQuery++
+    // the selection's own lookup follows; a level change meanwhile has nothing to repeat
+    lastGeographyQuery = null
     set({ activeGeographies: NO_GEOGRAPHIES })
   },
   clearSelections: () => {

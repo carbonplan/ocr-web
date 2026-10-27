@@ -30,24 +30,29 @@ const COLUMNS = [
   'risk_score_2047_hist',
 ]
 
-// Tracts and blocks are partitioned by county.
-const fileFor = (level: GeographyKey, countyGeoid?: string): string | null => {
+// Counties are partitioned by state, tracts and blocks by county; `geoid`
+// is the region's own GEOID or, for a point lookup, its parent's.
+const fileFor = (level: GeographyKey, geoid?: string): string | null => {
   const base = DATA_URLS.vector.regions
-  if (level === 'censusTract' || level === 'censusBlock') {
-    if (!countyGeoid) return null
-    const dir = level === 'censusTract' ? 'tracts' : 'blocks'
-    return `${base}/${dir}/state_fips=${countyGeoid.slice(0, 2)}/county_fips=${countyGeoid.slice(2, 5)}/data.parquet`
-  }
-  const name = (
-    { nation: 'nation', state: 'states', county: 'counties' } as const
-  )[level]
-  return `${base}/${name}.parquet`
+  if (level === 'nation') return `${base}/nation.parquet`
+  if (level === 'state') return `${base}/states.parquet`
+  if (!geoid) return null
+  const state = `state_fips=${geoid.slice(0, 2)}`
+  if (level === 'county') return `${base}/counties/${state}/data.parquet`
+  if (geoid.length < 5) return null
+  const dir = level === 'censusTract' ? 'tracts' : 'blocks'
+  return `${base}/${dir}/${state}/county_fips=${geoid.slice(2, 5)}/data.parquet`
 }
 
-// Opening a file reads its tail, which holds the footer and, in most files,
-// the page indexes. The counties file's footer covers a row group per state.
-const TAIL_BYTES = 64 * 1024
-const COUNTIES_TAIL_BYTES = 128 * 1024
+// Opening a file reads its tail, sized to hold the footer and page indexes of
+// most files at the level; a file needing more reads the rest on demand.
+const TAIL_BYTES: Record<GeographyKey, number> = {
+  nation: 8 * 1024,
+  state: 32 * 1024,
+  county: 16 * 1024,
+  censusTract: 16 * 1024,
+  censusBlock: 32 * 1024,
+}
 
 /** A file sized by HEAD, then opened with one read of its tail. Browsers
  * send suffix ranges (`bytes=-N`) only after a CORS preflight, so the tail is
@@ -134,7 +139,7 @@ type Pending = {
 
 // Ranges this close are read in one request; the bytes between cost less
 // than another round trip.
-const READ_GAP = 64 * 1024
+const READ_GAP = 16 * 1024
 
 // Caches hold the most recently used entries; a session browsing many
 // counties keeps a few files and outlines, not all of them.
@@ -150,13 +155,10 @@ const keep = <K, V>(map: Map<K, V>, key: K, value: V, limit: number) => {
 // Opened files, by URL; null for a file that does not exist.
 const files = new Map<string, Promise<RegionFile | null>>()
 
-const openFile = (url: string) => {
+const openFile = (level: GeographyKey, url: string) => {
   let file = files.get(url)
   if (!file) {
-    const tailBytes = url.endsWith('/counties.parquet')
-      ? COUNTIES_TAIL_BYTES
-      : TAIL_BYTES
-    file = openSource(url, tailBytes).then((source) =>
+    file = openSource(url, TAIL_BYTES[level]).then((source) =>
       source ? openRegionFile(source) : null,
     )
     file.catch(() => files.delete(url))
@@ -181,8 +183,8 @@ export const loadRegionGeometry = async (
     return known
   }
   // an outline evicted since its lookup is read again by its GEOID
-  const target = fileFor(level, geoid.slice(0, 5))
-  const file = target ? await openFile(target) : null
+  const target = fileFor(level, geoid)
+  const file = target ? await openFile(level, target) : null
   if (!file) return null
   const geometry =
     level === 'nation'
@@ -252,13 +254,13 @@ const lookup = async (
   level: GeographyKey,
   x: number,
   y: number,
-  countyGeoid?: string,
+  parentGeoid?: string,
 ): Promise<Geography | null> => {
-  const target = fileFor(level, countyGeoid)
+  const target = fileFor(level, parentGeoid)
   if (!target) return null
   const cached = last.get(target)
   if (cached && containsPoint(cached.geometry, x, y)) return cached.geography
-  const file = await openFile(target)
+  const file = await openFile(level, target)
   const row = file ? await findRegion(file, x, y, COLUMNS) : null
   return row ? remember(level, target, row) : null
 }
@@ -269,12 +271,12 @@ const lookupById = async (
   level: GeographyKey,
   geoid: string,
 ): Promise<Geography | null> => {
-  const target = fileFor(level, geoid.slice(0, 5))
+  const target = fileFor(level, geoid)
   if (!target) return null
   const cached = last.get(target)
   if (cached?.geography[GEOGRAPHY_ATTRIBUTE_KEYS.geoid] === geoid)
     return cached.geography
-  const file = await openFile(target)
+  const file = await openFile(level, target)
   const row = file ? await findRegionById(file, geoid, COLUMNS, geoidOf) : null
   return row ? remember(level, target, row) : null
 }
@@ -283,7 +285,7 @@ const lookupById = async (
 let nation: Promise<Geography | null> | null = null
 
 const readNation = async () => {
-  const file = await openFile(fileFor('nation')!)
+  const file = await openFile('nation', fileFor('nation')!)
   if (!file) throw new Error('no nation region file')
   const [row] = await readRows(file, 0, 1, [...COLUMNS, 'bbox'])
   if (!row) return null
@@ -312,46 +314,69 @@ const GEOID_LENGTH: Record<Exclude<GeographyKey, 'nation'>, number> = {
   censusBlock: 15,
 }
 
-/** The regions a building belongs to, from its block GEOID: exact, and with
- * every level looked up at once. */
+const NONE: ActiveGeographies = {
+  nation: null,
+  state: null,
+  county: null,
+  censusTract: null,
+  censusBlock: null,
+}
+
+/** The levels a panel showing `level` reads: the level itself and, for tracts
+ * and blocks, their county, which names their downloads. */
+const levelsFor = (level: GeographyKey): GeographyKey[] =>
+  level === 'censusTract' || level === 'censusBlock'
+    ? ['county', level]
+    : level === 'nation'
+      ? []
+      : [level]
+
+/** The regions a building belongs to, from its block GEOID, for a panel
+ * showing `level`: exact, and each level looked up at once. */
 export const lookupGeographiesById = async (
   blockGeoid: string,
   zoom: number,
+  level: GeographyKey,
 ): Promise<ActiveGeographies> => {
-  const at = (level: Exclude<GeographyKey, 'nation'>) =>
-    zoom >= GEOGRAPHY_MIN_ZOOM[level]
-      ? lookupById(level, blockGeoid.slice(0, GEOID_LENGTH[level]))
-      : null
-  const [nationGeography, state, county, censusTract, censusBlock] =
-    await Promise.all([
-      nationOf(),
-      at('state'),
-      at('county'),
-      at('censusTract'),
-      at('censusBlock'),
-    ])
-  return { nation: nationGeography, state, county, censusTract, censusBlock }
+  const wanted = levelsFor(level).filter((l) => zoom >= GEOGRAPHY_MIN_ZOOM[l])
+  const [nationGeography, ...found] = await Promise.all([
+    nationOf(),
+    ...wanted.map((l) =>
+      lookupById(
+        l,
+        blockGeoid.slice(0, GEOID_LENGTH[l as keyof typeof GEOID_LENGTH]),
+      ),
+    ),
+  ])
+  const out: ActiveGeographies = { ...NONE, nation: nationGeography }
+  wanted.forEach((l, i) => (out[l] = found[i]))
+  return out
 }
 
+/** The regions at a point, for a panel showing `level`. A county is found in
+ * its state's file, a tract or block in its county's. */
 export const lookupGeographies = async (
   lng: number,
   lat: number,
   zoom: number,
+  level: GeographyKey,
 ): Promise<ActiveGeographies> => {
-  const at = (level: GeographyKey) => zoom >= GEOGRAPHY_MIN_ZOOM[level]
-  const [nationGeography, state, county] = await Promise.all([
-    nationOf(),
-    at('state') ? lookup('state', lng, lat) : null,
-    at('county') ? lookup('county', lng, lat) : null,
-  ])
-  const countyGeoid = county?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
-  const [censusTract, censusBlock] = await Promise.all([
-    at('censusTract') && countyGeoid
-      ? lookup('censusTract', lng, lat, countyGeoid)
-      : null,
-    at('censusBlock') && countyGeoid
-      ? lookup('censusBlock', lng, lat, countyGeoid)
-      : null,
-  ])
-  return { nation: nationGeography, state, county, censusTract, censusBlock }
+  const wanted = levelsFor(level).filter((l) => zoom >= GEOGRAPHY_MIN_ZOOM[l])
+  const out: ActiveGeographies = { ...NONE }
+  const nationGeography = nationOf()
+  if (wanted.includes('state')) out.state = await lookup('state', lng, lat)
+  if (wanted.includes('county')) {
+    const state = await lookup('state', lng, lat)
+    const stateGeoid = state?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+    out.county = stateGeoid
+      ? await lookup('county', lng, lat, stateGeoid)
+      : null
+    const countyGeoid = out.county?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+    for (const l of wanted.filter(
+      (l) => l === 'censusTract' || l === 'censusBlock',
+    ))
+      out[l] = countyGeoid ? await lookup(l, lng, lat, countyGeoid) : null
+  }
+  out.nation = await nationGeography
+  return out
 }
