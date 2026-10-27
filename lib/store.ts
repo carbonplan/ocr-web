@@ -63,6 +63,9 @@ type Store = {
   queryGeographiesAtPoint: (lng: number, lat: number) => void
   queryGeographiesById: (blockGeoid: string) => void
   cancelGeographyQueries: () => void
+  // a region lookup is under way; the panel shows a spinner rather than "no data"
+  geographiesLoading: boolean
+  setGeographiesLoading: (loading: boolean) => void
   clearSelections: () => void
 }
 
@@ -148,6 +151,7 @@ export const useStore = create<Store>((set, get) => ({
     if (!map) return
     const query = ++geographyQuery
     lastGeographyQuery = { kind: 'point', lng, lat }
+    set({ geographiesLoading: true })
     try {
       const activeGeographies = await lookupGeographies(
         lng,
@@ -155,11 +159,13 @@ export const useStore = create<Store>((set, get) => ({
         map.getZoom(),
         selectedGeographyLevel,
       )
-      if (query === geographyQuery) set({ activeGeographies })
+      if (query === geographyQuery)
+        set({ activeGeographies, geographiesLoading: false })
     } catch (error) {
       console.error('Region lookup failed:', error)
       // show no regions rather than the last location's
-      if (query === geographyQuery) set({ activeGeographies: NO_GEOGRAPHIES })
+      if (query === geographyQuery)
+        set({ activeGeographies: NO_GEOGRAPHIES, geographiesLoading: false })
     }
   },
   queryGeographiesById: async (blockGeoid: string) => {
@@ -167,16 +173,19 @@ export const useStore = create<Store>((set, get) => ({
     if (!map) return
     const query = ++geographyQuery
     lastGeographyQuery = { kind: 'id', geoid: blockGeoid }
+    set({ geographiesLoading: true })
     try {
       const activeGeographies = await lookupGeographiesById(
         blockGeoid,
         map.getZoom(),
         selectedGeographyLevel,
       )
-      if (query === geographyQuery) set({ activeGeographies })
+      if (query === geographyQuery)
+        set({ activeGeographies, geographiesLoading: false })
     } catch (error) {
       console.error('Region lookup failed:', error)
-      if (query === geographyQuery) set({ activeGeographies: NO_GEOGRAPHIES })
+      if (query === geographyQuery)
+        set({ activeGeographies: NO_GEOGRAPHIES, geographiesLoading: false })
     }
   },
   // as when another building is selected: lookups in flight no longer apply,
@@ -185,8 +194,10 @@ export const useStore = create<Store>((set, get) => ({
     geographyQuery++
     // the selection's own lookup follows; a level change meanwhile has nothing to repeat
     lastGeographyQuery = null
-    set({ activeGeographies: NO_GEOGRAPHIES })
+    set({ activeGeographies: NO_GEOGRAPHIES, geographiesLoading: true })
   },
+  geographiesLoading: false,
+  setGeographiesLoading: (geographiesLoading) => set({ geographiesLoading }),
   clearSelections: () => {
     set({
       selectedLocation: null,

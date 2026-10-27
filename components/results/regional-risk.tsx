@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Flex } from 'theme-ui'
+import { Box, Flex, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Link, Select, Table } from '@carbonplan/components'
 import { useShallow } from 'zustand/react/shallow'
@@ -53,6 +53,7 @@ const RegionalRisk = () => {
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
+  const geographiesLoading = useStore((state) => state.geographiesLoading)
   const [zoom, setZoom] = useState(0)
   const activeGeography = activeGeographies[geographyLevel]
 
@@ -250,9 +251,13 @@ const RegionalRisk = () => {
               color: 'secondary',
             }}
           >
-            {isGeographyUnavailable
-              ? `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data.`
-              : 'No data available.'}
+            {isGeographyUnavailable ? (
+              `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data.`
+            ) : geographiesLoading ? (
+              <Spinner size={24} />
+            ) : (
+              'No data available.'
+            )}
           </Box>
         )}
       </Box>

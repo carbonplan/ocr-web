@@ -56,7 +56,12 @@ export const useBuildingUtils = () => {
           })
           queryGeographiesById(String(GEOID))
         })
-        .catch((error) => console.error('Building details failed:', error))
+        .catch((error) => {
+          console.error('Building details failed:', error)
+          // no GEOID, so the region lookup the selection awaited never starts
+          if (useStore.getState().selectedBuilding?.id === selected.id)
+            useStore.getState().setGeographiesLoading(false)
+        })
       updateSelectedBuildingUrl({ lat, lng })
 
       map.removeFeatureState({
