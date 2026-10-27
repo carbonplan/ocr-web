@@ -49,7 +49,7 @@ const fileFor = (level: GeographyKey, geoid?: string): string | null => {
 const TAIL_BYTES: Record<GeographyKey, number> = {
   nation: 8 * 1024,
   state: 32 * 1024,
-  county: 16 * 1024,
+  county: 64 * 1024,
   censusTract: 16 * 1024,
   censusBlock: 32 * 1024,
 }
