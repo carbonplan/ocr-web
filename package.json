@@ -27,7 +27,7 @@
     "@types/chroma-js": "^3.1.1",
     "chroma-js": "^3.1.2",
     "d3-format": "^3.1.0",
-    "geoparquet-lod": "file:vendor/geoparquet-lod-cffeb00.tgz",
+    "geoparquet-lod": "file:vendor/geoparquet-lod-4b4eb10.tgz",
     "hyparquet": "^1.31.5",
     "hyparquet-compressors": "^1.1.2",
     "maplibre-gl": "^5.15.0",
