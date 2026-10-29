@@ -17,7 +17,7 @@ export const DATA_URLS = {
     // geoparquet-lod file: building footprints with display overviews
     buildings:
       process.env.NEXT_PUBLIC_BUILDING_URL ??
-      `${LOD_BASE_URL}/buildings-hybrid-mercator.lod.parquet`,
+      `${LOD_BASE_URL}/buildings-1eb3bea.lod.parquet`,
     // GeoParquet region files; tracts and blocks are partitioned by county
     regions:
       process.env.NEXT_PUBLIC_REGIONS_URL ??
