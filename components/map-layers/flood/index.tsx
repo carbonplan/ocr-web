@@ -8,33 +8,7 @@ import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
 import { FDP_DRIVERS } from '@/lib/hazards/flood'
-
-const DriverSelect = () => {
-  const driver = useStore((state) => state.selectorValues.driver)
-  const setSelectorValues = useStore((state) => state.setSelectorValues)
-
-  return (
-    <Box>
-      How much{' '}
-      <Select
-        value={driver}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setSelectorValues({ driver: Number(e.target.value) })
-        }
-        size='xs'
-        sx={{ mb: ['-5px'] }}
-      >
-        {FDP_DRIVERS.map((d, i) => (
-          <option key={d.short} value={i}>
-            {d.label.toLowerCase()}
-          </option>
-        ))}
-      </Select>{' '}
-      raises or lowers the probability here, along the model&apos;s decision
-      paths.
-    </Box>
-  )
-}
+import Drivers from './drivers'
 
 const FloodLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -82,13 +56,13 @@ const FloodLayers = () => {
         and errors in the model itself.
       </MapLayer>
       <MapLayer
-        label='Driver contribution'
+        label='Drivers of risk'
         checked={mapLayer === 'contribution'}
         setChecked={() => setMapLayer('contribution')}
         value={shown('contribution')}
         toFixed={1}
       >
-        <DriverSelect />
+        <Drivers />
       </MapLayer>
       <MapLayer
         label='Top driver'
