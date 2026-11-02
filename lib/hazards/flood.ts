@@ -69,9 +69,9 @@ const flood: HazardConfig = {
       unit: '%',
       unitScale: 100,
       // about the 1st to 90th percentile in HUC 03
-      binBoundaries: [4, 6],
+      binBoundaries: [5, 25],
       continuous: true,
-      colormap: 'purples',
+      colormap: 'cool',
     },
     {
       id: 'contribution',
