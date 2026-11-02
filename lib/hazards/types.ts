@@ -34,7 +34,7 @@ export type RegionalDataConfig = {
   columns: string[]
 }
 
-export type SelectorDimension = 'return_period'
+export type SelectorDimension = 'return_period' | 'driver'
 
 // Extra dimension the layer's variable is sliced along (e.g. return_period)
 export type HazardLayerSelector = {
@@ -55,6 +55,18 @@ export type HazardMapLayer = {
   binLabels?: string[]
   axisLabel?: string
   customColormap?: boolean
+  // in place of the hazard's colormap
+  colormap?: string
+  // bins are classes (value k in bin k): zero is a class rather than no data,
+  // and the colorbar labels classes rather than bin edges
+  categorical?: boolean
+  // colored along the ramp between binBoundaries' two entries rather than in
+  // bins
+  continuous?: boolean
+  // store values outside this range are no data, for integer fills that
+  // zarr-layer 0.9 does not mask once scaled (0.11's band textures do; drop
+  // this after the bump)
+  validRange?: [number, number]
   selector?: HazardLayerSelector
 }
 

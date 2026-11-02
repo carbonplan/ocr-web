@@ -1,7 +1,40 @@
+import { Box } from 'theme-ui'
+import {
+  Select,
+  //@ts-expect-error - carbonplan components types not available
+} from '@carbonplan/components'
 import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
+import { FDP_DRIVERS } from '@/lib/hazards/flood'
+
+const DriverSelect = () => {
+  const driver = useStore((state) => state.selectorValues.driver)
+  const setSelectorValues = useStore((state) => state.setSelectorValues)
+
+  return (
+    <Box>
+      How much{' '}
+      <Select
+        value={driver}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setSelectorValues({ driver: Number(e.target.value) })
+        }
+        size='xs'
+        sx={{ mb: ['-5px'] }}
+      >
+        {FDP_DRIVERS.map((d, i) => (
+          <option key={d.short} value={i}>
+            {d.label.toLowerCase()}
+          </option>
+        ))}
+      </Select>{' '}
+      raises or lowers the probability here, along the model&apos;s decision
+      paths.
+    </Box>
+  )
+}
 
 const FloodLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -9,6 +42,10 @@ const FloodLayers = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
 
   const { score, value, color } = useScore(selectedBuilding, 'hinted')
+  // the building query reads the displayed layer, so its value only belongs
+  // on that layer's row
+  const shown = (id: string) => (mapLayer === id ? value : null)
+  const driverClass = shown('dominant_driver')
 
   return (
     <>
@@ -26,11 +63,45 @@ const FloodLayers = () => {
         label='Flood damage probability'
         checked={mapLayer === 'fdp'}
         setChecked={() => setMapLayer('fdp')}
-        value={value}
+        value={shown('fdp')}
         color={color}
         toFixed={1}
       >
         TK
+      </MapLayer>
+      <MapLayer
+        label='Standard error'
+        checked={mapLayer === 'fdp_se'}
+        setChecked={() => setMapLayer('fdp_se')}
+        value={shown('fdp_se')}
+        toFixed={1}
+      >
+        How much the probability here typically moves when the model is refit on
+        a resample of the same flood reports. This understates the real
+        uncertainty: it leaves out new reports, the choice of no-damage points,
+        and errors in the model itself.
+      </MapLayer>
+      <MapLayer
+        label='Driver contribution'
+        checked={mapLayer === 'contribution'}
+        setChecked={() => setMapLayer('contribution')}
+        value={shown('contribution')}
+        toFixed={1}
+      >
+        <DriverSelect />
+      </MapLayer>
+      <MapLayer
+        label='Top driver'
+        checked={mapLayer === 'dominant_driver'}
+        setChecked={() => setMapLayer('dominant_driver')}
+        value={
+          driverClass === null
+            ? null
+            : (FDP_DRIVERS[Math.round(driverClass)]?.short ?? null)
+        }
+        unit='#'
+      >
+        The predictor with the largest contribution to the probability here.
       </MapLayer>
     </>
   )

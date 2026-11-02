@@ -196,7 +196,7 @@ export const useStore = create<Store>((set, get) => ({
     syncHazardUrl(get)
   },
   mapLayer: RISK_LAYER_ID,
-  selectorValues: { return_period: 100 },
+  selectorValues: { return_period: 100, driver: 1 },
   setSelectorValues: (values) =>
     set({ selectorValues: { ...get().selectorValues, ...values } }),
   setMapLayer: (mapLayer) => {
