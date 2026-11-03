@@ -8,7 +8,10 @@ import {
   Scatter,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
-import { Colors } from '@carbonplan/components'
+import {
+  Colors,
+  //@ts-expect-error - carbonplan components types not available
+} from '@carbonplan/components'
 import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
 import { FDP_DRIVERS } from '@/lib/hazards/flood'
