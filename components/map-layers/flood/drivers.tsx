@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Flex } from 'theme-ui'
+import { Box } from 'theme-ui'
+import {
+  Chart,
+  Label,
+  Line,
+  Plot,
+  Scatter,
+  //@ts-expect-error - carbonplan charts types not available
+} from '@carbonplan/charts'
+import { Colors } from '@carbonplan/components'
 import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
 import { FDP_DRIVERS } from '@/lib/hazards/flood'
@@ -9,10 +18,30 @@ import {
   toDisplayUnits,
 } from '@/lib/hazards'
 import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
-import ValueBadge from '../../value-badge'
-import { tableSx } from '../../tooltip-table'
 
 const LAYER_ID = 'contribution'
+
+// Radii in chart units. Spokes run from the center to SPOKE; the dashed ring
+// at ZERO is no contribution, and SCALE (display %) reaches the spoke's tip
+// or the center.
+const ZERO = 0.5
+const SPOKE = 1
+const LABEL = 1.25
+const SCALE = 30
+const DOMAIN = [-1.5, 1.5]
+
+// clockwise from the top, in store order
+const angle = (i: number) => (i / FDP_DRIVERS.length) * 2 * Math.PI
+const polar = (r: number, theta: number): [number, number] => [
+  r * Math.sin(theta),
+  r * Math.cos(theta),
+]
+const toRadius = (value: number) =>
+  ZERO + Math.max(-1, Math.min(1, value / SCALE)) * (SPOKE - ZERO)
+
+const RING = Array.from({ length: 73 }, (_, i) =>
+  polar(ZERO, (i / 72) * 2 * Math.PI),
+)
 
 type DriverQuery =
   | { status: 'idle' | 'loading' | 'error' }
@@ -102,67 +131,115 @@ const Drivers = () => {
   const query = useDriverContributions()
   const values = query.status === 'success' ? query.values : null
 
-  // largest raise first, largest drop last; store order until there are values
-  const rows = useMemo(() => {
-    const rows = FDP_DRIVERS.map((d, i) => ({
-      ...d,
-      index: i,
-      value: values?.[i] ?? null,
-    }))
-    if (!values) return rows
-    return rows.sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity))
+  const lollipops = useMemo(
+    () =>
+      FDP_DRIVERS.flatMap((d, i) => {
+        const value = values?.[i]
+        if (value == null) return []
+        const theta = angle(i)
+        let color = 'secondary'
+        if (value > 0) color = 'blue'
+        if (value < 0) color = 'orange'
+        return [
+          {
+            key: d.short,
+            color,
+            stem: [polar(ZERO, theta), polar(toRadius(value), theta)],
+            dot: polar(toRadius(value), theta),
+          },
+        ]
+      }),
+    [values],
+  )
+
+  const description = useMemo(() => {
+    if (!values) return 'Driver contributions. No point selected.'
+    const steps = FDP_DRIVERS.map((d, i) => {
+      const value = values[i]
+      return value == null
+        ? null
+        : `${d.label}: ${value > 0 ? '+' : ''}${value.toFixed(1)}%`
+    })
+      .filter(Boolean)
+      .join('. ')
+    return `Change in flood damage probability by driver. ${steps}.`
   }, [values])
 
   return (
     <Box>
-      How much each predictor raises or lowers the probability here, along the
-      model&apos;s decision paths. Select one to map it.
-      <Box sx={{ mt: 3 }}>
-        <Flex
-          sx={{
-            ...tableSx.row,
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            py: 1,
-          }}
-        >
-          <Box sx={tableSx.tableHead}>Driver</Box>
-          <Box sx={tableSx.tableHead}>Change</Box>
-        </Flex>
-        {rows.map(({ label, short, index, value }) => {
-          const selected = index === driver
-          return (
-            <Flex
-              key={short}
-              as='button'
-              onClick={() => setSelectorValues({ driver: index })}
-              aria-pressed={selected}
-              sx={{
-                ...tableSx.row,
-                width: '100%',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                gap: 2,
-                py: 2,
-                px: 0,
-                bg: 'transparent',
-                borderTop: 'none',
-                borderLeft: 'none',
-                borderRight: 'none',
-                fontFamily: 'body',
-                fontSize: 'inherit',
-                textAlign: 'left',
-                cursor: 'pointer',
-                color: selected ? 'primary' : 'secondary',
-                transition: 'color 0.2s',
-                '&:hover': { color: 'primary' },
-              }}
-            >
-              <Box>{label}</Box>
-              <ValueBadge value={value} toFixed={1} sx={{ flexShrink: 0 }} />
-            </Flex>
-          )
-        })}
+      How much each predictor <Colors.Blue>raises</Colors.Blue> or{' '}
+      <Colors.Orange>lowers</Colors.Orange> the probability, along the model’s
+      decision paths. Click on a driver to map it.
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 320,
+          aspectRatio: '1 / 1',
+          mx: 'auto',
+          mt: 3,
+          // each Label sits in a wrapper the size of the whole chart, so the
+          // last one would swallow every other label's clicks
+          '& div:not([role=button])': { pointerEvents: 'none' },
+        }}
+      >
+        <Chart x={DOMAIN} y={DOMAIN} padding={{ left: 0, bottom: 0 }}>
+          <Plot role='img' aria-label={description}>
+            {FDP_DRIVERS.map((d, i) => (
+              <Line
+                key={d.short}
+                data={[[0, 0], polar(SPOKE, angle(i))]}
+                color={i === driver ? 'secondary' : 'muted'}
+              />
+            ))}
+            <Line
+              data={RING}
+              color='secondary'
+              sx={{ strokeDasharray: '3 3' }}
+            />
+            {lollipops.map(({ key, color, stem, dot }) => (
+              <g key={key}>
+                <Line data={stem} color={color} width={2.5} />
+                <Scatter data={[dot]} color={color} size={8} />
+              </g>
+            ))}
+          </Plot>
+          {FDP_DRIVERS.map((d, i) => {
+            const [x, y] = polar(LABEL, angle(i))
+            const selected = i === driver
+            return (
+              <Label
+                key={d.short}
+                x={x}
+                y={y}
+                align='center'
+                verticalAlign='middle'
+                width={0.6}
+                height={0.2}
+                role='button'
+                tabIndex={0}
+                aria-pressed={selected}
+                aria-label={`Map ${d.label}`}
+                title={d.label}
+                onClick={() => setSelectorValues({ driver: i })}
+                onKeyDown={(e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectorValues({ driver: i })
+                  }
+                }}
+                sx={{
+                  cursor: 'pointer',
+                  pointerEvents: 'auto',
+                  color: selected ? 'primary' : 'secondary',
+                  transition: 'color 0.2s',
+                  '&:hover': { color: 'primary' },
+                }}
+              >
+                {d.label}
+              </Label>
+            )
+          })}
+        </Chart>
       </Box>
       {query.status === 'error' && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
