@@ -3,10 +3,6 @@ import { HazardConfig } from './types'
 
 const VERSION = 'v2.0.0'
 
-const FDP_BASE =
-  process.env.NEXT_PUBLIC_FLOOD_ZARR_BASE ??
-  'https://carbonplan-ocr.s3.amazonaws.com/ocr-explore/FDP/processed'
-
 const OUTPUT =
   process.env.NEXT_PUBLIC_FLOOD_OUTPUT_URL ??
   `${OCR_BUCKET_URL}/output/flood/${VERSION}`
@@ -32,7 +28,8 @@ const flood: HazardConfig = {
   // the model carries no climate scenario dimension
   datasets: {
     current: {
-      source: `${FDP_BASE}/flood_damage_probability`,
+      source: `${OUTPUT}/store.icechunk`,
+      store: 'icechunk',
       variable: 'fdp',
     },
   },
