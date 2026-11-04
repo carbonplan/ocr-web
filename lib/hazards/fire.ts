@@ -1,5 +1,16 @@
-import { DATA_URLS, PARQUET_BUCKET_URL } from '@/lib/config'
+import { OCR_BUCKET_URL, SOURCE_COOP_URL } from '@/lib/config'
 import { HazardConfig } from './types'
+
+const VERSION = 'v1.1.0'
+
+const output = (path: string) =>
+  `${SOURCE_COOP_URL}/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${VERSION}/${path}`
+
+const LOD_BASE = `${OCR_BUCKET_URL}/ocr-explore/geoparquet-lod/fire-risk/${VERSION}`
+
+const PYRAMID =
+  process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
+  `${SOURCE_COOP_URL}/carbonplan/carbonplan-ocr/output/fire-risk/pyramid/production/${VERSION}/pyramid.zarr`
 
 const fire: HazardConfig = {
   id: 'fire',
@@ -24,8 +35,8 @@ const fire: HazardConfig = {
     latIsAscending: true,
   },
   datasets: {
-    current: { source: DATA_URLS.raster, variable: 'rps_2011' },
-    future: { source: DATA_URLS.raster, variable: 'rps_2047' },
+    current: { source: PYRAMID, variable: 'rps_2011' },
+    future: { source: PYRAMID, variable: 'rps_2047' },
   },
   timePeriodLabels: {
     current: '2004-2018',
@@ -39,11 +50,26 @@ const fire: HazardConfig = {
       binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
     },
   ],
-  regionalData: {
-    statsBase: DATA_URLS.regionAnalysisBase,
-    parquetBase: DATA_URLS.parquetBase,
-    parquetBucketUrl: PARQUET_BUCKET_URL,
-    columns: [
+  vector: {
+    version: VERSION,
+    buildings:
+      process.env.NEXT_PUBLIC_BUILDING_URL ??
+      `${LOD_BASE}/buildings-5f4556a.lod.parquet`,
+    regions:
+      process.env.NEXT_PUBLIC_REGIONS_URL ?? `${LOD_BASE}/regions-full-county`,
+    histColumns: {
+      rps_2011: 'risk_score_2011_hist',
+      rps_2047: 'risk_score_2047_hist',
+    },
+    statsBase: output('region-analysis'),
+    detailColumns: [
+      'bp_2011',
+      'bp_2047',
+      'crps_scott',
+      'bp_2011_riley',
+      'bp_2047_riley',
+    ],
+    downloadColumns: [
       'rps_2011',
       'rps_2047',
       'bp_2011',

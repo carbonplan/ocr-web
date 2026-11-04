@@ -43,13 +43,20 @@ const TOOLTIPS = {
 
 const TimeHorizons = () => {
   const risk = useStore((state) =>
-    getRiskScore(state.selectedBuilding, state.timePeriod),
+    getRiskScore(
+      state.selectedBuilding?.properties ?? null,
+      state.riskConfig,
+      state,
+    ),
   )
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
+    getAdjustedBurnProbability(
+      state.selectedBuilding?.properties ?? null,
+      state.timePeriod,
+    ),
   )
   const conditionalRisk = useStore((state) =>
-    getConditionalRiskUsfs(state.selectedBuilding),
+    getConditionalRiskUsfs(state.selectedBuilding?.properties ?? null),
   )
   const timePeriod = useStore((state) => state.timePeriod)
 

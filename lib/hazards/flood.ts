@@ -1,4 +1,7 @@
+import { OCR_BUCKET_URL } from '@/lib/config'
 import { HazardConfig } from './types'
+
+const VERSION = 'v2.0.0'
 
 const FDP_BASE =
   process.env.NEXT_PUBLIC_FLOOD_ZARR_BASE ??
@@ -26,6 +29,10 @@ export const FDP_DRIVERS = [
 
 const DRIVER_INDICES = FDP_DRIVERS.map((_, i) => i)
 
+const OUTPUT =
+  process.env.NEXT_PUBLIC_FLOOD_OUTPUT_URL ??
+  `${OCR_BUCKET_URL}/output/flood/${VERSION}`
+
 const flood: HazardConfig = {
   id: 'flood',
   label: 'Flood',
@@ -39,8 +46,7 @@ const flood: HazardConfig = {
   binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
   // fdp is stored as a probability in [0, 1]
   unitScale: 100,
-  buildingsMode: 'query',
-  pointQuery: 'raster',
+  buildingsMode: 'attributes',
   axisLabel: 'Flood damage probability',
   rasterOptions: {
     zarrVersion: 3,
@@ -54,6 +60,13 @@ const flood: HazardConfig = {
   },
   timePeriodLabels: {
     current: '2006-2025',
+  },
+  vector: {
+    version: VERSION,
+    buildings: `${OUTPUT}/vector/buildings.geoparquet`,
+    regions: `${OUTPUT}/vector/regions`,
+    detailColumns: [],
+    downloadColumns: ['fdp'],
   },
   mapLayers: [
     {

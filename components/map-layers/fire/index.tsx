@@ -17,10 +17,13 @@ const FireLayers = () => {
   const { score, value, color } = useScore(selectedBuilding, 'hinted')
 
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
+    getAdjustedBurnProbability(
+      state.selectedBuilding?.properties ?? null,
+      state.timePeriod,
+    ),
   )
   const conditionalRisk = useStore((state) =>
-    getConditionalRiskUsfs(state.selectedBuilding),
+    getConditionalRiskUsfs(state.selectedBuilding?.properties ?? null),
   )
 
   return (
