@@ -95,11 +95,7 @@ const ZarrLayer = () => {
         clim: colorLimits.bounds,
         customFrag,
         opacity: 1,
-        onLoadingStateChange: (state) => {
-          setZarrLoading(state.loading)
-          // a static map won't repaint on its own once chunk loads land
-          map.triggerRepaint()
-        },
+        onLoadingStateChange: (state) => setZarrLoading(state.loading),
         ...(riskConfig.rasterOptions ?? {}),
       })
 
