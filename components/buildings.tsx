@@ -11,6 +11,7 @@ import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { BUILDING_SELECT_MIN_ZOOM, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getRiskVariable } from '@/lib/risk-utils'
+import { getMapLayer } from '@/lib/hazards'
 import { buildingTileUrl } from '@/lib/risk-layers'
 import { Building } from '@/types/location'
 
@@ -23,7 +24,12 @@ const Buildings = () => {
   const colorLimits = useStore((state) => state.colorLimits)
   const riskConfig = useStore((state) => state.riskConfig)
   const buildingsMode = riskConfig.buildingsMode
-  const outlined = buildingsMode === 'query'
+  // outlines over the raster, as in query mode, while a layer of another
+  // quantity is shown: the tiles carry only the risk variables
+  const showsOtherQuantity = useStore(
+    (state) => !!getMapLayer(state.riskConfig, state.mapLayer)?.variable,
+  )
+  const outlined = buildingsMode === 'query' || showsOtherQuantity
   const unitScale = riskConfig.unitScale
   const { selectBuilding, selectArea, highlightBuildingAtLocation } =
     useBuildingUtils()

@@ -5,6 +5,7 @@ import {
   getConditionalRiskUsfs,
 } from '@/lib/risk-utils'
 import { useScore } from '@/hooks/useScore'
+import { useLayerColor } from '@/hooks/useLayerColor'
 import { RISK_LAYER_ID } from '@/lib/hazards'
 import FireRisk from './fire-risk'
 import RiskOfLoss from './risk-of-loss'
@@ -25,6 +26,8 @@ const FireLayers = () => {
   const conditionalRisk = useStore((state) =>
     getConditionalRiskUsfs(state.selectedBuilding?.properties ?? null),
   )
+  const bpColor = useLayerColor('bp', bp)
+  const conditionalRiskColor = useLayerColor('crps', conditionalRisk)
 
   return (
     <>
@@ -49,16 +52,18 @@ const FireLayers = () => {
       </MapLayer>
       <MapLayer
         label='Burn probability'
-        checked={false}
+        checked={mapLayer === 'bp'}
         unit='#'
-        setChecked={() => {}}
+        setChecked={() => setMapLayer('bp')}
         value={bp}
+        color={bpColor}
       ></MapLayer>
       <MapLayer
         label='Conditional risk'
-        checked={false}
-        setChecked={() => {}}
+        checked={mapLayer === 'crps'}
+        setChecked={() => setMapLayer('crps')}
         value={conditionalRisk}
+        color={conditionalRiskColor}
         toFixed={1}
       ></MapLayer>
       <MapLayer

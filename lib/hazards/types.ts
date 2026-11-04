@@ -62,7 +62,8 @@ export type HazardLayerSelector = {
 // loss (e.g. wind speed), read from a different variable in the same stores.
 export type HazardMapLayer = {
   id: string
-  variable?: string
+  // one per time period when the quantity is stored per climate (e.g. bp_2011, bp_2047)
+  variable?: string | Partial<Record<ScenarioKey, string>>
   // values are multiplied by unitScale into this unit
   unit: string
   unitScale: number

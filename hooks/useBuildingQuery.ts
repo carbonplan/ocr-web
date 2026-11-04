@@ -1,7 +1,11 @@
 import { useEffect } from 'react'
 import { centerOfMass } from '@turf/turf'
 import { useStore, BuildingQueryState } from '@/lib/store'
-import { getMapLayer, getUnitScale, resolveHazardDataset } from '@/lib/hazards'
+import {
+  getUnitScale,
+  resolveHazardDataset,
+  resolveLayerVariable,
+} from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
 import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 
@@ -36,8 +40,10 @@ export const useBuildingQuery = () => {
           number,
         ])
 
-    const variable =
-      getMapLayer(riskConfig, mapLayerId)?.variable ?? dataset.variable
+    const variable = resolveLayerVariable(riskConfig, mapLayerId, {
+      timePeriod,
+      futureWindow,
+    })
 
     setBuildingQuery({ status: 'loading' })
 

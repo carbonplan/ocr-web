@@ -43,6 +43,30 @@ const fire: HazardConfig = {
       unitScale: 1,
       binBoundaries: [0, 0.01, 0.02, 0.035, 0.06, 0.1, 0.2, 0.5, 1, 3],
     },
+    {
+      id: 'bp',
+      variable: { current: 'bp_2011', future: 'bp_2047' },
+      unit: '#',
+      unitScale: 1,
+      // annual probability; half of burnable land is below 0.001
+      binBoundaries: [
+        0, 0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05,
+      ],
+      axisLabel: 'Burn probability',
+      // its own colorbar: bins are not risk scores, and have no names
+      customColormap: true,
+      binLabels: Array(10).fill(''),
+    },
+    {
+      id: 'crps',
+      variable: 'crps_scott',
+      unit: '%',
+      unitScale: 1,
+      binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
+      axisLabel: 'Conditional risk',
+      customColormap: true,
+      binLabels: Array(10).fill(''),
+    },
   ],
   vector: {
     version: VERSION,
