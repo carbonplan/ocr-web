@@ -25,13 +25,26 @@ export type HazardRasterOptions = {
   proj4?: string
 }
 
-// Absent while a hazard's regional data is still in production.
-export type RegionalDataConfig = {
-  statsBase: string
-  parquetBase: string
-  parquetBucketUrl: string
-  // value columns in the geoparquet, beyond GEOID + centroid
-  columns: string[]
+// The pipeline's vector outputs. Attributes-mode tiles carry each dataset
+// variable, and region files summarize it as `${variable}_median` and
+// `${variable}_hist`.
+export type HazardVectorData = {
+  version: string
+  // geoparquet-lod file of building footprints; feature ids are its row
+  // numbers, so they differ between files
+  buildings: string
+  // region GeoParquet: nation.parquet, states.parquet, counties partitioned by
+  // state, tracts and blocks by county. Absent while a hazard's regions are
+  // still in production.
+  regions?: string
+  // hist column by variable, for region files written before `${variable}_hist`
+  histColumns?: Record<string, string>
+  // per-level stats.csv and stats.geojson
+  statsBase?: string
+  // building columns read by row on selection, beyond the dataset variables
+  detailColumns: string[]
+  // building columns in region downloads
+  downloadColumns: string[]
 }
 
 export type SelectorDimension = 'return_period'
@@ -84,7 +97,7 @@ export type HazardConfig = {
   // them (e.g. fraction/yr -> %)
   binBoundaries: number[]
   unitScale: number
-  // 'attributes': buildings colored from pmtiles properties;
+  // 'attributes': buildings colored from the tiles' dataset variables;
   // 'query': buildings transparent, values read from the zarr at their centroid
   buildingsMode: 'attributes' | 'query'
   pointQuery?: PointQuerySource
@@ -97,6 +110,6 @@ export type HazardConfig = {
     current: string
     future?: string | Record<FutureWindow, string>
   }
-  regionalData?: RegionalDataConfig
+  vector: HazardVectorData
   mapLayers?: HazardMapLayer[]
 }

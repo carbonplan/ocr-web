@@ -9,8 +9,11 @@ const RiskCalculation = () => {
   const data = useStore(
     useShallow(
       (state) =>
-        getGeographyRisk(state.activeGeographies.nation, state.timePeriod) ??
-        [],
+        getGeographyRisk(
+          state.activeGeographies.nation,
+          state.riskConfig,
+          state,
+        ) ?? [],
     ),
   )
   const selectedBuilding = useStore((state) => state.selectedBuilding)

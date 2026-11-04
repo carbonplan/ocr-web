@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import type { ZarrLayer } from '@carbonplan/zarr-layer'
-import { ensureSourceLoaded } from './map-utils'
 import type { ChazPointData } from './chaz-query'
 import {
   Location,
@@ -10,7 +9,8 @@ import {
   Geography,
   GeographyKey,
 } from '../types/location'
-import { GEOGRAPHY_MIN_ZOOM, LAYERS } from './config'
+import { LAYERS } from './config'
+import { lookupGeographies, lookupGeographiesById } from './region-lookup'
 import {
   DEFAULT_HAZARD,
   RISKS,
@@ -30,6 +30,28 @@ import {
 export type BuildingQueryState =
   | { status: 'idle' | 'loading' | 'error' }
   | { status: 'success'; value: number; detail?: ChazPointData }
+
+// Region lookups resolve out of order; only the latest one is applied.
+let geographyQuery = 0
+// The last region query, run again when the panel level or the hazard changes.
+let lastGeographyQuery:
+  | { kind: 'point'; lng: number; lat: number }
+  | { kind: 'id'; geoid: string }
+  | null = null
+
+const NO_GEOGRAPHIES = {
+  county: null,
+  censusTract: null,
+  censusBlock: null,
+  state: null,
+  nation: null,
+}
+
+const repeatGeographyQuery = (get: () => Store) => {
+  const last = lastGeographyQuery
+  if (last?.kind === 'point') get().queryGeographiesAtPoint(last.lng, last.lat)
+  if (last?.kind === 'id') get().queryGeographiesById(last.geoid)
+}
 
 const syncHazardUrl = (get: () => Store) => {
   const { hazard, futureWindow, mapLayer } = get()
@@ -69,22 +91,6 @@ type Store = {
   setHasManuallySelectedGeography: (value: boolean) => void
   showGeographyHighlight: boolean
   setShowGeographyHighlight: (show: boolean) => void
-  geographyLayerVisibility: {
-    building: boolean
-    county: boolean
-    censusTract: boolean
-    censusBlock: boolean
-    state: boolean
-    nation: boolean
-  }
-  setGeographyLayerVisibility: (geographyLayerVisibility: {
-    building: boolean
-    county: boolean
-    censusTract: boolean
-    censusBlock: boolean
-    state: boolean
-    nation: boolean
-  }) => void
   timePeriod: 'current' | 'future'
   setTimePeriod: (timePeriod: 'current' | 'future') => void
   hazard: HazardId
@@ -122,6 +128,11 @@ type Store = {
   advancedMode: boolean
   toggleAdvancedMode: () => void
   queryGeographiesAtPoint: (lng: number, lat: number) => void
+  queryGeographiesById: (blockGeoid: string) => void
+  cancelGeographyQueries: () => void
+  // a region lookup is under way; the panel shows a spinner rather than "no data"
+  geographiesLoading: boolean
+  setGeographiesLoading: (loading: boolean) => void
   clearSelections: () => void
 }
 
@@ -150,22 +161,17 @@ export const useStore = create<Store>((set, get) => ({
       activeGeographies: { county, censusTract, censusBlock, state, nation },
     }),
   selectedGeographyLevel: 'nation',
-  setSelectedGeographyLevel: (level) => set({ selectedGeographyLevel: level }),
+  setSelectedGeographyLevel: (level) => {
+    if (get().selectedGeographyLevel === level) return
+    set({ selectedGeographyLevel: level })
+    // lookups read only the level shown, so a new level is looked up again
+    repeatGeographyQuery(get)
+  },
   hasManuallySelectedGeography: false,
   setHasManuallySelectedGeography: (value) =>
     set({ hasManuallySelectedGeography: value }),
   showGeographyHighlight: false,
   setShowGeographyHighlight: (show) => set({ showGeographyHighlight: show }),
-  geographyLayerVisibility: {
-    building: true,
-    county: false,
-    censusTract: false,
-    censusBlock: false,
-    state: false,
-    nation: false,
-  },
-  setGeographyLayerVisibility: (geographyLayerVisibility) =>
-    set({ geographyLayerVisibility }),
   timePeriod: 'current',
   setTimePeriod: (timePeriod) => set({ timePeriod }),
   hazard: DEFAULT_HAZARD,
@@ -189,6 +195,8 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
     })
     syncHazardUrl(get)
+    // each hazard summarizes its own region files
+    repeatGeographyQuery(get)
   },
   futureWindow: 'fut1',
   setFutureWindow: (futureWindow) => {
@@ -241,49 +249,59 @@ export const useStore = create<Store>((set, get) => ({
   toggleAdvancedMode: () =>
     set((state) => ({ advancedMode: !state.advancedMode })),
   queryGeographiesAtPoint: async (lng: number, lat: number) => {
-    const { map } = get()
+    const { map, riskConfig, selectedGeographyLevel } = get()
     if (!map) return
-
-    await ensureSourceLoaded(map, LAYERS.regions.sourceId)
-
-    const zoom = map.getZoom()
-    const point = map.project([lng, lat])
-
-    const queryIfZoom = (
-      minZoom: number,
-      layers: string[],
-    ): Geography | null => {
-      if (zoom < minZoom) return null
-      const features = map.queryRenderedFeatures(point, { layers })
-      return features.length > 0 ? (features[0].properties as Geography) : null
+    const query = ++geographyQuery
+    lastGeographyQuery = { kind: 'point', lng, lat }
+    set({ geographiesLoading: true })
+    try {
+      const activeGeographies = await lookupGeographies(
+        riskConfig,
+        lng,
+        lat,
+        map.getZoom(),
+        selectedGeographyLevel,
+      )
+      if (query === geographyQuery)
+        set({ activeGeographies, geographiesLoading: false })
+    } catch (error) {
+      console.error('Region lookup failed:', error)
+      // show no regions rather than the last location's
+      if (query === geographyQuery)
+        set({ activeGeographies: NO_GEOGRAPHIES, geographiesLoading: false })
     }
-
-    // Query nation from source tiles directly (rendered features can miss)
-    const queryNation = (): Geography | null => {
-      const features = map.querySourceFeatures(LAYERS.nation.sourceId, {
-        sourceLayer: LAYERS.nation.layerName,
-      })
-      return features.length > 0 ? (features[0].properties as Geography) : null
-    }
-
-    set({
-      activeGeographies: {
-        nation: queryNation(),
-        state: queryIfZoom(GEOGRAPHY_MIN_ZOOM.state, [
-          LAYERS.states.layerIds.fill,
-        ]),
-        county: queryIfZoom(GEOGRAPHY_MIN_ZOOM.county, [
-          LAYERS.counties.layerIds.fill,
-        ]),
-        censusTract: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusTract, [
-          LAYERS.censusTracts.layerIds.fill,
-        ]),
-        censusBlock: queryIfZoom(GEOGRAPHY_MIN_ZOOM.censusBlock, [
-          LAYERS.censusBlocks.layerIds.fill,
-        ]),
-      },
-    })
   },
+  queryGeographiesById: async (blockGeoid: string) => {
+    const { map, riskConfig, selectedGeographyLevel } = get()
+    if (!map) return
+    const query = ++geographyQuery
+    lastGeographyQuery = { kind: 'id', geoid: blockGeoid }
+    set({ geographiesLoading: true })
+    try {
+      const activeGeographies = await lookupGeographiesById(
+        riskConfig,
+        blockGeoid,
+        map.getZoom(),
+        selectedGeographyLevel,
+      )
+      if (query === geographyQuery)
+        set({ activeGeographies, geographiesLoading: false })
+    } catch (error) {
+      console.error('Region lookup failed:', error)
+      if (query === geographyQuery)
+        set({ activeGeographies: NO_GEOGRAPHIES, geographiesLoading: false })
+    }
+  },
+  // as when another building is selected: lookups in flight no longer apply,
+  // and the regions shown belong to the last selection, so they are cleared
+  cancelGeographyQueries: () => {
+    geographyQuery++
+    // the selection's own lookup follows; a level change meanwhile has nothing to repeat
+    lastGeographyQuery = null
+    set({ activeGeographies: NO_GEOGRAPHIES, geographiesLoading: true })
+  },
+  geographiesLoading: false,
+  setGeographiesLoading: (geographiesLoading) => set({ geographiesLoading }),
   clearSelections: () => {
     set({
       selectedLocation: null,

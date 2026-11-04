@@ -60,3 +60,22 @@ export const resolveHazardDataset = (
     ? (future as HazardDataset)
     : (future as Record<string, HazardDataset>)[selection.futureWindow]
 }
+
+/** Every variable the hazard's datasets show, once each. */
+export const getDatasetVariables = (hazard: HazardConfig): string[] => {
+  const { current, future } = hazard.datasets
+  let futures: HazardDataset[] = []
+  if (future && 'source' in future) futures = [future as HazardDataset]
+  else if (future)
+    futures = Object.values(future as Record<string, HazardDataset>)
+  return [...new Set([current, ...futures].map((d) => d.variable))]
+}
+
+/** The building columns map tiles carry for coloring. */
+export const getTileVariables = (hazard: HazardConfig): string[] =>
+  hazard.buildingsMode === 'attributes' ? getDatasetVariables(hazard) : []
+
+export const getMedianColumn = (variable: string) => `${variable}_median`
+
+export const getHistColumn = (hazard: HazardConfig, variable: string) =>
+  hazard.vector.histColumns?.[variable] ?? `${variable}_hist`
