@@ -42,10 +42,11 @@ export const useScore = (
   const selection = { timePeriod, futureWindow }
   if (geo && 'buildingCount' in geo) {
     value = getGeographyMedian(geo, riskConfig, selection)
-  } else if (buildingsMode === 'query') {
-    if (geo || selectedArea) {
-      value = buildingQuery.status === 'success' ? buildingQuery.value : null
-    }
+  } else if (
+    buildingsMode === 'query' ? geo || selectedArea : !geo && selectedArea
+  ) {
+    // queried at the building or point; an attributes-mode building carries its own
+    value = buildingQuery.status === 'success' ? buildingQuery.value : null
   } else if (geo) {
     value = getRiskScore(geo.properties, riskConfig, selection)
   }

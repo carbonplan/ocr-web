@@ -230,14 +230,12 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
-      } else if (buildingsMode === 'query') {
-        // the raster is coarse enough that any point is meaningful
-        selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
-        clearSelections()
+        // every hazard has a raster to read a point from
+        selectArea(e.lngLat.lng, e.lngLat.lat)
       }
     },
-    [map, selectBuilding, selectArea, clearSelections, buildingsMode],
+    [map, selectBuilding, selectArea],
   )
 
   useEffect(() => {
