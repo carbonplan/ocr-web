@@ -1,4 +1,5 @@
 import { HazardConfig } from './types'
+import fire from './fire'
 
 const CHAZ_BASE =
   process.env.NEXT_PUBLIC_WIND_ZARR_BASE ??
@@ -50,6 +51,13 @@ const wind: HazardConfig = {
       fut1: '2041-2060',
       fut2: '2081-2100',
     },
+  },
+  // no wind building outputs yet: fire's footprints, without its columns
+  vector: {
+    version: fire.vector.version,
+    buildings: fire.vector.buildings,
+    detailColumns: [],
+    downloadColumns: [],
   },
   mapLayers: [
     {

@@ -10,6 +10,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
+import { PROTOCOL, prefetch, registerProtocol } from 'geoparquet-lod/maplibre'
 import { Box, useThemeUI } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'
@@ -18,9 +19,8 @@ import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { useBuildingQuery } from '@/hooks/useBuildingQuery'
 import {
   Buildings,
-  BuildingPoints,
+  RegionHighlight,
   SelectionMarker,
-  GeographyLayer,
   SatelliteLayer,
   HillshadeLayer,
   ZarrLayer,
@@ -30,6 +30,7 @@ import {
 import { LAYERS } from '@/lib/config'
 import { ensureSourceLoaded } from '@/lib/map-utils'
 import { getRiskSources, insertRiskLayers } from '@/lib/risk-layers'
+import { prefetchRegions } from '@/lib/region-lookup'
 import {
   getMapViewFromQuery,
   updateMapViewUrl,
@@ -37,7 +38,16 @@ import {
   getAreaCoordinatesFromQuery,
   getHazardFromQuery,
 } from '@/lib/url-utils'
-import { DEFAULT_HAZARD, RISK_LAYER_ID, RISKS } from '@/lib/hazards'
+import { DEFAULT_HAZARD, RISK_LAYER_ID, RISKS, isHazardId } from '@/lib/hazards'
+
+// Open the linked hazard's buildings and region files while the page
+// hydrates, before the map asks for tiles or regions.
+if (typeof window !== 'undefined') {
+  const linked = new URLSearchParams(window.location.search).get('hazard')
+  const hazard = RISKS[linked && isHazardId(linked) ? linked : DEFAULT_HAZARD]
+  prefetch(hazard.vector.buildings)
+  prefetchRegions(hazard)
+}
 
 const MapComponent = () => {
   const router = useRouter()
@@ -92,6 +102,7 @@ const MapComponent = () => {
     setMapLoading(true)
     const protocol = new Protocol()
     addProtocol('pmtiles', protocol.tile)
+    registerProtocol({ addProtocol })
 
     const queryView = getMapViewFromQuery(router.query)
     const initialView = queryView || {
@@ -107,7 +118,10 @@ const MapComponent = () => {
         attribution:
           '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org">OpenStreetMap</a>',
       },
-      ...getRiskSources(),
+      // the store may not hold the linked hazard yet; Buildings follows it after
+      ...getRiskSources(
+        RISKS[getHazardFromQuery(router.query)?.hazard ?? DEFAULT_HAZARD],
+      ),
     }
 
     const orderedLayers = insertRiskLayers(mapLayers)
@@ -166,6 +180,7 @@ const MapComponent = () => {
       newMap.off('idle', handleLoadingOff)
       newMap.remove()
       removeProtocol('pmtiles')
+      removeProtocol(PROTOCOL)
       setMap(null)
       setStyleLoaded(false)
     }
@@ -214,11 +229,7 @@ const MapComponent = () => {
   // initial region query
   useEffect(() => {
     if (!map) return
-    const init = async () => {
-      await ensureSourceLoaded(map, LAYERS.regions.sourceId)
-      updateGeographies()
-    }
-    init()
+    updateGeographies()
   }, [map, updateGeographies])
 
   useEffect(() => {
@@ -243,10 +254,8 @@ const MapComponent = () => {
     if (!map || !router.isReady || restoredSelection.current) return
     restoredSelection.current = true
 
-    const hazard = getHazardFromQuery(router.query)?.hazard ?? DEFAULT_HAZARD
-
     const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
-    if (areaCoordinates && RISKS[hazard].buildingsMode === 'query') {
+    if (areaCoordinates) {
       const initArea = async () => {
         await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
         selectArea(areaCoordinates.lng, areaCoordinates.lat)
@@ -298,19 +307,8 @@ const MapComponent = () => {
           {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') && (
             <ZarrLayer />
           )}
-          <GeographyLayer config={LAYERS.counties} geographyKey='county' />
-          <GeographyLayer
-            config={LAYERS.censusTracts}
-            geographyKey='censusTract'
-          />
-          <GeographyLayer
-            config={LAYERS.censusBlocks}
-            geographyKey='censusBlock'
-          />
-          <GeographyLayer config={LAYERS.states} geographyKey='state' />
-          <GeographyLayer config={LAYERS.nation} geographyKey='nation' />
+          <RegionHighlight />
           <Buildings />
-          <BuildingPoints />
           <SelectionMarker />
         </>
       )}

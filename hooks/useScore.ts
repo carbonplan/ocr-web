@@ -1,12 +1,11 @@
 import { useShallow } from 'zustand/shallow'
 
 import { Geography, Building } from '@/types/location'
-import { GEOGRAPHY_ATTRIBUTE_KEYS } from '@/lib/config'
 import { useStore } from '@/lib/store'
 import { getMapLayer } from '@/lib/hazards'
 import { useColormap } from '@/lib/colormaps'
 import { useMemo } from 'react'
-import { getGeographyMedianRiskKey, getRiskScore } from '@/lib/risk-utils'
+import { getGeographyMedian, getRiskScore } from '@/lib/risk-utils'
 
 // colorLimits follows the displayed map layer; its bins only describe the score
 // when that layer has no `variable` of its own, and so renders the same
@@ -31,25 +30,25 @@ export const useScore = (
   fallbackColor: string = 'secondary',
 ) => {
   const timePeriod = useStore((state) => state.timePeriod)
-  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
+  const futureWindow = useStore((state) => state.futureWindow)
+  const riskConfig = useStore((state) => state.riskConfig)
+  const buildingsMode = riskConfig.buildingsMode
   const buildingQuery = useStore((state) => state.buildingQuery)
   const selectedArea = useStore((state) => state.selectedArea)
   const { bins, min } = useScoreLimits()
   const colormap = useColormap({ count: bins.length })
 
   let value: number | null = null
-  const isGeography =
-    geo &&
-    GEOGRAPHY_ATTRIBUTE_KEYS.building_count in geo &&
-    GEOGRAPHY_ATTRIBUTE_KEYS.geoid in geo
-  if (isGeography) {
-    value = Number(geo[getGeographyMedianRiskKey(timePeriod)])
-  } else if (buildingsMode === 'query') {
-    if (geo || selectedArea) {
-      value = buildingQuery.status === 'success' ? buildingQuery.value : null
-    }
+  const selection = { timePeriod, futureWindow }
+  if (geo && 'buildingCount' in geo) {
+    value = getGeographyMedian(geo, riskConfig, selection)
+  } else if (
+    buildingsMode === 'query' ? geo || selectedArea : !geo && selectedArea
+  ) {
+    // queried at the building or point; an attributes-mode building carries its own
+    value = buildingQuery.status === 'success' ? buildingQuery.value : null
   } else if (geo) {
-    value = getRiskScore(geo, timePeriod)
+    value = getRiskScore(geo.properties, riskConfig, selection)
   }
 
   const score = useMemo(() => {

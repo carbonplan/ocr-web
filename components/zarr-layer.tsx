@@ -2,8 +2,14 @@ import { useMemo, useEffect, useRef } from 'react'
 import { useColormap } from '@/lib/colormaps'
 import { useStore } from '@/lib/store'
 import { ZarrLayer as ZarrLayerClass } from '@carbonplan/zarr-layer'
-import { getMapLayer, getUnitScale, resolveHazardDataset } from '@/lib/hazards'
+import {
+  getMapLayer,
+  getUnitScale,
+  resolveHazardDataset,
+  resolveLayerVariable,
+} from '@/lib/hazards'
 import { getZarrLayerId } from '@/lib/raster-query'
+import { openIcechunkStore } from '@/lib/icechunk'
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
@@ -17,7 +23,10 @@ const ZarrLayer = () => {
   const mapLayerId = useStore((state) => state.mapLayer)
   const activeLayer = getMapLayer(riskConfig, mapLayerId)
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
-  const variable = activeLayer?.variable ?? dataset.variable
+  const variable = resolveLayerVariable(riskConfig, mapLayerId, {
+    timePeriod,
+    futureWindow,
+  })
   const unitScale = getUnitScale(riskConfig, mapLayerId)
   const selectorDim = activeLayer?.selector?.dim
   const selectorValue = useStore((state) =>
@@ -66,31 +75,45 @@ const ZarrLayer = () => {
     if (!map) return
 
     const layerId = getZarrLayerId(dataset.source, variable)
-    const layer = new ZarrLayerClass({
-      id: layerId,
-      source: dataset.source,
-      variable,
-      ...(selectorDim && typeof selectorValue === 'number'
-        ? { selector: { [selectorDim]: selectorValue } }
-        : {}),
-      colormap,
-      clim: colorLimits.bounds,
-      customFrag,
-      opacity: 1,
-      onLoadingStateChange: (state) => {
-        setZarrLoading(state.loading)
-        // a static map won't repaint on its own once chunk loads land
-        map.triggerRepaint()
-      },
-      ...(riskConfig.rasterOptions ?? {}),
+    let cancelled = false
+
+    const addLayer = async () => {
+      const store =
+        dataset.store === 'icechunk'
+          ? await openIcechunkStore(dataset.source)
+          : undefined
+      if (cancelled) return
+
+      const layer = new ZarrLayerClass({
+        id: layerId,
+        ...(store ? { store } : { source: dataset.source }),
+        variable,
+        ...(selectorDim && typeof selectorValue === 'number'
+          ? { selector: { [selectorDim]: selectorValue } }
+          : {}),
+        colormap,
+        clim: colorLimits.bounds,
+        customFrag,
+        opacity: 1,
+        onLoadingStateChange: (state) => setZarrLoading(state.loading),
+        ...(riskConfig.rasterOptions ?? {}),
+      })
+
+      layerRef.current = layer
+      map.addLayer(layer, 'hillshade')
+      map.triggerRepaint()
+      setZarrLayer(layer)
+    }
+
+    setZarrLoading(true)
+    addLayer().catch((err) => {
+      if (cancelled) return
+      console.error('failed to open raster store', err)
+      setZarrLoading(false)
     })
 
-    layerRef.current = layer
-    map.addLayer(layer, 'hillshade')
-    map.triggerRepaint()
-    setZarrLayer(layer)
-
     return () => {
+      cancelled = true
       if (map.getLayer(layerId)) {
         map.removeLayer(layerId)
       }
@@ -99,7 +122,7 @@ const ZarrLayer = () => {
       setZarrLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, customFrag, dataset.source])
+  }, [map, customFrag, dataset.source, dataset.store])
 
   useEffect(() => {
     layerRef.current?.setColormap(colormap)

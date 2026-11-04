@@ -4,6 +4,7 @@ import {
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
   getRiskScore,
+  getSelectionProperties,
 } from '@/lib/risk-utils'
 import TooltipTable from '../../tooltip-table'
 import { useMemo } from 'react'
@@ -43,13 +44,13 @@ const TOOLTIPS = {
 
 const TimeHorizons = () => {
   const risk = useStore((state) =>
-    getRiskScore(state.selectedBuilding, state.timePeriod),
+    getRiskScore(getSelectionProperties(state), state.riskConfig, state),
   )
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(state.selectedBuilding, state.timePeriod),
+    getAdjustedBurnProbability(getSelectionProperties(state), state.timePeriod),
   )
   const conditionalRisk = useStore((state) =>
-    getConditionalRiskUsfs(state.selectedBuilding),
+    getConditionalRiskUsfs(getSelectionProperties(state)),
   )
   const timePeriod = useStore((state) => state.timePeriod)
 

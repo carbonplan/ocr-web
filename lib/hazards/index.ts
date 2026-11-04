@@ -46,6 +46,18 @@ export const toDisplayUnits = (
   value: number | null | undefined,
 ): number | null => (value == null ? null : value * getUnitScale(config, id))
 
+/** The variable layer `id` draws for `selection`: its own, for the selection's
+ * time period when it has one per period, else the risk view's dataset variable. */
+export const resolveLayerVariable = (
+  config: HazardConfig,
+  id: string,
+  selection: HazardSelection,
+): string => {
+  const own = getMapLayer(config, id)?.variable
+  const variable = typeof own === 'string' ? own : own?.[selection.timePeriod]
+  return variable ?? resolveHazardDataset(config, selection).variable
+}
+
 export const resolveHazardDataset = (
   hazard: HazardConfig,
   selection: HazardSelection,
@@ -60,3 +72,35 @@ export const resolveHazardDataset = (
     ? (future as HazardDataset)
     : (future as Record<string, HazardDataset>)[selection.futureWindow]
 }
+
+/** Every variable the hazard's datasets show, once each. */
+export const getDatasetVariables = (hazard: HazardConfig): string[] => {
+  const { current, future } = hazard.datasets
+  let futures: HazardDataset[] = []
+  if (future && 'source' in future) futures = [future as HazardDataset]
+  else if (future)
+    futures = Object.values(future as Record<string, HazardDataset>)
+  return [...new Set([current, ...futures].map((d) => d.variable))]
+}
+
+/** The building columns map tiles carry for coloring. */
+export const getTileVariables = (hazard: HazardConfig): string[] =>
+  hazard.buildingsMode === 'attributes' ? getDatasetVariables(hazard) : []
+
+export const getMedianColumn = (variable: string) => `${variable}_median`
+
+export const getHistColumn = (hazard: HazardConfig, variable: string) =>
+  hazard.vector.histColumns?.[variable] ?? `${variable}_hist`
+
+/** The variables the risk view and the map layers show for `selection`, once each. */
+export const getShownVariables = (
+  config: HazardConfig,
+  selection: HazardSelection,
+): string[] => [
+  ...new Set([
+    resolveHazardDataset(config, selection).variable,
+    ...(config.mapLayers ?? [])
+      .filter((layer) => layer.variable)
+      .map((layer) => resolveLayerVariable(config, layer.id, selection)),
+  ]),
+]
