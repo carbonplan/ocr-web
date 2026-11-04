@@ -8,9 +8,9 @@ const output = (path: string) =>
 
 const LOD_BASE = `${OCR_BUCKET_URL}/ocr-explore/geoparquet-lod/fire-risk/${VERSION}`
 
-const PYRAMID =
-  process.env.NEXT_PUBLIC_RISK_ZARR_URL ??
-  `${SOURCE_COOP_URL}/carbonplan/carbonplan-ocr/output/fire-risk/pyramid/production/${VERSION}/pyramid.zarr`
+const RASTER =
+  process.env.NEXT_PUBLIC_FIRE_ICECHUNK_URL ??
+  `${OCR_BUCKET_URL}/scratch/fire-topozarr-pyramid/store.icechunk`
 
 const fire: HazardConfig = {
   id: 'fire',
@@ -26,17 +26,11 @@ const fire: HazardConfig = {
   climateTooltip:
     'Current risk estimates are based on a climate circa 2004-2018, while future estimates use a climate representative of 2040-2054. Both estimates use vegetation from the early 2020s.',
   rasterOptions: {
-    fillValue: 9.969209968386869e36,
     zarrVersion: 3,
-    bounds: [
-      -128.3875562194317, 22.428114227623336, -64.05348689808879,
-      52.4818488914143,
-    ],
-    latIsAscending: true,
   },
   datasets: {
-    current: { source: PYRAMID, variable: 'rps_2011' },
-    future: { source: PYRAMID, variable: 'rps_2047' },
+    current: { source: RASTER, store: 'icechunk', variable: 'rps_2011' },
+    future: { source: RASTER, store: 'icechunk', variable: 'rps_2047' },
   },
   timePeriodLabels: {
     current: '2004-2018',

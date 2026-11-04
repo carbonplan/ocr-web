@@ -13,6 +13,8 @@ export type HazardSelection = {
 export type HazardDataset = {
   source: string
   variable: string
+  // 'icechunk' opens source as an Icechunk repo rather than a plain Zarr URL
+  store?: 'icechunk'
 }
 
 // Only needed for stores whose metadata doesn't fully describe the grid.

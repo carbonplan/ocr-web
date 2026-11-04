@@ -3,15 +3,6 @@ import { HazardConfig } from './types'
 
 const VERSION = 'v2.0.0'
 
-const FDP_BASE =
-  process.env.NEXT_PUBLIC_FLOOD_ZARR_BASE ??
-  'https://carbonplan-ocr.s3.amazonaws.com/ocr-explore/FDP/processed'
-
-// CarbonPlan's refit of the USGS model on Dec 2006–Dec 2025 reports, with its
-// per-cell attributions and standard errors. Covers HUC 03 (South
-// Atlantic-Gulf) only so far.
-const FDP_STORE = `${FDP_BASE}/retrained/noaa-200612-202512-planar`
-
 // Store order of the `driver` dimension and of dominant_driver's classes.
 export const FDP_DRIVERS = [
   { label: '100-yr floodplain', short: 'FP' },
@@ -54,7 +45,8 @@ const flood: HazardConfig = {
   // the model carries no climate scenario dimension
   datasets: {
     current: {
-      source: FDP_STORE,
+      source: `${OUTPUT}/store.icechunk`,
+      store: 'icechunk',
       variable: 'fdp',
     },
   },
