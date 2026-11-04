@@ -46,6 +46,18 @@ export const toDisplayUnits = (
   value: number | null | undefined,
 ): number | null => (value == null ? null : value * getUnitScale(config, id))
 
+/** The variable layer `id` draws for `selection`: its own, for the selection's
+ * time period when it has one per period, else the risk view's dataset variable. */
+export const resolveLayerVariable = (
+  config: HazardConfig,
+  id: string,
+  selection: HazardSelection,
+): string => {
+  const own = getMapLayer(config, id)?.variable
+  const variable = typeof own === 'string' ? own : own?.[selection.timePeriod]
+  return variable ?? resolveHazardDataset(config, selection).variable
+}
+
 export const resolveHazardDataset = (
   hazard: HazardConfig,
   selection: HazardSelection,
