@@ -91,3 +91,16 @@ export const getMedianColumn = (variable: string) => `${variable}_median`
 
 export const getHistColumn = (hazard: HazardConfig, variable: string) =>
   hazard.vector.histColumns?.[variable] ?? `${variable}_hist`
+
+/** The variables the risk view and the map layers show for `selection`, once each. */
+export const getShownVariables = (
+  config: HazardConfig,
+  selection: HazardSelection,
+): string[] => [
+  ...new Set([
+    resolveHazardDataset(config, selection).variable,
+    ...(config.mapLayers ?? [])
+      .filter((layer) => layer.variable)
+      .map((layer) => resolveLayerVariable(config, layer.id, selection)),
+  ]),
+]

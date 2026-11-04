@@ -5,6 +5,7 @@ import type { ChazPointData } from './chaz-query'
 import {
   Location,
   Building,
+  BuildingProperties,
   Coordinates,
   Geography,
   GeographyKey,
@@ -37,7 +38,13 @@ const DEFAULT_SELECTOR_VALUES = Object.fromEntries(
 
 export type BuildingQueryState =
   | { status: 'idle' | 'loading' | 'error' }
-  | { status: 'success'; value: number; detail?: ChazPointData }
+  | {
+      status: 'success'
+      value: number
+      detail?: ChazPointData
+      // a point's store values, by building column, in store units
+      values?: BuildingProperties
+    }
 
 // Region lookups resolve out of order; only the latest one is applied.
 let geographyQuery = 0

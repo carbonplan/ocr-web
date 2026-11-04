@@ -3,6 +3,7 @@ import { useStore } from '@/lib/store'
 import {
   getAdjustedBurnProbability,
   getConditionalRiskUsfs,
+  getSelectionProperties,
 } from '@/lib/risk-utils'
 import { useScore } from '@/hooks/useScore'
 import { useLayerColor } from '@/hooks/useLayerColor'
@@ -18,13 +19,10 @@ const FireLayers = () => {
   const { score, value, color } = useScore(selectedBuilding, 'hinted')
 
   const bp = useStore((state) =>
-    getAdjustedBurnProbability(
-      state.selectedBuilding?.properties ?? null,
-      state.timePeriod,
-    ),
+    getAdjustedBurnProbability(getSelectionProperties(state), state.timePeriod),
   )
   const conditionalRisk = useStore((state) =>
-    getConditionalRiskUsfs(state.selectedBuilding?.properties ?? null),
+    getConditionalRiskUsfs(getSelectionProperties(state)),
   )
   const bpColor = useLayerColor('bp', bp)
   const conditionalRiskColor = useLayerColor('crps', conditionalRisk)

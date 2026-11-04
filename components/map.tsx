@@ -254,10 +254,8 @@ const MapComponent = () => {
     if (!map || !router.isReady || restoredSelection.current) return
     restoredSelection.current = true
 
-    const hazard = getHazardFromQuery(router.query)?.hazard ?? DEFAULT_HAZARD
-
     const areaCoordinates = getAreaCoordinatesFromQuery(router.query)
-    if (areaCoordinates && RISKS[hazard].buildingsMode === 'query') {
+    if (areaCoordinates) {
       const initArea = async () => {
         await ensureSourceLoaded(map, LAYERS.buildings.sourceId)
         selectArea(areaCoordinates.lng, areaCoordinates.lat)

@@ -2,12 +2,16 @@ import { useEffect } from 'react'
 import { centerOfMass } from '@turf/turf'
 import { useStore, BuildingQueryState } from '@/lib/store'
 import {
+  RISK_LAYER_ID,
+  getShownVariables,
   getUnitScale,
   resolveHazardDataset,
   resolveLayerVariable,
+  toDisplayUnits,
 } from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
 import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
+import { queryStorePoint } from '@/lib/store-point'
 
 // Normalizes BuildingQueryState.value to display units.
 export const useBuildingQuery = () => {
@@ -24,6 +28,41 @@ export const useBuildingQuery = () => {
   const zarrLayer = useStore((state) => state.zarrLayer)
   // null off the raster path, so a layer rebuild doesn't re-fire those queries
   const queryLayer = riskConfig.pointQuery === 'raster' ? zarrLayer : null
+
+  // an attributes-mode point has no building row: the values on screen are read
+  // from the store there instead
+  useEffect(() => {
+    if (riskConfig.buildingsMode !== 'attributes' || !selectedArea) return
+    const dataset = resolveHazardDataset(riskConfig, {
+      timePeriod,
+      futureWindow,
+    })
+    const columns = getShownVariables(riskConfig, { timePeriod, futureWindow })
+    let cancelled = false
+    setBuildingQuery({ status: 'loading' })
+    queryStorePoint(dataset, columns, [selectedArea.lng, selectedArea.lat])
+      .then((values) => {
+        if (cancelled) return
+        const value = toDisplayUnits(
+          riskConfig,
+          RISK_LAYER_ID,
+          values[dataset.variable],
+        )
+        setBuildingQuery(
+          value === null
+            ? { status: 'error' }
+            : { status: 'success', value, values },
+        )
+      })
+      .catch((error) => {
+        if (cancelled) return
+        console.error('Point query failed:', error)
+        setBuildingQuery({ status: 'error' })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [selectedArea, riskConfig, timePeriod, futureWindow, setBuildingQuery])
 
   useEffect(() => {
     if (riskConfig.buildingsMode !== 'query') return

@@ -1,4 +1,11 @@
-import { Geography, BuildingProperties, Extent } from '@/types/location'
+import {
+  Geography,
+  Building,
+  BuildingProperties,
+  Coordinates,
+  Extent,
+} from '@/types/location'
+import type { BuildingQueryState } from './store'
 import {
   HazardConfig,
   HazardSelection,
@@ -12,6 +19,19 @@ export const getRiskVariable = (
   hazard: HazardConfig,
   selection: HazardSelection,
 ): string => resolveHazardDataset(hazard, selection).variable
+
+/** The selected building's properties, or a selected point's store values
+ * once they have been read. */
+export const getSelectionProperties = (state: {
+  selectedBuilding: Building | null
+  selectedArea: Coordinates | null
+  buildingQuery: BuildingQueryState
+}): BuildingProperties | null => {
+  if (state.selectedBuilding) return state.selectedBuilding.properties
+  if (state.selectedArea && state.buildingQuery.status === 'success')
+    return state.buildingQuery.values ?? null
+  return null
+}
 
 /** The risk value in `properties`, in display units. */
 export const getRiskScore = (
@@ -54,7 +74,7 @@ export const getGeoid = (geography: Geography | null): string | null =>
 export const getBoundingBox = (geography: Geography | null): Extent | null =>
   geography?.bbox ?? null
 
-// fire's components of risk of loss, from a building's properties
+// fire's components of risk of loss, from getSelectionProperties
 export const getBurnProbabilityUsfs = (
   properties: BuildingProperties | null,
   timePeriod: HazardSelection['timePeriod'],
