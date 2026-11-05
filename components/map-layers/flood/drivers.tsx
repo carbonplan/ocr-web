@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import {
   Chart,
   Label,
@@ -29,11 +29,11 @@ const LAYER_ID = 'contribution'
 // or the center.
 const ZERO = 0.5
 const SPOKE = 1
-const LABEL = 1.25
 const SCALE = 30
-const DOMAIN = [-1.5, 1.5]
+// a little past the spokes, so the circles at their tips aren't clipped
+const DOMAIN = [-1.1, 1.1]
 
-// clockwise from the top, in the order of the USGS paper's radar charts
+// clockwise from the top, in the order of the Collins paper's radar charts
 const ORDER = [
   'DIST',
   'LC',
@@ -58,20 +58,24 @@ const polar = (r: number, theta: number): [number, number] => [
 const toRadius = (value: number) =>
   ZERO + Math.max(-1, Math.min(1, value / SCALE)) * (SPOKE - ZERO)
 
-// to the displayed precision; `|| 0` turns -0 into 0, so a tiny drop reads
-// as 0.0% rather than -0.0%
-const roundValue = (value: number) => Math.round(value * 10) / 10 || 0
+// the displayed precision, in display %
+const THRESHOLD = 0.1
 
+// Like ValueBadge's low values: a nonzero value below the displayed precision
+// reads as the threshold, behind a bound (< +0.1%, > -0.1%) rather than as
+// 0.0% or -0.0%
 const formatValue = (value: number) => {
-  const rounded = roundValue(value)
-  return `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}%`
+  if (value !== 0 && Math.abs(value) < THRESHOLD) {
+    return value > 0
+      ? { bound: '<', text: `+${THRESHOLD.toFixed(1)}%` }
+      : { bound: '>', text: `-${THRESHOLD.toFixed(1)}%` }
+  }
+  return { bound: null, text: `${value > 0 ? '+' : ''}${value.toFixed(1)}%` }
 }
 
-// colored by the displayed value, so 0.0% reads as neutral
 const toColor = (value: number) => {
-  const rounded = roundValue(value)
-  if (rounded > 0) return 'blue'
-  if (rounded < 0) return 'orange'
+  if (value > 0) return 'blue'
+  if (value < 0) return 'orange'
   return 'secondary'
 }
 
@@ -83,8 +87,6 @@ type DriverQuery =
   | { status: 'idle' | 'loading' | 'error' }
   | { status: 'success'; values: (number | null)[] }
 
-// Every driver's contribution at the selected point, in display units. Reads
-// through the contribution layer, so it only runs while that layer is shown.
 const useDriverContributions = (): DriverQuery => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
@@ -161,24 +163,44 @@ const useDriverContributions = (): DriverQuery => {
   return query
 }
 
-// The hovered or mapped driver's signed value, at the hub where only spokes cross; labels
-// sit at the rim, and circles only reach the hub on large drops
-const HubValue = ({ value }: { value: number }) => (
-  <Label
-    x={0}
-    y={0}
-    align='center'
-    verticalAlign='middle'
-    width={1}
-    height={0.3}
-    aria-hidden
-    sx={{ color: toColor(value), fontSize: [1, 1, 1, 2] }}
-  >
-    <Box as='span' sx={{ bg: 'background', px: 1, whiteSpace: 'nowrap' }}>
-      {formatValue(value)}
-    </Box>
-  </Label>
-)
+// The hovered or mapped driver's signed value, at the hub where only spokes
+// cross; circles only reach the hub on large drops
+const HubValue = ({ value }: { value: number }) => {
+  const { bound, text } = formatValue(value)
+  return (
+    <Label
+      x={0}
+      y={0}
+      align='center'
+      verticalAlign='middle'
+      width={1}
+      height={0.3}
+      aria-hidden
+      sx={{ color: toColor(value), fontSize: [1, 1, 1, 2] }}
+    >
+      <Box
+        as='span'
+        sx={{
+          position: 'relative',
+          bg: 'background',
+          px: 1,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {/* outside the flow, as in ValueBadge, so the value stays centered */}
+        {bound && (
+          <Box
+            as='span'
+            sx={{ position: 'absolute', right: '100%', color: 'secondary' }}
+          >
+            {bound}
+          </Box>
+        )}
+        {text}
+      </Box>
+    </Label>
+  )
+}
 
 const Drivers = () => {
   const driver = useStore((state) => state.selectorValues.driver)
@@ -186,12 +208,7 @@ const Drivers = () => {
   const query = useDriverContributions()
   const values = query.status === 'success' ? query.values : null
   const [hovered, setHovered] = useState<number | null>(null)
-  // the hovered driver, falling back to the mapped one
   const hubValue = values?.[hovered ?? driver] ?? null
-  const hover = (i: number) => ({
-    onMouseEnter: () => setHovered(i),
-    onMouseLeave: () => setHovered(null),
-  })
 
   const lollipops = useMemo(
     () =>
@@ -216,7 +233,9 @@ const Drivers = () => {
     if (!values) return 'Driver contributions. No point selected.'
     const steps = FDP_DRIVERS.map((d, i) => {
       const value = values[i]
-      return value == null ? null : `${d.label}: ${formatValue(value)}`
+      if (value == null) return null
+      const { bound, text } = formatValue(value)
+      return `${d.label}: ${bound ?? ''}${text}`
     })
       .filter(Boolean)
       .join('. ')
@@ -228,93 +247,93 @@ const Drivers = () => {
       How much each predictor <Colors.Blue>raises</Colors.Blue> or{' '}
       <Colors.Orange>lowers</Colors.Orange> the probability, along the model’s
       decision paths. Click on a driver to map it.
-      <Box
+      <Flex
         sx={{
-          width: '100%',
-          maxWidth: 320,
-          aspectRatio: '1 / 1',
-          mx: 'auto',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 3,
           mt: 3,
-          // each Label sits in a wrapper the size of the whole chart, so the
-          // last one would swallow every other label's clicks
-          '& div:not([role=button])': { pointerEvents: 'none' },
         }}
       >
-        <Chart x={DOMAIN} y={DOMAIN} padding={{ left: 0, bottom: 0 }}>
-          <Plot role='img' aria-label={description}>
-            {FDP_DRIVERS.map((d, i) => (
+        <Box
+          aria-hidden
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            fontFamily: 'mono',
+            letterSpacing: 'mono',
+            textTransform: 'uppercase',
+            fontSize: [1, 1, 1, 2],
+          }}
+        >
+          {FDP_DRIVERS[hovered ?? driver]?.label}
+        </Box>
+        <Box
+          role='group'
+          aria-label={description}
+          sx={{
+            width: '55%',
+            maxWidth: 220,
+            aspectRatio: '1 / 1',
+            flexShrink: 0,
+            '& div': { pointerEvents: 'none' },
+          }}
+        >
+          <Chart x={DOMAIN} y={DOMAIN} padding={{ left: 0, bottom: 0 }}>
+            <Plot>
+              {FDP_DRIVERS.map((d, i) => (
+                <Line
+                  key={d.short}
+                  data={[[0, 0], polar(SPOKE, angle(i))]}
+                  color={i === driver || i === hovered ? 'primary' : 'muted'}
+                />
+              ))}
               <Line
-                key={d.short}
-                data={[[0, 0], polar(SPOKE, angle(i))]}
-                color={i === driver || i === hovered ? 'secondary' : 'muted'}
+                data={RING}
+                color='secondary'
+                sx={{ strokeDasharray: '3 3' }}
               />
-            ))}
-            <Line
-              data={RING}
-              color='secondary'
-              sx={{ strokeDasharray: '3 3' }}
-            />
-            {lollipops.map(({ key, color, stem, dot }) => (
-              <g key={key}>
-                <Line data={stem} color={color} width={2.5} />
-                <Scatter data={[dot]} color={color} size={8} />
-              </g>
-            ))}
-            {/* wide transparent strokes along each spoke as hover targets */}
-            {FDP_DRIVERS.map((d, i) => (
-              <Line
-                key={d.short}
-                data={[[0, 0], polar(SPOKE, angle(i))]}
-                color='transparent'
-                width={16}
-                onClick={() => setSelectorValues({ driver: i })}
-                {...hover(i)}
-                sx={{ pointerEvents: 'stroke', cursor: 'pointer' }}
-              />
-            ))}
-          </Plot>
-          {hubValue !== null && <HubValue value={hubValue} />}
-          {FDP_DRIVERS.map((d, i) => {
-            const [x, y] = polar(LABEL, angle(i))
-            const selected = i === driver
-            return (
-              <Label
-                key={d.short}
-                x={x}
-                y={y}
-                align='center'
-                verticalAlign='middle'
-                width={0.6}
-                height={0.2}
-                role='button'
-                tabIndex={0}
-                aria-pressed={selected}
-                aria-label={`Map ${d.label}`}
-                title={d.label}
-                onClick={() => setSelectorValues({ driver: i })}
-                {...hover(i)}
-                onFocus={() => setHovered(i)}
-                onBlur={() => setHovered(null)}
-                onKeyDown={(e: React.KeyboardEvent) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setSelectorValues({ driver: i })
-                  }
-                }}
-                sx={{
-                  cursor: 'pointer',
-                  pointerEvents: 'auto',
-                  color: selected ? 'primary' : 'secondary',
-                  transition: 'color 0.2s',
-                  '&:hover': { color: 'primary' },
-                }}
-              >
-                {d.label}
-              </Label>
-            )
-          })}
-        </Chart>
-      </Box>
+              {lollipops.map(({ key, color, stem, dot }) => (
+                <g key={key}>
+                  <Line data={stem} color={color} width={2.5} />
+                  <Scatter data={[dot]} color={color} size={8} />
+                </g>
+              ))}
+              {/* wide transparent strokes along each spoke as hover targets,
+                  and the buttons that map each driver */}
+              {FDP_DRIVERS.map((d, i) => (
+                <Line
+                  key={d.short}
+                  data={[[0, 0], polar(SPOKE, angle(i))]}
+                  color='transparent'
+                  width={16}
+                  role='button'
+                  tabIndex={0}
+                  aria-pressed={i === driver}
+                  aria-label={`Map ${d.label}`}
+                  onClick={() => setSelectorValues({ driver: i })}
+                  onMouseEnter={() => setHovered(i)}
+                  onMouseLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(i)}
+                  onBlur={() => setHovered(null)}
+                  onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectorValues({ driver: i })
+                    }
+                  }}
+                  sx={{
+                    pointerEvents: 'stroke',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                />
+              ))}
+            </Plot>
+            {hubValue !== null && <HubValue value={hubValue} />}
+          </Chart>
+        </Box>
+      </Flex>
       {query.status === 'error' && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           No driver data is available for this location.
