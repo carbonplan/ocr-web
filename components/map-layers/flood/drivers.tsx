@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Flex, useThemeUI } from 'theme-ui'
+import { Box, Checkbox, Flex, useThemeUI } from 'theme-ui'
 import { alpha } from '@theme-ui/color'
 import {
   Bar,
@@ -14,7 +14,6 @@ import {
 } from '@carbonplan/charts'
 import {
   Colors,
-  Filter,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { centerOfMass } from '@turf/turf'
@@ -185,7 +184,7 @@ const Drivers = () => {
   const query = useDriverContributions()
   const values = query.status === 'success' ? query.values : null
   const [hovered, setHovered] = useState<number | null>(null)
-  const [sort, setSort] = useState<'value' | 'alphabetical'>('value')
+  const [autoSort, setAutoSort] = useState(true)
   const { theme } = useThemeUI()
   const shown = hovered ?? driver
   const shownValue = values?.[shown] ?? null
@@ -194,7 +193,7 @@ const Drivers = () => {
     const indices = ORDER.map((short) =>
       FDP_DRIVERS.findIndex((d) => d.short === short),
     )
-    if (sort === 'alphabetical') {
+    if (!autoSort) {
       return indices.sort((a, b) =>
         FDP_DRIVERS[a].label.localeCompare(FDP_DRIVERS[b].label),
       )
@@ -203,7 +202,7 @@ const Drivers = () => {
     return indices.sort(
       (a, b) => (values[b] ?? -Infinity) - (values[a] ?? -Infinity),
     )
-  }, [values, sort])
+  }, [values, autoSort])
 
   const description = useMemo(() => {
     if (!values) return 'Driver contributions. No point selected.'
@@ -229,29 +228,11 @@ const Drivers = () => {
       How much each predictor <Colors.Blue>raises</Colors.Blue> or{' '}
       <Colors.Orange>lowers</Colors.Orange> the probability, along the model’s
       decision paths. Click on a driver to map it.
-      <Box sx={{ mt: 3 }}>
-        <Filter
-          role='group'
-          aria-label='Sort drivers'
-          values={{
-            value: sort === 'value',
-            alphabetical: sort === 'alphabetical',
-          }}
-          labels={{ value: 'By value', alphabetical: 'A-Z' }}
-          setValues={(next: Record<string, boolean>) => {
-            if (next.alphabetical) setSort('alphabetical')
-            else if (next.value) setSort('value')
-          }}
-        />
-      </Box>
       <Flex
-        aria-hidden
         sx={{
           justifyContent: 'space-between',
           alignItems: 'baseline',
-          gap: 2,
-          mt: 3,
-          mb: 2,
+          my: 3,
           fontFamily: 'mono',
           letterSpacing: 'mono',
           textTransform: 'uppercase',
@@ -259,6 +240,25 @@ const Drivers = () => {
         }}
       >
         <Box sx={{ color: 'primary' }}>{FDP_DRIVERS[shown]?.label}</Box>
+
+        <Flex
+          as='label'
+          sx={{
+            alignItems: 'center',
+            gap: 2,
+            width: 'fit-content',
+            cursor: 'pointer',
+            color: 'secondary',
+          }}
+        >
+          Auto-sort
+          <Checkbox
+            aria-label='Auto-sort'
+            checked={autoSort}
+            onChange={() => setAutoSort((on) => !on)}
+            sx={{ fill: 'secondary' }}
+          />
+        </Flex>
       </Flex>
       <Box
         role='group'
