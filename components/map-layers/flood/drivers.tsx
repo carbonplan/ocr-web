@@ -161,9 +161,9 @@ const useDriverContributions = (): DriverQuery => {
   return query
 }
 
-// A hovered driver's signed value, at the hub where only spokes cross; labels
+// The hovered or mapped driver's signed value, at the hub where only spokes cross; labels
 // sit at the rim, and circles only reach the hub on large drops
-const HoverValue = ({ value }: { value: number }) => (
+const HubValue = ({ value }: { value: number }) => (
   <Label
     x={0}
     y={0}
@@ -186,7 +186,8 @@ const Drivers = () => {
   const query = useDriverContributions()
   const values = query.status === 'success' ? query.values : null
   const [hovered, setHovered] = useState<number | null>(null)
-  const hoveredValue = hovered === null ? null : (values?.[hovered] ?? null)
+  // the hovered driver, falling back to the mapped one
+  const hubValue = values?.[hovered ?? driver] ?? null
   const hover = (i: number) => ({
     onMouseEnter: () => setHovered(i),
     onMouseLeave: () => setHovered(null),
@@ -272,9 +273,7 @@ const Drivers = () => {
               />
             ))}
           </Plot>
-          {hovered !== null && hoveredValue !== null && (
-            <HoverValue value={hoveredValue} />
-          )}
+          {hubValue !== null && <HubValue value={hubValue} />}
           {FDP_DRIVERS.map((d, i) => {
             const [x, y] = polar(LABEL, angle(i))
             const selected = i === driver
