@@ -6,6 +6,7 @@ import {
   Chart,
   Grid,
   AxisLabel,
+  Label,
   Plot,
   Rect,
   TickLabels,
@@ -13,6 +14,7 @@ import {
 } from '@carbonplan/charts'
 import {
   Colors,
+  Filter,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
 import { centerOfMass } from '@turf/turf'
@@ -30,7 +32,7 @@ const LAYER_ID = 'contribution'
 // fixed so bar lengths compare across locations, in display %; longer bars
 // are clipped at the edge
 const SCALE = 15
-const CHART_HEIGHT = 150
+const CHART_HEIGHT = 130
 
 // column order until there are values to sort by, from the Collins paper's
 // radar charts
@@ -153,9 +155,22 @@ const useDriverContributions = (): DriverQuery => {
 const FormattedValue = ({ value }: { value: number }) => {
   const { bound, text } = formatValue(value)
   return (
-    <Box as='span' sx={{ color: toColor(value), whiteSpace: 'nowrap' }}>
+    <Box
+      as='span'
+      // matches the chart's tick labels
+      sx={{
+        position: 'relative',
+        color: toColor(value),
+        whiteSpace: 'nowrap',
+        fontSize: [0, 0, 0, 1],
+      }}
+    >
+      {/* outside the flow, as in ValueBadge, so the value stays centered */}
       {bound && (
-        <Box as='span' sx={{ color: 'secondary' }}>
+        <Box
+          as='span'
+          sx={{ position: 'absolute', right: '100%', color: 'secondary' }}
+        >
           {bound}
         </Box>
       )}
@@ -170,21 +185,25 @@ const Drivers = () => {
   const query = useDriverContributions()
   const values = query.status === 'success' ? query.values : null
   const [hovered, setHovered] = useState<number | null>(null)
+  const [sort, setSort] = useState<'value' | 'alphabetical'>('value')
   const { theme } = useThemeUI()
-  // the readout follows the hovered driver, falling back to the mapped one
   const shown = hovered ?? driver
   const shownValue = values?.[shown] ?? null
 
-  // store indices left to right: largest raise first, largest drop last
   const columns = useMemo(() => {
     const indices = ORDER.map((short) =>
       FDP_DRIVERS.findIndex((d) => d.short === short),
     )
+    if (sort === 'alphabetical') {
+      return indices.sort((a, b) =>
+        FDP_DRIVERS[a].label.localeCompare(FDP_DRIVERS[b].label),
+      )
+    }
     if (!values) return indices
     return indices.sort(
       (a, b) => (values[b] ?? -Infinity) - (values[a] ?? -Infinity),
     )
-  }, [values])
+  }, [values, sort])
 
   const description = useMemo(() => {
     if (!values) return 'Driver contributions. No point selected.'
@@ -210,6 +229,21 @@ const Drivers = () => {
       How much each predictor <Colors.Blue>raises</Colors.Blue> or{' '}
       <Colors.Orange>lowers</Colors.Orange> the probability, along the model’s
       decision paths. Click on a driver to map it.
+      <Box sx={{ mt: 3 }}>
+        <Filter
+          role='group'
+          aria-label='Sort drivers'
+          values={{
+            value: sort === 'value',
+            alphabetical: sort === 'alphabetical',
+          }}
+          labels={{ value: 'By value', alphabetical: 'A-Z' }}
+          setValues={(next: Record<string, boolean>) => {
+            if (next.alphabetical) setSort('alphabetical')
+            else if (next.value) setSort('value')
+          }}
+        />
+      </Box>
       <Flex
         aria-hidden
         sx={{
@@ -225,13 +259,19 @@ const Drivers = () => {
         }}
       >
         <Box sx={{ color: 'primary' }}>{FDP_DRIVERS[shown]?.label}</Box>
-        {shownValue !== null && <FormattedValue value={shownValue} />}
       </Flex>
-      <Box role='group' aria-label={description} sx={{ height: CHART_HEIGHT }}>
+      <Box
+        role='group'
+        aria-label={description}
+        sx={{
+          height: CHART_HEIGHT,
+          '& div': { pointerEvents: 'none' },
+        }}
+      >
         <Chart
           x={[-0.5, columns.length - 0.5]}
           y={[-SCALE, SCALE]}
-          padding={{ left: 20, right: 32 }}
+          padding={{ left: 20, right: 32, bottom: 16 }}
         >
           <Grid horizontal values={[0]} sx={{ borderColor: 'secondary' }} />
           <AxisLabel left units='%' arrow={false}>
@@ -274,10 +314,27 @@ const Drivers = () => {
                 style={{
                   cursor: 'pointer',
                   outline: 'none',
+                  pointerEvents: 'all',
                 }}
               />
             ))}
           </Plot>
+          {shownValue !== null && (
+            <Label
+              x={columns.indexOf(shown)}
+              y={-SCALE}
+              verticalAlign='top'
+              aria-hidden
+              sx={{ pt: 1 }}
+            >
+              <Box
+                as='span'
+                sx={{ display: 'inline-block', transform: 'translateX(-50%)' }}
+              >
+                <FormattedValue value={shownValue} />
+              </Box>
+            </Label>
+          )}
         </Chart>
       </Box>
       {query.status === 'error' && (
