@@ -33,14 +33,47 @@ const LABEL = 1.25
 const SCALE = 30
 const DOMAIN = [-1.5, 1.5]
 
-// clockwise from the top, in store order
-const angle = (i: number) => (i / FDP_DRIVERS.length) * 2 * Math.PI
+// clockwise from the top, in the order of the USGS paper's radar charts
+const ORDER = [
+  'DIST',
+  'LC',
+  'SOIL',
+  'CHAN',
+  'TWI',
+  'CURV',
+  'ROAD',
+  'HAND',
+  'FP',
+  'PRCP',
+  'ELEV',
+]
+
+// angle of the driver at store index i
+const angle = (i: number) =>
+  (ORDER.indexOf(FDP_DRIVERS[i].short) / FDP_DRIVERS.length) * 2 * Math.PI
 const polar = (r: number, theta: number): [number, number] => [
   r * Math.sin(theta),
   r * Math.cos(theta),
 ]
 const toRadius = (value: number) =>
   ZERO + Math.max(-1, Math.min(1, value / SCALE)) * (SPOKE - ZERO)
+
+// to the displayed precision; `|| 0` turns -0 into 0, so a tiny drop reads
+// as 0.0% rather than -0.0%
+const roundValue = (value: number) => Math.round(value * 10) / 10 || 0
+
+const formatValue = (value: number) => {
+  const rounded = roundValue(value)
+  return `${rounded > 0 ? '+' : ''}${rounded.toFixed(1)}%`
+}
+
+// colored by the displayed value, so 0.0% reads as neutral
+const toColor = (value: number) => {
+  const rounded = roundValue(value)
+  if (rounded > 0) return 'blue'
+  if (rounded < 0) return 'orange'
+  return 'secondary'
+}
 
 const RING = Array.from({ length: 73 }, (_, i) =>
   polar(ZERO, (i / 72) * 2 * Math.PI),
@@ -128,11 +161,36 @@ const useDriverContributions = (): DriverQuery => {
   return query
 }
 
+// A hovered driver's signed value, at the hub where only spokes cross; labels
+// sit at the rim, and circles only reach the hub on large drops
+const HoverValue = ({ value }: { value: number }) => (
+  <Label
+    x={0}
+    y={0}
+    align='center'
+    verticalAlign='middle'
+    width={1}
+    height={0.3}
+    aria-hidden
+    sx={{ color: toColor(value), fontSize: [1, 1, 1, 2] }}
+  >
+    <Box as='span' sx={{ bg: 'background', px: 1, whiteSpace: 'nowrap' }}>
+      {formatValue(value)}
+    </Box>
+  </Label>
+)
+
 const Drivers = () => {
   const driver = useStore((state) => state.selectorValues.driver)
   const setSelectorValues = useStore((state) => state.setSelectorValues)
   const query = useDriverContributions()
   const values = query.status === 'success' ? query.values : null
+  const [hovered, setHovered] = useState<number | null>(null)
+  const hoveredValue = hovered === null ? null : (values?.[hovered] ?? null)
+  const hover = (i: number) => ({
+    onMouseEnter: () => setHovered(i),
+    onMouseLeave: () => setHovered(null),
+  })
 
   const lollipops = useMemo(
     () =>
@@ -140,9 +198,7 @@ const Drivers = () => {
         const value = values?.[i]
         if (value == null) return []
         const theta = angle(i)
-        let color = 'secondary'
-        if (value > 0) color = 'blue'
-        if (value < 0) color = 'orange'
+        const color = toColor(value)
         return [
           {
             key: d.short,
@@ -159,9 +215,7 @@ const Drivers = () => {
     if (!values) return 'Driver contributions. No point selected.'
     const steps = FDP_DRIVERS.map((d, i) => {
       const value = values[i]
-      return value == null
-        ? null
-        : `${d.label}: ${value > 0 ? '+' : ''}${value.toFixed(1)}%`
+      return value == null ? null : `${d.label}: ${formatValue(value)}`
     })
       .filter(Boolean)
       .join('. ')
@@ -191,7 +245,7 @@ const Drivers = () => {
               <Line
                 key={d.short}
                 data={[[0, 0], polar(SPOKE, angle(i))]}
-                color={i === driver ? 'secondary' : 'muted'}
+                color={i === driver || i === hovered ? 'secondary' : 'muted'}
               />
             ))}
             <Line
@@ -205,7 +259,22 @@ const Drivers = () => {
                 <Scatter data={[dot]} color={color} size={8} />
               </g>
             ))}
+            {/* wide transparent strokes along each spoke as hover targets */}
+            {FDP_DRIVERS.map((d, i) => (
+              <Line
+                key={d.short}
+                data={[[0, 0], polar(SPOKE, angle(i))]}
+                color='transparent'
+                width={16}
+                onClick={() => setSelectorValues({ driver: i })}
+                {...hover(i)}
+                sx={{ pointerEvents: 'stroke', cursor: 'pointer' }}
+              />
+            ))}
           </Plot>
+          {hovered !== null && hoveredValue !== null && (
+            <HoverValue value={hoveredValue} />
+          )}
           {FDP_DRIVERS.map((d, i) => {
             const [x, y] = polar(LABEL, angle(i))
             const selected = i === driver
@@ -224,6 +293,9 @@ const Drivers = () => {
                 aria-label={`Map ${d.label}`}
                 title={d.label}
                 onClick={() => setSelectorValues({ driver: i })}
+                {...hover(i)}
+                onFocus={() => setHovered(i)}
+                onBlur={() => setHovered(null)}
                 onKeyDown={(e: React.KeyboardEvent) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()

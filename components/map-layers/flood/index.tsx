@@ -1,8 +1,3 @@
-import { Box } from 'theme-ui'
-import {
-  Select,
-  //@ts-expect-error - carbonplan components types not available
-} from '@carbonplan/components'
 import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
