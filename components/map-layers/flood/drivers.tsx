@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Checkbox, Flex, useThemeUI } from 'theme-ui'
+import { Box, Checkbox, Flex, ThemeUIStyleObject, useThemeUI } from 'theme-ui'
 import { alpha } from '@theme-ui/color'
 import {
   Bar,
@@ -151,17 +151,23 @@ const useDriverContributions = (): DriverQuery => {
 }
 
 // A driver's signed value, with ValueBadge's bound for low values
-const FormattedValue = ({ value }: { value: number }) => {
+const FormattedValue = ({
+  value,
+  sx,
+}: {
+  value: number
+  sx?: ThemeUIStyleObject
+}) => {
   const { bound, text } = formatValue(value)
   return (
     <Box
       as='span'
-      // matches the chart's tick labels
       sx={{
         position: 'relative',
         color: toColor(value),
         whiteSpace: 'nowrap',
         fontSize: [0, 0, 0, 1],
+        ...sx,
       }}
     >
       {/* outside the flow, as in ValueBadge, so the value stays centered */}
@@ -217,6 +223,20 @@ const Drivers = () => {
     return `Change in flood damage probability by driver. ${steps}.`
   }, [values])
 
+  const top = useMemo(() => {
+    if (!values) return null
+    const i = values.reduce<number | null>(
+      (best, v, j) =>
+        v !== null &&
+        v !== 0 &&
+        (best === null || Math.abs(v) > Math.abs(values[best]!))
+          ? j
+          : best,
+      null,
+    )
+    return i === null ? null : { index: i, value: values[i]! }
+  }, [values])
+
   const select = (i: number) => setSelectorValues({ driver: i })
   const band = (k: number) => ({
     x: [k - 0.4, k + 0.4],
@@ -225,9 +245,57 @@ const Drivers = () => {
 
   return (
     <Box>
-      How much each predictor <Colors.Blue>raises</Colors.Blue> or{' '}
-      <Colors.Orange>lowers</Colors.Orange> the probability, along the model’s
-      decision paths. Click on a driver to map it.
+      <Box>
+        How much each predictor <Colors.Blue>raises</Colors.Blue> or{' '}
+        <Colors.Orange>lowers</Colors.Orange> the probability, along the model’s
+        decision paths. Click on a driver to map it.
+      </Box>
+      {top ? (
+        <Box sx={{ mt: 2 }}>
+          The top driver here is the{' '}
+          <Box
+            as='button'
+            aria-pressed={top.index === driver}
+            aria-label={`Map ${FDP_DRIVERS[top.index].label}`}
+            onClick={() => select(top.index)}
+            onMouseEnter={() => setHovered(top.index)}
+            onMouseLeave={() => setHovered(null)}
+            onFocus={() => setHovered(top.index)}
+            onBlur={() => setHovered(null)}
+            sx={{
+              p: 0,
+              border: 'none',
+              bg: 'transparent',
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              textTransform: 'uppercase',
+              fontSize: [1, 1, 1, 2],
+              cursor: driver === top.index ? 'default' : 'pointer',
+              transition: 'color 0.2s',
+              '&:hover, &:focus-visible': {
+                color: 'secondary',
+              },
+            }}
+          >
+            {FDP_DRIVERS[top.index].label.toLowerCase()}
+          </Box>
+          , which changes the probability by{' '}
+          <FormattedValue
+            value={top.value}
+            sx={{
+              fontFamily: 'mono',
+              letterSpacing: 'mono',
+              fontSize: [1, 1, 1, 2],
+            }}
+          />
+          .
+        </Box>
+      ) : (
+        <Box variant='description' sx={{ mt: 2 }}>
+          No driver data is available for this location.
+        </Box>
+      )}
+
       <Flex
         sx={{
           justifyContent: 'space-between',
@@ -337,11 +405,6 @@ const Drivers = () => {
           )}
         </Chart>
       </Box>
-      {query.status === 'error' && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
-          No driver data is available for this location.
-        </Box>
-      )}
     </Box>
   )
 }
