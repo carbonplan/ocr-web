@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Box, Checkbox, Flex, ThemeUIStyleObject, useThemeUI } from 'theme-ui'
 import { alpha } from '@theme-ui/color'
 import {
@@ -16,15 +16,10 @@ import {
   Colors,
   //@ts-expect-error - carbonplan components types not available
 } from '@carbonplan/components'
-import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
 import { FDP_DRIVERS } from '@/lib/hazards/flood'
-import {
-  getMapLayer,
-  resolveHazardDataset,
-  toDisplayUnits,
-} from '@/lib/hazards'
-import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
+import { toDisplayUnits } from '@/lib/hazards'
+import { FdpPointQuery } from '@/hooks/useFdpPoint'
 
 const LAYER_ID = 'contribution'
 
@@ -114,86 +109,6 @@ const toColor = (value: number) => {
   return 'secondary'
 }
 
-type DriverQuery =
-  | { status: 'idle' | 'loading' | 'error' }
-  | { status: 'success'; values: (number | null)[] }
-
-const useDriverContributions = (): DriverQuery => {
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const selectedArea = useStore((state) => state.selectedArea)
-  const riskConfig = useStore((state) => state.riskConfig)
-  const timePeriod = useStore((state) => state.timePeriod)
-  const futureWindow = useStore((state) => state.futureWindow)
-  const zarrLayer = useStore((state) => state.zarrLayer)
-  const [query, setQuery] = useState<DriverQuery>({ status: 'idle' })
-
-  useEffect(() => {
-    const layer = getMapLayer(riskConfig, LAYER_ID)
-    if (!layer?.variable || !layer.selector) return
-    if (!selectedBuilding && !selectedArea) {
-      setQuery({ status: 'idle' })
-      return
-    }
-
-    const dataset = resolveHazardDataset(riskConfig, {
-      timePeriod,
-      futureWindow,
-    })
-    setQuery({ status: 'loading' })
-    // the store's layer may still be another variable's; the effect re-runs
-    // once the contribution layer is in place
-    if (zarrLayer?.id !== getZarrLayerId(dataset.source, layer.variable)) {
-      return
-    }
-
-    const point = selectedArea
-      ? ([selectedArea.lng, selectedArea.lat] as [number, number])
-      : (centerOfMass(selectedBuilding!).geometry.coordinates as [
-          number,
-          number,
-        ])
-    const range = layer.validRange
-    const controller = new AbortController()
-
-    queryRasterPoint(
-      zarrLayer,
-      layer.variable,
-      point,
-      controller.signal,
-      layer.selector,
-    )
-      .then((raw) => {
-        if (controller.signal.aborted) return
-        const values = raw.map((value) =>
-          value === null || (range && (value < range[0] || value > range[1]))
-            ? null
-            : toDisplayUnits(riskConfig, LAYER_ID, value),
-        )
-        setQuery(
-          values.every((v) => v === null)
-            ? { status: 'error' }
-            : { status: 'success', values },
-        )
-      })
-      .catch((error) => {
-        if (controller.signal.aborted) return
-        console.error('Driver query failed:', error)
-        setQuery({ status: 'error' })
-      })
-
-    return () => controller.abort()
-  }, [
-    selectedBuilding,
-    selectedArea,
-    riskConfig,
-    timePeriod,
-    futureWindow,
-    zarrLayer,
-  ])
-
-  return query
-}
-
 // A driver's signed value, with ValueBadge's bound for low values
 const FormattedValue = ({
   value,
@@ -228,11 +143,19 @@ const FormattedValue = ({
   )
 }
 
-const Drivers = () => {
+const Drivers = ({ point }: { point: FdpPointQuery }) => {
   const driver = useStore((state) => state.selectorValues.driver)
   const setSelectorValues = useStore((state) => state.setSelectorValues)
-  const query = useDriverContributions()
-  const values = query.status === 'success' ? query.values : null
+  const riskConfig = useStore((state) => state.riskConfig)
+  // in display %; null with no point, or when no driver has a value there
+  const values = useMemo(() => {
+    if (point.status !== 'success') return null
+    const { contribution } = point.data
+    if (contribution.every((v) => v === null)) return null
+    return contribution.map((v) =>
+      v === null ? null : toDisplayUnits(riskConfig, LAYER_ID, v),
+    )
+  }, [point, riskConfig])
   const [hovered, setHovered] = useState<number | null>(null)
   const [autoSort, setAutoSort] = useState(true)
   const { theme } = useThemeUI()

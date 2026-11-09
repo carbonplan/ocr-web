@@ -2,7 +2,9 @@ import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
+import { useFdpPoint } from '@/hooks/useFdpPoint'
 import Drivers from './drivers'
+import StandardError from './standard-error'
 
 const FloodLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -13,6 +15,8 @@ const FloodLayers = () => {
   // the building query reads the displayed layer, so its value only belongs
   // on that layer's row
   const shown = (id: string) => (mapLayer === id ? value : null)
+  // every variable at the selection, read once for the sections below
+  const point = useFdpPoint()
 
   return (
     <>
@@ -43,10 +47,7 @@ const FloodLayers = () => {
         value={shown('fdp_se')}
         toFixed={1}
       >
-        How much the probability here typically moves when the model is refit on
-        a resample of the same flood reports. This understates the real
-        uncertainty: it leaves out new reports, the choice of no-damage points,
-        and errors in the model itself.
+        <StandardError point={point} />
       </MapLayer>
       <MapLayer
         label='Drivers of risk'
@@ -55,7 +56,7 @@ const FloodLayers = () => {
         value={shown('contribution')}
         toFixed={1}
       >
-        <Drivers />
+        <Drivers point={point} />
       </MapLayer>
     </>
   )
