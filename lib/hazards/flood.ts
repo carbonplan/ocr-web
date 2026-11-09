@@ -76,7 +76,7 @@ const flood: HazardConfig = {
     {
       id: 'contribution',
       variable: 'contribution',
-      axisLabel: 'Change in probability',
+      axisLabel: 'Δ Probability',
       unit: '%',
       unitScale: 100,
       binBoundaries: [-10, 10],
@@ -84,7 +84,7 @@ const flood: HazardConfig = {
       colormap: 'orangeblue',
       // the int16 fill reads as -3.2768 once scaled
       validRange: [-1, 1],
-      selector: { dim: 'driver', values: DRIVER_INDICES, defaultValue: 1 },
+      selector: { dim: 'driver', values: DRIVER_INDICES, defaultValue: 0 },
     },
     {
       id: 'dominant_driver',
