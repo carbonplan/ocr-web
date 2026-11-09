@@ -79,7 +79,7 @@ const flood: HazardConfig = {
       axisLabel: 'Δ Probability',
       unit: '%',
       unitScale: 100,
-      binBoundaries: [-10, 10],
+      binBoundaries: [-15, 15],
       continuous: true,
       colormap: 'orangeblue',
       // the int16 fill reads as -3.2768 once scaled

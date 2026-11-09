@@ -28,10 +28,54 @@ import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 
 const LAYER_ID = 'contribution'
 
-// fixed so bar lengths compare across locations, in display %; longer bars
-// are clipped at the edge
 const SCALE = 15
 const CHART_HEIGHT = 130
+
+// A broken side reads true values up to `at`, then a gap `gap` high, then
+// [at, its max] compressed into the rest of the side; in display %
+const BREAK = { at: 10, gap: 1 }
+const BREAK_END = BREAK.at + BREAK.gap
+
+// a side breaks only past SCALE by more than this, and a bar is cut only past
+// the break by more than this, in display %; a bar just past either is clamped
+// to it, and its label gives the value
+const OVERSHOOT = 0.5
+
+// Each side's max if its axis breaks, else null; the longest bar on a broken
+// side reaches its edge
+type Axis = { pos: number | null; neg: number | null }
+
+const getAxis = (values: (number | null)[] | null): Axis => {
+  const top = (sign: number) => {
+    const max = Math.max(0, ...(values ?? []).map((v) => sign * (v ?? 0)))
+    return max > SCALE + OVERSHOOT ? max : null
+  }
+  return { pos: top(1), neg: top(-1) }
+}
+
+// Where a value's bar ends on the chart's [-SCALE, SCALE] y-axis, and whether
+// it's cut at its side's break
+const toBar = (value: number, axis: Axis) => {
+  const sign = Math.sign(value)
+  const size = Math.abs(value)
+  const top = value > 0 ? axis.pos : axis.neg
+  if (top === null) return { y: sign * Math.min(size, SCALE), cut: false }
+  if (size <= BREAK.at + OVERSHOOT) {
+    return { y: sign * Math.min(size, BREAK.at), cut: false }
+  }
+  const fraction = (size - BREAK.at) / (top - BREAK.at)
+  return { y: sign * (BREAK_END + fraction * (SCALE - BREAK_END)), cut: true }
+}
+
+// The gap across column k's bar, at its side's axis break
+const BarBreak = ({ k, sign }: { k: number; sign: number }) => (
+  <Rect
+    x={[k - 0.5, k + 0.5]}
+    y={[sign * BREAK.at, sign * BREAK_END]}
+    color='background'
+    style={{ pointerEvents: 'none' }}
+  />
+)
 
 // column order until there are values to sort by, from the Collins paper's
 // radar charts
@@ -237,6 +281,15 @@ const Drivers = () => {
     return i === null ? null : { index: i, value: values[i]! }
   }, [values])
 
+  const axis = useMemo(() => getAxis(values), [values])
+  const bars = columns.map((i) => toBar(values?.[i] ?? 0, axis))
+
+  // a broken side labels only the break; its bars' own labels give the rest
+  const ticks = [
+    axis.neg !== null ? -BREAK.at : -SCALE,
+    axis.pos !== null ? BREAK.at : SCALE,
+  ]
+
   const select = (i: number) => setSelectorValues({ driver: i })
   const band = (k: number) => ({
     x: [k - 0.4, k + 0.4],
@@ -347,13 +400,13 @@ const Drivers = () => {
           </AxisLabel>
           <TickLabels
             right
-            values={[-SCALE, SCALE]}
+            values={ticks}
             format={(d: number) => `${d > 0 ? '+' : ''}${d}%`}
             sx={{ ml: -2 }}
           />
           <Plot>
             <Bar
-              data={columns.map((i, k) => [k, values?.[i] ?? 0])}
+              data={bars.map((bar, k) => [k, bar.y])}
               color={columns.map((i) => toColor(values?.[i] ?? 0))}
             />
             {columns.map((i, k) => (
@@ -386,6 +439,12 @@ const Drivers = () => {
                 }}
               />
             ))}
+            {bars.map(
+              (bar, k) =>
+                bar.cut && (
+                  <BarBreak key={`break-${k}`} k={k} sign={Math.sign(bar.y)} />
+                ),
+            )}
           </Plot>
           {shownValue !== null && (
             <Label
