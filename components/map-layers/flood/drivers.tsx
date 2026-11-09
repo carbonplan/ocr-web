@@ -228,7 +228,7 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
       </Box>
       {top ? (
         <Box sx={{ mt: 2 }}>
-          The top driver here is the{' '}
+          The top driver at this location is the{' '}
           <Box
             as='button'
             aria-pressed={top.index === driver}
@@ -248,6 +248,7 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
               fontSize: [1, 1, 1, 2],
               cursor: driver === top.index ? 'default' : 'pointer',
               transition: 'color 0.2s',
+              color: toColor(top.value),
               '&:hover, &:focus-visible': {
                 color: 'secondary',
               },
@@ -283,7 +284,9 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
           fontSize: [1, 1, 1, 2],
         }}
       >
-        <Box sx={{ color: 'primary' }}>{FDP_DRIVERS[shown]?.label}</Box>
+        <Box sx={{ color: toColor(shownValue ?? 0) }}>
+          {FDP_DRIVERS[shown]?.label}
+        </Box>
 
         <Flex
           as='label'
@@ -292,7 +295,7 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
             gap: 2,
             width: 'fit-content',
             cursor: 'pointer',
-            color: 'secondary',
+            color: 'primary',
           }}
         >
           Auto-sort
@@ -300,7 +303,7 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
             aria-label='Auto-sort'
             checked={autoSort}
             onChange={() => setAutoSort((on) => !on)}
-            sx={{ fill: 'secondary' }}
+            sx={{ fill: 'primary' }}
           />
         </Flex>
       </Flex>
