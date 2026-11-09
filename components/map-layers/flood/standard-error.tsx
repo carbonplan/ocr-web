@@ -7,15 +7,9 @@ import { FdpPointQuery } from '@/hooks/useFdpPoint'
 import ScoreBar from '../../score-bar'
 import ValueBadge from '../../value-badge'
 
-// the probability's upper bound, in display %, which ends the last bin
 const MAX = 100
-
-// the narrowest the standard error bracket draws, so a small one stays visible
 const MIN_BRACKET = '6px'
 
-// A value's position across the score bar, as a percentage of its width:
-// cell 0 is the "0" score, and cell k + 1 spans bins[k] to bins[k + 1]. Off by
-// up to the bar's 2px cell gaps, which don't scale with it.
 const toPosition = (bins: number[], value: number) => {
   const k = Math.max(
     0,
@@ -27,8 +21,16 @@ const toPosition = (bins: number[], value: number) => {
   return ((1 + k + within) / (bins.length + 1)) * 100
 }
 
-// The probability on its score bar, with a bracket one standard error to
-// either side, clipped to the bar
+// TODO: ensure this color is Badge-friendly
+export const useStandardErrorColor = (se: number | null) => {
+  const riskConfig = useStore((state) => state.riskConfig)
+  const seLayer = getMapLayer(riskConfig, 'fdp_se')
+  const colormap = useColormap({ name: seLayer?.colormap, continuous: true })
+  const bins = seLayer?.binBoundaries
+  if (se === null || !bins) return undefined
+  return getContinuousColor(colormap, [bins[0], bins[bins.length - 1]], se)
+}
+
 const StandardError = ({ point }: { point: FdpPointQuery }) => {
   const riskConfig = useStore((state) => state.riskConfig)
   const { theme } = useThemeUI()
@@ -39,16 +41,11 @@ const StandardError = ({ point }: { point: FdpPointQuery }) => {
     name: fdpLayer?.colormap ?? riskConfig.colormap,
     count: fdpBins.length,
   })
-  const seLayer = getMapLayer(riskConfig, 'fdp_se')
-  const seColormap = useColormap({ name: seLayer?.colormap, continuous: true })
-  if (point.status !== 'success') return null
-  const p = toDisplayUnits(riskConfig, 'fdp', point.data.fdp)
-  const se = toDisplayUnits(riskConfig, 'fdp_se', point.data.fdpSe)
+  const data = point.status === 'success' ? point.data : null
+  const p = toDisplayUnits(riskConfig, 'fdp', data?.fdp)
+  const se = toDisplayUnits(riskConfig, 'fdp_se', data?.fdpSe)
+  const seColor = useStandardErrorColor(se)
   if (p === null || se === null) return null
-  const seBins = seLayer?.binBoundaries
-  const seColor = seBins
-    ? getContinuousColor(seColormap, [seBins[0], seBins[seBins.length - 1]], se)
-    : undefined
 
   const center = toPosition(fdpBins, p)
   const lower = toPosition(fdpBins, Math.max(0, p - se))
@@ -65,7 +62,7 @@ const StandardError = ({ point }: { point: FdpPointQuery }) => {
       <Box sx={{ mt: 3 }}>
         The flood damage probability at this location is{' '}
         <ValueBadge value={p} toFixed={1} />
-        , give or take <ValueBadge value={se} toFixed={1} />.
+        , give or take <ValueBadge value={se} toFixed={1} color={seColor} />.
         <ScoreBar
           labels
           bins={fdpBins}

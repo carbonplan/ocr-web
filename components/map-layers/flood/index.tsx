@@ -4,7 +4,7 @@ import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
 import { useFdpPoint } from '@/hooks/useFdpPoint'
 import Drivers from './drivers'
-import StandardError from './standard-error'
+import StandardError, { useStandardErrorColor } from './standard-error'
 
 const FloodLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -17,6 +17,7 @@ const FloodLayers = () => {
   const shown = (id: string) => (mapLayer === id ? value : null)
   // every variable at the selection, read once for the sections below
   const point = useFdpPoint()
+  const seColor = useStandardErrorColor(shown('fdp_se'))
 
   return (
     <>
@@ -45,6 +46,7 @@ const FloodLayers = () => {
         checked={mapLayer === 'fdp_se'}
         setChecked={() => setMapLayer('fdp_se')}
         value={shown('fdp_se')}
+        color={seColor}
         toFixed={1}
       >
         <StandardError point={point} />
