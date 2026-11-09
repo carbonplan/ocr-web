@@ -55,8 +55,9 @@ const FloodLayers = () => {
         label='Drivers of risk'
         checked={mapLayer === 'contribution'}
         setChecked={() => setMapLayer('contribution')}
-        value={shown('contribution')}
-        toFixed={1}
+        value={9}
+        unit='#'
+        toFixed={0}
       >
         <Drivers point={point} />
       </MapLayer>
