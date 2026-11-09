@@ -2,7 +2,6 @@ import MapLayer from '../map-layer'
 import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
-import { FDP_DRIVERS } from '@/lib/hazards/flood'
 import Drivers from './drivers'
 
 const FloodLayers = () => {
@@ -14,7 +13,6 @@ const FloodLayers = () => {
   // the building query reads the displayed layer, so its value only belongs
   // on that layer's row
   const shown = (id: string) => (mapLayer === id ? value : null)
-  const driverClass = shown('dominant_driver')
 
   return (
     <>
@@ -58,19 +56,6 @@ const FloodLayers = () => {
         toFixed={1}
       >
         <Drivers />
-      </MapLayer>
-      <MapLayer
-        label='Top driver'
-        checked={mapLayer === 'dominant_driver'}
-        setChecked={() => setMapLayer('dominant_driver')}
-        value={
-          driverClass === null
-            ? null
-            : (FDP_DRIVERS[Math.round(driverClass)]?.short ?? null)
-        }
-        unit='#'
-      >
-        The predictor with the largest contribution to the probability here.
       </MapLayer>
     </>
   )

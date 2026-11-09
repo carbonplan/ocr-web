@@ -86,18 +86,6 @@ const flood: HazardConfig = {
       validRange: [-1, 1],
       selector: { dim: 'driver', values: DRIVER_INDICES, defaultValue: 0 },
     },
-    {
-      id: 'dominant_driver',
-      variable: 'dominant_driver',
-      axisLabel: 'Top driver',
-      unit: '',
-      unitScale: 1,
-      binBoundaries: DRIVER_INDICES,
-      binLabels: FDP_DRIVERS.map((d) => d.short),
-      customColormap: true,
-      colormap: 'sinebow',
-      categorical: true,
-    },
   ],
 }
 
