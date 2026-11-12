@@ -268,7 +268,7 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
           .
         </Box>
       ) : (
-        <Box sx={{ mt: 2 }}>No driver data is available for this location.</Box>
+        <Box sx={{ mt: 2 }}>Click on a location to view driver data.</Box>
       )}
 
       <Flex
