@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
 import { ExpressionSpecification } from 'maplibre-gl'
+import { tileUrl } from 'tiled-geoparquet/tiles'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
@@ -10,6 +11,8 @@ import { HISTORIC_FIRES_LAYER_ID } from '@/lib/historic-events'
 const { sourceId, layerName, layerIds } = LAYERS.firePerimeters
 const FILL_BEFORE_ID = LAYERS.buildings.layerIds.fill
 const LINE_BEFORE_ID = 'address_label'
+// the file's finest overview; MapLibre overzooms past it
+const MAX_ZOOM = 11
 
 const BINS =
   getMapLayer(RISKS.fire, HISTORIC_FIRES_LAYER_ID)?.binBoundaries ?? []
@@ -60,9 +63,7 @@ const FirePerimeters = () => {
 
   const isRelevant: ExpressionSpecification | null = useMemo(
     () =>
-      relevantIds
-        ? ['in', ['get', 'event_id'], ['literal', relevantIds]]
-        : null,
+      relevantIds ? ['in', ['id'], ['literal', relevantIds.map(Number)]] : null,
     [relevantIds],
   )
 
@@ -97,8 +98,14 @@ const FirePerimeters = () => {
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
         type: 'vector',
-        url: `pmtiles://${HISTORIC_URLS.firePerimeters}`,
-        promoteId: 'event_id',
+        tiles: [
+          tileUrl({
+            url: HISTORIC_URLS.firePerimeters,
+            layer: layerName,
+            properties: ['year'],
+          }),
+        ],
+        maxzoom: MAX_ZOOM,
       })
     }
     if (!map.getLayer(layerIds.fill)) {
@@ -164,14 +171,18 @@ const FirePerimeters = () => {
         {
           source: sourceId,
           sourceLayer: layerName,
-          id: previousHoverRef.current,
+          id: Number(previousHoverRef.current),
         },
         { hover: false },
       )
     }
     if (hoveredEventId && active) {
       map.setFeatureState(
-        { source: sourceId, sourceLayer: layerName, id: hoveredEventId },
+        {
+          source: sourceId,
+          sourceLayer: layerName,
+          id: Number(hoveredEventId),
+        },
         { hover: true },
       )
       previousHoverRef.current = hoveredEventId

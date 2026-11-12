@@ -1,14 +1,22 @@
-import { PMTiles } from 'pmtiles'
+import {
+  batchToGeoJSON,
+  coalescing,
+  httpSource,
+  openReader,
+  readFeatures,
+} from 'tiled-geoparquet'
 import { booleanPointInPolygon, point } from '@turf/turf'
-import type { Feature, MultiPolygon, Polygon } from 'geojson'
-import { HISTORIC_URLS, LAYERS } from '@/lib/config'
-import { readTileFeatures, tileCoords } from './vector-tiles'
+import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
+import { HISTORIC_URLS } from '@/lib/config'
 
-// Point-in-polygon against the MTBS perimeter tiles: at max zoom the tile
-// under the point holds every perimeter covering it.
+// Point-in-polygon against the MTBS perimeters (ocr-multi-hazard:
+// ocr.historic.mtbs), reading only the full-resolution rows whose bounding box
+// covers the point.
 
 export type FireAtPoint = {
+  // file row index, which is also the perimeter's map feature id
   id: string
+  eventId: string
   name: string
   type: string
   year: number
@@ -16,46 +24,29 @@ export type FireAtPoint = {
   acres: number
 }
 
-type PerimeterFeature = Feature<Polygon | MultiPolygon, Record<string, unknown>>
+const COLUMNS = [
+  'event_id',
+  'incid_name',
+  'incid_type',
+  'ig_date',
+  'year',
+  'burnbndac',
+]
+// ~10 m, so the rows read are the ones whose bbox covers the point
+const PAD_DEGREES = 1e-4
 
-let archive: PMTiles | null = null
+let reader: ReturnType<typeof openReader> | null = null
 
-const getArchive = () => {
-  if (!archive) archive = new PMTiles(HISTORIC_URLS.firePerimeters)
-  return archive
-}
-
-const readTile = async (
-  z: number,
-  x: number,
-  y: number,
-  signal?: AbortSignal,
-): Promise<PerimeterFeature[]> =>
-  (
-    await readTileFeatures(
-      getArchive(),
-      LAYERS.firePerimeters.layerName,
-      z,
-      x,
-      y,
-      signal,
+const getReader = () => {
+  if (!reader) {
+    reader = httpSource([HISTORIC_URLS.firePerimeters]).then((source) =>
+      openReader(coalescing(source)),
     )
-  ).filter(
-    (feature): feature is PerimeterFeature =>
-      feature.geometry.type === 'Polygon' ||
-      feature.geometry.type === 'MultiPolygon',
-  )
-
-const toFire = (feature: PerimeterFeature): FireAtPoint => {
-  const props = feature.properties
-  return {
-    id: String(props.event_id),
-    name: String(props.incid_name ?? ''),
-    type: String(props.incid_type ?? ''),
-    year: Number(props.year),
-    date: String(props.ig_date ?? ''),
-    acres: Number(props.burnbndac),
+    reader.catch(() => {
+      reader = null
+    })
   }
+  return reader
 }
 
 // perimeters containing the point, most recent first
@@ -63,17 +54,38 @@ export const queryFiresAtPoint = async (
   [lng, lat]: [number, number],
   signal?: AbortSignal,
 ): Promise<FireAtPoint[]> => {
-  const header = await getArchive().getHeader()
-  const z = header.maxZoom
-  const [x, y] = tileCoords(lng, lat, z)
+  const batch = await readFeatures(await getReader(), {
+    bbox: [
+      lng - PAD_DEGREES,
+      lat - PAD_DEGREES,
+      lng + PAD_DEGREES,
+      lat + PAD_DEGREES,
+    ],
+    resolution: 1e-6,
+    columns: COLUMNS,
+    geometry: 'primary',
+    signal,
+  })
   const pt = point([lng, lat])
-
-  const fires = new Map<string, FireAtPoint>()
-  for (const feature of await readTile(z, x, y, signal)) {
-    if (booleanPointInPolygon(pt, feature)) {
-      const fire = toFire(feature)
-      fires.set(fire.id, fire)
-    }
-  }
-  return [...fires.values()].sort((a, b) => b.year - a.year)
+  const { features } = batchToGeoJSON(batch) as FeatureCollection
+  return features
+    .filter(
+      (feature): feature is Feature<Polygon | MultiPolygon> =>
+        (feature.geometry?.type === 'Polygon' ||
+          feature.geometry?.type === 'MultiPolygon') &&
+        booleanPointInPolygon(pt, feature as Feature<Polygon | MultiPolygon>),
+    )
+    .map((feature) => {
+      const props = feature.properties as Record<string, unknown>
+      return {
+        id: String(feature.id),
+        eventId: String(props.event_id),
+        name: String(props.incid_name ?? ''),
+        type: String(props.incid_type ?? ''),
+        year: Number(props.year),
+        date: String(props.ig_date ?? ''),
+        acres: Number(props.burnbndac),
+      }
+    })
+    .sort((a, b) => b.year - a.year)
 }

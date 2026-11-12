@@ -17,7 +17,7 @@ const HISTORIC_INPUT_URL =
 
 export const HISTORIC_URLS = {
   stormTracks: `${HISTORIC_INPUT_URL}/ibtracs/20261112/ibtracs_tracks.parquet`,
-  firePerimeters: `${EXPLORE_URL}/mtbs_conus_perims.pmtiles`,
+  firePerimeters: `${HISTORIC_INPUT_URL}/mtbs/20261110/mtbs_perims.parquet`,
   floodReports: `${EXPLORE_URL}/storm_events_conus_floods.pmtiles`,
   floodReportPoints: `${EXPLORE_URL}/storm_events_conus_flood_points.pmtiles`,
   floodSatellite: `${EXPLORE_URL}/gfd_conus_footprints.pmtiles`,
