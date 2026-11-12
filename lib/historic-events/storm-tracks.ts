@@ -1,13 +1,8 @@
-import {
-  batchToGeoJSON,
-  coalescing,
-  httpSource,
-  openReader,
-  readFeatures,
-} from 'tiled-geoparquet'
+import { batchToGeoJSON, readFeatures } from 'tiled-geoparquet'
 import { pointToLineDistance } from '@turf/turf'
 import type { Feature, FeatureCollection, LineString } from 'geojson'
 import { HISTORIC_URLS } from '@/lib/config'
+import { openGeoParquet } from '@/lib/geoparquet'
 
 // IBTrACS best-track segments (ocr-multi-hazard: ocr.historic.ibtracs), one
 // row per 3-hourly segment of every storm since 2004 whose tropical-storm-force
@@ -54,9 +49,7 @@ let cache: Promise<FeatureCollection<LineString, SegmentProperties>> | null =
 export const loadStormTracks = () => {
   if (!cache) {
     cache = (async () => {
-      const reader = await openReader(
-        coalescing(await httpSource([HISTORIC_URLS.stormTracks])),
-      )
+      const reader = await openGeoParquet(HISTORIC_URLS.stormTracks)
       const batch = await readFeatures(reader, {
         bbox: [-180, -90, 180, 90],
         resolution: 1,

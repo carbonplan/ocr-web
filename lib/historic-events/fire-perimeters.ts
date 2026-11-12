@@ -1,13 +1,8 @@
-import {
-  batchToGeoJSON,
-  coalescing,
-  httpSource,
-  openReader,
-  readFeatures,
-} from 'tiled-geoparquet'
+import { batchToGeoJSON, readFeatures } from 'tiled-geoparquet'
 import { booleanPointInPolygon, point } from '@turf/turf'
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 import { HISTORIC_URLS } from '@/lib/config'
+import { openGeoParquet } from '@/lib/geoparquet'
 
 // Point-in-polygon against the MTBS perimeters (ocr-multi-hazard:
 // ocr.historic.mtbs), reading only the full-resolution rows whose bounding box
@@ -35,37 +30,26 @@ const COLUMNS = [
 // ~10 m, so the rows read are the ones whose bbox covers the point
 const PAD_DEGREES = 1e-4
 
-let reader: ReturnType<typeof openReader> | null = null
-
-const getReader = () => {
-  if (!reader) {
-    reader = httpSource([HISTORIC_URLS.firePerimeters]).then((source) =>
-      openReader(coalescing(source)),
-    )
-    reader.catch(() => {
-      reader = null
-    })
-  }
-  return reader
-}
-
 // perimeters containing the point, most recent first
 export const queryFiresAtPoint = async (
   [lng, lat]: [number, number],
   signal?: AbortSignal,
 ): Promise<FireAtPoint[]> => {
-  const batch = await readFeatures(await getReader(), {
-    bbox: [
-      lng - PAD_DEGREES,
-      lat - PAD_DEGREES,
-      lng + PAD_DEGREES,
-      lat + PAD_DEGREES,
-    ],
-    resolution: 1e-6,
-    columns: COLUMNS,
-    geometry: 'primary',
-    signal,
-  })
+  const batch = await readFeatures(
+    await openGeoParquet(HISTORIC_URLS.firePerimeters),
+    {
+      bbox: [
+        lng - PAD_DEGREES,
+        lat - PAD_DEGREES,
+        lng + PAD_DEGREES,
+        lat + PAD_DEGREES,
+      ],
+      resolution: 1e-6,
+      columns: COLUMNS,
+      geometry: 'primary',
+      signal,
+    },
+  )
   const pt = point([lng, lat])
   const { features } = batchToGeoJSON(batch) as FeatureCollection
   return features
