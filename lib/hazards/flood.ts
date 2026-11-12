@@ -77,9 +77,9 @@ const flood: HazardConfig = {
       axisLabel: 'Standard error',
       unit: '%',
       unitScale: 100,
-      // CONUS spans ~2.5 to 6 (97th percentile); starting below the minimum
+      // CONUS spans ~2.7 to 7 (99.9th percentile); starting below the minimum
       // keeps the lowest watersheds off the ramp's near-background end
-      binBoundaries: [2, 6],
+      binBoundaries: [2, 7],
       continuous: true,
       colormap: 'cool',
     },
