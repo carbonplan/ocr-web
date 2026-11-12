@@ -31,7 +31,7 @@ const columnsFor = (hazard: HazardConfig) => [
   'building_count',
   ...getDatasetVariables(hazard).flatMap((v) => [
     getMedianColumn(v),
-    getHistColumn(hazard, v),
+    getHistColumn(v),
   ]),
 ]
 
@@ -244,7 +244,7 @@ const toGeography = (
     const median = stats[getMedianColumn(v)]
     geography.median[v] =
       median === null || median === undefined ? null : Number(median)
-    geography.hist[v] = numbers(stats[getHistColumn(hazard, v)])
+    geography.hist[v] = numbers(stats[getHistColumn(v)])
   }
   if (stats.NAME !== undefined && stats.NAME !== null) {
     geography.name = String(stats.NAME)

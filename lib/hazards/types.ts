@@ -41,8 +41,6 @@ export type HazardVectorData = {
   regions?: string
   // of the region files; 'parquet' when absent
   regionsExtension?: 'parquet' | 'geoparquet'
-  // hist column by variable, for region files written before `${variable}_hist`
-  histColumns?: Record<string, string>
   // per-level stats.csv and stats.geojson
   statsBase?: string
   // building columns read by row on selection, beyond the dataset variables
