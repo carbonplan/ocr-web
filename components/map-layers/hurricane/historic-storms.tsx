@@ -8,15 +8,14 @@ import { tableSx } from '../../tooltip-table'
 
 const FIRST_SEASON = 2004
 
-const REACHED_NOTE =
-  'The date and time (UTC) of the first 3-hourly best-track position from which the storm\u2019s tropical-storm-force winds reached this location: the location lies within the storm\u2019s 34 kt wind radius, the largest of its four quadrant radii. Storms start in 2004, when best tracks began recording wind radii routinely.'
+const CLOSEST_NOTE = 'How near the storm\u2019s center passed this location.'
 
-const formatReached = (time: string) =>
-  new Date(`${time.replace(' ', 'T')}Z`).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  })
+const MI_PER_KM = 0.621371
+
+const formatClosest = (km: number) => {
+  const mi = Math.round(km * MI_PER_KM)
+  return mi < 1 ? '<1 mi' : `${mi} mi`
+}
 
 // Storms at the selected point, most recent first
 export const useHistoricStorms = () => {
@@ -91,7 +90,7 @@ const HistoricStorms = () => {
     <Box>
       Tropical cyclones since {FIRST_SEASON} whose tropical-storm-force winds (
       {TROPICAL_STORM_MPH}+ mph) reached this location by NOAA&apos;s best
-      track, and when they first did.
+      track, and how near each passed.
       {!hasSelection && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its storm history.
@@ -122,7 +121,7 @@ const HistoricStorms = () => {
           {storms.length > 0 && (
             <>
               <TooltipWrapper
-                tooltip={REACHED_NOTE}
+                tooltip={CLOSEST_NOTE}
                 sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
                 tooltipSx={{ mt: 2, mb: 0 }}
               >
@@ -134,7 +133,7 @@ const HistoricStorms = () => {
                   }}
                 >
                   <Box sx={tableSx.tableHead}>Storm</Box>
-                  <Box sx={tableSx.tableHead}>Reached here</Box>
+                  <Box sx={tableSx.tableHead}>Closest pass</Box>
                 </Flex>
               </TooltipWrapper>
               <Box onMouseLeave={() => setHoveredEventId(null)}>
@@ -149,7 +148,7 @@ const HistoricStorms = () => {
                         </Box>
                       </>
                     }
-                    value={formatReached(storm.time)}
+                    value={formatClosest(storm.closestKm)}
                     hovered={hoveredEventId === storm.sid}
                     onHover={() => setHoveredEventId(storm.sid)}
                     eye={{

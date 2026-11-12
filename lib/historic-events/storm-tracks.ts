@@ -34,6 +34,8 @@ export type StormAtPoint = {
   season: number
   // first segment whose 34 kt winds reached the point
   time: string
+  // nearest the track's center came to the point, km
+  closestKm: number
 }
 
 const COLUMNS = [
@@ -95,7 +97,8 @@ const KM_PER_NMI = 1.852
 const KM_PER_DEGREE = 111.32
 
 // Storms whose 34 kt winds reached the point by the best track (the point lies
-// within a segment's R34 of it), most recent first.
+// within a segment's R34 of it), most recent first, with how near each track
+// passed.
 export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
   StormAtPoint[]
 > => {
@@ -127,10 +130,25 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
     const { sid, name, season, iso_time } = segment.properties
     const storm = storms.get(sid)
     if (!storm) {
-      storms.set(sid, { sid, name, season, time: iso_time })
+      storms.set(sid, {
+        sid,
+        name,
+        season,
+        time: iso_time,
+        closestKm: Infinity,
+      })
     } else if (iso_time < storm.time) {
       storm.time = iso_time
     }
+  }
+  // over every segment of the matched storms, weak stages included
+  for (const segment of features) {
+    const storm = storms.get(segment.properties.sid)
+    if (!storm) continue
+    storm.closestKm = Math.min(
+      storm.closestKm,
+      pointToLineDistance([lng, lat], segment, { units: 'kilometers' }),
+    )
   }
   return [...storms.values()].sort((a, b) => b.time.localeCompare(a.time))
 }
