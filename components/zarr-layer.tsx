@@ -33,7 +33,6 @@ const ZarrLayer = () => {
   })
   const unitScale = getUnitScale(riskConfig, mapLayerId)
   const categorical = activeLayer?.categorical ?? false
-  const validRange = activeLayer?.validRange
   const continuous = activeLayer?.continuous ?? false
   const selectorDim = activeLayer?.selector?.dim
   const selectorValue = useStore((state) =>
@@ -45,7 +44,6 @@ const ZarrLayer = () => {
     () =>
       buildBinFrag(colorLimits.binBoundaries || [], variable, unitScale, {
         categorical,
-        validRange,
         continuous,
         colormapLength: colormap.length,
       }),
@@ -54,7 +52,6 @@ const ZarrLayer = () => {
       variable,
       unitScale,
       categorical,
-      validRange,
       continuous,
       colormap.length,
     ],

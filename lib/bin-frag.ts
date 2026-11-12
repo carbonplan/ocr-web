@@ -1,8 +1,6 @@
 export type BinFragOptions = {
   // bins are classes, so zero is a class rather than no data
   categorical?: boolean
-  // store values outside this range are no data
-  validRange?: [number, number]
   // color along the ramp between the first and last boundary rather than in bins
   continuous?: boolean
   colormapLength?: number
@@ -17,7 +15,6 @@ export const buildBinFrag = (
   unitScale: number,
   {
     categorical = false,
-    validRange,
     continuous = false,
     colormapLength = 0,
   }: BinFragOptions = {},
@@ -25,16 +22,12 @@ export const buildBinFrag = (
   const valueExpression =
     unitScale === 1 ? variable : `${variable} * ${unitScale.toFixed(6)}`
 
-  const outOfRange = validRange
-    ? ` || ${variable} < ${validRange[0].toFixed(6)} || ${variable} > ${validRange[1].toFixed(6)}`
-    : ''
-
   if (continuous) {
     const [lo, hi] = [boundaries[0], boundaries[boundaries.length - 1]]
     const n = colormapLength
     return `
       float value = ${valueExpression};
-      if (isnan(value)${outOfRange}) {
+      if (isnan(value)) {
         discard;
       }
       float t = clamp((value - ${lo.toFixed(6)}) / ${(hi - lo).toFixed(6)}, 0.0, 1.0);
@@ -60,7 +53,7 @@ export const buildBinFrag = (
 
   return `
       float value = ${valueExpression};
-      if (isnan(value)${categorical ? '' : ' || value == 0.0'}${outOfRange}) {
+      if (isnan(value)${categorical ? '' : ' || value == 0.0'}) {
         discard;
       }
       float binIndex = 0.0;

@@ -83,10 +83,6 @@ export type HazardMapLayer = {
   // colored along the ramp between binBoundaries' two entries rather than in
   // bins
   continuous?: boolean
-  // store values outside this range are no data, for integer fills that
-  // zarr-layer 0.9 does not mask once scaled (0.11's band textures do; drop
-  // this after the bump)
-  validRange?: [number, number]
   selector?: HazardLayerSelector
 }
 

@@ -92,8 +92,6 @@ const flood: HazardConfig = {
       binBoundaries: [-15, 15],
       continuous: true,
       colormap: 'orangeblue',
-      // the int16 fill reads as -3.2768 once scaled
-      validRange: [-1, 1],
       selector: { dim: 'driver', values: DRIVER_INDICES, defaultValue: 0 },
     },
     {
