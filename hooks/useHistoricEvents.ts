@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { centerOfMass } from '@turf/turf'
 import { useStore, HistoricEventsState } from '@/lib/store'
+import { useSelectedPoint } from '@/hooks/useSelectedPoint'
 import { queryStormsAtPoint } from '@/lib/historic-events/storm-tracks'
 import { queryFiresAtPoint } from '@/lib/historic-events/fire-perimeters'
 import { queryFloodHistory } from '@/lib/historic-events/flood-history'
@@ -9,20 +9,12 @@ import { queryFloodHistory } from '@/lib/historic-events/flood-history'
 // Runs whether or not the events layer is showing, so the sidebar count is
 // always populated.
 export const useHistoricEvents = () => {
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const selectedArea = useStore((state) => state.selectedArea)
+  const point = useSelectedPoint()
   const hazard = useStore((state) => state.riskConfig.id)
   const setHistoricEvents = useStore((state) => state.setHistoricEvents)
 
   useEffect(() => {
-    if (!selectedBuilding && !selectedArea) return
-
-    const point = selectedArea
-      ? ([selectedArea.lng, selectedArea.lat] as [number, number])
-      : (centerOfMass(selectedBuilding!).geometry.coordinates as [
-          number,
-          number,
-        ])
+    if (!point) return
 
     setHistoricEvents({ status: 'loading' })
     useStore.getState().setSelectedStormId(null)
@@ -53,5 +45,5 @@ export const useHistoricEvents = () => {
       })
 
     return () => controller.abort()
-  }, [selectedBuilding, selectedArea, hazard, setHistoricEvents])
+  }, [point, hazard, setHistoricEvents])
 }

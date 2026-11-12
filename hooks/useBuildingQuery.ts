@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { centerOfMass } from '@turf/turf'
+import { useSelectedPoint } from '@/hooks/useSelectedPoint'
 import { useStore, BuildingQueryState } from '@/lib/store'
 import {
   RISK_LAYER_ID,
@@ -16,8 +16,8 @@ import { queryStorePoint } from '@/lib/store-point'
 
 // Normalizes BuildingQueryState.value to display units.
 export const useBuildingQuery = () => {
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
+  const point = useSelectedPoint()
   const riskConfig = useStore((state) => state.riskConfig)
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
@@ -67,18 +67,12 @@ export const useBuildingQuery = () => {
 
   useEffect(() => {
     if (riskConfig.buildingsMode !== 'query') return
-    if (!selectedBuilding && !selectedArea) return
+    if (!point) return
 
     const dataset = resolveHazardDataset(riskConfig, {
       timePeriod,
       futureWindow,
     })
-    const point = selectedArea
-      ? ([selectedArea.lng, selectedArea.lat] as [number, number])
-      : (centerOfMass(selectedBuilding!).geometry.coordinates as [
-          number,
-          number,
-        ])
 
     const variable = resolveLayerVariable(riskConfig, mapLayerId, {
       timePeriod,
@@ -139,8 +133,7 @@ export const useBuildingQuery = () => {
 
     return () => controller.abort()
   }, [
-    selectedBuilding,
-    selectedArea,
+    point,
     riskConfig,
     timePeriod,
     futureWindow,
