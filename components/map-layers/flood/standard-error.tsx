@@ -45,11 +45,15 @@ const StandardError = ({ point }: { point: FdpPointQuery }) => {
   const p = toDisplayUnits(riskConfig, 'fdp', data?.fdp)
   const se = toDisplayUnits(riskConfig, 'fdp_se', data?.fdpSe)
   const seColor = useStandardErrorColor(se)
-  if (p === null || se === null) return null
 
-  const center = toPosition(fdpBins, p)
-  const lower = toPosition(fdpBins, Math.max(0, p - se))
-  const upper = toPosition(fdpBins, Math.min(MAX, p + se))
+  let range
+  if (p !== null && se !== null) {
+    range = {
+      center: toPosition(fdpBins, p),
+      lower: toPosition(fdpBins, Math.max(0, p - se)),
+      upper: toPosition(fdpBins, Math.min(MAX, p + se)),
+    }
+  }
 
   return (
     <>
@@ -68,30 +72,34 @@ const StandardError = ({ point }: { point: FdpPointQuery }) => {
           bins={fdpBins}
           colormap={fdpColormap}
           value={p}
-          sx={{ mt: 3 }}
+          sx={{ mt: 3, opacity: range ? 1 : 0.3 }}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '-3px',
-              bottom: '-8px',
-              left: `${(lower + upper) / 2}%`,
-              width: `max(${upper - lower}%, ${MIN_BRACKET})`,
-              transform: 'translateX(-50%)',
-              bg: alpha('primary', 0.3)(theme),
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '-3px',
-              bottom: '-12px',
-              left: `${center}%`,
-              width: '2px',
-              transform: 'translateX(-50%)',
-              bg: 'primary',
-            }}
-          />
+          {range && (
+            <>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '-3px',
+                  bottom: '-8px',
+                  left: `${(range.lower + range.upper) / 2}%`,
+                  width: `max(${range.upper - range.lower}%, ${MIN_BRACKET})`,
+                  transform: 'translateX(-50%)',
+                  bg: alpha('primary', 0.3)(theme),
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '-3px',
+                  bottom: '-12px',
+                  left: `${range.center}%`,
+                  width: '2px',
+                  transform: 'translateX(-50%)',
+                  bg: 'primary',
+                }}
+              />
+            </>
+          )}
         </ScoreBar>
       </Box>
     </>
