@@ -17,7 +17,10 @@ import {
   getHistColumn,
   getMedianColumn,
 } from './hazards'
+import type { HazardVectorData } from './hazards/types'
 import { Extent, Geography, GeographyKey } from '@/types/location'
+
+type RegionFiles = Pick<HazardVectorData, 'regions' | 'regionsExtension'>
 
 export type ActiveGeographies = Record<GeographyKey, Geography | null>
 
@@ -35,18 +38,20 @@ const columnsFor = (hazard: HazardConfig) => [
 // Counties are partitioned by state, tracts and blocks by county; `geoid`
 // is the region's own GEOID or, for a point lookup, its parent's.
 const fileFor = (
-  base: string,
+  vector: RegionFiles,
   level: GeographyKey,
   geoid?: string,
 ): string | null => {
-  if (level === 'nation') return `${base}/nation.parquet`
-  if (level === 'state') return `${base}/states.parquet`
+  const base = vector.regions!
+  const ext = vector.regionsExtension ?? 'parquet'
+  if (level === 'nation') return `${base}/nation.${ext}`
+  if (level === 'state') return `${base}/states.${ext}`
   if (!geoid) return null
   const state = `state_fips=${geoid.slice(0, 2)}`
-  if (level === 'county') return `${base}/counties/${state}/data.parquet`
+  if (level === 'county') return `${base}/counties/${state}/data.${ext}`
   if (geoid.length < 5) return null
   const dir = level === 'censusTract' ? 'tracts' : 'blocks'
-  return `${base}/${dir}/${state}/county_fips=${geoid.slice(2, 5)}/data.parquet`
+  return `${base}/${dir}/${state}/county_fips=${geoid.slice(2, 5)}/data.${ext}`
 }
 
 // Opening a file reads its tail, sized to hold the footer and page indexes of
@@ -179,18 +184,18 @@ const geometryKey = (base: string, level: GeographyKey, geoid: string) =>
 
 /** The outline of a region a lookup has returned; the nation's is read on demand. */
 export const loadRegionGeometry = async (
-  base: string,
+  vector: RegionFiles,
   level: GeographyKey,
   geoid: string,
 ): Promise<RegionGeometry | null> => {
-  const key = geometryKey(base, level, geoid)
+  const key = geometryKey(vector.regions!, level, geoid)
   const known = geometries.get(key)
   if (known) {
     keep(geometries, key, known, GEOMETRY_LIMIT)
     return known
   }
   // an outline evicted since its lookup is read again by its GEOID
-  const target = fileFor(base, level, geoid)
+  const target = fileFor(vector, level, geoid)
   const file = target ? await openFile(level, target) : null
   if (!file) return null
   const geometry =
@@ -277,7 +282,7 @@ const lookup = async (
   y: number,
   parentGeoid?: string,
 ): Promise<Geography | null> => {
-  const target = fileFor(hazard.vector.regions!, level, parentGeoid)
+  const target = fileFor(hazard.vector, level, parentGeoid)
   if (!target) return null
   const cached = last.get(target)
   if (cached && containsPoint(cached.geometry, x, y)) return cached.geography
@@ -293,7 +298,7 @@ const lookupById = async (
   level: GeographyKey,
   geoid: string,
 ): Promise<Geography | null> => {
-  const target = fileFor(hazard.vector.regions!, level, geoid)
+  const target = fileFor(hazard.vector, level, geoid)
   if (!target) return null
   const cached = last.get(target)
   if (cached?.geography.geoid === geoid) return cached.geography
@@ -308,10 +313,7 @@ const lookupById = async (
 const nations = new Map<string, Promise<Geography | null>>()
 
 const readNation = async (hazard: HazardConfig) => {
-  const file = await openFile(
-    'nation',
-    fileFor(hazard.vector.regions!, 'nation')!,
-  )
+  const file = await openFile('nation', fileFor(hazard.vector, 'nation')!)
   if (!file) throw new Error('no nation region file')
   const [row] = await readRows(file, 0, 1, [...columnsFor(hazard), 'bbox'])
   if (!row) return null

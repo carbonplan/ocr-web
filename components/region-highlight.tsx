@@ -18,7 +18,8 @@ const RegionHighlight = () => {
   const geoid = useStore((state) =>
     getGeoid(state.activeGeographies[selectedGeographyLevel]),
   )
-  const regions = useStore((state) => state.riskConfig.vector.regions)
+  const vector = useStore((state) => state.riskConfig.vector)
+  const regions = vector.regions
 
   useEffect(() => {
     const source = map?.getSource<GeoJSONSource>(
@@ -35,14 +36,21 @@ const RegionHighlight = () => {
       })
     show(null)
     if (showGeographyHighlight && geoid && regions) {
-      loadRegionGeometry(regions, selectedGeographyLevel, geoid)
+      loadRegionGeometry(vector, selectedGeographyLevel, geoid)
         .then((geometry) => current && show(geometry))
         .catch((error) => console.error('Region outline failed:', error))
     }
     return () => {
       current = false
     }
-  }, [map, regions, selectedGeographyLevel, showGeographyHighlight, geoid])
+  }, [
+    map,
+    vector,
+    regions,
+    selectedGeographyLevel,
+    showGeographyHighlight,
+    geoid,
+  ])
 
   useEffect(() => {
     if (!map?.getLayer(LAYERS.regionHighlight.layerIds.line)) return

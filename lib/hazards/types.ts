@@ -39,6 +39,8 @@ export type HazardVectorData = {
   // state, tracts and blocks by county. Absent while a hazard's regions are
   // still in production.
   regions?: string
+  // of the region files; 'parquet' when absent
+  regionsExtension?: 'parquet' | 'geoparquet'
   // hist column by variable, for region files written before `${variable}_hist`
   histColumns?: Record<string, string>
   // per-level stats.csv and stats.geojson
