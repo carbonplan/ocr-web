@@ -87,7 +87,9 @@ export const loadStormTracks = () => {
 }
 
 const KM_PER_NMI = 1.852
-const KM_PER_DEGREE = 111.32
+// below any degree of latitude on the sphere turf measures on (~111.2 km), so
+// the prefilter never drops a segment within reach
+const KM_PER_DEGREE_MIN = 110
 
 // Storms whose 34 kt winds reached the point by the best track (the point lies
 // within a segment's R34 of it), most recent first, with how near each track
@@ -96,14 +98,15 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
   StormAtPoint[]
 > => {
   const { features } = await loadStormTracks()
-  const cosLat = Math.cos((lat * Math.PI) / 180)
   const storms = new Map<string, StormAtPoint>()
   for (const segment of features) {
     const r34 = segment.properties.r34_nmi
     if (!r34) continue
     const reachKm = r34 * KM_PER_NMI
-    const dLat = reachKm / KM_PER_DEGREE
-    const dLng = dLat / cosLat
+    const dLat = reachKm / KM_PER_DEGREE_MIN
+    // a degree of longitude is shortest at the envelope's poleward edge
+    const poleward = Math.min(Math.abs(lat) + dLat, 89)
+    const dLng = dLat / Math.cos((poleward * Math.PI) / 180)
     const coords = segment.geometry.coordinates
     const lngs = coords.map((c) => c[0])
     const lats = coords.map((c) => c[1])
