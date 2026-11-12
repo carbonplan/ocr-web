@@ -34,8 +34,6 @@ export type StormAtPoint = {
   season: number
   // first segment whose 34 kt winds reached the point
   time: string
-  // strongest recorded wind while its 34 kt winds reached the point, kt
-  wind: number
 }
 
 const COLUMNS = [
@@ -97,7 +95,7 @@ const KM_PER_NMI = 1.852
 const KM_PER_DEGREE = 111.32
 
 // Storms whose 34 kt winds reached the point by the best track (the point lies
-// within a segment's R34 of it), strongest first.
+// within a segment's R34 of it), most recent first.
 export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
   StormAtPoint[]
 > => {
@@ -105,7 +103,7 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
   const cosLat = Math.cos((lat * Math.PI) / 180)
   const storms = new Map<string, StormAtPoint>()
   for (const segment of features) {
-    const { r34_nmi: r34, usa_wind: wind } = segment.properties
+    const r34 = segment.properties.r34_nmi
     if (!r34) continue
     const reachKm = r34 * KM_PER_NMI
     const dLat = reachKm / KM_PER_DEGREE
@@ -129,11 +127,10 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
     const { sid, name, season, iso_time } = segment.properties
     const storm = storms.get(sid)
     if (!storm) {
-      storms.set(sid, { sid, name, season, time: iso_time, wind: wind ?? 0 })
-    } else {
-      storm.wind = Math.max(storm.wind, wind ?? 0)
-      if (iso_time < storm.time) storm.time = iso_time
+      storms.set(sid, { sid, name, season, time: iso_time })
+    } else if (iso_time < storm.time) {
+      storm.time = iso_time
     }
   }
-  return [...storms.values()].sort((a, b) => b.wind - a.wind)
+  return [...storms.values()].sort((a, b) => b.time.localeCompare(a.time))
 }

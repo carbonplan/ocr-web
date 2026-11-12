@@ -1,16 +1,6 @@
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-import { useColormap } from '@/lib/colormaps'
-import { RISKS, getMapLayer } from '@/lib/hazards'
-import { getBinIndex } from '@/hooks/useLayerColor'
-import {
-  HISTORIC_STORMS_LAYER_ID,
-  HURRICANE_MPH,
-  MPH_PER_KT,
-  TROPICAL_STORM_MPH,
-  formatStormName,
-} from '@/lib/historic-events'
-import type { StormAtPoint } from '@/lib/historic-events/storm-tracks'
+import { TROPICAL_STORM_MPH, formatStormName } from '@/lib/historic-events'
 import ValueBadge from '../../value-badge'
 import EyeCheckbox from '../../eye-checkbox'
 import TooltipWrapper from '../../tooltip'
@@ -18,42 +8,35 @@ import { tableSx } from '../../tooltip-table'
 
 const FIRST_SEASON = 2004
 
-const MAX_WIND_NOTE =
-  'The strongest 1-minute sustained wind NOAA recorded for the storm while its tropical-storm-force winds reached this location. A storm reached the location when it lies within the storm\u2019s 34 kt wind radius (the largest of its four quadrant radii) along the best track. This is the storm\u2019s own peak intensity at the time, not the wind at this address, which was usually lower. Storms start in 2004, when best tracks began recording wind radii routinely.'
+const REACHED_NOTE =
+  'The date and time (UTC) of the first 3-hourly best-track position from which the storm\u2019s tropical-storm-force winds reached this location: the location lies within the storm\u2019s 34 kt wind radius, the largest of its four quadrant radii. Storms start in 2004, when best tracks began recording wind radii routinely.'
 
-// Storms at the selected point, strongest first, each colored by the
-// Saffir-Simpson bin of the wind it brought there.
+const formatReached = (time: string) =>
+  new Date(`${time.replace(' ', 'T')}Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+
+// Storms at the selected point, most recent first
 export const useHistoricStorms = () => {
   const historicEvents = useStore((state) => state.historicEvents)
-  const bins =
-    getMapLayer(RISKS.hurricane, HISTORIC_STORMS_LAYER_ID)?.binBoundaries ?? []
-  const colormap = useColormap({ count: bins.length })
-
   const storms =
     historicEvents.status === 'success' && historicEvents.kind === 'storms'
       ? historicEvents.events
       : null
-  const colorFor = (storm: StormAtPoint) =>
-    colormap[getBinIndex(bins, storm.wind * MPH_PER_KT) + 1]
-
-  return {
-    status: historicEvents.status,
-    storms,
-    colorFor,
-  }
+  return { status: historicEvents.status, storms }
 }
 
 const Row = ({
   label,
   value,
-  color,
   hovered = false,
   onHover,
   eye,
 }: {
   label: React.ReactNode
   value: string | number | null
-  color?: string
   hovered?: boolean
   onHover?: () => void
   eye?: { checked: boolean; toggle: () => void; label: string }
@@ -80,7 +63,7 @@ const Row = ({
   >
     <Box>{label}</Box>
     <Flex sx={{ gap: 2, flexShrink: 0 }}>
-      <ValueBadge value={value} color={color} unit='#' toFixed={0} />
+      <ValueBadge value={value} unit='#' toFixed={0} />
       {eye && (
         <Box as='label' sx={{ display: 'flex', cursor: 'pointer' }}>
           <EyeCheckbox
@@ -101,18 +84,14 @@ const HistoricStorms = () => {
   const hoveredEventId = useStore((state) => state.hoveredEventId)
   const selectedStormId = useStore((state) => state.selectedStormId)
   const setSelectedStormId = useStore((state) => state.setSelectedStormId)
-  const { status, storms, colorFor } = useHistoricStorms()
+  const { status, storms } = useHistoricStorms()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
-
-  const hurricaneCount =
-    storms?.filter((storm) => storm.wind * MPH_PER_KT >= HURRICANE_MPH)
-      .length ?? null
 
   return (
     <Box>
       Tropical cyclones since {FIRST_SEASON} whose tropical-storm-force winds (
       {TROPICAL_STORM_MPH}+ mph) reached this location by NOAA&apos;s best
-      track, with each storm&apos;s strongest recorded wind while they did.
+      track, and when they first did.
       {!hasSelection && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its storm history.
@@ -140,14 +119,10 @@ const HistoricStorms = () => {
             label={`Tropical-storm winds reached (${TROPICAL_STORM_MPH}+ mph)`}
             value={storms.length}
           />
-          <Row
-            label={`As a hurricane (${HURRICANE_MPH}+ mph)`}
-            value={hurricaneCount}
-          />
           {storms.length > 0 && (
             <>
               <TooltipWrapper
-                tooltip={MAX_WIND_NOTE}
+                tooltip={REACHED_NOTE}
                 sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
                 tooltipSx={{ mt: 2, mb: 0 }}
               >
@@ -159,7 +134,7 @@ const HistoricStorms = () => {
                   }}
                 >
                   <Box sx={tableSx.tableHead}>Storm</Box>
-                  <Box sx={tableSx.tableHead}>Max wind</Box>
+                  <Box sx={tableSx.tableHead}>Reached here</Box>
                 </Flex>
               </TooltipWrapper>
               <Box onMouseLeave={() => setHoveredEventId(null)}>
@@ -174,8 +149,7 @@ const HistoricStorms = () => {
                         </Box>
                       </>
                     }
-                    value={`${Math.round(storm.wind * MPH_PER_KT)} mph`}
-                    color={colorFor(storm)}
+                    value={formatReached(storm.time)}
                     hovered={hoveredEventId === storm.sid}
                     onHover={() => setHoveredEventId(storm.sid)}
                     eye={{

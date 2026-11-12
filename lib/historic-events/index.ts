@@ -7,7 +7,6 @@ export const MPH_PER_KT = 1.15078
 
 // Saffir-Simpson floors in mph (1-min sustained)
 export const TROPICAL_STORM_MPH = 39
-export const HURRICANE_MPH = 74
 
 export const formatStormName = (name: string): string =>
   name === 'NOT_NAMED' || !name
