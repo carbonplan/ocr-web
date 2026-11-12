@@ -339,7 +339,7 @@ const Drivers = ({ point }: { point: FdpPointQuery }) => {
                 {...band(k)}
                 color={alpha(
                   toColor(values?.[i] ?? 0),
-                  i === driver || i === hovered ? 0.25 : 0.1,
+                  (values && i === driver) || i === hovered ? 0.25 : 0.1,
                 )(theme)}
                 role='button'
                 tabIndex={0}
