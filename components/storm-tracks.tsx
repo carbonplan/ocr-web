@@ -126,13 +126,6 @@ const StormTracks = () => {
         data: { type: 'FeatureCollection', features: [] },
         promoteId: 'sid',
       })
-      loadStormTracks()
-        .then((data) => {
-          const source = map.getSource(sourceId)
-          if (source?.type === 'geojson')
-            (source as GeoJSONSource).setData(data)
-        })
-        .catch((error) => console.error('Storm tracks failed:', error))
     }
     if (!map.getLayer(layerIds.line)) {
       map.addLayer(
@@ -156,6 +149,25 @@ const StormTracks = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map])
+
+  // filled once the tracks load; a failed load is tried again whenever the
+  // layer shows or a lookup finishes, until one succeeds
+  const tracksMapRef = useRef<typeof map>(null)
+  useEffect(() => {
+    if (!map || !active || tracksMapRef.current === map) return
+    let cancelled = false
+    loadStormTracks()
+      .then((data) => {
+        const source = map.getSource(sourceId)
+        if (cancelled || source?.type !== 'geojson') return
+        ;(source as GeoJSONSource).setData(data)
+        tracksMapRef.current = map
+      })
+      .catch((error) => console.error('Storm tracks failed:', error))
+    return () => {
+      cancelled = true
+    }
+  }, [map, active, historicEvents])
 
   useEffect(() => {
     if (!map?.getLayer(layerIds.line)) return
