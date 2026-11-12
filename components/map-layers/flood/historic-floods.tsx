@@ -138,25 +138,21 @@ const HistoricFloods = () => {
 
   return (
     <Box>
-      Floods recorded near this location by three independent sources, grouped
-      by date. A flood seen by more than one source is stronger evidence.
+      Floods recorded near this location, grouped by date, from three sources.
       <Box as='ul' sx={{ pl: 3, my: 2 }}>
         <li>
-          Satellite: water mapped from MODIS imagery by the Global Flood
-          Database within {SATELLITE_NEAR_KM * 1000} m, for large floods from
-          2001 to 2018. It misses short flash floods and water under cloud or
-          trees.
+          Satellite: water mapped within {SATELLITE_NEAR_KM * 1000} m by the
+          Global Flood Database, 2001 to 2018. Misses flash floods and water
+          under cloud or trees.
         </li>
         <li>
-          NOAA: National Weather Service flood reports from NOAA&apos;s Storm
-          Events Database within {NEAR_KM} km, mapped from 2005. A report marks
-          flooding that threatened life or property, so many carry no dollar
-          loss.
+          NOAA: Storm Events flood reports within {NEAR_KM} km, since 2005. Many
+          carry no dollar loss.
         </li>
         <li>
-          News: places within {NEWS_NEAR_KM * 1000} m that news coverage of
-          flooding named, from Google Groundsource since 2000. About one in four
-          is wrong.
+          News: places within {NEWS_NEAR_KM * 1000} m named in flood news
+          coverage (Google Groundsource), since 2000. About one in four is
+          wrong.
         </li>
       </Box>
       <Flex sx={{ gap: 3, alignItems: 'baseline', mt: 3 }}>
@@ -244,10 +240,6 @@ const HistoricFloods = () => {
               <SourceLine source='news'>{newsLine(event)}</SourceLine>
             </Box>
           ))}
-          <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
-            The sources cover different years, so a flood after 2018 has no
-            satellite record and one before 2005 rarely has a NOAA report.
-          </Box>
         </Box>
       )}
     </Box>
