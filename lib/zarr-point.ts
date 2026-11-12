@@ -150,7 +150,7 @@ const readBlock = (
   const row0 = row - (row % height)
   const col0 = col - (col % width)
   const blockKey = `${key}|${row0}|${col0}`
-  let block = blocks.get(blockKey)
+  const block = blocks.get(blockKey)
   if (block) {
     blocks.delete(blockKey)
     blocks.set(blockKey, block)
@@ -158,7 +158,7 @@ const readBlock = (
   }
   const rowEnd = Math.min(row0 + height, array.shape[leading])
   const colEnd = Math.min(col0 + width, array.shape[leading + 1])
-  block = zarr
+  const read = zarr
     .get(array, [
       ...Array(leading).fill(null),
       zarr.slice(row0, rowEnd),
@@ -171,8 +171,11 @@ const readBlock = (
       width: colEnd - col0,
       data: (chunk as { data: ArrayLike<number> }).data,
     }))
-  block.catch(() => forget(blockKey))
-  blocks.set(blockKey, block)
+  // a request evicted while in flight may have been replaced under its key
+  read.catch(() => {
+    if (blocks.get(blockKey) === read) forget(blockKey)
+  })
+  blocks.set(blockKey, read)
   const size = array.shape
     .slice(0, leading)
     .reduce((n, d) => n * d, (rowEnd - row0) * (colEnd - col0))
@@ -181,7 +184,7 @@ const readBlock = (
   while (blockValues > BLOCK_VALUE_BUDGET && blocks.size > 1) {
     forget(blocks.keys().next().value!)
   }
-  return block
+  return read
 }
 
 // Every value at a cell along the array's leading dimensions (one for a 2D
