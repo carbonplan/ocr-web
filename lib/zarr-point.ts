@@ -23,7 +23,7 @@ export type Grid = {
   locate: (lngLat: [number, number]) => [number, number] | null
 }
 
-const cached = <T>(
+export const cached = <T>(
   cache: Map<string, Promise<T>>,
   key: string,
   open: () => Promise<T>,
@@ -58,16 +58,22 @@ export const openGroup = (ref: StoreRef, path = '') =>
     zarr.open.v3((await rootOf(ref)).resolve(path), { kind: 'group' }),
   )
 
-const arrays = new Map<string, Promise<ReadableArray>>()
+const arrays = new Map<string, Promise<ReadableArray | null>>()
 
-// null where the store has no such array
+// null where the store has no such array; any other failure rejects
 export const openArray = (
   ref: StoreRef,
   path: string,
 ): Promise<ReadableArray | null> =>
-  cached(arrays, `${ref.source}|${path}`, async () =>
-    zarr.open.v3((await rootOf(ref)).resolve(path), { kind: 'array' }),
-  ).catch(() => null)
+  cached(arrays, `${ref.source}|${path}`, async () => {
+    const location = (await rootOf(ref)).resolve(path)
+    try {
+      return await zarr.open.v3(location, { kind: 'array' })
+    } catch (error) {
+      if (zarr.isZarritaError(error, 'NotFoundError')) return null
+      throw error
+    }
+  })
 
 const grids = new Map<string, Promise<Grid>>()
 

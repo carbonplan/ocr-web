@@ -1,4 +1,4 @@
-import { StoreRef, openArray, openGrid, readCell } from './zarr-point'
+import { StoreRef, cached, openArray, openGrid, readCell } from './zarr-point'
 
 // Values at a point from a hazard store. A store with a `point` group packs
 // every variable at a cell into one (layer, y, x) array, so they come from a
@@ -7,18 +7,13 @@ import { StoreRef, openArray, openGrid, readCell } from './zarr-point'
 const pointLayers = new Map<string, Promise<string[] | null>>()
 
 // Names along the store's point group `layer` dimension, or null without one
-export const readPointLayers = (ref: StoreRef): Promise<string[] | null> => {
-  let layers = pointLayers.get(ref.source)
-  if (!layers) {
-    layers = openArray(ref, 'point/layer').then((array) => {
-      const meanings = (array?.attrs as Record<string, unknown> | undefined)
-        ?.flag_meanings
-      return typeof meanings === 'string' ? meanings.split(' ') : null
-    })
-    pointLayers.set(ref.source, layers)
-  }
-  return layers
-}
+export const readPointLayers = (ref: StoreRef): Promise<string[] | null> =>
+  cached(pointLayers, ref.source, async () => {
+    const array = await openArray(ref, 'point/layer')
+    const meanings = (array?.attrs as Record<string, unknown> | undefined)
+      ?.flag_meanings
+    return typeof meanings === 'string' ? meanings.split(' ') : null
+  })
 
 /** Each of `variables` at `lngLat`; null outside the grid, where the store has
  * no such 2D variable, or where the value is missing. */
