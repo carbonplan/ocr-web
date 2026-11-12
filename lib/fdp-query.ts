@@ -69,6 +69,56 @@ const openStore = (source: string): Promise<OpenedStore> => {
   return entry
 }
 
+type Block = {
+  row0: number
+  col0: number
+  height: number
+  width: number
+  data: ArrayLike<number>
+}
+
+// Decoded (layer, y, x) chunks by store and chunk origin, most recently used
+// last: a point read fetches its whole chunk anyway, so nearby points need none.
+const blocks = new Map<string, Promise<Block>>()
+const BLOCK_LIMIT = 16
+
+const readBlock = (
+  source: string,
+  store: OpenedStore,
+  row: number,
+  col: number,
+): Promise<Block> => {
+  const [, height, width] = store.values.chunks
+  const row0 = row - (row % height)
+  const col0 = col - (col % width)
+  const key = `${source}|${row0}|${col0}`
+  let block = blocks.get(key)
+  if (block) {
+    blocks.delete(key)
+  } else {
+    const [, rows, cols] = store.values.shape
+    const rowEnd = Math.min(row0 + height, rows)
+    const colEnd = Math.min(col0 + width, cols)
+    block = zarr
+      .get(store.values, [
+        null,
+        zarr.slice(row0, rowEnd),
+        zarr.slice(col0, colEnd),
+      ])
+      .then((chunk) => ({
+        row0,
+        col0,
+        height: rowEnd - row0,
+        width: colEnd - col0,
+        data: chunk.data as ArrayLike<number>,
+      }))
+    block.catch(() => blocks.delete(key))
+  }
+  blocks.set(key, block)
+  if (blocks.size > BLOCK_LIMIT) blocks.delete(blocks.keys().next().value!)
+  return block
+}
+
 // null when the point falls outside the grid
 export const queryFdpPoint = async (
   source: string,
@@ -82,10 +132,13 @@ export const queryFdpPoint = async (
   const [rows, cols] = store.shape
   if (row < 0 || row >= rows || col < 0 || col >= cols) return null
 
-  const column = await zarr.get(store.values, [null, row, col])
-  const raw = column.data as ArrayLike<number>
-  const read = (i: number) =>
-    i < 0 || raw[i] === store.fillValue ? null : raw[i] * store.scaleFactor
+  const block = await readBlock(source, store, row, col)
+  const cell = (row - block.row0) * block.width + (col - block.col0)
+  const layerSize = block.height * block.width
+  const read = (i: number) => {
+    const raw = i < 0 ? store.fillValue : block.data[i * layerSize + cell]
+    return raw === store.fillValue ? null : raw * store.scaleFactor
+  }
 
   return {
     fdp: read(store.fdpIndex),
