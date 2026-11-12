@@ -62,6 +62,8 @@ export type HazardLayerSelector = {
 // loss (e.g. wind speed), read from a different variable in the same stores.
 export type HazardMapLayer = {
   id: string
+  // 'events' draws a vector overlay of historic events in place of the raster
+  kind?: 'raster' | 'events'
   // one per time period when the quantity is stored per climate (e.g. bp_2011, bp_2047)
   variable?: string | Partial<Record<ScenarioKey, string>>
   // values are multiplied by unitScale into this unit
@@ -103,7 +105,7 @@ export type HazardValueDisplay = {
 }
 
 export type HazardConfig = {
-  id: 'fire' | 'flood' | 'wind'
+  id: 'fire' | 'flood' | 'hurricane'
   label: string
   accentColor: string
   description: string

@@ -1,5 +1,6 @@
 import { OCR_BUCKET_URL } from '@/lib/config'
 import { HazardConfig } from './types'
+import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
 
 const VERSION = 'v2.0.0'
 
@@ -90,6 +91,15 @@ const flood: HazardConfig = {
       // the int16 fill reads as -3.2768 once scaled
       validRange: [-1, 1],
       selector: { dim: 'driver', values: DRIVER_INDICES, defaultValue: 0 },
+    },
+    {
+      id: HISTORIC_FLOODS_LAYER_ID,
+      kind: 'events',
+      axisLabel: 'Flood year',
+      unit: '',
+      unitScale: 1,
+      binBoundaries: [2000, 2005, 2010, 2015, 2020],
+      customColormap: true,
     },
   ],
 }

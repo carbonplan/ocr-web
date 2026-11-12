@@ -86,7 +86,10 @@ const openStore = (source: string): Promise<OpenedStore> => {
 }
 
 // null when the point falls outside the grid by more than half a cell
-const nearestIndex = (coords: number[], value: number): number | null => {
+export const nearestIndex = (
+  coords: number[],
+  value: number,
+): number | null => {
   let best = 0
   let bestDist = Infinity
   for (let i = 0; i < coords.length; i++) {

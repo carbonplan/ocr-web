@@ -1,5 +1,6 @@
 import { OCR_BUCKET_URL, SOURCE_COOP_URL } from '@/lib/config'
 import { HazardConfig } from './types'
+import { HISTORIC_FIRES_LAYER_ID } from '@/lib/historic-events'
 
 const VERSION = 'v1.1.0'
 
@@ -66,6 +67,15 @@ const fire: HazardConfig = {
       axisLabel: 'Conditional risk',
       customColormap: true,
       binLabels: Array(10).fill(''),
+    },
+    {
+      id: HISTORIC_FIRES_LAYER_ID,
+      kind: 'events',
+      axisLabel: 'Ignition year',
+      unit: '',
+      unitScale: 1,
+      binBoundaries: [1984, 1990, 2000, 2010, 2020],
+      customColormap: true,
     },
   ],
   vector: {

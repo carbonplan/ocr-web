@@ -2,10 +2,10 @@ import { Box } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Link } from '@carbonplan/components'
 
-const WindAbout = () => (
+const HurricaneAbout = () => (
   <Box variant='description'>
     <Box>
-      Wind hazard estimates are derived from the Columbia HAZard model (
+      Hurricane hazard estimates are derived from the Columbia HAZard model (
       <Link href='https://doi.org/10.1002/2017MS001186'>
         CHAZ, Lee et al. 2018
       </Link>
@@ -20,9 +20,17 @@ const WindAbout = () => (
       .
     </Box>
     <Box sx={{ mt: 2 }}>
-      Methods documentation for the wind hazard layer is in progress.
+      Previous storms are the tropical cyclone tracks in NOAA&apos;s{' '}
+      <Link href='https://www.ncei.noaa.gov/products/international-best-track-archive'>
+        IBTrACS
+      </Link>{' '}
+      archive since 1980. The wind each storm brought to a location is modeled
+      from its track with the same parametric wind model as the hazard maps.
+    </Box>
+    <Box sx={{ mt: 2 }}>
+      Methods documentation for the hurricane hazard layer is in progress.
     </Box>
   </Box>
 )
 
-export default WindAbout
+export default HurricaneAbout

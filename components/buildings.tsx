@@ -11,7 +11,7 @@ import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { BUILDING_SELECT_MIN_ZOOM, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
 import { getRiskVariable } from '@/lib/risk-utils'
-import { getMapLayer } from '@/lib/hazards'
+import { getMapLayer, isEventsLayer } from '@/lib/hazards'
 import { buildingTileUrl } from '@/lib/risk-layers'
 import { Building } from '@/types/location'
 
@@ -29,7 +29,11 @@ const Buildings = () => {
   const showsOtherQuantity = useStore(
     (state) => !!getMapLayer(state.riskConfig, state.mapLayer)?.variable,
   )
-  const outlined = buildingsMode === 'query' || showsOtherQuantity
+  const eventsLayer = useStore((state) =>
+    isEventsLayer(state.riskConfig, state.mapLayer),
+  )
+  const outlined =
+    buildingsMode === 'query' || showsOtherQuantity || eventsLayer
   const unitScale = riskConfig.unitScale
   const { selectBuilding, selectArea, highlightBuildingAtLocation } =
     useBuildingUtils()

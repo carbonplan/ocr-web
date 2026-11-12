@@ -8,6 +8,19 @@ export const SOURCE_COOP_URL =
 export const OCR_BUCKET_URL =
   'https://carbonplan-ocr.s3.us-west-2.amazonaws.com'
 
+const EXPLORE_URL =
+  'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/ocr-explore'
+
+export const HISTORIC_URLS = {
+  stormTracks: `${EXPLORE_URL}/ibtracs_conus_tracks.pmtiles`,
+  stormWinds: `${EXPLORE_URL}/ibtracs_conus_winds.zarr`,
+  firePerimeters: `${EXPLORE_URL}/mtbs_conus_perims.pmtiles`,
+  floodReports: `${EXPLORE_URL}/storm_events_conus_floods.pmtiles`,
+  floodReportPoints: `${EXPLORE_URL}/storm_events_conus_flood_points.pmtiles`,
+  floodSatellite: `${EXPLORE_URL}/gfd_conus_footprints.pmtiles`,
+  floodNews: `${EXPLORE_URL}/groundsource_conus_centroids.pmtiles`,
+}
+
 export const LICENSE_INFO = {
   provider: 'CarbonPlan',
   termsOfAccess:
@@ -33,6 +46,50 @@ export const LAYERS = {
     sourceId: 'region-highlight',
     layerIds: {
       line: 'region-highlight-line',
+    },
+  },
+  stormTracks: {
+    layerName: 'tracks',
+    sourceId: 'stormTracks',
+    layerIds: {
+      line: 'storm-tracks-line',
+    },
+  },
+  firePerimeters: {
+    layerName: 'mtbs_perims',
+    sourceId: 'firePerimeters',
+    layerIds: {
+      fill: 'fire-perimeters-fill',
+      line: 'fire-perimeters-line',
+    },
+  },
+  floodReports: {
+    layerName: 'floods',
+    sourceId: 'floodReports',
+    layerIds: {
+      line: 'flood-reports-line',
+    },
+  },
+  floodReportPoints: {
+    layerName: 'floods',
+    sourceId: 'floodReportPoints',
+    layerIds: {
+      circle: 'flood-report-points-circle',
+    },
+  },
+  floodSatellite: {
+    layerName: 'gfd',
+    sourceId: 'floodSatellite',
+    layerIds: {
+      fill: 'flood-satellite-fill',
+      hover: 'flood-satellite-hover',
+    },
+  },
+  floodNews: {
+    layerName: 'groundsource',
+    sourceId: 'floodNews',
+    layerIds: {
+      circle: 'flood-news-circle',
     },
   },
 } as const

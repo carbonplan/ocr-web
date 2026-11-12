@@ -3,6 +3,7 @@ import { centerOfMass } from '@turf/turf'
 import { useStore, BuildingQueryState } from '@/lib/store'
 import {
   RISK_LAYER_ID,
+  getMapLayer,
   getShownVariables,
   getUnitScale,
   resolveHazardDataset,

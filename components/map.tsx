@@ -17,6 +17,7 @@ import { useMapTheme } from '../hooks/useMapTheme'
 import { useStore } from '../lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
 import { useBuildingQuery } from '@/hooks/useBuildingQuery'
+import { useHistoricEvents } from '@/hooks/useHistoricEvents'
 import {
   Buildings,
   RegionHighlight,
@@ -24,6 +25,12 @@ import {
   SatelliteLayer,
   HillshadeLayer,
   ZarrLayer,
+  StormTracks,
+  StormFootprint,
+  FirePerimeters,
+  FloodReports,
+  FloodSatellite,
+  FloodNews,
   MapControls,
   useMapControlStyles,
 } from './'
@@ -38,7 +45,13 @@ import {
   getAreaCoordinatesFromQuery,
   getHazardFromQuery,
 } from '@/lib/url-utils'
-import { DEFAULT_HAZARD, RISK_LAYER_ID, RISKS, isHazardId } from '@/lib/hazards'
+import {
+  DEFAULT_HAZARD,
+  RISK_LAYER_ID,
+  RISKS,
+  isEventsLayer,
+  isHazardId,
+} from '@/lib/hazards'
 
 // Open the linked hazard's buildings and region files while the page
 // hydrates, before the map asks for tiles or regions.
@@ -60,6 +73,9 @@ const MapComponent = () => {
   const clearSelections = useStore((state) => state.clearSelections)
   const mapLayer = useStore((state) => state.mapLayer)
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
+  const eventsLayer = useStore((state) =>
+    isEventsLayer(state.riskConfig, state.mapLayer),
+  )
   const [styleLoaded, setStyleLoaded] = useState(false)
   const index = useBreakpointIndex({ defaultIndex: 2 })
   const { theme } = useThemeUI()
@@ -77,6 +93,7 @@ const MapComponent = () => {
   const mapLayers = useMapTheme()
   const mapControlStyles = useMapControlStyles()
   useBuildingQuery()
+  useHistoricEvents()
   const queryGeographiesAtPoint = useStore(
     (state) => state.queryGeographiesAtPoint,
   )
@@ -304,10 +321,15 @@ const MapComponent = () => {
           <MapControls />
           <SatelliteLayer />
           <HillshadeLayer />
-          {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') && (
-            <ZarrLayer />
-          )}
+          {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') &&
+            !eventsLayer && <ZarrLayer />}
           <RegionHighlight />
+          <StormFootprint />
+          <StormTracks />
+          <FirePerimeters />
+          <FloodReports />
+          <FloodSatellite />
+          <FloodNews />
           <Buildings />
           <SelectionMarker />
         </>

@@ -10,6 +10,7 @@ import {
 } from '@/lib/hazards'
 import { getZarrLayerId } from '@/lib/raster-query'
 import { openIcechunkStore } from '@/lib/icechunk'
+import { buildBinFrag } from '@/lib/bin-frag'
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
@@ -37,70 +38,24 @@ const ZarrLayer = () => {
   )
   const layerRef = useRef<ZarrLayerClass | null>(null)
 
-  const customFrag = useMemo(() => {
-    const boundaries = colorLimits.binBoundaries || []
-
-    const binConditions = boundaries
-      .slice(0, -1)
-      .map((_, i) => {
-        const condition = i === 0 ? 'if' : 'else if'
-        return `
-      ${condition} (value < ${boundaries[i + 1].toFixed(6)}) {
-        binIndex = ${i}.0;
-      }`
-      })
-      .join('')
-
-    const lastBinIndex = boundaries.length - 1
-
-    // bin boundaries are in display units; scale raw store values to match
-    const valueExpression =
-      unitScale === 1 ? variable : `${variable} * ${unitScale.toFixed(6)}`
-
-    const outOfRange = validRange
-      ? ` || ${variable} < ${validRange[0].toFixed(6)} || ${variable} > ${validRange[1].toFixed(6)}`
-      : ''
-
-    if (continuous) {
-      const [lo, hi] = [boundaries[0], boundaries[boundaries.length - 1]]
-      const n = colormap.length
-      return `
-      float value = ${valueExpression};
-      if (isnan(value)${outOfRange}) {
-        discard;
-      }
-      float t = clamp((value - ${lo.toFixed(6)}) / ${(hi - lo).toFixed(6)}, 0.0, 1.0);
-      // skip the leading no-data swatch and land on sample centers
-      float coord = (1.5 + t * ${(n - 2).toFixed(1)}) / ${n.toFixed(1)};
-      vec4 c = texture(colormap, vec2(coord, 0.5));
-      fragColor = vec4(c.rgb * opacity, opacity);
-    `
-    }
-
-    return `
-      float value = ${valueExpression};
-      if (isnan(value)${categorical ? '' : ' || value == 0.0'}${outOfRange}) {
-        discard;
-      }
-      float binIndex = 0.0;
-      ${binConditions} else {
-        binIndex = ${lastBinIndex}.0;
-      }
-      // Offset by 1 to match buildings layer which uses colormap[i+1] for bin i
-      // +0.5 to center the bin in the colormap
-      float rescaled = (binIndex + 1.5) / ${boundaries.length + 1}.0;
-      vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
-      fragColor = vec4(c.rgb * opacity, opacity);
-    `
-  }, [
-    colorLimits.binBoundaries,
-    variable,
-    unitScale,
-    categorical,
-    validRange,
-    continuous,
-    colormap.length,
-  ])
+  const customFrag = useMemo(
+    () =>
+      buildBinFrag(colorLimits.binBoundaries || [], variable, unitScale, {
+        categorical,
+        validRange,
+        continuous,
+        colormapLength: colormap.length,
+      }),
+    [
+      colorLimits.binBoundaries,
+      variable,
+      unitScale,
+      categorical,
+      validRange,
+      continuous,
+      colormap.length,
+    ],
+  )
 
   useEffect(() => {
     if (!map) return

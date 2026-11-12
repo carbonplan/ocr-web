@@ -10,6 +10,8 @@ import { useLayerColor } from '@/hooks/useLayerColor'
 import { RISK_LAYER_ID } from '@/lib/hazards'
 import FireRisk from './fire-risk'
 import RiskOfLoss from './risk-of-loss'
+import HistoricFires, { useHistoricFires } from './historic-fires'
+import { HISTORIC_FIRES_LAYER_ID } from '@/lib/historic-events'
 
 const FireLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
@@ -26,6 +28,7 @@ const FireLayers = () => {
   )
   const bpColor = useLayerColor('bp', bp)
   const conditionalRiskColor = useLayerColor('crps', conditionalRisk)
+  const { fires } = useHistoricFires()
 
   return (
     <>
@@ -66,11 +69,14 @@ const FireLayers = () => {
       ></MapLayer>
       <MapLayer
         label='Previous fires'
-        checked={false}
-        setChecked={() => {}}
-        value={null}
+        checked={mapLayer === HISTORIC_FIRES_LAYER_ID}
+        setChecked={() => setMapLayer(HISTORIC_FIRES_LAYER_ID)}
+        value={fires ? fires.length : null}
+        toFixed={0}
         unit='#'
-      ></MapLayer>
+      >
+        <HistoricFires />
+      </MapLayer>
     </>
   )
 }

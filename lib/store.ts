@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import type { ChazPointData } from './chaz-query'
+import type { StormAtPoint } from './historic-events/storm-winds'
+import type { FireAtPoint } from './historic-events/fire-perimeters'
+import type { FloodEvent, FloodSource } from './historic-events/flood-history'
 import {
   Location,
   Building,
@@ -68,6 +71,16 @@ const repeatGeographyQuery = (get: () => Store) => {
   if (last?.kind === 'id') get().queryGeographiesById(last.geoid)
 }
 
+export type HistoricEventsState =
+  | { status: 'idle' | 'loading' | 'error' }
+  | { status: 'success'; kind: 'storms'; events: StormAtPoint[] }
+  | {
+      status: 'success'
+      kind: 'fires'
+      events: FireAtPoint[]
+    }
+  | { status: 'success'; kind: 'floods'; events: FloodEvent[] }
+
 const syncHazardUrl = (get: () => Store) => {
   const { hazard, futureWindow, mapLayer } = get()
   updateHazardUrl(hazard, futureWindow, mapLayer)
@@ -121,6 +134,18 @@ type Store = {
   ) => void
   buildingQuery: BuildingQueryState
   setBuildingQuery: (buildingQuery: BuildingQueryState) => void
+  // historic storms or fires at the selected point, per the active hazard
+  historicEvents: HistoricEventsState
+  setHistoricEvents: (historicEvents: HistoricEventsState) => void
+  // SID, MTBS event id, or flood event id hovered in the sidebar list
+  hoveredEventId: string | null
+  setHoveredEventId: (id: string | null) => void
+  // which flood record source the previous floods map draws
+  floodSource: FloodSource
+  setFloodSource: (floodSource: FloodSource) => void
+  // storm whose modeled wind field is drawn
+  selectedStormId: string | null
+  setSelectedStormId: (id: string | null) => void
   zarrLayer: ZarrLayer | null
   setZarrLayer: (zarrLayer: ZarrLayer | null) => void
   sidebarWidth: number
@@ -208,6 +233,9 @@ export const useStore = create<Store>((set, get) => ({
         binBoundaries: [...config.binBoundaries],
       },
       buildingQuery: { status: 'idle' },
+      historicEvents: { status: 'idle' },
+      hoveredEventId: null,
+      selectedStormId: null,
     })
     syncHazardUrl(get)
     // each hazard summarizes its own region files
@@ -238,6 +266,14 @@ export const useStore = create<Store>((set, get) => ({
   },
   buildingQuery: { status: 'idle' },
   setBuildingQuery: (buildingQuery) => set({ buildingQuery }),
+  historicEvents: { status: 'idle' },
+  setHistoricEvents: (historicEvents) => set({ historicEvents }),
+  hoveredEventId: null,
+  setHoveredEventId: (hoveredEventId) => set({ hoveredEventId }),
+  floodSource: 'satellite',
+  setFloodSource: (floodSource) => set({ floodSource }),
+  selectedStormId: null,
+  setSelectedStormId: (selectedStormId) => set({ selectedStormId }),
   zarrLayer: null,
   setZarrLayer: (zarrLayer) => set({ zarrLayer }),
   sidebarWidth: 0,
@@ -323,6 +359,9 @@ export const useStore = create<Store>((set, get) => ({
       selectedBuilding: null,
       selectedArea: null,
       buildingQuery: { status: 'idle' },
+      historicEvents: { status: 'idle' },
+      hoveredEventId: null,
+      selectedStormId: null,
       activeGeographies: {
         county: null,
         censusTract: null,
