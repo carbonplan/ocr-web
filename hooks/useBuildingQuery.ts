@@ -13,6 +13,7 @@ import {
 import { queryChazPoint } from '@/lib/chaz-query'
 import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 import { queryStorePoint } from '@/lib/store-point'
+import { queryFdpValues } from '@/lib/fdp-query'
 
 // Normalizes BuildingQueryState.value to display units.
 export const useBuildingQuery = () => {
@@ -41,7 +42,10 @@ export const useBuildingQuery = () => {
     const columns = getShownVariables(riskConfig, { timePeriod, futureWindow })
     let cancelled = false
     setBuildingQuery({ status: 'loading' })
-    queryStorePoint(dataset, columns, [selectedArea.lng, selectedArea.lat])
+    // the FDP store packs every value at a point into its point group
+    const readPoint =
+      riskConfig.id === 'flood' ? queryFdpValues : queryStorePoint
+    readPoint(dataset, columns, [selectedArea.lng, selectedArea.lat])
       .then((values) => {
         if (cancelled) return
         const value = toDisplayUnits(

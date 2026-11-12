@@ -1,6 +1,7 @@
 import * as zarr from 'zarrita'
 import proj4 from 'proj4'
 import { openIcechunkStore } from './icechunk'
+import type { HazardDataset } from './hazards'
 
 // Point reader for the FDP store's `point` group: one int16 (layer, y, x)
 // array on the native 100 m grid holding fdp, fdp_se and every driver's
@@ -145,4 +146,21 @@ export const queryFdpPoint = async (
     fdpSe: read(store.fdpSeIndex),
     contribution: store.contributionIndices.map(read),
   }
+}
+
+// queryStorePoint's shape for the FDP store: the requested variables the point
+// group holds, null for the rest
+export const queryFdpValues = async (
+  dataset: HazardDataset,
+  variables: string[],
+  lngLat: [number, number],
+): Promise<Record<string, number | null>> => {
+  const data = await queryFdpPoint(dataset.source, lngLat)
+  const byName: Record<string, number | null> = {
+    fdp: data?.fdp ?? null,
+    fdp_se: data?.fdpSe ?? null,
+  }
+  return Object.fromEntries(
+    variables.map((name) => [name, byName[name] ?? null]),
+  )
 }
