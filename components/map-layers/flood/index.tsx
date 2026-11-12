@@ -3,6 +3,7 @@ import { useStore } from '@/lib/store'
 import { useScore } from '@/hooks/useScore'
 import { RISK_LAYER_ID } from '@/lib/hazards'
 import { useFdpPoint } from '@/hooks/useFdpPoint'
+import { FDP_DRIVERS } from '@/lib/hazards/flood'
 import Drivers from './drivers'
 import StandardError, { useStandardErrorColor } from './standard-error'
 
@@ -55,7 +56,7 @@ const FloodLayers = () => {
         label='Drivers of risk'
         checked={mapLayer === 'contribution'}
         setChecked={() => setMapLayer('contribution')}
-        value={9}
+        value={FDP_DRIVERS.length}
         unit='#'
         toFixed={0}
       >
