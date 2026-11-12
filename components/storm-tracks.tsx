@@ -207,13 +207,15 @@ const StormTracks = () => {
     if (!map?.getSource(sourceId)) return
     map.removeFeatureState({ source: sourceId })
     if (!active) return
-    const target = (sid: string) => ({ source: sourceId, id: sid })
+    // both flags on every storm: maplibre keeps the old state of the first
+    // feature set after a source-wide removal
+    const highlighted = new Set([hoveredEventId, selectedStormId])
     relevantSids?.forEach((sid) =>
-      map.setFeatureState(target(sid), { relevant: true }),
+      map.setFeatureState(
+        { source: sourceId, id: sid },
+        { relevant: true, highlighted: highlighted.has(sid) },
+      ),
     )
-    for (const sid of [hoveredEventId, selectedStormId]) {
-      if (sid) map.setFeatureState(target(sid), { highlighted: true })
-    }
   }, [map, active, relevantSids, hoveredEventId, selectedStormId])
 
   return null
