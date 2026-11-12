@@ -5,20 +5,23 @@ import type { ZarrLayer } from '@carbonplan/zarr-layer'
 export const getZarrLayerId = (source: string, variable: string): string =>
   `zarr-raster-layer-${source.split('/').pop()}-${variable}`
 
-// 'finest' keeps the value independent of the zoom the point was picked from
-export const queryRasterPoint = async (
+const toFinite = (values: unknown): number | null => {
+  if (!Array.isArray(values) || values.length === 0) return null
+  const value = values[0]
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+// 'finest' keeps the value independent of the zoom the point was picked from.
+export async function queryRasterPoint(
   layer: ZarrLayer,
   variable: string,
   [lng, lat]: [number, number],
   signal?: AbortSignal,
-): Promise<number | null> => {
+): Promise<number | null> {
   const result = await layer.queryData(
     { type: 'Point', coordinates: [lng, lat] },
     undefined,
     { signal, includeSpatialCoordinates: false, level: 'finest' },
   )
-  const values = result[variable]
-  if (!Array.isArray(values) || values.length === 0) return null
-  const value = values[0]
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
+  return toFinite(result[variable])
 }
