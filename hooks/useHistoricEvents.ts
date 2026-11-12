@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { centerOfMass } from '@turf/turf'
 import { useStore, HistoricEventsState } from '@/lib/store'
-import { queryStormsAtPoint } from '@/lib/historic-events/storm-winds'
+import { queryStormsAtPoint } from '@/lib/historic-events/storm-tracks'
 import { queryFiresAtPoint } from '@/lib/historic-events/fire-perimeters'
 import { queryFloodHistory } from '@/lib/historic-events/flood-history'
 

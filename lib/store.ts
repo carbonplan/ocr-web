@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
 import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import type { ChazPointData } from './chaz-query'
-import type { StormAtPoint } from './historic-events/storm-winds'
+import type { StormAtPoint } from './historic-events/storm-tracks'
 import type { FireAtPoint } from './historic-events/fire-perimeters'
 import type { FloodEvent, FloodSource } from './historic-events/flood-history'
 import {

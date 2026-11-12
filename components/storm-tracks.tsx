@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
+import {
+  ExpressionSpecification,
+  GeoJSONSource,
+  MapMouseEvent,
+} from 'maplibre-gl'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
-import { HISTORIC_URLS, LAYERS } from '@/lib/config'
+import { LAYERS } from '@/lib/config'
 import { RISKS, getMapLayer } from '@/lib/hazards'
 import {
   HISTORIC_STORMS_LAYER_ID,
   MPH_PER_KT,
   TROPICAL_STORM_MPH,
 } from '@/lib/historic-events'
+import { loadStormTracks } from '@/lib/historic-events/storm-tracks'
 
-const { sourceId, layerName, layerIds } = LAYERS.stormTracks
+const { sourceId, layerIds } = LAYERS.stormTracks
 const BEFORE_ID = 'address_label'
 // pixels around the cursor that count as hovering a track
 const HIT_TOLERANCE = 6
@@ -31,7 +36,7 @@ const RELEVANT: ExpressionSpecification = [
 ]
 const SEGMENT_MPH: ExpressionSpecification = [
   '*',
-  ['to-number', ['get', 'USA_WIND']],
+  ['to-number', ['get', 'usa_wind']],
   MPH_PER_KT,
 ]
 // segments below tropical-storm strength are drawn but not modeled
@@ -117,10 +122,17 @@ const StormTracks = () => {
     if (!map) return
     if (!map.getSource(sourceId)) {
       map.addSource(sourceId, {
-        type: 'vector',
-        url: `pmtiles://${HISTORIC_URLS.stormTracks}`,
-        promoteId: 'SID',
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+        promoteId: 'sid',
       })
+      loadStormTracks()
+        .then((data) => {
+          const source = map.getSource(sourceId)
+          if (source?.type === 'geojson')
+            (source as GeoJSONSource).setData(data)
+        })
+        .catch((error) => console.error('Storm tracks failed:', error))
     }
     if (!map.getLayer(layerIds.line)) {
       map.addLayer(
@@ -128,7 +140,6 @@ const StormTracks = () => {
           id: layerIds.line,
           type: 'line',
           source: sourceId,
-          'source-layer': layerName,
           layout: {
             visibility: 'none',
             'line-cap': 'round',
@@ -194,13 +205,9 @@ const StormTracks = () => {
 
   useEffect(() => {
     if (!map?.getSource(sourceId)) return
-    map.removeFeatureState({ source: sourceId, sourceLayer: layerName })
+    map.removeFeatureState({ source: sourceId })
     if (!active) return
-    const target = (sid: string) => ({
-      source: sourceId,
-      sourceLayer: layerName,
-      id: sid,
-    })
+    const target = (sid: string) => ({ source: sourceId, id: sid })
     relevantSids?.forEach((sid) =>
       map.setFeatureState(target(sid), { relevant: true }),
     )

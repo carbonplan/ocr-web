@@ -6,20 +6,20 @@ import { getBinIndex } from '@/hooks/useLayerColor'
 import {
   HISTORIC_STORMS_LAYER_ID,
   HURRICANE_MPH,
-  MPH_PER_MS,
+  MPH_PER_KT,
   TROPICAL_STORM_MPH,
   formatStormName,
 } from '@/lib/historic-events'
-import type { StormAtPoint } from '@/lib/historic-events/storm-winds'
+import type { StormAtPoint } from '@/lib/historic-events/storm-tracks'
 import ValueBadge from '../../value-badge'
 import EyeCheckbox from '../../eye-checkbox'
 import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
-const FIRST_SEASON = 1980
+const FIRST_SEASON = 2004
 
-const MODELED_WIND_NOTE =
-  'The peak 1-minute sustained wind the hurricane hazard model attributes to this storm at this location. Each storm\u2019s NOAA best track (position and maximum wind) is run through the same parametric wind model (Holland 2008, via CLIMADA) and roughly 9 km grid used for the hurricane hazard maps, so the two are directly comparable. Track segments below tropical-storm strength (34 kt) are drawn faintly and not modeled. These are model estimates, not measurements: the wind at a specific address can differ by tens of mph, especially near the core of small storms.'
+const MAX_WIND_NOTE =
+  'The strongest 1-minute sustained wind NOAA recorded for the storm while its tropical-storm-force winds reached this location. A storm reached the location when it lies within the storm\u2019s 34 kt wind radius (the largest of its four quadrant radii) along the best track. This is the storm\u2019s own peak intensity at the time, not the wind at this address, which was usually lower. Storms start in 2004, when best tracks began recording wind radii routinely.'
 
 // Storms at the selected point, strongest first, each colored by the
 // Saffir-Simpson bin of the wind it brought there.
@@ -34,7 +34,7 @@ export const useHistoricStorms = () => {
       ? historicEvents.events
       : null
   const colorFor = (storm: StormAtPoint) =>
-    colormap[getBinIndex(bins, storm.wind * MPH_PER_MS) + 1]
+    colormap[getBinIndex(bins, storm.wind * MPH_PER_KT) + 1]
 
   return {
     status: historicEvents.status,
@@ -105,14 +105,14 @@ const HistoricStorms = () => {
   const hasSelection = Boolean(selectedBuilding || selectedArea)
 
   const hurricaneCount =
-    storms?.filter((storm) => storm.wind * MPH_PER_MS >= HURRICANE_MPH)
+    storms?.filter((storm) => storm.wind * MPH_PER_KT >= HURRICANE_MPH)
       .length ?? null
 
   return (
     <Box>
-      Tropical cyclones since {FIRST_SEASON} whose modeled winds reached
-      tropical-storm strength ({TROPICAL_STORM_MPH}+ mph) at this location, with
-      the peak 1-min sustained wind each brought here.
+      Tropical cyclones since {FIRST_SEASON} whose tropical-storm-force winds (
+      {TROPICAL_STORM_MPH}+ mph) reached this location by NOAA&apos;s best
+      track, with each storm&apos;s strongest recorded wind while they did.
       {!hasSelection && (
         <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its storm history.
@@ -133,21 +133,21 @@ const HistoricStorms = () => {
               py: 1,
             }}
           >
-            <Box sx={tableSx.tableHead}>Storm winds</Box>
+            <Box sx={tableSx.tableHead}>Storms</Box>
             <Box sx={tableSx.tableHead}>Since {FIRST_SEASON}</Box>
           </Flex>
           <Row
-            label={`Tropical storm force (${TROPICAL_STORM_MPH}+ mph)`}
+            label={`Tropical-storm winds reached (${TROPICAL_STORM_MPH}+ mph)`}
             value={storms.length}
           />
           <Row
-            label={`Hurricane force (${HURRICANE_MPH}+ mph)`}
+            label={`As a hurricane (${HURRICANE_MPH}+ mph)`}
             value={hurricaneCount}
           />
           {storms.length > 0 && (
             <>
               <TooltipWrapper
-                tooltip={MODELED_WIND_NOTE}
+                tooltip={MAX_WIND_NOTE}
                 sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
                 tooltipSx={{ mt: 2, mb: 0 }}
               >
@@ -159,7 +159,7 @@ const HistoricStorms = () => {
                   }}
                 >
                   <Box sx={tableSx.tableHead}>Storm</Box>
-                  <Box sx={tableSx.tableHead}>Modeled wind</Box>
+                  <Box sx={tableSx.tableHead}>Max wind</Box>
                 </Flex>
               </TooltipWrapper>
               <Box onMouseLeave={() => setHoveredEventId(null)}>
@@ -174,7 +174,7 @@ const HistoricStorms = () => {
                         </Box>
                       </>
                     }
-                    value={`${Math.round(storm.wind * MPH_PER_MS)} mph`}
+                    value={`${Math.round(storm.wind * MPH_PER_KT)} mph`}
                     color={colorFor(storm)}
                     hovered={hoveredEventId === storm.sid}
                     onHover={() => setHoveredEventId(storm.sid)}
@@ -184,7 +184,7 @@ const HistoricStorms = () => {
                         setSelectedStormId(
                           selectedStormId === storm.sid ? null : storm.sid,
                         ),
-                      label: `Show ${formatStormName(storm.name)} ${storm.season} wind field`,
+                      label: `Show ${formatStormName(storm.name)} ${storm.season} wind extent`,
                     }}
                   />
                 ))}

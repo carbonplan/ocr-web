@@ -2,8 +2,6 @@ export const HISTORIC_STORMS_LAYER_ID = 'historic_storms'
 export const HISTORIC_FIRES_LAYER_ID = 'historic_fires'
 export const HISTORIC_FLOODS_LAYER_ID = 'historic_floods'
 
-// m/s -> mph
-export const MPH_PER_MS = 2.23694
 // IBTrACS records winds in knots
 export const MPH_PER_KT = 1.15078
 

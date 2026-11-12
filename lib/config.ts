@@ -11,9 +11,12 @@ export const OCR_BUCKET_URL =
 const EXPLORE_URL =
   'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/ocr-explore'
 
+// ocr-multi-hazard's historic inputs, dated by their source's Last-Modified
+const HISTORIC_INPUT_URL =
+  'https://carbonplan-ocr.s3.us-west-2.amazonaws.com/input/historic'
+
 export const HISTORIC_URLS = {
-  stormTracks: `${EXPLORE_URL}/ibtracs_conus_tracks.pmtiles`,
-  stormWinds: `${EXPLORE_URL}/ibtracs_conus_winds.zarr`,
+  stormTracks: `${HISTORIC_INPUT_URL}/ibtracs/20261112/ibtracs_tracks.parquet`,
   firePerimeters: `${EXPLORE_URL}/mtbs_conus_perims.pmtiles`,
   floodReports: `${EXPLORE_URL}/storm_events_conus_floods.pmtiles`,
   floodReportPoints: `${EXPLORE_URL}/storm_events_conus_flood_points.pmtiles`,
@@ -49,7 +52,6 @@ export const LAYERS = {
     },
   },
   stormTracks: {
-    layerName: 'tracks',
     sourceId: 'stormTracks',
     layerIds: {
       line: 'storm-tracks-line',

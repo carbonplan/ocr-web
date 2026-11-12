@@ -26,7 +26,7 @@ import {
   HillshadeLayer,
   ZarrLayer,
   StormTracks,
-  StormFootprint,
+  StormSwath,
   FirePerimeters,
   FloodReports,
   FloodSatellite,
@@ -324,7 +324,7 @@ const MapComponent = () => {
           {(mapLayer !== RISK_LAYER_ID || buildingsMode === 'query') &&
             !eventsLayer && <ZarrLayer />}
           <RegionHighlight />
-          <StormFootprint />
+          <StormSwath />
           <StormTracks />
           <FirePerimeters />
           <FloodReports />
