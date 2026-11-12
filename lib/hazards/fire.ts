@@ -1,13 +1,10 @@
-import { OCR_BUCKET_URL, SOURCE_COOP_URL } from '@/lib/config'
+import { OCR_BUCKET_URL } from '@/lib/config'
 import { HazardConfig } from './types'
 import { HISTORIC_FIRES_LAYER_ID } from '@/lib/historic-events'
 
 const VERSION = 'v2.0.0'
 
 const OUTPUT = `${OCR_BUCKET_URL}/output/fire/${VERSION}`
-
-// the per-region statistics downloads are published only for v1.1.0
-const STATS_BASE = `${SOURCE_COOP_URL}/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/v1.1.0/region-analysis`
 
 const RASTER =
   process.env.NEXT_PUBLIC_FIRE_ICECHUNK_URL ?? `${OUTPUT}/store.icechunk`
@@ -83,7 +80,6 @@ const fire: HazardConfig = {
       process.env.NEXT_PUBLIC_BUILDING_URL ??
       `${OUTPUT}/vector/buildings.geoparquet`,
     regions: process.env.NEXT_PUBLIC_REGIONS_URL ?? `${OUTPUT}/vector/regions`,
-    statsBase: STATS_BASE,
     detailColumns: [
       'bp_2011',
       'bp_2047',

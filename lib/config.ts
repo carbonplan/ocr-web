@@ -1,10 +1,5 @@
 export const BASE_PATH = '/research/climate-risk'
 
-// Source Coop's bucket name contains dots, so only path-style URLs work —
-// virtual-hosted style (bucket.s3.amazonaws.com) fails TLS validation.
-export const SOURCE_COOP_URL =
-  'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop'
-
 export const OCR_BUCKET_URL =
   'https://carbonplan-ocr.s3.us-west-2.amazonaws.com'
 
