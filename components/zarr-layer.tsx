@@ -19,6 +19,9 @@ const ZarrLayer = () => {
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
   const variable = activeLayer?.variable ?? dataset.variable
   const unitScale = getUnitScale(riskConfig, mapLayerId)
+  const categorical = activeLayer?.categorical ?? false
+  const validRange = activeLayer?.validRange
+  const continuous = activeLayer?.continuous ?? false
   const selectorDim = activeLayer?.selector?.dim
   const selectorValue = useStore((state) =>
     selectorDim ? state.selectorValues[selectorDim] : null,
@@ -45,9 +48,29 @@ const ZarrLayer = () => {
     const valueExpression =
       unitScale === 1 ? variable : `${variable} * ${unitScale.toFixed(6)}`
 
+    const outOfRange = validRange
+      ? ` || ${variable} < ${validRange[0].toFixed(6)} || ${variable} > ${validRange[1].toFixed(6)}`
+      : ''
+
+    if (continuous) {
+      const [lo, hi] = [boundaries[0], boundaries[boundaries.length - 1]]
+      const n = colormap.length
+      return `
+      float value = ${valueExpression};
+      if (isnan(value)${outOfRange}) {
+        discard;
+      }
+      float t = clamp((value - ${lo.toFixed(6)}) / ${(hi - lo).toFixed(6)}, 0.0, 1.0);
+      // skip the leading no-data swatch and land on sample centers
+      float coord = (1.5 + t * ${(n - 2).toFixed(1)}) / ${n.toFixed(1)};
+      vec4 c = texture(colormap, vec2(coord, 0.5));
+      fragColor = vec4(c.rgb * opacity, opacity);
+    `
+    }
+
     return `
       float value = ${valueExpression};
-      if (isnan(value) || value == 0.0) {
+      if (isnan(value)${categorical ? '' : ' || value == 0.0'}${outOfRange}) {
         discard;
       }
       float binIndex = 0.0;
@@ -60,7 +83,15 @@ const ZarrLayer = () => {
       vec4 c = texture(colormap, vec2(clamp(rescaled, 0.0, 1.0), 0.5));
       fragColor = vec4(c.rgb * opacity, opacity);
     `
-  }, [colorLimits.binBoundaries, variable, unitScale])
+  }, [
+    colorLimits.binBoundaries,
+    variable,
+    unitScale,
+    categorical,
+    validRange,
+    continuous,
+    colormap.length,
+  ])
 
   useEffect(() => {
     if (!map) return

@@ -14,6 +14,9 @@ export const useBuildingQuery = () => {
   const futureWindow = useStore((state) => state.futureWindow)
   const setBuildingQuery = useStore((state) => state.setBuildingQuery)
   const mapLayerId = useStore((state) => state.mapLayer)
+  // the raster path reads through the layer's selector, so a new slice needs a
+  // new query
+  const selectorValues = useStore((state) => state.selectorValues)
   const zarrLayer = useStore((state) => state.zarrLayer)
   // null off the raster path, so a layer rebuild doesn't re-fire those queries
   const queryLayer = riskConfig.pointQuery === 'raster' ? zarrLayer : null
@@ -57,7 +60,9 @@ export const useBuildingQuery = () => {
           point,
           controller.signal,
         )
-        if (value === null) return { status: 'error' }
+        const range = getMapLayer(riskConfig, mapLayerId)?.validRange
+        if (value === null || (range && (value < range[0] || value > range[1])))
+          return { status: 'error' }
         // the raster path reads the active layer's variable, so it scales
         // with that layer's unit
         return {
@@ -96,5 +101,6 @@ export const useBuildingQuery = () => {
     setBuildingQuery,
     mapLayerId,
     queryLayer,
+    selectorValues,
   ])
 }

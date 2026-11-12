@@ -27,6 +27,14 @@ import {
   updateMapViewUrl,
 } from './url-utils'
 
+const DEFAULT_SELECTOR_VALUES = Object.fromEntries(
+  Object.values(RISKS).flatMap((config: HazardConfig) =>
+    (config.mapLayers ?? []).flatMap((layer) =>
+      layer.selector ? [[layer.selector.dim, layer.selector.defaultValue]] : [],
+    ),
+  ),
+) as Record<SelectorDimension, number>
+
 export type BuildingQueryState =
   | { status: 'idle' | 'loading' | 'error' }
   | { status: 'success'; value: number; detail?: ChazPointData }
@@ -196,7 +204,7 @@ export const useStore = create<Store>((set, get) => ({
     syncHazardUrl(get)
   },
   mapLayer: RISK_LAYER_ID,
-  selectorValues: { return_period: 100 },
+  selectorValues: DEFAULT_SELECTOR_VALUES,
   setSelectorValues: (values) =>
     set({ selectorValues: { ...get().selectorValues, ...values } }),
   setMapLayer: (mapLayer) => {

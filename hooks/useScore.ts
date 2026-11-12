@@ -16,6 +16,7 @@ export const useScoreLimits = () => {
     (state) => !getMapLayer(state.riskConfig, state.mapLayer)?.variable,
   )
   const hazardBins = useStore((state) => state.riskConfig.binBoundaries)
+  const hazardColormap = useStore((state) => state.riskConfig.colormap)
   const displayBins = useStore(
     useShallow((state) => state.colorLimits.binBoundaries),
   )
@@ -23,7 +24,7 @@ export const useScoreLimits = () => {
 
   return showsRiskQuantity
     ? { bins: displayBins, min: displayMin }
-    : { bins: hazardBins, min: hazardBins[0] }
+    : { bins: hazardBins, min: hazardBins[0], colormap: hazardColormap }
 }
 
 export const useScore = (
@@ -34,8 +35,8 @@ export const useScore = (
   const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
   const buildingQuery = useStore((state) => state.buildingQuery)
   const selectedArea = useStore((state) => state.selectedArea)
-  const { bins, min } = useScoreLimits()
-  const colormap = useColormap({ count: bins.length })
+  const { bins, min, colormap: name } = useScoreLimits()
+  const colormap = useColormap({ count: bins.length, name })
 
   let value: number | null = null
   const isGeography =

@@ -34,13 +34,28 @@ const Colorbar = () => {
   }).slice(1)
 
   let content = <ScoreBar labels />
-  if (activeLayer?.customColormap) {
+  if (activeLayer?.continuous) {
+    const bounds = activeLayer.binBoundaries
+    content = (
+      <ColorbarBase
+        colormap={colormap}
+        horizontal
+        bottom
+        width={'100%'}
+        height={[21, 21, 21, 22]}
+        clim={[bounds[0], bounds[bounds.length - 1]]}
+        label={activeLayer.axisLabel}
+        units={activeLayer.unit}
+      />
+    )
+  } else if (activeLayer?.customColormap) {
     const binBoundaries = activeLayer.binBoundaries
     const discrete = binLabels.length > 0
-    // one tick per bin edge, indexed into binBoundaries by bin
-    const boundaryTicks = (binBoundaries ?? [])
-      .slice(0, binLabels.length + 1)
-      .map((_, i) => i)
+    // one tick per bin edge, indexed into binBoundaries by bin; classes have
+    // no edges worth labelling
+    const boundaryTicks = activeLayer.categorical
+      ? []
+      : (binBoundaries ?? []).slice(0, binLabels.length + 1).map((_, i) => i)
     content = (
       <Flex sx={{ flexDirection: 'column' }}>
         <ColorbarBase
