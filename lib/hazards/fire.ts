@@ -2,16 +2,15 @@ import { OCR_BUCKET_URL, SOURCE_COOP_URL } from '@/lib/config'
 import { HazardConfig } from './types'
 import { HISTORIC_FIRES_LAYER_ID } from '@/lib/historic-events'
 
-const VERSION = 'v1.1.0'
+const VERSION = 'v2.0.0'
 
-const output = (path: string) =>
-  `${SOURCE_COOP_URL}/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/${VERSION}/${path}`
+const OUTPUT = `${OCR_BUCKET_URL}/output/fire/${VERSION}`
 
-const LOD_BASE = `${OCR_BUCKET_URL}/ocr-explore/geoparquet-lod/fire-risk/${VERSION}`
+// the per-region statistics downloads are published only for v1.1.0
+const STATS_BASE = `${SOURCE_COOP_URL}/carbonplan/carbonplan-ocr/output/fire-risk/vector/production/v1.1.0/region-analysis`
 
 const RASTER =
-  process.env.NEXT_PUBLIC_FIRE_ICECHUNK_URL ??
-  `${OCR_BUCKET_URL}/scratch/fire-topozarr-pyramid/store.icechunk`
+  process.env.NEXT_PUBLIC_FIRE_ICECHUNK_URL ?? `${OUTPUT}/store.icechunk`
 
 const fire: HazardConfig = {
   id: 'fire',
@@ -82,14 +81,9 @@ const fire: HazardConfig = {
     version: VERSION,
     buildings:
       process.env.NEXT_PUBLIC_BUILDING_URL ??
-      `${LOD_BASE}/buildings-5f4556a.lod.parquet`,
-    regions:
-      process.env.NEXT_PUBLIC_REGIONS_URL ?? `${LOD_BASE}/regions-full-county`,
-    histColumns: {
-      rps_2011: 'risk_score_2011_hist',
-      rps_2047: 'risk_score_2047_hist',
-    },
-    statsBase: output('region-analysis'),
+      `${OUTPUT}/vector/buildings.geoparquet`,
+    regions: process.env.NEXT_PUBLIC_REGIONS_URL ?? `${OUTPUT}/vector/regions`,
+    statsBase: STATS_BASE,
     detailColumns: [
       'bp_2011',
       'bp_2047',
