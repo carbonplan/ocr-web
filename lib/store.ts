@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { Map } from 'maplibre-gl'
-import type { ZarrLayer } from '@carbonplan/zarr-layer'
 import type { ChazPointData } from './chaz-query'
 import type { StormAtPoint } from './historic-events/storm-tracks'
 import type { FireAtPoint } from './historic-events/fire-perimeters'
@@ -146,8 +145,6 @@ type Store = {
   // storm whose modeled wind field is drawn
   selectedStormId: string | null
   setSelectedStormId: (id: string | null) => void
-  zarrLayer: ZarrLayer | null
-  setZarrLayer: (zarrLayer: ZarrLayer | null) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
   riskConfig: HazardConfig
@@ -274,8 +271,6 @@ export const useStore = create<Store>((set, get) => ({
   setFloodSource: (floodSource) => set({ floodSource }),
   selectedStormId: null,
   setSelectedStormId: (selectedStormId) => set({ selectedStormId }),
-  zarrLayer: null,
-  setZarrLayer: (zarrLayer) => set({ zarrLayer }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS[DEFAULT_HAZARD],

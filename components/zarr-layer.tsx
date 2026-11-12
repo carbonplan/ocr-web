@@ -8,9 +8,13 @@ import {
   resolveHazardDataset,
   resolveLayerVariable,
 } from '@/lib/hazards'
-import { getZarrLayerId } from '@/lib/raster-query'
 import { openIcechunkStore } from '@/lib/icechunk'
 import { buildBinFrag } from '@/lib/bin-frag'
+
+// Unique per dataset because removing and re-adding a custom layer under one id
+// in a single frame leaves the new layer uninitialized.
+const getZarrLayerId = (source: string, variable: string): string =>
+  `zarr-raster-layer-${source.split('/').pop()}-${variable}`
 
 const ZarrLayer = () => {
   const map = useStore((state) => state.map)
@@ -20,7 +24,6 @@ const ZarrLayer = () => {
   const futureWindow = useStore((state) => state.futureWindow)
   const riskConfig = useStore((state) => state.riskConfig)
   const setZarrLoading = useStore((state) => state.setZarrLoading)
-  const setZarrLayer = useStore((state) => state.setZarrLayer)
   const mapLayerId = useStore((state) => state.mapLayer)
   const activeLayer = getMapLayer(riskConfig, mapLayerId)
   const dataset = resolveHazardDataset(riskConfig, { timePeriod, futureWindow })
@@ -88,7 +91,6 @@ const ZarrLayer = () => {
       layerRef.current = layer
       map.addLayer(layer, 'hillshade')
       map.triggerRepaint()
-      setZarrLayer(layer)
     }
 
     setZarrLoading(true)
@@ -104,7 +106,6 @@ const ZarrLayer = () => {
         map.removeLayer(layerId)
       }
       layerRef.current = null
-      setZarrLayer(null)
       setZarrLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -95,10 +95,6 @@ export type HazardDatasets = {
   future?: HazardDataset | Record<FutureWindow, HazardDataset>
 }
 
-// 'raster' reads the rendered variable back off the layer; 'bands' opens the
-// store directly, for panels needing bands the map isn't drawing
-export type PointQuerySource = 'bands' | 'raster'
-
 // Present when the risk view is a measured quantity rather than a 1-10 loss
 // score: the results panel shows the value itself and the score bar drops its
 // numerals to serve as a plain colorbar.
@@ -119,7 +115,6 @@ export type HazardConfig = {
   // 'attributes': buildings colored from the tiles' dataset variables;
   // 'query': buildings transparent, values read from the zarr at their centroid
   buildingsMode: 'attributes' | 'query'
-  pointQuery?: PointQuerySource
   valueDisplay?: HazardValueDisplay
   axisLabel: string
   climateTooltip?: string

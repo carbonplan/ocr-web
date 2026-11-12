@@ -3,15 +3,11 @@ import { useSelectedPoint } from '@/hooks/useSelectedPoint'
 import { useStore, BuildingQueryState } from '@/lib/store'
 import {
   RISK_LAYER_ID,
-  getMapLayer,
   getShownVariables,
-  getUnitScale,
   resolveHazardDataset,
-  resolveLayerVariable,
   toDisplayUnits,
 } from '@/lib/hazards'
 import { queryChazPoint } from '@/lib/chaz-query'
-import { getZarrLayerId, queryRasterPoint } from '@/lib/raster-query'
 import { queryStorePoint } from '@/lib/store-point'
 import { queryFdpValues } from '@/lib/fdp-query'
 
@@ -23,13 +19,6 @@ export const useBuildingQuery = () => {
   const timePeriod = useStore((state) => state.timePeriod)
   const futureWindow = useStore((state) => state.futureWindow)
   const setBuildingQuery = useStore((state) => state.setBuildingQuery)
-  const mapLayerId = useStore((state) => state.mapLayer)
-  // the raster path reads through the layer's selector, so a new slice needs a
-  // new query
-  const selectorValues = useStore((state) => state.selectorValues)
-  const zarrLayer = useStore((state) => state.zarrLayer)
-  // null off the raster path, so a layer rebuild doesn't re-fire those queries
-  const queryLayer = riskConfig.pointQuery === 'raster' ? zarrLayer : null
 
   // an attributes-mode point has no building row: the values on screen are read
   // from the store there instead
@@ -78,43 +67,11 @@ export const useBuildingQuery = () => {
       futureWindow,
     })
 
-    const variable = resolveLayerVariable(riskConfig, mapLayerId, {
-      timePeriod,
-      futureWindow,
-    })
-
     setBuildingQuery({ status: 'loading' })
-
-    // the layer still belongs to the previous hazard; the effect re-runs once
-    // the right one is in the store
-    if (
-      riskConfig.pointQuery === 'raster' &&
-      queryLayer?.id !== getZarrLayerId(dataset.source, variable)
-    ) {
-      return
-    }
 
     const controller = new AbortController()
 
     const query = async (): Promise<BuildingQueryState> => {
-      if (riskConfig.pointQuery === 'raster') {
-        const value = await queryRasterPoint(
-          queryLayer!,
-          variable,
-          point,
-          controller.signal,
-        )
-        const range = getMapLayer(riskConfig, mapLayerId)?.validRange
-        if (value === null || (range && (value < range[0] || value > range[1])))
-          return { status: 'error' }
-        // the raster path reads the active layer's variable, so it scales
-        // with that layer's unit
-        return {
-          status: 'success',
-          value: value * getUnitScale(riskConfig, mapLayerId),
-        }
-      }
-
       const detail = await queryChazPoint(dataset.source, point)
       if (!detail || detail.ead === null) return { status: 'error' }
       return {
@@ -136,14 +93,5 @@ export const useBuildingQuery = () => {
       })
 
     return () => controller.abort()
-  }, [
-    point,
-    riskConfig,
-    timePeriod,
-    futureWindow,
-    setBuildingQuery,
-    mapLayerId,
-    queryLayer,
-    selectorValues,
-  ])
+  }, [point, riskConfig, timePeriod, futureWindow, setBuildingQuery])
 }

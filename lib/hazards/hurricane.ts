@@ -28,7 +28,6 @@ const hurricane: HazardConfig = {
   // ead is stored as a fraction per year
   unitScale: 100,
   buildingsMode: 'query',
-  pointQuery: 'bands',
   axisLabel: 'Expected annual loss',
   climateTooltip:
     'Current estimates are based on tropical cyclones downscaled from the ERA5 reanalysis (1981-2019). Future estimates use the median of CHAZ simulations driven by six CMIP6 climate models under SSP3-7.0.',
