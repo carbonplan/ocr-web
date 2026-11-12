@@ -7,7 +7,7 @@ import {
   SourceSpecification,
   ExpressionSpecification,
 } from 'maplibre-gl'
-import { tileUrl } from 'geoparquet-lod/maplibre'
+import { tileUrl } from 'tiled-geoparquet/tiles'
 import { BUILDING_MAX_ZOOM, LAYERS } from '@/lib/config'
 import { HazardConfig, getTileVariables } from '@/lib/hazards'
 

@@ -7,7 +7,7 @@ import {
 } from 'hyparquet'
 import type { AsyncBuffer, FileMetaData } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
-import { coalescing, httpSource } from 'geoparquet-lod'
+import { coalescing, httpSource } from 'tiled-geoparquet'
 
 // Building rows for a region's download, read from the buildings LOD file's
 // analytical columns. The file keeps GEOID statistics and a page index, and in

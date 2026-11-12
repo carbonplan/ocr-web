@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { centerOfMass, distance } from '@turf/turf'
-import { readRow } from 'geoparquet-lod/maplibre'
+import { readRow } from 'tiled-geoparquet/tiles'
 import { LAYERS } from '@/lib/config'
 import { getTileVariables } from '@/lib/hazards'
 import { useStore } from '@/lib/store'

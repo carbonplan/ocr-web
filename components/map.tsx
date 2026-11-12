@@ -10,7 +10,7 @@ import {
 } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Protocol } from 'pmtiles'
-import { PROTOCOL, prefetch, registerProtocol } from 'geoparquet-lod/maplibre'
+import { PROTOCOL, prefetch, registerProtocol } from 'tiled-geoparquet/tiles'
 import { Box, useThemeUI } from 'theme-ui'
 import { useBreakpointIndex } from '@theme-ui/match-media'
 import { useMapTheme } from '../hooks/useMapTheme'

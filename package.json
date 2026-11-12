@@ -30,7 +30,6 @@
     "@types/chroma-js": "^3.1.1",
     "chroma-js": "^3.1.2",
     "d3-format": "^3.1.0",
-    "geoparquet-lod": "file:vendor/geoparquet-lod-1eb3bea.tgz",
     "hyparquet": "^1.31.5",
     "hyparquet-compressors": "^1.1.2",
     "icechunk-js": "^0.6.1",
@@ -44,6 +43,7 @@
     "react-animate-height": "^3.2.3",
     "react-dom": "^18.3.1",
     "theme-ui": "0.15.5",
+    "tiled-geoparquet": "file:vendor/tiled-geoparquet-e00c6c7.tgz",
     "vaul": "^1.1.2",
     "zarrita": "^0.7.3",
     "zustand": "^5.0.3"
