@@ -21,6 +21,7 @@ import { useStore } from '@/lib/store'
 // and a second row for the string bin labels and axis label
 const TICKS_HEIGHT = 56
 const BIN_LABEL_OFFSET = 28
+const CONTINUOUS_TICKS_HEIGHT = 40
 
 const Colorbar = () => {
   const riskConfig = useStore((state) => state.riskConfig)
@@ -36,18 +37,47 @@ const Colorbar = () => {
 
   let content = <ScoreBar labels />
   if (activeLayer?.continuous) {
-    const bounds = activeLayer.binBoundaries
+    const bounds = [
+      activeLayer.binBoundaries[0],
+      activeLayer.binBoundaries[activeLayer.binBoundaries.length - 1],
+    ]
     content = (
-      <ColorbarBase
-        colormap={colormap}
-        horizontal
-        bottom
-        width={'100%'}
-        height={[21, 21, 21, 22]}
-        clim={[bounds[0], bounds[bounds.length - 1]]}
-        label={activeLayer.axisLabel}
-        units={activeLayer.unit}
-      />
+      <Flex sx={{ flexDirection: 'column' }}>
+        <ColorbarBase
+          colormap={colormap}
+          horizontal
+          width={'100%'}
+          height={[21, 21, 21, 22]}
+        />
+        <Box sx={{ width: '100%', height: `${CONTINUOUS_TICKS_HEIGHT}px` }}>
+          <Chart
+            x={bounds}
+            y={[0, 0]}
+            padding={{ left: 0, right: 0, bottom: CONTINUOUS_TICKS_HEIGHT }}
+          >
+            <Ticks bottom values={bounds} />
+            <TickLabels
+              bottom
+              values={bounds}
+              sx={{
+                // keep the end labels inside the bar
+                ':first-of-type': { transform: 'none' },
+                ':last-of-type': { transform: 'translateX(-100%)' },
+              }}
+            />
+            <AxisLabel
+              bottom
+              units={activeLayer.unit}
+              sx={{
+                color: 'secondary',
+                '& svg': { fill: 'secondary' },
+              }}
+            >
+              {activeLayer.axisLabel}
+            </AxisLabel>
+          </Chart>
+        </Box>
+      </Flex>
     )
   } else if (activeLayer?.customColormap) {
     const binCount = binBoundaries.length
