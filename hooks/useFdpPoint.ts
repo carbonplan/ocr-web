@@ -23,14 +23,14 @@ export const useFdpPoint = (): FdpPointQuery => {
       return
     }
 
-    const { source } = resolveHazardDataset(riskConfig, {
+    const dataset = resolveHazardDataset(riskConfig, {
       timePeriod,
       futureWindow,
     })
     let cancelled = false
     setQuery({ status: 'loading' })
 
-    queryFdpPoint(source, point)
+    queryFdpPoint(dataset, point)
       .then((data) => {
         if (cancelled) return
         setQuery(data ? { status: 'success', data } : { status: 'error' })
