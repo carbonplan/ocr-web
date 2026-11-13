@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
+import {
+  ExpressionSpecification,
+  MapMouseEvent,
+  VectorTileSource,
+} from 'maplibre-gl'
+import { centerOfMass } from '@turf/turf'
 import { useStore } from '@/lib/store'
 import { useBuildingUtils } from '@/hooks/useBuildingUtils'
-import { LAYERS } from '@/lib/config'
+import { BUILDING_SELECT_MIN_ZOOM, LAYERS } from '@/lib/config'
 import { useColormap } from '@/lib/colormaps'
-import { getBuildingRiskKey } from '@/lib/risk-utils'
+import { getRiskVariable } from '@/lib/risk-utils'
+import { getMapLayer, isEventsLayer } from '@/lib/hazards'
+import { buildingTileUrl } from '@/lib/risk-layers'
 import { Building } from '@/types/location'
 
 const Buildings = () => {
@@ -13,20 +20,40 @@ const Buildings = () => {
   const map = useStore((state) => state.map)
   const clearSelections = useStore((state) => state.clearSelections)
   const timePeriod = useStore((state) => state.timePeriod)
+  const futureWindow = useStore((state) => state.futureWindow)
   const colorLimits = useStore((state) => state.colorLimits)
-  const buildingsMode = useStore((state) => state.riskConfig.buildingsMode)
-  const { selectBuilding, selectArea } = useBuildingUtils()
-  const riskAttribute = getBuildingRiskKey(timePeriod)
+  const riskConfig = useStore((state) => state.riskConfig)
+  const buildingsMode = riskConfig.buildingsMode
+  // outlines over the raster, as in query mode, while a layer of another
+  // quantity is shown: the tiles carry only the risk variables
+  const showsOtherQuantity = useStore(
+    (state) => !!getMapLayer(state.riskConfig, state.mapLayer)?.variable,
+  )
+  const eventsLayer = useStore((state) =>
+    isEventsLayer(state.riskConfig, state.mapLayer),
+  )
+  const outlined =
+    buildingsMode === 'query' || showsOtherQuantity || eventsLayer
+  const unitScale = riskConfig.unitScale
+  const { selectBuilding, selectArea, highlightBuildingAtLocation } =
+    useBuildingUtils()
+  const riskAttribute = getRiskVariable(riskConfig, {
+    timePeriod,
+    futureWindow,
+  })
+  const tiles = useMemo(() => buildingTileUrl(riskConfig), [riskConfig])
+  const buildingsFile = riskConfig.vector.buildings
   const hoveredFeatureId = useRef<string | number | null>(null)
   const colormap = useColormap()
 
   const colorExpression: ExpressionSpecification = useMemo(() => {
-    if (buildingsMode === 'query') return ['literal', 'transparent']
+    if (outlined) return ['literal', 'transparent']
     if (!colormap?.length) return ['literal', 'transparent']
 
     const riskPercentExpression: ExpressionSpecification = [
-      'to-number',
-      ['get', riskAttribute],
+      '*',
+      unitScale,
+      ['to-number', ['get', riskAttribute]],
     ]
     const wrap = (expr: ExpressionSpecification) => [
       'case',
@@ -53,7 +80,7 @@ const Buildings = () => {
     }
 
     return wrap(makeDiscrete()) as ExpressionSpecification
-  }, [colormap, riskAttribute, colorLimits.binBoundaries, buildingsMode])
+  }, [colormap, riskAttribute, unitScale, colorLimits.binBoundaries, outlined])
 
   const lineColorExpression: ExpressionSpecification = useMemo(() => {
     return [
@@ -64,11 +91,11 @@ const Buildings = () => {
       get(theme, 'rawColors.primary'),
       // over the raster, muted reads against both the bin colors and the bare
       // basemap where the raster is transparent
-      buildingsMode === 'query'
+      outlined
         ? get(theme, 'rawColors.muted')
         : get(theme, 'rawColors.secondary'),
     ] as ExpressionSpecification
-  }, [theme, buildingsMode])
+  }, [theme, outlined])
 
   const lineWidthExpression: ExpressionSpecification = useMemo(() => {
     const width = (selected: number, hovered: number, base: number) =>
@@ -80,7 +107,7 @@ const Buildings = () => {
         hovered,
         base,
       ] as ExpressionSpecification
-    if (buildingsMode === 'query') {
+    if (outlined) {
       return [
         'interpolate',
         ['linear'],
@@ -102,7 +129,7 @@ const Buildings = () => {
       14,
       width(2, 1, 0.3),
     ] as ExpressionSpecification
-  }, [buildingsMode])
+  }, [outlined])
 
   const handleBuildingMouseMove = useCallback(
     (e: MapMouseEvent) => {
@@ -127,7 +154,7 @@ const Buildings = () => {
             )
           }
 
-          if (feature.id && feature.properties) {
+          if (feature.id !== undefined && feature.properties) {
             hoveredFeatureId.current = feature.id
 
             map.setFeatureState(
@@ -158,7 +185,7 @@ const Buildings = () => {
   )
 
   const handleBuildingEnter = useCallback(() => {
-    if (map) {
+    if (map && map.getZoom() >= BUILDING_SELECT_MIN_ZOOM) {
       map.getCanvas().style.cursor = 'pointer'
     }
   }, [map])
@@ -185,9 +212,12 @@ const Buildings = () => {
     async (e: MapMouseEvent) => {
       if (!map) return
 
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: [LAYERS.buildings.layerIds.fill],
-      })
+      const features =
+        map.getZoom() < BUILDING_SELECT_MIN_ZOOM
+          ? []
+          : map.queryRenderedFeatures(e.point, {
+              layers: [LAYERS.buildings.layerIds.fill],
+            })
 
       if (features.length > 0) {
         if (hoveredFeatureId.current !== null) {
@@ -204,14 +234,12 @@ const Buildings = () => {
 
         const feature = features[0]
         selectBuilding(feature as unknown as Building)
-      } else if (buildingsMode === 'query') {
-        // the raster is coarse enough that any point is meaningful
-        selectArea(e.lngLat.lng, e.lngLat.lat)
       } else {
-        clearSelections()
+        // every hazard has a raster to read a point from
+        selectArea(e.lngLat.lng, e.lngLat.lat)
       }
     },
-    [map, selectBuilding, selectArea, clearSelections, buildingsMode],
+    [map, selectBuilding, selectArea],
   )
 
   useEffect(() => {
@@ -240,6 +268,27 @@ const Buildings = () => {
     handleBuildingMouseMove,
     handleBuildingLeave,
   ])
+
+  useEffect(() => {
+    const source = map?.getSource<VectorTileSource>(LAYERS.buildings.sourceId)
+    if (!map || !source || source.tiles?.[0] === tiles) return
+    source.setTiles([tiles])
+    // a selection's id is a row of the file it was made in; once this file's
+    // tiles are drawn, a selection from another file is found again by place
+    const fromOtherFile = () => {
+      const selected = useStore.getState().selectedBuilding
+      return selected && selected.file !== buildingsFile ? selected : null
+    }
+    if (!fromOtherFile()) return
+    map.once('idle', () => {
+      // checked again: the user may have selected something since
+      const selected = fromOtherFile()
+      if (!selected) return
+      const [lng, lat] = centerOfMass(selected).geometry.coordinates
+      const options = { easeTo: false, fetchAddress: false }
+      if (!highlightBuildingAtLocation(lng, lat, options)) clearSelections()
+    })
+  }, [map, tiles, buildingsFile, highlightBuildingAtLocation, clearSelections])
 
   useEffect(() => {
     // update color expression when variable selection changes

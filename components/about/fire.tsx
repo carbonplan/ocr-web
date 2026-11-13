@@ -31,7 +31,11 @@ const FireAbout = () => (
       <Link href='https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html'>
         Census TIGER/Line
       </Link>
-      . Read more about our data sources{' '}
+      . Previous fires are burned area boundaries from{' '}
+      <Link href='https://www.mtbs.gov/'>
+        Monitoring Trends in Burn Severity
+      </Link>{' '}
+      (USGS/USFS). Read more about our data sources{' '}
       <Link href='https://docs.carbonplan.org/ocr/en/latest/reference/data-sources.html'>
         here
       </Link>

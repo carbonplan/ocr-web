@@ -6,19 +6,25 @@ import { useFdpPoint } from '@/hooks/useFdpPoint'
 import { FDP_DRIVERS } from '@/lib/hazards/flood'
 import Drivers from './drivers'
 import StandardError, { useStandardErrorColor } from './standard-error'
+import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
+import HistoricFloods, { useHistoricFloods } from './historic-floods'
 
 const FloodLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
 
+  const unitScale = useStore((state) => state.riskConfig.unitScale)
+  // the selected building's fdp, from the buildings file, whichever layer shows
   const { score, value, color } = useScore(selectedBuilding, 'hinted')
-  // the building query reads the displayed layer, so its value only belongs
-  // on that layer's row
-  const shown = (id: string) => (mapLayer === id ? value : null)
   // every variable at the selection, read once for the sections below
   const point = useFdpPoint()
-  const seColor = useStandardErrorColor(shown('fdp_se'))
+  const se =
+    point.status === 'success' && point.data.fdpSe !== null
+      ? point.data.fdpSe * unitScale
+      : null
+  const seColor = useStandardErrorColor(se)
+  const { events } = useHistoricFloods()
 
   return (
     <>
@@ -36,7 +42,7 @@ const FloodLayers = () => {
         label='Flood damage probability'
         checked={mapLayer === 'fdp'}
         setChecked={() => setMapLayer('fdp')}
-        value={shown('fdp')}
+        value={value}
         color={color}
         toFixed={1}
       >
@@ -46,7 +52,7 @@ const FloodLayers = () => {
         label='Standard error'
         checked={mapLayer === 'fdp_se'}
         setChecked={() => setMapLayer('fdp_se')}
-        value={shown('fdp_se')}
+        value={se}
         color={seColor}
         toFixed={1}
       >
@@ -61,6 +67,16 @@ const FloodLayers = () => {
         toFixed={0}
       >
         <Drivers point={point} />
+      </MapLayer>
+      <MapLayer
+        label='Previous floods'
+        checked={mapLayer === HISTORIC_FLOODS_LAYER_ID}
+        setChecked={() => setMapLayer(HISTORIC_FLOODS_LAYER_ID)}
+        value={events ? events.length : null}
+        toFixed={0}
+        unit='#'
+      >
+        <HistoricFloods />
       </MapLayer>
     </>
   )

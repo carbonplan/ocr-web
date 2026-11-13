@@ -1,0 +1,49 @@
+import { useEffect } from 'react'
+import { useStore, HistoricEventsState } from '@/lib/store'
+import { useSelectedPoint } from '@/hooks/useSelectedPoint'
+import { queryStormsAtPoint } from '@/lib/historic-events/storm-tracks'
+import { queryFiresAtPoint } from '@/lib/historic-events/fire-perimeters'
+import { queryFloodHistory } from '@/lib/historic-events/flood-history'
+
+// Looks up the historic events at the selected point for the active hazard.
+// Runs whether or not the events layer is showing, so the sidebar count is
+// always populated.
+export const useHistoricEvents = () => {
+  const point = useSelectedPoint()
+  const hazard = useStore((state) => state.riskConfig.id)
+  const setHistoricEvents = useStore((state) => state.setHistoricEvents)
+
+  useEffect(() => {
+    if (!point) return
+
+    setHistoricEvents({ status: 'loading' })
+    useStore.getState().setSelectedStormId(null)
+    const controller = new AbortController()
+
+    const query = async (): Promise<HistoricEventsState> => {
+      if (hazard === 'hurricane') {
+        const events = await queryStormsAtPoint(point)
+        return { status: 'success', kind: 'storms', events }
+      }
+      if (hazard === 'flood') {
+        const events = await queryFloodHistory(point, controller.signal)
+        return { status: 'success', kind: 'floods', events }
+      }
+      const events = await queryFiresAtPoint(point, controller.signal)
+      return { status: 'success', kind: 'fires', events }
+    }
+
+    query()
+      .then((state) => {
+        if (controller.signal.aborted) return
+        setHistoricEvents(state)
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return
+        console.error('Historic events query failed:', error)
+        setHistoricEvents({ status: 'error' })
+      })
+
+    return () => controller.abort()
+  }, [point, hazard, setHistoricEvents])
+}

@@ -4,12 +4,14 @@ import { useScore } from '@/hooks/useScore'
 import { usePeakWind, WIND_SPEED_LAYER_ID } from '@/hooks/usePeakWind'
 import { RISK_LAYER_ID, toDisplayUnits } from '@/lib/hazards'
 import AnnualLoss from './annual-loss'
-import WindRisk from './wind-risk'
+import HurricaneRisk from './hurricane-risk'
 import PeakWinds from './peak-winds'
+import HistoricStorms, { useHistoricStorms } from './historic-storms'
+import { HISTORIC_STORMS_LAYER_ID } from '@/lib/historic-events'
 
 const ANNUAL_LOSS_LAYER_ID = 'annual_loss'
 
-const WindLayers = () => {
+const HurricaneLayers = () => {
   const mapLayer = useStore((state) => state.mapLayer)
   const setMapLayer = useStore((state) => state.setMapLayer)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
@@ -20,6 +22,7 @@ const WindLayers = () => {
   // peak winds are binned by Saffir-Simpson category rather than by risk score,
   // so that row carries its own color off the wind speed layer's scale
   const { value: peakWind, color: peakWindColor } = usePeakWind()
+  const { storms } = useHistoricStorms()
 
   const detail =
     buildingQuery.status === 'success' ? buildingQuery.detail : undefined
@@ -39,7 +42,7 @@ const WindLayers = () => {
         setChecked={() => setMapLayer(RISK_LAYER_ID)}
         unit='#'
       >
-        <WindRisk />
+        <HurricaneRisk />
       </MapLayer>
       <MapLayer
         label='Annual loss'
@@ -62,14 +65,17 @@ const WindLayers = () => {
         <PeakWinds />
       </MapLayer>
       <MapLayer
-        label='Previous wind events'
-        checked={false}
-        setChecked={() => {}}
-        value={null}
+        label='Previous storms'
+        checked={mapLayer === HISTORIC_STORMS_LAYER_ID}
+        setChecked={() => setMapLayer(HISTORIC_STORMS_LAYER_ID)}
+        value={storms ? storms.length : null}
+        toFixed={0}
         unit='#'
-      ></MapLayer>
+      >
+        <HistoricStorms />
+      </MapLayer>
     </>
   )
 }
 
-export default WindLayers
+export default HurricaneLayers
