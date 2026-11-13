@@ -20,7 +20,7 @@
     "@carbonplan/layouts": "^5.1.0",
     "@carbonplan/prettier": "^1.2.0",
     "@carbonplan/theme": "^8.1.0",
-    "@carbonplan/zarr-layer": "^0.12.0",
+    "@carbonplan/zarr-layer": "^0.12.1",
     "@emotion/react": "^11.14.0",
     "@mapbox/vector-tile": "^3.0.0",
     "@protomaps/basemaps": "^5.0.1",
