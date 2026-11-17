@@ -83,48 +83,29 @@ const HistoricStorms = () => {
       )}
       {storms && (
         <Box sx={{ mt: 3 }}>
-          <Flex
-            sx={{
-              ...tableSx.row,
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              py: 1,
-            }}
+          <TooltipWrapper
+            tooltip={CLOSEST_NOTE}
+            sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
+            tooltipSx={{ mt: 2, mb: 0 }}
           >
-            <Box sx={tableSx.tableHead}>Storms</Box>
-            <Box sx={tableSx.tableHead}>Since {FIRST_SEASON}</Box>
-          </Flex>
-          <Flex sx={rowSx}>
-            <Box>Tropical-storm winds reached ({TROPICAL_STORM_MPH}+ mph)</Box>
-            <ValueBadge
-              value={storms.length}
-              unit='#'
-              toFixed={0}
-              sx={{ flexShrink: 0 }}
-            />
-          </Flex>
-          {storms.length > 0 && (
-            <>
-              <TooltipWrapper
-                tooltip={CLOSEST_NOTE}
-                sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
-                tooltipSx={{ mt: 2, mb: 0 }}
-              >
-                <Flex
-                  sx={{
-                    flex: 1,
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                  }}
-                >
-                  <Box sx={tableSx.tableHead}>Storm</Box>
-                  <Box sx={tableSx.tableHead}>Closest pass</Box>
-                </Flex>
-              </TooltipWrapper>
-              {storms.map((storm) => (
-                <StormRow key={storm.sid} storm={storm} />
-              ))}
-            </>
+            <Flex
+              sx={{
+                flex: 1,
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+              }}
+            >
+              <Box sx={tableSx.tableHead}>Storm</Box>
+              <Box sx={tableSx.tableHead}>Closest pass</Box>
+            </Flex>
+          </TooltipWrapper>
+          {storms.map((storm) => (
+            <StormRow key={storm.sid} storm={storm} />
+          ))}
+          {storms.length < 1 && (
+            <Box sx={{ ...rowSx, color: 'secondary' }}>
+              No storms since {FIRST_SEASON}.
+            </Box>
           )}
         </Box>
       )}
