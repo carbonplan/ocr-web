@@ -32,6 +32,10 @@ export type StormAtPoint = {
   time: string
   // nearest the track's center came to the point, km
   closestKm: number
+  // highest recorded max sustained wind (kt) while its 34 kt winds reached
+  // the point; the storm's peak wind then, not the wind at the point. null
+  // when no recorded wind
+  windKt: number | null
   // the whole track
   bbox: BBox
 }
@@ -126,7 +130,7 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
       reachKm
     )
       continue
-    const { sid, name, season, iso_time } = segment.properties
+    const { sid, name, season, iso_time, usa_wind } = segment.properties
     const storm = storms.get(sid)
     if (!storm) {
       storms.set(sid, {
@@ -135,10 +139,13 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
         season,
         time: iso_time,
         closestKm: Infinity,
+        windKt: usa_wind,
         bbox: [Infinity, Infinity, -Infinity, -Infinity],
       })
-    } else if (iso_time < storm.time) {
-      storm.time = iso_time
+    } else {
+      if (iso_time < storm.time) storm.time = iso_time
+      if (usa_wind !== null)
+        storm.windKt = Math.max(storm.windKt ?? 0, usa_wind)
     }
   }
   // over every segment of the matched storms, weak stages included

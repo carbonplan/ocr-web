@@ -1,21 +1,28 @@
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
 import { useEventSelection, eventRowSx } from '@/hooks/useEventSelection'
+import { useLayerColor } from '@/hooks/useLayerColor'
 import type { StormAtPoint } from '@/lib/historic-events/storm-tracks'
-import { TROPICAL_STORM_MPH, formatStormName } from '@/lib/historic-events'
+import {
+  HISTORIC_STORMS_LAYER_ID,
+  MPH_PER_KT,
+  TROPICAL_STORM_MPH,
+  formatStormName,
+} from '@/lib/historic-events'
 import ValueBadge from '../../value-badge'
 import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
 const FIRST_SEASON = 2004
 
-const CLOSEST_NOTE = 'How near the storm\u2019s center passed this location.'
+const WIND_NOTE =
+  'The storm\u2019s highest sustained wind while its tropical-storm-force winds reached this location, usually near its center rather than here. Distance is how near its center passed.'
 
 const MI_PER_KM = 0.621371
 
 const formatClosest = (km: number) => {
   const mi = Math.round(km * MI_PER_KM)
-  return mi < 1 ? '<1 mi' : `${mi} mi`
+  return mi < 1 ? '<1 mi away' : `${mi} mi away`
 }
 
 // Storms at the selected point, most recent first
@@ -39,21 +46,23 @@ const rowSx = {
 // selecting a storm also draws its modeled wind field
 const StormRow = ({ storm }: { storm: StormAtPoint }) => {
   const { rowProps, isActive } = useEventSelection()
+  const mph =
+    storm.windKt === null ? null : Math.round(storm.windKt * MPH_PER_KT)
+  // the track's color at this speed
+  const color = useLayerColor(HISTORIC_STORMS_LAYER_ID, mph)
   return (
     <Flex
       sx={{ ...rowSx, ...eventRowSx(isActive(storm.sid)) }}
       {...rowProps(storm.sid, storm.bbox)}
     >
       <Box>
-        {formatStormName(storm.name)}{' '}
-        <Box as='span' sx={{ color: 'secondary' }}>
-          {storm.season}
-        </Box>
+        {formatStormName(storm.name)} {storm.season} ·{' '}
+        {formatClosest(storm.closestKm)}
       </Box>
       <ValueBadge
-        value={formatClosest(storm.closestKm)}
-        unit='#'
-        toFixed={0}
+        value={mph === null ? null : `${mph} mph`}
+        color={color}
+        unit='mph'
         sx={{ flexShrink: 0 }}
       />
     </Flex>
@@ -84,7 +93,7 @@ const HistoricStorms = () => {
       {storms && (
         <Box sx={{ mt: 3 }}>
           <TooltipWrapper
-            tooltip={CLOSEST_NOTE}
+            tooltip={WIND_NOTE}
             sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
             tooltipSx={{ mt: 2, mb: 0 }}
           >
@@ -96,7 +105,7 @@ const HistoricStorms = () => {
               }}
             >
               <Box sx={tableSx.tableHead}>Storm</Box>
-              <Box sx={tableSx.tableHead}>Closest pass</Box>
+              <Box sx={tableSx.tableHead}>Peak wind</Box>
             </Flex>
           </TooltipWrapper>
           {storms.map((storm) => (
