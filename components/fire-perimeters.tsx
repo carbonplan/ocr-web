@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useThemeUI, get } from 'theme-ui'
-import { ExpressionSpecification } from 'maplibre-gl'
+import { ExpressionSpecification, MapMouseEvent } from 'maplibre-gl'
 import { tileUrl } from 'tiled-geoparquet/tiles'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
@@ -34,7 +34,9 @@ const FirePerimeters = () => {
   )
   const historicEvents = useStore((state) => state.historicEvents)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
-  const previousHoverRef = useRef<string | null>(null)
+  const setHoveredEventId = useStore((state) => state.setHoveredEventId)
+  const selectedEventId = useStore((state) => state.selectedEventId)
+  const previousHoverRef = useRef<string[]>([])
 
   const colormap = useColormap({ count: BINS.length })
 
@@ -164,32 +166,49 @@ const FirePerimeters = () => {
     map.setPaintProperty(layerIds.line, 'line-opacity', lineOpacity)
   }, [map, colorExpression, fillOpacity, lineColor, lineOpacity])
 
+  // hovering a perimeter that contains the selected point hovers its fire
+  useEffect(() => {
+    if (!map || !active || !relevantIds?.length) return
+    const handleMove = (e: MapMouseEvent) => {
+      if (!map.getLayer(layerIds.fill)) return
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: [layerIds.fill],
+      })
+      const hit = features.find((f) => relevantIds.includes(String(f.id)))
+      const id = hit ? String(hit.id) : null
+      map.getCanvas().style.cursor = id ? 'pointer' : ''
+      if (id !== useStore.getState().hoveredEventId) setHoveredEventId(id)
+    }
+    const handleLeave = () => {
+      map.getCanvas().style.cursor = ''
+      setHoveredEventId(null)
+    }
+    map.on('mousemove', handleMove)
+    map.on('mouseout', handleLeave)
+    return () => {
+      map.off('mousemove', handleMove)
+      map.off('mouseout', handleLeave)
+      map.getCanvas().style.cursor = ''
+    }
+  }, [map, active, relevantIds, setHoveredEventId])
+
+  // the hovered and selected fires are drawn hovered
   useEffect(() => {
     if (!map?.getSource(sourceId)) return
-    if (previousHoverRef.current) {
-      map.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerName,
-          id: Number(previousHoverRef.current),
-        },
-        { hover: false },
-      )
+    const key = (id: string) => ({
+      source: sourceId,
+      sourceLayer: layerName,
+      id: Number(id),
+    })
+    for (const id of previousHoverRef.current) {
+      map.setFeatureState(key(id), { hover: false })
     }
-    if (hoveredEventId && active) {
-      map.setFeatureState(
-        {
-          source: sourceId,
-          sourceLayer: layerName,
-          id: Number(hoveredEventId),
-        },
-        { hover: true },
-      )
-      previousHoverRef.current = hoveredEventId
-    } else {
-      previousHoverRef.current = null
-    }
-  }, [map, hoveredEventId, active])
+    const highlighted = active
+      ? [hoveredEventId, selectedEventId].filter((id): id is string => !!id)
+      : []
+    for (const id of highlighted) map.setFeatureState(key(id), { hover: true })
+    previousHoverRef.current = highlighted
+  }, [map, hoveredEventId, selectedEventId, active])
 
   return null
 }

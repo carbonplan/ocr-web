@@ -17,7 +17,7 @@ export const useHistoricEvents = () => {
     if (!point) return
 
     setHistoricEvents({ status: 'loading' })
-    useStore.getState().setSelectedStormId(null)
+    useStore.getState().setSelectedEventId(null)
     const controller = new AbortController()
 
     const query = async (): Promise<HistoricEventsState> => {

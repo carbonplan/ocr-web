@@ -21,6 +21,7 @@ export const useFloodHighlights = (
 ) => {
   const historicEvents = useStore((state) => state.historicEvents)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
+  const selectedEventId = useStore((state) => state.selectedEventId)
 
   const relevantRef = useRef<(string | number)[] | null>(null)
   const relevantIds = useMemo(() => {
@@ -93,18 +94,20 @@ export const useFloodHighlights = (
     for (const id of previousHoverRef.current) {
       map.setFeatureState(key(id), { hover: false })
     }
-    const event =
+    const highlighted =
       active &&
       historicEvents.status === 'success' &&
       historicEvents.kind === 'floods'
-        ? historicEvents.events.find((e) => e.id === hoveredEventId)
-        : undefined
+        ? historicEvents.events.filter(
+            (e) => e.id === hoveredEventId || e.id === selectedEventId,
+          )
+        : []
     // maplibre stringifies promoted ids
-    const hovered = event ? ids(event).map(String) : []
+    const hovered = highlighted.flatMap(ids).map(String)
     for (const id of hovered) map.setFeatureState(key(id), { hover: true })
     previousHoverRef.current = hovered
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, hoveredEventId, historicEvents, active])
+  }, [map, hoveredEventId, selectedEventId, historicEvents, active])
 
   return relevantIds
 }

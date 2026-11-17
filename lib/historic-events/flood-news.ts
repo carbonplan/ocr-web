@@ -1,7 +1,7 @@
 import { PMTiles } from 'pmtiles'
 import { distance } from '@turf/turf'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
-import { readFeaturesAround } from './vector-tiles'
+import { readFeaturesAround, type BBox } from './vector-tiles'
 
 // Groundsource news records whose geocoded place is small and close. Larger
 // footprints are whole towns or cities, which say nothing about a building.
@@ -16,6 +16,7 @@ export type NewsFlood = {
   year: number
   areaKm2: number
   distanceKm: number
+  bbox: BBox
 }
 
 let archive: PMTiles | null = null
@@ -41,7 +42,8 @@ export const queryNewsFloodsNearPoint = async (
     const props = feature.properties
     if (feature.geometry.type !== 'Point') continue
     if (Number(props.area_km2) >= NEWS_MAX_KM2) continue
-    const km = distance([lng, lat], feature.geometry.coordinates, {
+    const [x, y] = feature.geometry.coordinates
+    const km = distance([lng, lat], [x, y], {
       units: 'kilometers',
     })
     if (km > NEWS_NEAR_KM) continue
@@ -53,6 +55,7 @@ export const queryNewsFloodsNearPoint = async (
       year: Number(props.year),
       areaKm2: Number(props.area_km2),
       distanceKm: km,
+      bbox: [x, y, x, y],
     })
   }
   return [...floods.values()]

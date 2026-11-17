@@ -3,6 +3,7 @@ import { pointToLineDistance } from '@turf/turf'
 import type { Feature, FeatureCollection, LineString } from 'geojson'
 import { HISTORIC_URLS } from '@/lib/config'
 import { openGeoParquet } from '@/lib/geoparquet'
+import { unionBBox, type BBox } from './vector-tiles'
 
 // IBTrACS best-track segments (ocr-multi-hazard: ocr.historic.ibtracs), one
 // row per 3-hourly segment of every storm since 2004 whose tropical-storm-force
@@ -31,6 +32,12 @@ export type StormAtPoint = {
   time: string
   // nearest the track's center came to the point, km
   closestKm: number
+  // highest recorded max sustained wind (kt) while its 34 kt winds reached
+  // the point; the storm's peak wind then, not the wind at the point. null
+  // when no recorded wind
+  windKt: number | null
+  // the whole track
+  bbox: BBox
 }
 
 const COLUMNS = [
@@ -123,7 +130,7 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
       reachKm
     )
       continue
-    const { sid, name, season, iso_time } = segment.properties
+    const { sid, name, season, iso_time, usa_wind } = segment.properties
     const storm = storms.get(sid)
     if (!storm) {
       storms.set(sid, {
@@ -132,9 +139,13 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
         season,
         time: iso_time,
         closestKm: Infinity,
+        windKt: usa_wind,
+        bbox: [Infinity, Infinity, -Infinity, -Infinity],
       })
-    } else if (iso_time < storm.time) {
-      storm.time = iso_time
+    } else {
+      if (iso_time < storm.time) storm.time = iso_time
+      if (usa_wind !== null)
+        storm.windKt = Math.max(storm.windKt ?? 0, usa_wind)
     }
   }
   // over every segment of the matched storms, weak stages included
@@ -145,6 +156,9 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
       storm.closestKm,
       pointToLineDistance([lng, lat], segment, { units: 'kilometers' }),
     )
+    for (const [x, y] of segment.geometry.coordinates) {
+      storm.bbox = unionBBox(storm.bbox, [x, y, x, y])
+    }
   }
   return [...storms.values()].sort((a, b) => b.time.localeCompare(a.time))
 }

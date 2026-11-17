@@ -1,7 +1,7 @@
 import { PMTiles } from 'pmtiles'
 import { bbox, distance } from '@turf/turf'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
-import { readFeaturesAround } from './vector-tiles'
+import { readFeaturesAround, unionBBox, type BBox } from './vector-tiles'
 
 // NWS flood reports whose reported area lies within NEAR_KM of the point.
 // Each report is the box between its two reported corners (a line or point
@@ -28,6 +28,8 @@ export type FloodAtPoint = {
   deaths: number
   injuries: number
   distanceKm: number
+  // the reported area, joined across the tiles read around the point
+  bbox: BBox
 }
 
 let archive: PMTiles | null = null
@@ -40,6 +42,7 @@ const getArchive = () => {
 const toFlood = (
   props: Record<string, unknown>,
   distanceKm: number,
+  bbox: BBox,
 ): FloodAtPoint => ({
   id: Number(props.event_id),
   episodeId: props.episode_id == null ? null : Number(props.episode_id),
@@ -55,6 +58,7 @@ const toFlood = (
   deaths: Number(props.deaths ?? 0),
   injuries: Number(props.injuries ?? 0),
   distanceKm,
+  bbox,
 })
 
 // reports near the point, most recent first
@@ -73,16 +77,20 @@ export const queryFloodsNearPoint = async (
   for (const feature of features) {
     // clipped boxes stay axis-aligned, so the nearest point is the clamp; a
     // line's bbox is under 100 m wide, so it stands in for the line
-    const [west, south, east, north] = bbox(feature)
+    const box = bbox(feature) as BBox
+    const [west, south, east, north] = box
     const nearest = [
       Math.min(Math.max(lng, west), east),
       Math.min(Math.max(lat, south), north),
     ]
     const km = distance([lng, lat], nearest, { units: 'kilometers' })
     if (km > NEAR_KM) continue
-    const flood = toFlood(feature.properties, km)
-    const existing = floods.get(flood.id)
-    if (!existing || km < existing.distanceKm) floods.set(flood.id, flood)
+    const id = Number(feature.properties.event_id)
+    const existing = floods.get(id)
+    const merged = unionBBox(existing?.bbox, box)
+    if (!existing || km < existing.distanceKm)
+      floods.set(id, toFlood(feature.properties, km, merged))
+    else existing.bbox = merged
   }
   return [...floods.values()].sort((a, b) =>
     b.beginDate.localeCompare(a.beginDate),

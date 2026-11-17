@@ -75,7 +75,7 @@ const StormTracks = () => {
   const historicEvents = useStore((state) => state.historicEvents)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
-  const selectedStormId = useStore((state) => state.selectedStormId)
+  const selectedStormId = useStore((state) => state.selectedEventId)
 
   const colormap = useColormap({ count: BINS.length })
 

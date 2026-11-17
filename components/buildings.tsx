@@ -212,6 +212,22 @@ const Buildings = () => {
     async (e: MapMouseEvent) => {
       if (!map) return
 
+      // an event under the cursor on a historic events layer is marked as
+      // hovered; clicking it selects that event in the sidebar rather than a
+      // new location
+      const state = useStore.getState()
+      if (
+        isEventsLayer(state.riskConfig, state.mapLayer) &&
+        state.hoveredEventId
+      ) {
+        state.setSelectedEventId(
+          state.selectedEventId === state.hoveredEventId
+            ? null
+            : state.hoveredEventId,
+        )
+        return
+      }
+
       const features =
         map.getZoom() < BUILDING_SELECT_MIN_ZOOM
           ? []

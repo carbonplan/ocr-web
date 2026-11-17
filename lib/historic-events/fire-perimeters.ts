@@ -1,8 +1,9 @@
 import { batchToGeoJSON, readFeatures } from 'tiled-geoparquet'
-import { booleanPointInPolygon, point } from '@turf/turf'
+import { bbox, booleanPointInPolygon, point } from '@turf/turf'
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson'
 import { HISTORIC_URLS } from '@/lib/config'
 import { openGeoParquet } from '@/lib/geoparquet'
+import type { BBox } from './vector-tiles'
 
 // Point-in-polygon against the MTBS perimeters (ocr-multi-hazard:
 // ocr.historic.mtbs), reading only the full-resolution rows whose bounding box
@@ -17,6 +18,7 @@ export type FireAtPoint = {
   year: number
   date: string
   acres: number
+  bbox: BBox
 }
 
 const COLUMNS = [
@@ -69,6 +71,7 @@ export const queryFiresAtPoint = async (
         year: Number(props.year),
         date: String(props.ig_date ?? ''),
         acres: Number(props.burnbndac),
+        bbox: bbox(feature) as BBox,
       }
     })
     .sort((a, b) => b.year - a.year)

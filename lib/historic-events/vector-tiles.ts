@@ -44,6 +44,19 @@ export const readTileFeatures = async (
   return features
 }
 
+// [west, south, east, north]
+export type BBox = [number, number, number, number]
+
+export const unionBBox = (a: BBox | undefined, b: BBox): BBox =>
+  a
+    ? [
+        Math.min(a[0], b[0]),
+        Math.min(a[1], b[1]),
+        Math.max(a[2], b[2]),
+        Math.max(a[3], b[3]),
+      ]
+    : b
+
 const KM_PER_DEGREE = 111.32
 
 // every max-zoom feature in the tiles covering `km` around the point; a

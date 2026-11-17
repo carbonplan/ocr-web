@@ -1,20 +1,29 @@
 import { Box, Flex } from 'theme-ui'
 import { useStore } from '@/lib/store'
-import { TROPICAL_STORM_MPH, formatStormName } from '@/lib/historic-events'
+import { useEventSelection, eventRowSx } from '@/hooks/useEventSelection'
+import { useLayerColor } from '@/hooks/useLayerColor'
+import type { StormAtPoint } from '@/lib/historic-events/storm-tracks'
+import {
+  HISTORIC_STORMS_LAYER_ID,
+  MPH_PER_KT,
+  TROPICAL_STORM_MPH,
+  formatStormName,
+} from '@/lib/historic-events'
 import ValueBadge from '../../value-badge'
-import EyeCheckbox from '../../eye-checkbox'
+import { ShowMoreRow, useShowMore } from '../show-more'
 import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
 const FIRST_SEASON = 2004
 
-const CLOSEST_NOTE = 'How near the storm\u2019s center passed this location.'
+const WIND_NOTE =
+  'The storm\u2019s highest sustained wind while its tropical-storm-force winds reached this location, usually near its center rather than here. Distance is how near its center passed.'
 
 const MI_PER_KM = 0.621371
 
 const formatClosest = (km: number) => {
   const mi = Math.round(km * MI_PER_KM)
-  return mi < 1 ? '<1 mi' : `${mi} mi`
+  return mi < 1 ? '<1 mi away' : `${mi} mi away`
 }
 
 // Storms at the selected point, most recent first
@@ -27,64 +36,46 @@ export const useHistoricStorms = () => {
   return { status: historicEvents.status, storms }
 }
 
-const Row = ({
-  label,
-  value,
-  hovered = false,
-  onHover,
-  eye,
-}: {
-  label: React.ReactNode
-  value: string | number | null
-  hovered?: boolean
-  onHover?: () => void
-  eye?: { checked: boolean; toggle: () => void; label: string }
-}) => (
-  <Flex
-    sx={{
-      ...tableSx.row,
-      justifyContent: 'space-between',
-      alignItems: 'baseline',
-      gap: 2,
-      py: 2,
-      ...(onHover
-        ? {
-            cursor: 'pointer',
-            mx: -2,
-            px: 2,
-            bg: hovered ? 'muted' : 'transparent',
-            color: hovered ? 'primary' : 'inherit',
-            transition: 'background-color 0.15s, color 0.15s',
-          }
-        : {}),
-    }}
-    onMouseEnter={onHover}
-  >
-    <Box>{label}</Box>
-    <Flex sx={{ gap: 2, flexShrink: 0 }}>
-      <ValueBadge value={value} unit='#' toFixed={0} />
-      {eye && (
-        <Box as='label' sx={{ display: 'flex', cursor: 'pointer' }}>
-          <EyeCheckbox
-            checked={eye.checked}
-            onChange={eye.toggle}
-            aria-label={eye.label}
-          />
-        </Box>
-      )}
+const rowSx = {
+  ...tableSx.row,
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+  gap: 2,
+  py: 2,
+}
+
+// selecting a storm also draws its modeled wind field
+const StormRow = ({ storm }: { storm: StormAtPoint }) => {
+  const { rowProps, isActive } = useEventSelection()
+  const mph =
+    storm.windKt === null ? null : Math.round(storm.windKt * MPH_PER_KT)
+  // the track's color at this speed
+  const color = useLayerColor(HISTORIC_STORMS_LAYER_ID, mph)
+  return (
+    <Flex
+      sx={{ ...rowSx, ...eventRowSx(isActive(storm.sid)) }}
+      {...rowProps(storm.sid, storm.bbox)}
+    >
+      <Box>
+        {formatStormName(storm.name)} {storm.season} ·{' '}
+        {formatClosest(storm.closestKm)}
+      </Box>
+      <ValueBadge
+        value={mph === null ? null : `${mph} mph`}
+        color={color}
+        unit='mph'
+        sx={{ flexShrink: 0 }}
+      />
     </Flex>
-  </Flex>
-)
+  )
+}
 
 const HistoricStorms = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
-  const setHoveredEventId = useStore((state) => state.setHoveredEventId)
-  const hoveredEventId = useStore((state) => state.hoveredEventId)
-  const selectedStormId = useStore((state) => state.selectedStormId)
-  const setSelectedStormId = useStore((state) => state.setSelectedStormId)
   const { status, storms } = useHistoricStorms()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
+  const { visible, showMoreProps } = useShowMore(storms, (storm) => storm.sid)
 
   return (
     <Box>
@@ -103,66 +94,30 @@ const HistoricStorms = () => {
       )}
       {storms && (
         <Box sx={{ mt: 3 }}>
-          <Flex
-            sx={{
-              ...tableSx.row,
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              py: 1,
-            }}
+          <TooltipWrapper
+            tooltip={WIND_NOTE}
+            sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
+            tooltipSx={{ mt: 2, mb: 0 }}
           >
-            <Box sx={tableSx.tableHead}>Storms</Box>
-            <Box sx={tableSx.tableHead}>Since {FIRST_SEASON}</Box>
-          </Flex>
-          <Row
-            label={`Tropical-storm winds reached (${TROPICAL_STORM_MPH}+ mph)`}
-            value={storms.length}
-          />
-          {storms.length > 0 && (
-            <>
-              <TooltipWrapper
-                tooltip={CLOSEST_NOTE}
-                sx={{ ...tableSx.row, mt: 3, py: 1, gap: 2 }}
-                tooltipSx={{ mt: 2, mb: 0 }}
-              >
-                <Flex
-                  sx={{
-                    flex: 1,
-                    justifyContent: 'space-between',
-                    alignItems: 'baseline',
-                  }}
-                >
-                  <Box sx={tableSx.tableHead}>Storm</Box>
-                  <Box sx={tableSx.tableHead}>Closest pass</Box>
-                </Flex>
-              </TooltipWrapper>
-              <Box onMouseLeave={() => setHoveredEventId(null)}>
-                {storms.map((storm) => (
-                  <Row
-                    key={storm.sid}
-                    label={
-                      <>
-                        {formatStormName(storm.name)}{' '}
-                        <Box as='span' sx={{ color: 'secondary' }}>
-                          {storm.season}
-                        </Box>
-                      </>
-                    }
-                    value={formatClosest(storm.closestKm)}
-                    hovered={hoveredEventId === storm.sid}
-                    onHover={() => setHoveredEventId(storm.sid)}
-                    eye={{
-                      checked: selectedStormId === storm.sid,
-                      toggle: () =>
-                        setSelectedStormId(
-                          selectedStormId === storm.sid ? null : storm.sid,
-                        ),
-                      label: `Show ${formatStormName(storm.name)} ${storm.season} wind extent`,
-                    }}
-                  />
-                ))}
-              </Box>
-            </>
+            <Flex
+              sx={{
+                flex: 1,
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+              }}
+            >
+              <Box sx={tableSx.tableHead}>Storm</Box>
+              <Box sx={tableSx.tableHead}>Peak wind</Box>
+            </Flex>
+          </TooltipWrapper>
+          {visible.map((storm) => (
+            <StormRow key={storm.sid} storm={storm} />
+          ))}
+          <ShowMoreRow {...showMoreProps} />
+          {storms.length < 1 && (
+            <Box sx={{ ...rowSx, color: 'secondary' }}>
+              No storms since {FIRST_SEASON}.
+            </Box>
           )}
         </Box>
       )}

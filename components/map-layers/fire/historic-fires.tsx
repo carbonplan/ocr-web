@@ -1,12 +1,14 @@
 import { Box, Flex } from 'theme-ui'
 import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
+import { useEventSelection, eventRowSx } from '@/hooks/useEventSelection'
 import { useColormap } from '@/lib/colormaps'
 import { RISKS, getMapLayer } from '@/lib/hazards'
 import { getBinIndex } from '@/hooks/useLayerColor'
 import { HISTORIC_FIRES_LAYER_ID, formatFireName } from '@/lib/historic-events'
 import type { FireAtPoint } from '@/lib/historic-events/fire-perimeters'
 import ValueBadge from '../../value-badge'
+import { ShowMoreRow, useShowMore } from '../show-more'
 import { tableSx } from '../../tooltip-table'
 
 const FIRST_YEAR = 1984
@@ -38,7 +40,7 @@ const fireLabel = (fire: FireAtPoint) => (
   <>
     {formatFireName(fire.name)}{' '}
     <Box as='span' sx={{ color: 'secondary' }}>
-      {fire.year}
+      {formatAcres(fire.acres)} ac
       {fire.type && fire.type !== 'Wildfire' ? ` · ${fire.type}` : ''}
     </Box>
   </>
@@ -47,14 +49,12 @@ const fireLabel = (fire: FireAtPoint) => (
 const HistoricFires = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
-  const setHoveredEventId = useStore((state) => state.setHoveredEventId)
   const { status, fires, colorFor } = useHistoricFires()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
+  const sorted = fires && [...fires].sort((a, b) => b.year - a.year)
+  const { visible, showMoreProps } = useShowMore(sorted, (fire) => fire.id)
 
-  const hoverProps = (fire: FireAtPoint) => ({
-    onMouseEnter: () => setHoveredEventId(fire.id),
-    onMouseLeave: () => setHoveredEventId(null),
-  })
+  const { rowProps, isActive } = useEventSelection()
 
   return (
     <Box>
@@ -76,7 +76,7 @@ const HistoricFires = () => {
           No mapped fire has burned this location.
         </Box>
       )}
-      {fires && fires.length > 0 && (
+      {sorted && sorted.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Flex
             sx={{
@@ -87,9 +87,9 @@ const HistoricFires = () => {
             }}
           >
             <Box sx={tableSx.tableHead}>Fire</Box>
-            <Box sx={tableSx.tableHead}>Burned area</Box>
+            <Box sx={tableSx.tableHead}>Year</Box>
           </Flex>
-          {fires.map((fire) => (
+          {visible.map((fire) => (
             <Flex
               key={fire.id}
               sx={{
@@ -98,20 +98,20 @@ const HistoricFires = () => {
                 alignItems: 'baseline',
                 gap: 2,
                 py: 2,
-                cursor: 'default',
-                '&:hover': { color: 'primary' },
+                ...eventRowSx(isActive(fire.id)),
               }}
-              {...hoverProps(fire)}
+              {...rowProps(fire.id, fire.bbox)}
             >
               <Box>{fireLabel(fire)}</Box>
               <ValueBadge
-                value={`${formatAcres(fire.acres)} ac`}
+                value={String(fire.year)}
                 color={colorFor(fire)}
                 unit='#'
                 sx={{ flexShrink: 0 }}
               />
             </Flex>
           ))}
+          <ShowMoreRow {...showMoreProps} />
         </Box>
       )}
     </Box>
