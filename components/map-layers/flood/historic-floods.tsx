@@ -165,76 +165,76 @@ const HistoricFloods = () => {
           }}
         />
       </TooltipWrapper>
-      {!hasSelection && (
-        <Box sx={{ mt: 2, color: 'secondary' }}>
-          Select a location to see its flood history.
-        </Box>
-      )}
-      {status === 'error' && hasSelection && (
-        <Box sx={{ mt: 2, color: 'secondary' }}>
-          No flood history is available for this location.
-        </Box>
-      )}
-      {events && events.length === 0 && (
-        <Box sx={{ mt: 2, color: 'secondary' }}>
-          No flood has been recorded near this location.
-        </Box>
-      )}
-      {events && events.length > 0 && mapped?.length === 0 && (
-        <Box sx={{ mt: 2, color: 'secondary' }}>
-          No {floodSource === 'noaa' ? 'NOAA' : floodSource} record of a flood
-          near this location. Map another source to see the{' '}
-          {events.length === 1 ? 'one' : events.length} recorded here.
-        </Box>
-      )}
-      {mapped && mapped.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Flex
+      <Box sx={{ mt: 3 }}>
+        <Flex
+          sx={{
+            ...tableSx.row,
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            py: 1,
+          }}
+        >
+          <Box sx={tableSx.tableHead}>Flood</Box>
+          <Box sx={tableSx.tableHead}>NOAA damage</Box>
+        </Flex>
+        {!hasSelection && (
+          <Box sx={{ mt: 2, color: 'secondary' }}>
+            Select a location to see its flood history.
+          </Box>
+        )}
+        {status === 'error' && hasSelection && (
+          <Box sx={{ mt: 2, color: 'secondary' }}>
+            No flood history is available for this location.
+          </Box>
+        )}
+        {events && events.length === 0 && (
+          <Box sx={{ mt: 2, color: 'secondary' }}>
+            No flood has been recorded near this location.
+          </Box>
+        )}
+        {events && events.length > 0 && mapped?.length === 0 && (
+          <Box sx={{ mt: 2, color: 'secondary' }}>
+            No {floodSource === 'noaa' ? 'NOAA' : floodSource} record of a flood
+            near this location. Map another source to see the{' '}
+            {events.length === 1 ? 'one' : events.length}{' '}
+            {events.length > 1 ? 'floods' : 'flood'} recorded here.
+          </Box>
+        )}
+
+        {mapped?.map((event) => (
+          <Box
+            key={event.id}
             sx={{
               ...tableSx.row,
-              justifyContent: 'space-between',
-              alignItems: 'baseline',
-              py: 1,
+              py: 2,
+              cursor: 'default',
+              color: hoveredEventId === event.id ? 'primary' : undefined,
+              '&:hover': { color: 'primary' },
             }}
+            onMouseEnter={() => setHoveredEventId(event.id)}
+            onMouseLeave={() => setHoveredEventId(null)}
           >
-            <Box sx={tableSx.tableHead}>Flood</Box>
-            <Box sx={tableSx.tableHead}>NOAA damage</Box>
-          </Flex>
-          {mapped.map((event) => (
-            <Box
-              key={event.id}
+            <Flex
               sx={{
-                ...tableSx.row,
-                py: 2,
-                cursor: 'default',
-                color: hoveredEventId === event.id ? 'primary' : undefined,
-                '&:hover': { color: 'primary' },
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: 2,
               }}
-              onMouseEnter={() => setHoveredEventId(event.id)}
-              onMouseLeave={() => setHoveredEventId(null)}
             >
-              <Flex
-                sx={{
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                  gap: 2,
-                }}
-              >
-                <Box>{formatMonth(event.date)}</Box>
-                <ValueBadge
-                  value={formatDollars(reportedDamage(event))}
-                  color={colorFor(event)}
-                  unit='#'
-                  sx={{ flexShrink: 0 }}
-                />
-              </Flex>
-              <SourceLine source='satellite'>{satelliteLine(event)}</SourceLine>
-              <SourceLine source='noaa'>{noaaLine(event)}</SourceLine>
-              <SourceLine source='news'>{newsLine(event)}</SourceLine>
-            </Box>
-          ))}
-        </Box>
-      )}
+              <Box>{formatMonth(event.date)}</Box>
+              <ValueBadge
+                value={formatDollars(reportedDamage(event))}
+                color={colorFor(event)}
+                unit='#'
+                sx={{ flexShrink: 0 }}
+              />
+            </Flex>
+            <SourceLine source='satellite'>{satelliteLine(event)}</SourceLine>
+            <SourceLine source='noaa'>{noaaLine(event)}</SourceLine>
+            <SourceLine source='news'>{newsLine(event)}</SourceLine>
+          </Box>
+        ))}
+      </Box>
     </Box>
   )
 }
