@@ -142,6 +142,9 @@ type Store = {
   // which flood record source the previous floods map draws
   floodSource: FloodSource
   setFloodSource: (floodSource: FloodSource) => void
+  // flood event clicked in the sidebar list, drawn as if hovered
+  selectedFloodEventId: string | null
+  setSelectedFloodEventId: (id: string | null) => void
   // storm whose modeled wind field is drawn
   selectedStormId: string | null
   setSelectedStormId: (id: string | null) => void
@@ -232,6 +235,7 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
       historicEvents: { status: 'idle' },
       hoveredEventId: null,
+      selectedFloodEventId: null,
       selectedStormId: null,
     })
     syncHazardUrl(get)
@@ -258,6 +262,7 @@ export const useStore = create<Store>((set, get) => ({
         bounds: [bins[0], bins[bins.length - 1]],
         binBoundaries: [...bins],
       },
+      selectedFloodEventId: null,
     })
     syncHazardUrl(get)
   },
@@ -268,7 +273,11 @@ export const useStore = create<Store>((set, get) => ({
   hoveredEventId: null,
   setHoveredEventId: (hoveredEventId) => set({ hoveredEventId }),
   floodSource: 'satellite',
-  setFloodSource: (floodSource) => set({ floodSource }),
+  setFloodSource: (floodSource) =>
+    set({ floodSource, selectedFloodEventId: null }),
+  selectedFloodEventId: null,
+  setSelectedFloodEventId: (selectedFloodEventId) =>
+    set({ selectedFloodEventId }),
   selectedStormId: null,
   setSelectedStormId: (selectedStormId) => set({ selectedStormId }),
   sidebarWidth: 0,
@@ -356,6 +365,7 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
       historicEvents: { status: 'idle' },
       hoveredEventId: null,
+      selectedFloodEventId: null,
       selectedStormId: null,
       activeGeographies: {
         county: null,

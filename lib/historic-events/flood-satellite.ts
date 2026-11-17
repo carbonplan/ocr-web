@@ -2,7 +2,7 @@ import { PMTiles } from 'pmtiles'
 import { bbox, point, pointToPolygonDistance } from '@turf/turf'
 import type { Feature, Polygon } from 'geojson'
 import { HISTORIC_URLS, LAYERS } from '@/lib/config'
-import { readFeaturesAround } from './vector-tiles'
+import { readFeaturesAround, unionBBox, type BBox } from './vector-tiles'
 
 // Global Flood Database events whose mapped water reached the point. Each
 // patch is a connected group of ~250 m MODIS cells, so a building within one
@@ -21,6 +21,8 @@ export type SatelliteFlood = {
   displaced: number
   eventKm2: number
   distanceKm: number
+  // the nearby patches, as far as the tiles read around the point reach
+  bbox: BBox
 }
 
 let archive: PMTiles | null = null
@@ -33,6 +35,7 @@ const getArchive = () => {
 const toSatelliteFlood = (
   props: Record<string, unknown>,
   distanceKm: number,
+  bbox: BBox,
 ): SatelliteFlood => ({
   id: Number(props.dfo_id),
   began: String(props.began ?? ''),
@@ -44,6 +47,7 @@ const toSatelliteFlood = (
   displaced: Number(props.displaced ?? 0),
   eventKm2: Number(props.event_km2 ?? 0),
   distanceKm,
+  bbox,
 })
 
 export const querySatelliteFloodsAtPoint = async (
@@ -62,7 +66,8 @@ export const querySatelliteFloodsAtPoint = async (
   const floods = new Map<number, SatelliteFlood>()
   for (const feature of features) {
     if (feature.geometry.type !== 'Polygon') continue
-    const [west, south, east, north] = bbox(feature)
+    const box = bbox(feature) as BBox
+    const [west, south, east, north] = box
     if (lng < west - pad || lng > east + pad) continue
     if (lat < south - pad || lat > north + pad) continue
     // negative inside the patch
@@ -73,9 +78,12 @@ export const querySatelliteFloodsAtPoint = async (
       }),
     )
     if (km > SATELLITE_NEAR_KM) continue
-    const flood = toSatelliteFlood(feature.properties, km)
-    const existing = floods.get(flood.id)
-    if (!existing || km < existing.distanceKm) floods.set(flood.id, flood)
+    const id = Number(feature.properties.dfo_id)
+    const existing = floods.get(id)
+    const merged = unionBBox(existing?.bbox, box)
+    if (!existing || km < existing.distanceKm)
+      floods.set(id, toSatelliteFlood(feature.properties, km, merged))
+    else existing.bbox = merged
   }
   return [...floods.values()]
 }

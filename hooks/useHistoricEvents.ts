@@ -18,6 +18,7 @@ export const useHistoricEvents = () => {
 
     setHistoricEvents({ status: 'loading' })
     useStore.getState().setSelectedStormId(null)
+    useStore.getState().setSelectedFloodEventId(null)
     const controller = new AbortController()
 
     const query = async (): Promise<HistoricEventsState> => {

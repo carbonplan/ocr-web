@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
 import {
   Filter,
@@ -5,6 +6,8 @@ import {
 } from '@carbonplan/components'
 import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
+import { useSelectedPoint } from '@/hooks/useSelectedPoint'
+import { unionBBox, type BBox } from '@/lib/historic-events/vector-tiles'
 import { NEAR_KM } from '@/lib/historic-events/flood-reports'
 import { SATELLITE_NEAR_KM } from '@/lib/historic-events/flood-satellite'
 import { NEWS_NEAR_KM } from '@/lib/historic-events/flood-news'
@@ -51,7 +54,7 @@ const formatDate = (date: string) =>
 const formatKm = (km: number) =>
   km < 0.05 ? 'at this location' : `${km.toFixed(1)} km away`
 
-const RECORDS: Record<FloodSource, (event: FloodEvent) => unknown[]> = {
+const RECORDS: Record<FloodSource, (event: FloodEvent) => { bbox: BBox }[]> = {
   satellite: (event) => event.satellite,
   noaa: (event) => event.reports,
   news: (event) => event.news,
@@ -114,15 +117,62 @@ const LINES: Record<FloodSource, (event: FloodEvent) => string | null> = {
   news: newsLine,
 }
 
+// the event's records from the mapped source, with the selected point
+const eventBBox = (
+  event: FloodEvent,
+  source: FloodSource,
+  [lng, lat]: [number, number],
+) =>
+  RECORDS[source](event).reduce<BBox>(
+    (box, record) => unionBBox(box, record.bbox),
+    [lng, lat, lng, lat],
+  )
+
 const HistoricFloods = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
+  const selectedEventId = useStore((state) => state.selectedFloodEventId)
+  const setSelectedEventId = useStore((state) => state.setSelectedFloodEventId)
+  const map = useStore((state) => state.map)
+  const point = useSelectedPoint()
   const floodSource = useStore((state) => state.floodSource)
   const setFloodSource = useStore((state) => state.setFloodSource)
   const { status, events } = useHistoricFloods()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
   const mapped = events?.filter((event) => RECORDS[floodSource](event).length)
+
+  // bring the selected event's row into view, as when it is clicked on the map
+  const rowRefs = useRef(new Map<string, HTMLDivElement>())
+  useEffect(() => {
+    if (!selectedEventId) return
+    rowRefs.current
+      .get(selectedEventId)
+      ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [selectedEventId])
+
+  // selects the event, or clears it when already selected, and pans or zooms
+  // out just enough to show its records and the selected point
+  const handleClick = (event: FloodEvent) => {
+    if (selectedEventId === event.id) {
+      setSelectedEventId(null)
+      return
+    }
+    setSelectedEventId(event.id)
+    if (!map || !point) return
+    const [west, south, east, north] = eventBBox(event, floodSource, point)
+    const view = map.getBounds()
+    const inView = view.contains([west, south]) && view.contains([east, north])
+    if (!inView) {
+      map.fitBounds(
+        [
+          [west, south],
+          [east, north],
+        ],
+        { padding: 100, duration: 500, maxZoom: map.getZoom() },
+      )
+    }
+  }
 
   return (
     <Box>
@@ -187,16 +237,21 @@ const HistoricFloods = () => {
           return (
             <Box
               key={event.id}
+              ref={(node: HTMLDivElement | null) => {
+                if (node) rowRefs.current.set(event.id, node)
+                else rowRefs.current.delete(event.id)
+              }}
               sx={{
                 ...tableSx.row,
                 py: 2,
                 cursor: 'pointer',
-                color: 'secondary',
+                color: selectedEventId === event.id ? 'primary' : 'secondary',
                 transition: 'color 0.2s',
                 '&:hover': { color: 'primary' },
               }}
               onMouseEnter={() => setHoveredEventId(event.id)}
               onMouseLeave={() => setHoveredEventId(null)}
+              onClick={() => handleClick(event)}
             >
               <Flex
                 sx={{
