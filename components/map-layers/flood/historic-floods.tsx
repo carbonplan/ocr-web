@@ -17,12 +17,19 @@ import type {
   FloodSource,
 } from '@/lib/historic-events/flood-history'
 import ValueBadge from '../../value-badge'
+import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
 const SOURCE_LABELS: Record<FloodSource, string> = {
   satellite: 'Satellite',
   noaa: 'NOAA',
   news: 'News',
+}
+
+const SOURCE_DESCRIPTIONS: Record<FloodSource, string> = {
+  satellite: `Water mapped within ${SATELLITE_NEAR_KM * 1000} m by the Global Flood Database, 2001 to 2018. Misses flash floods and water under cloud or trees.`,
+  noaa: `Storm Events flood reports within ${NEAR_KM} km, since 2005. Many carry no dollar loss.`,
+  news: `Places within ${NEWS_NEAR_KM * 1000} m named in flood news coverage (Google Groundsource), since 2000. About one in four is wrong.`,
 }
 
 const formatDollars = (value: number | null) => {
@@ -138,25 +145,11 @@ const HistoricFloods = () => {
 
   return (
     <Box>
-      Floods recorded near this location, grouped by date, from three sources.
-      <Box as='ul' sx={{ pl: 3, my: 2 }}>
-        <li>
-          Satellite: water mapped within {SATELLITE_NEAR_KM * 1000} m by the
-          Global Flood Database, 2001 to 2018. Misses flash floods and water
-          under cloud or trees.
-        </li>
-        <li>
-          NOAA: Storm Events flood reports within {NEAR_KM} km, since 2005. Many
-          carry no dollar loss.
-        </li>
-        <li>
-          News: places within {NEWS_NEAR_KM * 1000} m named in flood news
-          coverage (Google Groundsource), since 2000. About one in four is
-          wrong.
-        </li>
-      </Box>
-      <Flex sx={{ gap: 3, alignItems: 'baseline', mt: 3 }}>
-        <Box sx={tableSx.tableHead}>Map</Box>
+      Floods recorded near this location, grouped by date, from three sources:
+      <TooltipWrapper
+        tooltip={SOURCE_DESCRIPTIONS[floodSource]}
+        sx={{ justifyContent: 'flex-start', mt: 2 }}
+      >
         <Filter
           values={{
             satellite: floodSource === 'satellite',
@@ -171,24 +164,24 @@ const HistoricFloods = () => {
             if (selected) setFloodSource(selected)
           }}
         />
-      </Flex>
+      </TooltipWrapper>
       {!hasSelection && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its flood history.
         </Box>
       )}
       {status === 'error' && hasSelection && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           No flood history is available for this location.
         </Box>
       )}
       {events && events.length === 0 && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           No flood has been recorded near this location.
         </Box>
       )}
       {events && events.length > 0 && mapped?.length === 0 && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           No {floodSource === 'noaa' ? 'NOAA' : floodSource} record of a flood
           near this location. Map another source to see the{' '}
           {events.length === 1 ? 'one' : events.length} recorded here.
