@@ -38,7 +38,7 @@ const fireLabel = (fire: FireAtPoint) => (
   <>
     {formatFireName(fire.name)}{' '}
     <Box as='span' sx={{ color: 'secondary' }}>
-      {fire.year}
+      {formatAcres(fire.acres)} ac
       {fire.type && fire.type !== 'Wildfire' ? ` · ${fire.type}` : ''}
     </Box>
   </>
@@ -50,6 +50,7 @@ const HistoricFires = () => {
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
   const { status, fires, colorFor } = useHistoricFires()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
+  const sorted = fires && [...fires].sort((a, b) => b.year - a.year)
 
   const hoverProps = (fire: FireAtPoint) => ({
     onMouseEnter: () => setHoveredEventId(fire.id),
@@ -76,7 +77,7 @@ const HistoricFires = () => {
           No mapped fire has burned this location.
         </Box>
       )}
-      {fires && fires.length > 0 && (
+      {sorted && sorted.length > 0 && (
         <Box sx={{ mt: 3 }}>
           <Flex
             sx={{
@@ -87,9 +88,9 @@ const HistoricFires = () => {
             }}
           >
             <Box sx={tableSx.tableHead}>Fire</Box>
-            <Box sx={tableSx.tableHead}>Burned area</Box>
+            <Box sx={tableSx.tableHead}>Year</Box>
           </Flex>
-          {fires.map((fire) => (
+          {sorted.map((fire) => (
             <Flex
               key={fire.id}
               sx={{
@@ -105,7 +106,7 @@ const HistoricFires = () => {
             >
               <Box>{fireLabel(fire)}</Box>
               <ValueBadge
-                value={`${formatAcres(fire.acres)} ac`}
+                value={String(fire.year)}
                 color={colorFor(fire)}
                 unit='#'
                 sx={{ flexShrink: 0 }}
