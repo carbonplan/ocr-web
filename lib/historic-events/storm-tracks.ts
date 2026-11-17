@@ -3,6 +3,7 @@ import { pointToLineDistance } from '@turf/turf'
 import type { Feature, FeatureCollection, LineString } from 'geojson'
 import { HISTORIC_URLS } from '@/lib/config'
 import { openGeoParquet } from '@/lib/geoparquet'
+import { unionBBox, type BBox } from './vector-tiles'
 
 // IBTrACS best-track segments (ocr-multi-hazard: ocr.historic.ibtracs), one
 // row per 3-hourly segment of every storm since 2004 whose tropical-storm-force
@@ -31,6 +32,8 @@ export type StormAtPoint = {
   time: string
   // nearest the track's center came to the point, km
   closestKm: number
+  // the whole track
+  bbox: BBox
 }
 
 const COLUMNS = [
@@ -132,6 +135,7 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
         season,
         time: iso_time,
         closestKm: Infinity,
+        bbox: [Infinity, Infinity, -Infinity, -Infinity],
       })
     } else if (iso_time < storm.time) {
       storm.time = iso_time
@@ -145,6 +149,9 @@ export const queryStormsAtPoint = async ([lng, lat]: [number, number]): Promise<
       storm.closestKm,
       pointToLineDistance([lng, lat], segment, { units: 'kilometers' }),
     )
+    for (const [x, y] of segment.geometry.coordinates) {
+      storm.bbox = unionBBox(storm.bbox, [x, y, x, y])
+    }
   }
   return [...storms.values()].sort((a, b) => b.time.localeCompare(a.time))
 }

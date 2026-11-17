@@ -21,7 +21,7 @@ export const useFloodHighlights = (
 ) => {
   const historicEvents = useStore((state) => state.historicEvents)
   const hoveredEventId = useStore((state) => state.hoveredEventId)
-  const selectedEventId = useStore((state) => state.selectedFloodEventId)
+  const selectedEventId = useStore((state) => state.selectedEventId)
 
   const relevantRef = useRef<(string | number)[] | null>(null)
   const relevantIds = useMemo(() => {

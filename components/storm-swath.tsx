@@ -36,7 +36,7 @@ const StormSwath = () => {
       state.riskConfig.id === 'hurricane' &&
       state.mapLayer === HISTORIC_STORMS_LAYER_ID,
   )
-  const selectedStormId = useStore((state) => state.selectedStormId)
+  const selectedStormId = useStore((state) => state.selectedEventId)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {

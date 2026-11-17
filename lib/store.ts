@@ -142,12 +142,10 @@ type Store = {
   // which flood record source the previous floods map draws
   floodSource: FloodSource
   setFloodSource: (floodSource: FloodSource) => void
-  // flood event clicked in the sidebar list, drawn as if hovered
-  selectedFloodEventId: string | null
-  setSelectedFloodEventId: (id: string | null) => void
-  // storm whose modeled wind field is drawn
-  selectedStormId: string | null
-  setSelectedStormId: (id: string | null) => void
+  // event clicked in the sidebar list or on the map, drawn as if hovered; a
+  // storm's modeled wind field is drawn too
+  selectedEventId: string | null
+  setSelectedEventId: (id: string | null) => void
   sidebarWidth: number
   setSidebarWidth: (width: number) => void
   riskConfig: HazardConfig
@@ -235,8 +233,7 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
       historicEvents: { status: 'idle' },
       hoveredEventId: null,
-      selectedFloodEventId: null,
-      selectedStormId: null,
+      selectedEventId: null,
     })
     syncHazardUrl(get)
     // each hazard summarizes its own region files
@@ -262,7 +259,7 @@ export const useStore = create<Store>((set, get) => ({
         bounds: [bins[0], bins[bins.length - 1]],
         binBoundaries: [...bins],
       },
-      selectedFloodEventId: null,
+      selectedEventId: null,
     })
     syncHazardUrl(get)
   },
@@ -273,13 +270,9 @@ export const useStore = create<Store>((set, get) => ({
   hoveredEventId: null,
   setHoveredEventId: (hoveredEventId) => set({ hoveredEventId }),
   floodSource: 'satellite',
-  setFloodSource: (floodSource) =>
-    set({ floodSource, selectedFloodEventId: null }),
-  selectedFloodEventId: null,
-  setSelectedFloodEventId: (selectedFloodEventId) =>
-    set({ selectedFloodEventId }),
-  selectedStormId: null,
-  setSelectedStormId: (selectedStormId) => set({ selectedStormId }),
+  setFloodSource: (floodSource) => set({ floodSource, selectedEventId: null }),
+  selectedEventId: null,
+  setSelectedEventId: (selectedEventId) => set({ selectedEventId }),
   sidebarWidth: 0,
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
   riskConfig: RISKS[DEFAULT_HAZARD],
@@ -365,8 +358,7 @@ export const useStore = create<Store>((set, get) => ({
       buildingQuery: { status: 'idle' },
       historicEvents: { status: 'idle' },
       hoveredEventId: null,
-      selectedFloodEventId: null,
-      selectedStormId: null,
+      selectedEventId: null,
       activeGeographies: {
         county: null,
         censusTract: null,

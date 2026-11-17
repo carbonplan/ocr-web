@@ -14,7 +14,6 @@ import { getRiskVariable } from '@/lib/risk-utils'
 import { getMapLayer, isEventsLayer } from '@/lib/hazards'
 import { buildingTileUrl } from '@/lib/risk-layers'
 import { Building } from '@/types/location'
-import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
 
 const Buildings = () => {
   const { theme } = useThemeUI()
@@ -213,12 +212,16 @@ const Buildings = () => {
     async (e: MapMouseEvent) => {
       if (!map) return
 
-      // a flood record under the cursor marks its event as hovered; clicking
-      // it selects that event in the sidebar rather than a new location
+      // an event under the cursor on a historic events layer is marked as
+      // hovered; clicking it selects that event in the sidebar rather than a
+      // new location
       const state = useStore.getState()
-      if (state.mapLayer === HISTORIC_FLOODS_LAYER_ID && state.hoveredEventId) {
-        state.setSelectedFloodEventId(
-          state.selectedFloodEventId === state.hoveredEventId
+      if (
+        isEventsLayer(state.riskConfig, state.mapLayer) &&
+        state.hoveredEventId
+      ) {
+        state.setSelectedEventId(
+          state.selectedEventId === state.hoveredEventId
             ? null
             : state.hoveredEventId,
         )
