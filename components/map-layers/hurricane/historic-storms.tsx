@@ -10,6 +10,7 @@ import {
   formatStormName,
 } from '@/lib/historic-events'
 import ValueBadge from '../../value-badge'
+import { ShowMoreRow, useShowMore } from '../show-more'
 import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
@@ -74,6 +75,7 @@ const HistoricStorms = () => {
   const selectedArea = useStore((state) => state.selectedArea)
   const { status, storms } = useHistoricStorms()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
+  const { visible, showMoreProps } = useShowMore(storms, (storm) => storm.sid)
 
   return (
     <Box>
@@ -108,9 +110,10 @@ const HistoricStorms = () => {
               <Box sx={tableSx.tableHead}>Peak wind</Box>
             </Flex>
           </TooltipWrapper>
-          {storms.map((storm) => (
+          {visible.map((storm) => (
             <StormRow key={storm.sid} storm={storm} />
           ))}
+          <ShowMoreRow {...showMoreProps} />
           {storms.length < 1 && (
             <Box sx={{ ...rowSx, color: 'secondary' }}>
               No storms since {FIRST_SEASON}.

@@ -8,6 +8,7 @@ import { getBinIndex } from '@/hooks/useLayerColor'
 import { HISTORIC_FIRES_LAYER_ID, formatFireName } from '@/lib/historic-events'
 import type { FireAtPoint } from '@/lib/historic-events/fire-perimeters'
 import ValueBadge from '../../value-badge'
+import { ShowMoreRow, useShowMore } from '../show-more'
 import { tableSx } from '../../tooltip-table'
 
 const FIRST_YEAR = 1984
@@ -51,6 +52,7 @@ const HistoricFires = () => {
   const { status, fires, colorFor } = useHistoricFires()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
   const sorted = fires && [...fires].sort((a, b) => b.year - a.year)
+  const { visible, showMoreProps } = useShowMore(sorted, (fire) => fire.id)
 
   const { rowProps, isActive } = useEventSelection()
 
@@ -87,7 +89,7 @@ const HistoricFires = () => {
             <Box sx={tableSx.tableHead}>Fire</Box>
             <Box sx={tableSx.tableHead}>Year</Box>
           </Flex>
-          {sorted.map((fire) => (
+          {visible.map((fire) => (
             <Flex
               key={fire.id}
               sx={{
@@ -109,6 +111,7 @@ const HistoricFires = () => {
               />
             </Flex>
           ))}
+          <ShowMoreRow {...showMoreProps} />
         </Box>
       )}
     </Box>

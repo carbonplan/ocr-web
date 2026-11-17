@@ -15,6 +15,7 @@ import type {
   FloodSource,
 } from '@/lib/historic-events/flood-history'
 import ValueBadge from '../../value-badge'
+import { ShowMoreRow, useShowMore } from '../show-more'
 import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
@@ -132,6 +133,11 @@ const HistoricFloods = () => {
   const hasSelection = Boolean(selectedBuilding || selectedArea)
   const mapped = events?.filter((event) => RECORDS[floodSource](event).length)
   const { rowProps, isActive } = useEventSelection()
+  const { visible, showMoreProps } = useShowMore(
+    mapped,
+    (event) => event.id,
+    floodSource,
+  )
 
   return (
     <Box>
@@ -191,7 +197,7 @@ const HistoricFloods = () => {
           </Box>
         )}
 
-        {mapped?.map((event) => {
+        {visible.map((event) => {
           const damage = reportedDamage(event)
           return (
             <Box
@@ -210,15 +216,7 @@ const HistoricFloods = () => {
                   gap: 2,
                 }}
               >
-                <Box
-                  sx={{
-                    fontFamily: 'mono',
-                    letterSpacing: 'mono',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {formatDate(event.date)}
-                </Box>
+                <Box sx={tableSx.tableHead}>{formatDate(event.date)}</Box>
                 <ValueBadge
                   value={damage ? formatDollars(damage) : null}
                   unit='$'
@@ -228,10 +226,13 @@ const HistoricFloods = () => {
                   }}
                 />
               </Flex>
-              {LINES[floodSource](event)}
+              <Box sx={{ mt: 1, fontFamily: 'faux', letterSpacing: 'faux' }}>
+                {LINES[floodSource](event)}
+              </Box>
             </Box>
           )
         })}
+        <ShowMoreRow {...showMoreProps} />
       </Box>
     </Box>
   )
