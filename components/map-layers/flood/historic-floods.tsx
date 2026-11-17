@@ -5,10 +5,6 @@ import {
 } from '@carbonplan/components'
 import { format } from 'd3-format'
 import { useStore } from '@/lib/store'
-import { useColormap } from '@/lib/colormaps'
-import { RISKS, getMapLayer } from '@/lib/hazards'
-import { getBinIndex } from '@/hooks/useLayerColor'
-import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
 import { NEAR_KM } from '@/lib/historic-events/flood-reports'
 import { SATELLITE_NEAR_KM } from '@/lib/historic-events/flood-satellite'
 import { NEWS_NEAR_KM } from '@/lib/historic-events/flood-news'
@@ -21,8 +17,8 @@ import TooltipWrapper from '../../tooltip'
 import { tableSx } from '../../tooltip-table'
 
 const SOURCE_LABELS: Record<FloodSource, string> = {
-  satellite: 'Satellite',
   noaa: 'NOAA',
+  satellite: 'Satellite',
   news: 'News',
 }
 
@@ -43,6 +39,15 @@ const formatMonth = (date: string) =>
     year: 'numeric',
   })
 
+const formatDate = (date: string) =>
+  new Date(`${date}T00:00:00`)
+    .toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    })
+    .replace(',', '')
+
 const formatKm = (km: number) =>
   km < 0.05 ? 'at this location' : `${km.toFixed(1)} km away`
 
@@ -61,18 +66,12 @@ const reportedDamage = (event: FloodEvent) => {
 // year.
 export const useHistoricFloods = () => {
   const historicEvents = useStore((state) => state.historicEvents)
-  const bins =
-    getMapLayer(RISKS.flood, HISTORIC_FLOODS_LAYER_ID)?.binBoundaries ?? []
-  const colormap = useColormap({ count: bins.length })
 
   const events =
     historicEvents.status === 'success' && historicEvents.kind === 'floods'
       ? historicEvents.events
       : null
-  const colorFor = (event: FloodEvent) =>
-    colormap[getBinIndex(bins, event.year) + 1]
-
-  return { status: historicEvents.status, events, colorFor }
+  return { status: historicEvents.status, events }
 }
 
 const satelliteLine = (event: FloodEvent) => {
@@ -109,51 +108,33 @@ const newsLine = (event: FloodEvent) => {
   return `${n} ${n === 1 ? 'article' : 'articles'} placing flooding nearby`
 }
 
-const SourceLine = ({
-  source,
-  children,
-}: {
-  source: FloodSource
-  children: string | null
-}) =>
-  children ? (
-    <Flex sx={{ gap: 2, alignItems: 'baseline', mt: 1 }}>
-      <Box
-        sx={{
-          ...tableSx.tableHead,
-          fontSize: [0, 0, 0, 1],
-          width: '80px',
-          flexShrink: 0,
-        }}
-      >
-        {SOURCE_LABELS[source]}
-      </Box>
-      <Box sx={{ color: 'secondary', fontSize: [1, 1, 1, 2] }}>{children}</Box>
-    </Flex>
-  ) : null
+const LINES: Record<FloodSource, (event: FloodEvent) => string | null> = {
+  satellite: satelliteLine,
+  noaa: noaaLine,
+  news: newsLine,
+}
 
 const HistoricFloods = () => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const selectedArea = useStore((state) => state.selectedArea)
   const setHoveredEventId = useStore((state) => state.setHoveredEventId)
-  const hoveredEventId = useStore((state) => state.hoveredEventId)
   const floodSource = useStore((state) => state.floodSource)
   const setFloodSource = useStore((state) => state.setFloodSource)
-  const { status, events, colorFor } = useHistoricFloods()
+  const { status, events } = useHistoricFloods()
   const hasSelection = Boolean(selectedBuilding || selectedArea)
   const mapped = events?.filter((event) => RECORDS[floodSource](event).length)
 
   return (
     <Box>
-      Floods recorded near this location, grouped by date, from three sources:
+      Floods recorded near this location from three sources:
       <TooltipWrapper
         tooltip={SOURCE_DESCRIPTIONS[floodSource]}
         sx={{ justifyContent: 'flex-start', mt: 2 }}
       >
         <Filter
           values={{
-            satellite: floodSource === 'satellite',
             noaa: floodSource === 'noaa',
+            satellite: floodSource === 'satellite',
             news: floodSource === 'news',
           }}
           labels={SOURCE_LABELS}
@@ -174,8 +155,8 @@ const HistoricFloods = () => {
             py: 1,
           }}
         >
-          <Box sx={tableSx.tableHead}>Flood</Box>
-          <Box sx={tableSx.tableHead}>NOAA damage</Box>
+          <Box sx={tableSx.tableHead}>Date</Box>
+          <Box sx={tableSx.tableHead}>damage</Box>
         </Flex>
         {!hasSelection && (
           <Box sx={{ mt: 2, color: 'secondary' }}>
@@ -201,39 +182,51 @@ const HistoricFloods = () => {
           </Box>
         )}
 
-        {mapped?.map((event) => (
-          <Box
-            key={event.id}
-            sx={{
-              ...tableSx.row,
-              py: 2,
-              cursor: 'default',
-              color: hoveredEventId === event.id ? 'primary' : undefined,
-              '&:hover': { color: 'primary' },
-            }}
-            onMouseEnter={() => setHoveredEventId(event.id)}
-            onMouseLeave={() => setHoveredEventId(null)}
-          >
-            <Flex
+        {mapped?.map((event) => {
+          const damage = reportedDamage(event)
+          return (
+            <Box
+              key={event.id}
               sx={{
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                gap: 2,
+                ...tableSx.row,
+                py: 2,
+                cursor: 'pointer',
+                color: 'secondary',
+                transition: 'color 0.2s',
+                '&:hover': { color: 'primary' },
               }}
+              onMouseEnter={() => setHoveredEventId(event.id)}
+              onMouseLeave={() => setHoveredEventId(null)}
             >
-              <Box>{formatMonth(event.date)}</Box>
-              <ValueBadge
-                value={formatDollars(reportedDamage(event))}
-                color={colorFor(event)}
-                unit='#'
-                sx={{ flexShrink: 0 }}
-              />
-            </Flex>
-            <SourceLine source='satellite'>{satelliteLine(event)}</SourceLine>
-            <SourceLine source='noaa'>{noaaLine(event)}</SourceLine>
-            <SourceLine source='news'>{newsLine(event)}</SourceLine>
-          </Box>
-        ))}
+              <Flex
+                sx={{
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  gap: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    fontFamily: 'mono',
+                    letterSpacing: 'mono',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {formatDate(event.date)}
+                </Box>
+                <ValueBadge
+                  value={damage ? formatDollars(damage) : null}
+                  unit='$'
+                  sx={{
+                    flexShrink: 0,
+                    ...(damage === null && { color: 'secondary' }),
+                  }}
+                />
+              </Flex>
+              {LINES[floodSource](event)}
+            </Box>
+          )
+        })}
       </Box>
     </Box>
   )
