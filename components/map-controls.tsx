@@ -1,16 +1,26 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AttributionControl,
   GeolocateControl,
+  IControl,
   NavigationControl,
 } from 'maplibre-gl'
 import { get, useThemeUI, ThemeUIStyleObject } from 'theme-ui'
 import { useStore } from '@/lib/store'
 
+// stacked layers glyph; layers are filled with the button background so the
+// top one occludes the bottom, and the top layer fills in while satellite is on
+const satelliteIcon = (color: string, background: string, active: boolean) => {
+  const c = encodeURIComponent(color)
+  const bg = encodeURIComponent(background)
+  return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 8L2 14.5L12 21L22 14.5L12 8Z' fill='${bg}' stroke='${c}'/%3E%3Cpath d='M12 3L2 9.5L12 16L22 9.5L12 3Z' fill='${active ? c : bg}' stroke='${c}'/%3E%3C/svg%3E")`
+}
+
 export const useMapControlStyles = (): ThemeUIStyleObject => {
   const { theme } = useThemeUI()
   const primary = get(theme, 'rawColors.primary')
   const secondary = get(theme, 'rawColors.secondary')
+  const hinted = get(theme, 'rawColors.hinted')
 
   return {
     '& .maplibregl-control-container': {
@@ -44,9 +54,10 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
         boxShadow: 'none',
         marginBottom: [135, 135, '0px', '0px'],
         overflow: 'hidden',
-        '&:has(.maplibregl-ctrl-geolocate)': {
-          marginBottom: '10px',
-        },
+        '&:has(.maplibregl-ctrl-geolocate), &:has(.maplibregl-ctrl-satellite)':
+          {
+            marginBottom: '10px',
+          },
         '& button': {
           bg: 'hinted',
           border: 'none',
@@ -88,9 +99,92 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
           {
             backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(secondary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(secondary)}' stroke-width='1.5' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='1.5' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
           },
+        '& .maplibregl-ctrl-satellite .maplibregl-ctrl-icon': {
+          backgroundImage: satelliteIcon(primary, hinted, false),
+        },
+        '& .maplibregl-ctrl-satellite:hover .maplibregl-ctrl-icon, & .maplibregl-ctrl-satellite:focus-visible .maplibregl-ctrl-icon':
+          {
+            backgroundImage: satelliteIcon(secondary, hinted, false),
+          },
+        '& .maplibregl-ctrl-satellite[aria-pressed="true"] .maplibregl-ctrl-icon':
+          {
+            backgroundImage: satelliteIcon(primary, hinted, true),
+          },
+        '& .maplibregl-ctrl-satellite[aria-pressed="true"]:hover .maplibregl-ctrl-icon, & .maplibregl-ctrl-satellite[aria-pressed="true"]:focus-visible .maplibregl-ctrl-icon':
+          {
+            backgroundImage: satelliteIcon(secondary, hinted, true),
+          },
       },
     },
   }
+}
+
+class SatelliteControl implements IControl {
+  private container: HTMLDivElement
+  private button: HTMLButtonElement
+
+  constructor(onClick: () => void) {
+    this.container = document.createElement('div')
+    this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group'
+    this.button = document.createElement('button')
+    this.button.type = 'button'
+    this.button.className = 'maplibregl-ctrl-satellite'
+    this.button.addEventListener('click', onClick)
+    const icon = document.createElement('span')
+    icon.className = 'maplibregl-ctrl-icon'
+    icon.setAttribute('aria-hidden', 'true')
+    this.button.appendChild(icon)
+    this.container.appendChild(this.button)
+    this.setActive(false)
+  }
+
+  setActive(active: boolean) {
+    const label = active ? 'Hide satellite imagery' : 'Show satellite imagery'
+    this.button.setAttribute('aria-pressed', String(active))
+    this.button.setAttribute('aria-label', label)
+    this.button.title = label
+  }
+
+  onAdd() {
+    return this.container
+  }
+
+  onRemove() {
+    this.container.remove()
+  }
+}
+
+const MapSatelliteControl = () => {
+  const map = useStore((state) => state.map)
+  const satellite = useStore((state) => state.satellite)
+  const [control, setControl] = useState<SatelliteControl | null>(null)
+
+  useEffect(() => {
+    if (!map) return
+
+    // read the latest value at click time rather than closing over it
+    const satelliteControl = new SatelliteControl(() => {
+      const { satellite, setSatellite } = useStore.getState()
+      setSatellite(!satellite)
+    })
+    map.addControl(satelliteControl, 'bottom-right')
+    setControl(satelliteControl)
+
+    return () => {
+      setControl(null)
+      try {
+        map.removeControl(satelliteControl)
+      } catch (e) {
+        console.error('Error removing satellite control:', e)
+      }
+    }
+  }, [map])
+
+  useEffect(() => {
+    control?.setActive(satellite)
+  }, [control, satellite])
+
+  return null
 }
 
 const MapAttribution = () => {
@@ -178,6 +272,7 @@ const MapControls = () => {
       <MapAttribution />
       <MapZoomControl />
       <MapGeolocateControl />
+      <MapSatelliteControl />
     </>
   )
 }
