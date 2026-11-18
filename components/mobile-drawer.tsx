@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Box, Flex } from 'theme-ui'
-import { useStore } from '@/lib/store'
+import { useSelectedPoint } from '@/hooks/useSelectedPoint'
 //@ts-expect-error - carbonplan layouts types not available
 import { SidebarDivider } from '@carbonplan/layouts'
 import { Drawer } from 'vaul'
@@ -24,14 +24,13 @@ const MobileDrawer = () => {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[1])
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const selectedArea = useStore((state) => state.selectedArea)
+  const selectedPoint = useSelectedPoint()
 
   useEffect(() => {
-    if (selectedBuilding || selectedArea) {
+    if (selectedPoint) {
       setSnap(snapPoints[1])
     }
-  }, [selectedBuilding, selectedArea, setSnap, snapPoints])
+  }, [selectedPoint, setSnap, snapPoints])
 
   useEffect(() => {
     if (scrollContainerRef.current) {

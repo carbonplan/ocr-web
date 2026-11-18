@@ -5,10 +5,9 @@ import {
   AxisLabel,
   //@ts-expect-error - carbonplan charts types not available
 } from '@carbonplan/charts'
-import { useShallow } from 'zustand/shallow'
 import { useStore } from '@/lib/store'
 import { useColormap } from '@/lib/colormaps'
-import { useScore } from '@/hooks/useScore'
+import { useScore, useScoreLimits } from '@/hooks/useScore'
 import ValueBadge from './value-badge'
 
 // The cell a value falls in: 0 for exactly 0, else its bin's, offset by one
@@ -38,14 +37,15 @@ const ScoreBar = ({
   children?: ReactNode
 }) => {
   const selectedBuilding = useStore((state) => state.selectedBuilding)
-  const displayBins = useStore(
-    useShallow((state) => state.colorLimits.binBoundaries),
-  )
+  const { bins: scoreBins, colormap: scoreColormapName } = useScoreLimits()
   const axisLabel = useStore((state) => state.riskConfig.axisLabel)
   const valueDisplay = useStore((state) => state.riskConfig.valueDisplay)
-  const displayColormap = useColormap()
-  const bins = binsOverride ?? displayBins
-  const colormap = colormapOverride ?? displayColormap
+  const scoreColormap = useColormap({
+    count: scoreBins.length,
+    name: scoreColormapName,
+  })
+  const bins = binsOverride ?? scoreBins
+  const colormap = colormapOverride ?? scoreColormap
 
   const scored = useScore(selectedBuilding, 'muted')
   const cell =

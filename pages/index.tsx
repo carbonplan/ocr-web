@@ -43,14 +43,12 @@ const Index = () => {
   useEffect(() => {
     if (!router.isReady) return
     const params = getHazardFromQuery(router.query)
-    if (params) {
-      const { setHazard, setFutureWindow } = useStore.getState()
-      if (params.futureWindow) setFutureWindow(params.futureWindow)
-      setHazard(params.hazard)
-      if (params.mapLayer) {
-        const { setMapLayer } = useStore.getState()
-        setMapLayer(params.mapLayer)
-      }
+    const { setHazard, setFutureWindow } = useStore.getState()
+    if (params.futureWindow) setFutureWindow(params.futureWindow)
+    setHazard(params.hazard)
+    if (params.mapLayer) {
+      const { setMapLayer } = useStore.getState()
+      setMapLayer(params.mapLayer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady])

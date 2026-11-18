@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Box, Flex } from 'theme-ui'
+import { Box, Flex, Spinner } from 'theme-ui'
 //@ts-expect-error - carbonplan components types not available
 import { Link, Select, Table } from '@carbonplan/components'
 import { useShallow } from 'zustand/react/shallow'
@@ -7,11 +7,7 @@ import { LngLatBounds } from 'maplibre-gl'
 
 import { getGeographyRisk, getBoundingBox } from '@/lib/risk-utils'
 import { useStore } from '@/lib/store'
-import {
-  GEOGRAPHY_ATTRIBUTE_KEYS,
-  GEOGRAPHY_MIN_ZOOM,
-  STATISTICS_PATHS,
-} from '@/lib/config'
+import { GEOGRAPHY_MIN_ZOOM, STATISTICS_PATHS } from '@/lib/config'
 import { GeographyKey } from '@/types/location'
 import { Download, DownloadButton } from './download'
 import Histogram, { formatBuildingCount } from './histogram'
@@ -36,8 +32,8 @@ const GEOGRAPHY_SUMMARY_LABELS = {
   censusBlock: 'Block stats',
 }
 
-const RegionalFire = () => {
-  const regionalData = useStore((state) => state.riskConfig.regionalData)
+const RegionalRisk = () => {
+  const statsBase = useStore((state) => state.riskConfig.vector.statsBase)
   const selectedBuilding = useStore((state) => state.selectedBuilding)
   const map = useStore((state) => state.map)
   const geographyLevel = useStore((state) => state.selectedGeographyLevel)
@@ -53,6 +49,7 @@ const RegionalFire = () => {
   const activeGeographies = useStore(
     useShallow((state) => state.activeGeographies),
   )
+  const geographiesLoading = useStore((state) => state.geographiesLoading)
   const [zoom, setZoom] = useState(0)
   const activeGeography = activeGeographies[geographyLevel]
 
@@ -62,20 +59,25 @@ const RegionalFire = () => {
     }
   }, [hasManuallySelectedGeography, selectedBuilding, setGeographyLevel])
 
-  const { score, color } = useScore(activeGeography ?? null)
+  // with no region yet, the hook would describe the selection instead
+  const regionScore = useScore(activeGeography ?? null)
+  const { score, color } = activeGeography
+    ? regionScore
+    : { score: null, color: undefined }
   const { score: buildingScore } = useScore(selectedBuilding)
   const data = useStore(
     useShallow(
       (state) =>
         getGeographyRisk(
           state.activeGeographies[geographyLevel],
-          state.timePeriod,
+          state.riskConfig,
+          state,
         ) ?? [],
     ),
   )
 
   const previousBoundsRef = useRef<LngLatBounds | null>(null)
-  const previousBuildingIDRef = useRef<string | null>(null)
+  const previousBuildingIDRef = useRef<number | null>(null)
 
   function getRegionName(args: { mode: 'short' }): string | null
   function getRegionName(args?: { mode: 'long' }): string
@@ -86,7 +88,7 @@ const RegionalFire = () => {
       return fallback
     }
 
-    const name = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.name]
+    const name = activeGeography?.name
     if (['county', 'state'].includes(geographyLevel)) {
       if (!name) {
         return fallback
@@ -97,7 +99,7 @@ const RegionalFire = () => {
       }
     }
 
-    const geoid = activeGeography?.[GEOGRAPHY_ATTRIBUTE_KEYS.geoid]
+    const geoid = activeGeography?.geoid
     if (!geoid) {
       return fallback
     }
@@ -178,8 +180,6 @@ const RegionalFire = () => {
 
   const isGeographyUnavailable = zoom < GEOGRAPHY_MIN_ZOOM[geographyLevel]
 
-  if (!regionalData) return null
-
   return (
     <>
       <Flex
@@ -249,9 +249,14 @@ const RegionalFire = () => {
               color: 'secondary',
             }}
           >
-            {isGeographyUnavailable
-              ? `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data.`
-              : 'No data available.'}
+            {isGeographyUnavailable &&
+              `Zoom in to view ${GEOGRAPHY_LABELS[geographyLevel]} data.`}
+            {!isGeographyUnavailable && geographiesLoading && (
+              <Spinner size={24} />
+            )}
+            {!isGeographyUnavailable &&
+              !geographiesLoading &&
+              'No data available.'}
           </Box>
         )}
       </Box>
@@ -268,9 +273,7 @@ const RegionalFire = () => {
                 key='count'
                 value={
                   activeGeography &&
-                  formatBuildingCount(
-                    activeGeography[GEOGRAPHY_ATTRIBUTE_KEYS.building_count],
-                  )
+                  formatBuildingCount(activeGeography.buildingCount)
                 }
                 unit='#'
                 whitespace={false}
@@ -312,51 +315,55 @@ const RegionalFire = () => {
                 <Download />
               </TooltipWrapper>,
             ],
-            [
-              GEOGRAPHY_SUMMARY_LABELS[geographyLevel],
-              <TooltipWrapper
-                key='download'
-                tooltip={
-                  <>
-                    Download summary statistics for
-                    {geographyLevel === 'nation'
-                      ? ' '
-                      : ` each ${GEOGRAPHY_LABELS[geographyLevel]} in `}
-                    the contiguous U.S. For more information about these files,
-                    including data schema, see the{' '}
-                    <Link
-                      sx={{ color: 'secondary' }}
-                      href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_1'
+            ...(statsBase
+              ? [
+                  [
+                    GEOGRAPHY_SUMMARY_LABELS[geographyLevel],
+                    <TooltipWrapper
+                      key='download'
+                      tooltip={
+                        <>
+                          Download summary statistics for
+                          {geographyLevel === 'nation'
+                            ? ' '
+                            : ` each ${GEOGRAPHY_LABELS[geographyLevel]} in `}
+                          the contiguous U.S. For more information about these
+                          files, including data schema, see the{' '}
+                          <Link
+                            sx={{ color: 'secondary' }}
+                            href='https://docs.carbonplan.org/ocr/en/latest/access-data.html#schema_1'
+                          >
+                            documentation
+                          </Link>
+                          .
+                        </>
+                      }
+                      sx={{ justifyContent: 'flex-start', gap: 3 }}
                     >
-                      documentation
-                    </Link>
-                    .
-                  </>
-                }
-                sx={{ justifyContent: 'flex-start', gap: 3 }}
-              >
-                <Flex
-                  sx={{ gap: 3, flexWrap: 'wrap' }}
-                  role='group'
-                  aria-label='Download regional data'
-                >
-                  <DownloadButton
-                    label='CSV'
-                    loading={false}
-                    disabled={false}
-                    href={`${regionalData.statsBase}/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
-                    ariaLabel={`Download summary data as CSV`}
-                  />
-                  <DownloadButton
-                    label='GeoJSON'
-                    loading={false}
-                    disabled={false}
-                    href={`${regionalData.statsBase}/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
-                    ariaLabel={`Download summary data as GeoJSON`}
-                  />
-                </Flex>
-              </TooltipWrapper>,
-            ],
+                      <Flex
+                        sx={{ gap: 3, flexWrap: 'wrap' }}
+                        role='group'
+                        aria-label='Download regional data'
+                      >
+                        <DownloadButton
+                          label='CSV'
+                          loading={false}
+                          disabled={false}
+                          href={`${statsBase}/${STATISTICS_PATHS[geographyLevel]}/stats.csv`}
+                          ariaLabel={`Download summary data as CSV`}
+                        />
+                        <DownloadButton
+                          label='GeoJSON'
+                          loading={false}
+                          disabled={false}
+                          href={`${statsBase}/${STATISTICS_PATHS[geographyLevel]}/stats.geojson`}
+                          ariaLabel={`Download summary data as GeoJSON`}
+                        />
+                      </Flex>
+                    </TooltipWrapper>,
+                  ],
+                ]
+              : []),
           ]}
           index={false}
           sx={{
@@ -383,4 +390,4 @@ const RegionalFire = () => {
   )
 }
 
-export default RegionalFire
+export default RegionalRisk

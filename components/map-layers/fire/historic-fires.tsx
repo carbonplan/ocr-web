@@ -1,0 +1,121 @@
+import { Box, Flex } from 'theme-ui'
+import { format } from 'd3-format'
+import { useStore } from '@/lib/store'
+import { useEventSelection, eventRowSx } from '@/hooks/useEventSelection'
+import { useColormap } from '@/lib/colormaps'
+import { RISKS, getMapLayer } from '@/lib/hazards'
+import { getBinIndex } from '@/hooks/useLayerColor'
+import { HISTORIC_FIRES_LAYER_ID, formatFireName } from '@/lib/historic-events'
+import type { FireAtPoint } from '@/lib/historic-events/fire-perimeters'
+import ValueBadge from '../../value-badge'
+import { ShowMoreRow, useShowMore } from '../show-more'
+import { tableSx } from '../../tooltip-table'
+
+const FIRST_YEAR = 1984
+const formatAcres = format(',.0f')
+
+// Mapped fires whose perimeter contains the selected point, most recent
+// first, each colored by ignition decade.
+export const useHistoricFires = () => {
+  const historicEvents = useStore((state) => state.historicEvents)
+  const bins =
+    getMapLayer(RISKS.fire, HISTORIC_FIRES_LAYER_ID)?.binBoundaries ?? []
+  const colormap = useColormap({ count: bins.length })
+
+  const fires =
+    historicEvents.status === 'success' && historicEvents.kind === 'fires'
+      ? historicEvents.events
+      : null
+  const colorFor = (fire: FireAtPoint) =>
+    colormap[getBinIndex(bins, fire.year) + 1]
+
+  return {
+    status: historicEvents.status,
+    fires,
+    colorFor,
+  }
+}
+
+const fireLabel = (fire: FireAtPoint) => (
+  <>
+    {formatFireName(fire.name)}{' '}
+    <Box as='span' sx={{ color: 'secondary' }}>
+      {formatAcres(fire.acres)} ac
+      {fire.type && fire.type !== 'Wildfire' ? ` · ${fire.type}` : ''}
+    </Box>
+  </>
+)
+
+const HistoricFires = () => {
+  const selectedBuilding = useStore((state) => state.selectedBuilding)
+  const selectedArea = useStore((state) => state.selectedArea)
+  const { status, fires, colorFor } = useHistoricFires()
+  const hasSelection = Boolean(selectedBuilding || selectedArea)
+  const sorted = fires && [...fires].sort((a, b) => b.year - a.year)
+  const { visible, showMoreProps } = useShowMore(sorted, (fire) => fire.id)
+
+  const { rowProps, isActive } = useEventSelection()
+
+  return (
+    <Box>
+      Fires since {FIRST_YEAR} whose mapped burned area includes this location.
+      Fires smaller than 1,000 acres in the West and 500 acres in the East are
+      not mapped.
+      {!hasSelection && (
+        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+          Select a location to see its fire history.
+        </Box>
+      )}
+      {status === 'error' && hasSelection && (
+        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+          No fire history is available for this location.
+        </Box>
+      )}
+      {fires && fires.length === 0 && (
+        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+          No mapped fire has burned this location.
+        </Box>
+      )}
+      {sorted && sorted.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Flex
+            sx={{
+              ...tableSx.row,
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              py: 1,
+            }}
+          >
+            <Box sx={tableSx.tableHead}>Fire</Box>
+            <Box sx={tableSx.tableHead}>Year</Box>
+          </Flex>
+          {visible.map((fire) => (
+            <Flex
+              key={fire.id}
+              sx={{
+                ...tableSx.row,
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                gap: 2,
+                py: 2,
+                ...eventRowSx(isActive(fire.id)),
+              }}
+              {...rowProps(fire.id, fire.bbox)}
+            >
+              <Box>{fireLabel(fire)}</Box>
+              <ValueBadge
+                value={String(fire.year)}
+                color={colorFor(fire)}
+                unit='#'
+                sx={{ flexShrink: 0 }}
+              />
+            </Flex>
+          ))}
+          <ShowMoreRow {...showMoreProps} />
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+export default HistoricFires

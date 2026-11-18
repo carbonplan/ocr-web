@@ -1,20 +1,16 @@
 import { useStore } from '@/lib/store'
-import RegionalFire from './fire'
+import RegionalRisk from './regions'
 import Section from '../section'
 
 const Inner = () => {
-  const id = useStore((state) => state.riskConfig.id)
+  const hasRegions = useStore((state) => !!state.riskConfig.vector.regions)
+  const label = useStore((state) => state.riskConfig.label)
 
-  switch (id) {
-    case 'fire':
-      return <RegionalFire />
-    case 'flood':
-      return 'Not yet available for flood'
-    case 'wind':
-      return 'Not yet available for wind'
-    default:
-      break
-  }
+  return hasRegions ? (
+    <RegionalRisk />
+  ) : (
+    `Not yet available for ${label.toLowerCase()}`
+  )
 }
 
 const RegionalInfo = () => {

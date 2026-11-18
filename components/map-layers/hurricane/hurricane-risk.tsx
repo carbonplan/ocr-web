@@ -1,6 +1,6 @@
 import { Box } from 'theme-ui'
 
-const WindRisk = () => {
+const HurricaneRisk = () => {
   return (
     <Box>
       The risk score is a categorical classification of expected annual loss:
@@ -13,4 +13,4 @@ const WindRisk = () => {
   )
 }
 
-export default WindRisk
+export default HurricaneRisk

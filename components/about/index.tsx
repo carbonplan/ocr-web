@@ -1,7 +1,7 @@
 import { useStore } from '@/lib/store'
 import FireAbout from './fire'
 import FloodAbout from './flood'
-import WindAbout from './wind'
+import HurricaneAbout from './hurricane'
 import Section from '../section'
 
 const AboutInner = () => {
@@ -12,8 +12,8 @@ const AboutInner = () => {
       return <FireAbout />
     case 'flood':
       return <FloodAbout />
-    case 'wind':
-      return <WindAbout />
+    case 'hurricane':
+      return <HurricaneAbout />
     default:
       break
   }

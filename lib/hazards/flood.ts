@@ -1,13 +1,10 @@
+import { OCR_BUCKET_URL } from '@/lib/config'
 import { HazardConfig } from './types'
+import { HISTORIC_FLOODS_LAYER_ID } from '@/lib/historic-events'
 
-const FDP_BASE =
-  process.env.NEXT_PUBLIC_FLOOD_ZARR_BASE ??
-  'https://carbonplan-ocr.s3.amazonaws.com/ocr-explore/FDP/processed'
-
-// CarbonPlan's refit of the USGS model on Dec 2006–Dec 2025 reports, with its
-// per-cell attributions and standard errors. Covers HUC 03 (South
-// Atlantic-Gulf) only so far.
-const FDP_STORE = `${FDP_BASE}/retrained/noaa-200612-202512-planar`
+// the full CONUS refit run (ocr-multi-hazard FDP stages), not yet promoted to
+// output/flood
+const VERSION = 'v0.0.0-fdp-conus'
 
 // Store order of the `driver` dimension and of dominant_driver's classes.
 export const FDP_DRIVERS = [
@@ -26,6 +23,10 @@ export const FDP_DRIVERS = [
 
 const DRIVER_INDICES = FDP_DRIVERS.map((_, i) => i)
 
+const OUTPUT =
+  process.env.NEXT_PUBLIC_FLOOD_OUTPUT_URL ??
+  `${OCR_BUCKET_URL}/scratch/shane/flood/${VERSION}`
+
 const flood: HazardConfig = {
   id: 'flood',
   label: 'Flood',
@@ -33,14 +34,13 @@ const flood: HazardConfig = {
   description:
     'Flood risk is the modeled probability that a location has suffered flood damage, from a refit of the USGS random-forest model.',
   climateTooltip:
-    'Current estimates are from models trained on flood damage events reported between 2006 and 2025, so far for the South Atlantic-Gulf watershed only.',
+    'Current estimates are from models trained on flood damage events reported between 2006 and 2025, one per HUC-2 watershed across the contiguous U.S.',
   colormap: 'blues',
   // placeholder decile score bins until flood scoring is calibrated
   binBoundaries: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90],
   // fdp is stored as a probability in [0, 1]
   unitScale: 100,
-  buildingsMode: 'query',
-  pointQuery: 'raster',
+  buildingsMode: 'attributes',
   axisLabel: 'Flood damage probability',
   rasterOptions: {
     zarrVersion: 3,
@@ -48,12 +48,21 @@ const flood: HazardConfig = {
   // the model carries no climate scenario dimension
   datasets: {
     current: {
-      source: FDP_STORE,
+      source: `${OUTPUT}/store.icechunk`,
+      store: 'icechunk',
       variable: 'fdp',
     },
   },
   timePeriodLabels: {
     current: '2006-2025',
+  },
+  vector: {
+    version: VERSION,
+    buildings: `${OUTPUT}/vector/buildings.geoparquet`,
+    regions: `${OUTPUT}/vector/regions`,
+    regionsExtension: 'geoparquet',
+    detailColumns: [],
+    downloadColumns: ['fdp'],
   },
   mapLayers: [
     {
@@ -68,8 +77,9 @@ const flood: HazardConfig = {
       axisLabel: 'Standard error',
       unit: '%',
       unitScale: 100,
-      // about the 1st to 90th percentile in HUC 03
-      binBoundaries: [4, 10],
+      // CONUS spans ~2.7 to 7 (99.9th percentile); starting below the minimum
+      // keeps the lowest watersheds off the ramp's near-background end
+      binBoundaries: [2, 7],
       continuous: true,
       colormap: 'cool',
     },
@@ -82,9 +92,16 @@ const flood: HazardConfig = {
       binBoundaries: [-15, 15],
       continuous: true,
       colormap: 'orangeblue',
-      // the int16 fill reads as -3.2768 once scaled
-      validRange: [-1, 1],
       selector: { dim: 'driver', values: DRIVER_INDICES, defaultValue: 0 },
+    },
+    {
+      id: HISTORIC_FLOODS_LAYER_ID,
+      kind: 'events',
+      axisLabel: 'Flood year',
+      unit: '',
+      unitScale: 1,
+      binBoundaries: [2000, 2005, 2010, 2015, 2020],
+      customColormap: true,
     },
   ],
 }

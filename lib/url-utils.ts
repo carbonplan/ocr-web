@@ -16,11 +16,13 @@ export type HazardParams = {
   selectorValue: number | null
 }
 
-export function getHazardFromQuery(
-  query: NextRouter['query'],
-): HazardParams | null {
-  const { hazard, window: futureWindow, layer, rp } = query
-  if (!hazard || typeof hazard !== 'string' || !isHazardId(hazard)) return null
+// the default hazard is omitted from the URL, so its layers still resolve
+export function getHazardFromQuery(query: NextRouter['query']): HazardParams {
+  const { hazard: hazardParam, window: futureWindow, layer, rp } = query
+  const hazard =
+    typeof hazardParam === 'string' && isHazardId(hazardParam)
+      ? hazardParam
+      : DEFAULT_HAZARD
 
   const mapLayer =
     typeof layer === 'string' && getMapLayer(RISKS[hazard], layer)

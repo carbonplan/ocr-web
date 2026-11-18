@@ -37,15 +37,16 @@ const SelectionMarker = () => {
   const selectedArea = useStore((state) => state.selectedArea)
   const reverseGeocodeLoading = useStore((state) => state.reverseGeocodeLoading)
 
-  const markerPoint = useMemo(() => {
-    if (selectedBuilding && selectedBuilding.geometry) {
-      return calculateTopMiddlePosition(selectedBuilding.geometry)
-    }
-    if (selectedArea) {
-      return [selectedArea.lng, selectedArea.lat] as [number, number]
-    }
-    return null
-  }, [selectedBuilding, selectedArea])
+  let point: [number, number] | null = null
+  if (selectedBuilding?.geometry) {
+    point = calculateTopMiddlePosition(selectedBuilding.geometry)
+  } else if (selectedArea) {
+    point = [selectedArea.lng, selectedArea.lat]
+  }
+  // kept while the position is: a building is set again once its row loads
+  const pointKey = point ? point.join(',') : null
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const markerPoint = useMemo(() => point, [pointKey])
 
   const addressString = useMemo(() => {
     if (!selectedLocation) return null
@@ -92,7 +93,7 @@ const SelectionMarker = () => {
       containerRef.current = null
       setContainer(null)
     }
-  }, [map, selectedLocation, selectedBuilding, markerPoint])
+  }, [map, selectedLocation, markerPoint])
 
   if (
     (!selectedBuilding && !selectedArea) ||

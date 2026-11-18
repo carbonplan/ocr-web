@@ -13,6 +13,8 @@ export type HazardSelection = {
 export type HazardDataset = {
   source: string
   variable: string
+  // 'icechunk' opens source as an Icechunk repo rather than a plain Zarr URL
+  store?: 'icechunk'
 }
 
 // Only needed for stores whose metadata doesn't fully describe the grid.
@@ -25,13 +27,26 @@ export type HazardRasterOptions = {
   proj4?: string
 }
 
-// Absent while a hazard's regional data is still in production.
-export type RegionalDataConfig = {
-  statsBase: string
-  parquetBase: string
-  parquetBucketUrl: string
-  // value columns in the geoparquet, beyond GEOID + centroid
-  columns: string[]
+// The pipeline's vector outputs. Attributes-mode tiles carry each dataset
+// variable, and region files summarize it as `${variable}_median` and
+// `${variable}_hist`.
+export type HazardVectorData = {
+  version: string
+  // geoparquet-lod file of building footprints; feature ids are its row
+  // numbers, so they differ between files
+  buildings: string
+  // region GeoParquet: nation.parquet, states.parquet, counties partitioned by
+  // state, tracts and blocks by county. Absent while a hazard's regions are
+  // still in production.
+  regions?: string
+  // of the region files; 'parquet' when absent
+  regionsExtension?: 'parquet' | 'geoparquet'
+  // per-level stats.csv and stats.geojson
+  statsBase?: string
+  // building columns read by row on selection, beyond the dataset variables
+  detailColumns: string[]
+  // building columns in region downloads
+  downloadColumns: string[]
 }
 
 export type SelectorDimension = 'return_period' | 'driver'
@@ -47,7 +62,10 @@ export type HazardLayerSelector = {
 // loss (e.g. wind speed), read from a different variable in the same stores.
 export type HazardMapLayer = {
   id: string
-  variable?: string
+  // 'events' draws a vector overlay of historic events in place of the raster
+  kind?: 'raster' | 'events'
+  // one per time period when the quantity is stored per climate (e.g. bp_2011, bp_2047)
+  variable?: string | Partial<Record<ScenarioKey, string>>
   // values are multiplied by unitScale into this unit
   unit: string
   unitScale: number
@@ -63,10 +81,6 @@ export type HazardMapLayer = {
   // colored along the ramp between binBoundaries' two entries rather than in
   // bins
   continuous?: boolean
-  // store values outside this range are no data, for integer fills that
-  // zarr-layer 0.9 does not mask once scaled (0.11's band textures do; drop
-  // this after the bump)
-  validRange?: [number, number]
   selector?: HazardLayerSelector
 }
 
@@ -74,10 +88,6 @@ export type HazardDatasets = {
   current: HazardDataset
   future?: HazardDataset | Record<FutureWindow, HazardDataset>
 }
-
-// 'raster' reads the rendered variable back off the layer; 'bands' opens the
-// store directly, for panels needing bands the map isn't drawing
-export type PointQuerySource = 'bands' | 'raster'
 
 // Present when the risk view is a measured quantity rather than a 1-10 loss
 // score: the results panel shows the value itself and the score bar drops its
@@ -87,7 +97,7 @@ export type HazardValueDisplay = {
 }
 
 export type HazardConfig = {
-  id: 'fire' | 'flood' | 'wind'
+  id: 'fire' | 'flood' | 'hurricane'
   label: string
   accentColor: string
   description: string
@@ -96,10 +106,9 @@ export type HazardConfig = {
   // them (e.g. fraction/yr -> %)
   binBoundaries: number[]
   unitScale: number
-  // 'attributes': buildings colored from pmtiles properties;
+  // 'attributes': buildings colored from the tiles' dataset variables;
   // 'query': buildings transparent, values read from the zarr at their centroid
   buildingsMode: 'attributes' | 'query'
-  pointQuery?: PointQuerySource
   valueDisplay?: HazardValueDisplay
   axisLabel: string
   climateTooltip?: string
@@ -109,6 +118,6 @@ export type HazardConfig = {
     current: string
     future?: string | Record<FutureWindow, string>
   }
-  regionalData?: RegionalDataConfig
+  vector: HazardVectorData
   mapLayers?: HazardMapLayer[]
 }
