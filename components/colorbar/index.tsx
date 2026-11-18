@@ -1,4 +1,4 @@
-import { Box, Flex } from 'theme-ui'
+import { Box, Flex, ThemeUIStyleObject } from 'theme-ui'
 import {
   Chart,
   AxisLabel,
@@ -23,7 +23,7 @@ const TICKS_HEIGHT = 56
 const BIN_LABEL_OFFSET = 28
 const CONTINUOUS_TICKS_HEIGHT = 40
 
-const Colorbar = () => {
+const Colorbar = ({ sx }: { sx?: ThemeUIStyleObject }) => {
   const riskConfig = useStore((state) => state.riskConfig)
   const mapLayer = useStore((state) => state.mapLayer)
   const activeLayer = getMapLayer(riskConfig, mapLayer)
@@ -140,7 +140,7 @@ const Colorbar = () => {
       </Flex>
     )
   }
-  return <Box sx={{ mt: 3 }}>{content}</Box>
+  return <Box sx={{ mt: 3, ...sx }}>{content}</Box>
 }
 
 export default Colorbar

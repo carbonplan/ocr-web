@@ -17,7 +17,7 @@ import Menu from './menu'
 
 const MIN_QUERY_LENGTH = 3
 
-const Geocode = () => {
+const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
@@ -273,7 +273,11 @@ const Geocode = () => {
           },
         }}
       >
-        <SidebarDivider sx={{ mb: 3 }} />
+        {topDivider ? (
+          <SidebarDivider sx={{ mb: 3 }} />
+        ) : (
+          <Box sx={{ pt: 3 }} />
+        )}
         <Row columns={[6, 8, 4, 4]}>
           <Column start={[1]} width={1}>
             <Box variant='label'>Address</Box>
