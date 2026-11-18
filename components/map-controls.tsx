@@ -13,7 +13,14 @@ import { useStore } from '@/lib/store'
 const satelliteIcon = (color: string, background: string, active: boolean) => {
   const c = encodeURIComponent(color)
   const bg = encodeURIComponent(background)
-  return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 8L2 14.5L12 21L22 14.5L12 8Z' fill='${bg}' stroke='${c}'/%3E%3Cpath d='M12 3L2 9.5L12 16L22 9.5L12 3Z' fill='${active ? c : bg}' stroke='${c}'/%3E%3C/svg%3E")`
+  return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 8L2 14.5L12 21L22 14.5L12 8Z' fill='${bg}' stroke='${c}' stroke-width='1.5'/%3E%3Cpath d='M12 3L2 9.5L12 16L22 9.5L12 3Z' fill='${active ? c : bg}' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`
+}
+
+// crosshair: ring with ticks out to the same 2–22 extent as the
+// satellite glyph, around a solid center dot
+const geolocateIcon = (color: string) => {
+  const c = encodeURIComponent(color)
+  return `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='7' fill='none' stroke='${c}' stroke-width='1.5'/%3E%3Ccircle cx='12' cy='12' r='2.5' fill='${c}'/%3E%3Cpath d='M12 2V5M12 19V22M2 12H5M19 12H22' stroke='${c}' stroke-width='1.5'/%3E%3C/svg%3E")`
 }
 
 export const useMapControlStyles = (): ThemeUIStyleObject => {
@@ -93,11 +100,11 @@ export const useMapControlStyles = (): ThemeUIStyleObject => {
             backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='2' stroke-linecap='round' fill='none' d='M6 10h8'/%3E%3C/svg%3E")`,
           },
         '& .maplibregl-ctrl-geolocate .maplibregl-ctrl-icon': {
-          backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(primary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(primary)}' stroke-width='1.5' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(primary)}' stroke-width='1.5' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
+          backgroundImage: geolocateIcon(primary),
         },
         '& .maplibregl-ctrl-geolocate:hover .maplibregl-ctrl-icon, & .maplibregl-ctrl-geolocate:focus-visible .maplibregl-ctrl-icon':
           {
-            backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='${encodeURIComponent(secondary)}'/%3E%3Ccircle cx='10' cy='10' r='6' stroke='${encodeURIComponent(secondary)}' stroke-width='1.5' fill='none'/%3E%3Cpath stroke='${encodeURIComponent(secondary)}' stroke-width='1.5' stroke-linecap='round' d='M10 2v3M10 15v3M2 10h3M15 10h3'/%3E%3C/svg%3E")`,
+            backgroundImage: geolocateIcon(secondary),
           },
         '& .maplibregl-ctrl-satellite .maplibregl-ctrl-icon': {
           backgroundImage: satelliteIcon(primary, hinted, false),
