@@ -65,7 +65,7 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
       setSearchQuery(
         selectedArea
           ? formatRegionName(selectedLocation.address)
-          : formatAddress(selectedLocation.address, { abbreviate: true }),
+          : formatAddress(selectedLocation.address),
       )
     } else {
       setSearchQuery('')
@@ -256,6 +256,12 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
     setSelectedIndex(-1)
   }
 
+  const showLabel = !selectedLocation && !isEditing && !searchQuery
+  const labelAsPlaceholder = isEditing && !reverseGeocodeLoading
+  let placeholder = ''
+  if (reverseGeocodeLoading) placeholder = 'loading...'
+  else if (labelAsPlaceholder) placeholder = 'location'
+
   return (
     <Box ref={setWrapperNode} sx={{ width: '100%' }}>
       <Box
@@ -265,11 +271,11 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
           cursor: 'pointer',
           transition: 'background-color 0.15s',
           zIndex: 2,
-          '&:hover #close': {
-            color: 'primary',
+          '&:hover svg': {
+            stroke: 'secondary',
           },
-          '&:hover input::placeholder': {
-            color: 'primary',
+          '&:hover label': {
+            color: 'secondary',
           },
         }}
       >
@@ -279,10 +285,27 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
           <Box sx={{ pt: 3 }} />
         )}
         <Row columns={[6, 8, 4, 4]}>
-          <Column start={[1]} width={1}>
-            <Box variant='label'>Address</Box>
+          {/* at full width the input spans the row over the label, which
+              stays in the layout (hidden) so the row height doesn't change;
+              both are pinned to grid row 1 so the overlap doesn't wrap */}
+          <Column
+            start={[1]}
+            width={1}
+            sx={{ gridRow: 1, visibility: showLabel ? 'visible' : 'hidden' }}
+          >
+            <Box
+              as='label'
+              variant='label'
+              sx={{ cursor: 'pointer', transition: 'color 0.2s' }}
+            >
+              Location
+            </Box>
           </Column>
-          <Column start={[3, 2, 2, 2]} width={[4, 7, 3, 3]}>
+          <Column
+            start={showLabel ? [3, 2, 2, 2] : 1}
+            width={showLabel ? [4, 7, 3, 3] : [6, 8, 4, 4]}
+            sx={{ gridRow: 1 }}
+          >
             <Flex>
               <Input
                 ref={inputRef}
@@ -295,16 +318,14 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                   selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined
                 }
                 aria-describedby={errorMessage ? errorId : undefined}
-                aria-label='Search for an address'
+                aria-label='Search for a location'
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setSearchQuery(e.target.value)
                 }
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsEditing(true)}
-                placeholder={
-                  reverseGeocodeLoading ? 'loading...' : 'enter search term'
-                }
+                placeholder={placeholder}
                 sx={{
                   mt: '1px',
                   flexGrow: 1,
@@ -319,6 +340,12 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                   flex: 1,
                   '&::placeholder': {
                     transition: 'color 0.15s',
+                    // set like the label it stands in for
+                    ...(labelAsPlaceholder && {
+                      color: 'secondary',
+                      letterSpacing: 'mono',
+                      textTransform: 'uppercase',
+                    }),
                   },
                 }}
               />
@@ -327,7 +354,7 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                   size='xs'
                   onClick={handleDeselect}
                   inverted
-                  aria-label='Clear address'
+                  aria-label='Clear location'
                 >
                   <X
                     id='close'
@@ -336,6 +363,7 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                       width: [12, 12, 12, 16],
                       height: [12, 12, 12, 16],
                       mb: ['-3px', '-3px', '-3px', '-4px'],
+                      color: 'primary',
                     }}
                   />
                 </Button>
