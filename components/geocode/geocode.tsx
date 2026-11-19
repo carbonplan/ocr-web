@@ -330,7 +330,7 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                     minWidth: 0,
                     fontFamily: 'faux',
                     letterSpacing: 'faux',
-                    fontSize: [2, 2, 2, 3],
+                    fontSize: [1, 1, 1, 2],
                     color: 'primary',
                     border: 'none',
                     py: 0,

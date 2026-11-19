@@ -45,6 +45,7 @@ const Menu = forwardRef<Ref, Props>(
               px: [4, 5, 5, 6],
               fontFamily: 'faux',
               letterSpacing: 'faux',
+              fontSize: [1, 1, 1, 2],
               color: 'secondary',
               background: 'hinted',
               overflowY: 'auto',

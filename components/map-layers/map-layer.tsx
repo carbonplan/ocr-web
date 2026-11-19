@@ -30,10 +30,11 @@ const MapLayer = ({
         as='label'
       >
         <Box
-          variant='label'
           sx={{
             color: checked ? 'primary' : 'secondary',
             transition: 'color 0.2s',
+            fontFamily: 'faux',
+            letterSpacing: 'faux',
           }}
         >
           {label}
