@@ -21,7 +21,7 @@ const OtherFactors = () => {
 
   return (
     <Box>
-      <Box variant='description'>
+      <Box>
         The risk described above does not account for several important factors,
         including those below, which could influence the actual wildfire risk of
         a given location. For more information on these factors, see our{' '}
@@ -51,8 +51,7 @@ const OtherFactors = () => {
             fontSize: [1, 1, 1, 2],
           },
           '& td': {
-            fontFamily: 'body',
-            letterSpacing: 'body',
+            variant: 'description',
           },
         }}
       />

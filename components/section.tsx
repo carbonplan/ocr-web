@@ -52,7 +52,9 @@ const Section = ({ label, children, defaultExpanded = false }: Props) => {
         height={expanded ? 'auto' : 0}
         easing={'linear'}
       >
-        <Box sx={{ pt: 2 }}>{children}</Box>
+        <Box variant='description' sx={{ pt: 2 }}>
+          {children}
+        </Box>
       </AnimateHeight>
       <SidebarDivider sx={{ mt: 3, mb: 0 }} />
     </Box>

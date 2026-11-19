@@ -14,7 +14,7 @@ const customVariants = {
   description: {
     fontFamily: 'body',
     letterSpacing: 'body',
-    fontSize: [2, 2, 2, 3],
+    fontSize: [1, 1, 1, 2],
   },
 
   filter: {

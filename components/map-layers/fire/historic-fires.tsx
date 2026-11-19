@@ -62,17 +62,17 @@ const HistoricFires = () => {
       Fires smaller than 1,000 acres in the West and 500 acres in the East are
       not mapped.
       {!hasSelection && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its fire history.
         </Box>
       )}
       {status === 'error' && hasSelection && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           No fire history is available for this location.
         </Box>
       )}
       {fires && fires.length === 0 && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           No mapped fire has burned this location.
         </Box>
       )}

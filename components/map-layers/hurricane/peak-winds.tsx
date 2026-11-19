@@ -113,7 +113,7 @@ const PeakWinds = () => {
       />
       {buildingQuery.status === 'error' &&
         (selectedBuilding || selectedArea) && (
-          <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+          <Box sx={{ mt: 2, color: 'secondary' }}>
             No hurricane data is available for this location.
           </Box>
         )}
