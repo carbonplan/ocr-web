@@ -73,6 +73,12 @@ export type HazardMapLayer = {
   binLabels?: string[]
   axisLabel?: string
   customColormap?: boolean
+  // with customColormap, draws the colorbar as named badges, one per bin,
+  // rather than a bar with labels beneath
+  binBadges?: boolean
+  // with binBadges, bins (by index) whose names drop, and whose badges
+  // narrow, when the names don't all fit
+  minorBins?: number[]
   // in place of the hazard's colormap
   colormap?: string
   // bins are classes (value k in bin k): zero is a class rather than no data,
