@@ -328,7 +328,8 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                   sx={{
                     flexGrow: 1,
                     minWidth: 0,
-                    fontFamily: 'mono',
+                    fontFamily: 'faux',
+                    letterSpacing: 'faux',
                     fontSize: [2, 2, 2, 3],
                     color: 'primary',
                     border: 'none',
@@ -339,11 +340,10 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                     flex: 1,
                     '&::placeholder': {
                       transition: 'color 0.15s',
-                      // set like the label it stands in for; otherwise a
-                      // directive or status, set as body text
                       ...(labelAsPlaceholder
                         ? {
                             color: 'secondary',
+                            fontFamily: 'mono',
                             letterSpacing: 'mono',
                             textTransform: 'uppercase',
                           }
