@@ -258,7 +258,7 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
 
   const showLabel = !selectedLocation && !isEditing && !searchQuery
   const labelAsPlaceholder = isEditing && !reverseGeocodeLoading
-  let placeholder = ''
+  let placeholder = 'search or select on map'
   if (reverseGeocodeLoading) placeholder = 'loading...'
   else if (labelAsPlaceholder) placeholder = 'location'
 
@@ -285,70 +285,73 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
           <Box sx={{ pt: 3 }} />
         )}
         <Row columns={[6, 8, 4, 4]}>
-          {/* at full width the input spans the row over the label, which
-              stays in the layout (hidden) so the row height doesn't change;
-              both are pinned to grid row 1 so the overlap doesn't wrap */}
-          <Column
-            start={[1]}
-            width={1}
-            sx={{ gridRow: 1, visibility: showLabel ? 'visible' : 'hidden' }}
-          >
-            <Box
-              as='label'
-              variant='label'
-              sx={{ cursor: 'pointer', transition: 'color 0.2s' }}
-            >
-              Location
-            </Box>
-          </Column>
-          <Column
-            start={showLabel ? [3, 2, 2, 2] : 1}
-            width={showLabel ? [4, 7, 3, 3] : [6, 8, 4, 4]}
-            sx={{ gridRow: 1 }}
-          >
+          <Column start={1} width={[6, 8, 4, 4]}>
             <Flex>
-              <Input
-                ref={inputRef}
-                id={'address-search'}
-                role='combobox'
-                aria-expanded={isEditing && suggestions.length > 0}
-                aria-haspopup='listbox'
-                aria-controls={listboxId}
-                aria-activedescendant={
-                  selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined
-                }
-                aria-describedby={errorMessage ? errorId : undefined}
-                aria-label='Search for a location'
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setSearchQuery(e.target.value)
-                }
-                onKeyDown={handleKeyDown}
-                onFocus={() => setIsEditing(true)}
-                placeholder={placeholder}
-                sx={{
-                  mt: '1px',
-                  flexGrow: 1,
-                  fontFamily: 'mono',
-                  fontSize: [2, 2, 2, 3],
-                  color: 'primary',
-                  border: 'none',
-                  py: 0,
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                  '&::placeholder': {
-                    transition: 'color 0.15s',
-                    // set like the label it stands in for
-                    ...(labelAsPlaceholder && {
-                      color: 'secondary',
-                      letterSpacing: 'mono',
-                      textTransform: 'uppercase',
-                    }),
-                  },
-                }}
-              />
+              <Flex sx={{ alignItems: 'baseline', flex: 1, minWidth: 0 }}>
+                <Box
+                  as='label'
+                  variant='label'
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'color 0.2s',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    ...(showLabel
+                      ? { mr: 2 }
+                      : { width: 0, mr: 0, visibility: 'hidden' }),
+                  }}
+                >
+                  Location
+                </Box>
+                <Input
+                  ref={inputRef}
+                  id={'address-search'}
+                  role='combobox'
+                  aria-expanded={isEditing && suggestions.length > 0}
+                  aria-haspopup='listbox'
+                  aria-controls={listboxId}
+                  aria-activedescendant={
+                    selectedIndex >= 0
+                      ? `suggestion-${selectedIndex}`
+                      : undefined
+                  }
+                  aria-describedby={errorMessage ? errorId : undefined}
+                  aria-label='Search for a location'
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchQuery(e.target.value)
+                  }
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setIsEditing(true)}
+                  placeholder={placeholder}
+                  sx={{
+                    flexGrow: 1,
+                    minWidth: 0,
+                    fontFamily: 'mono',
+                    fontSize: [2, 2, 2, 3],
+                    color: 'primary',
+                    border: 'none',
+                    py: 0,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    '&::placeholder': {
+                      transition: 'color 0.15s',
+                      // set like the label it stands in for; otherwise a
+                      // directive or status, set as body text
+                      ...(labelAsPlaceholder
+                        ? {
+                            color: 'secondary',
+                            letterSpacing: 'mono',
+                            textTransform: 'uppercase',
+                          }
+                        : { variant: 'description' }),
+                    },
+                  }}
+                />
+              </Flex>
               {selectedLocation || searchQuery.length > 0 ? (
                 <Button
                   size='xs'
