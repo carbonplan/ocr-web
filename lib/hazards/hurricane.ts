@@ -93,7 +93,7 @@ const hurricane: HazardConfig = {
     {
       id: HISTORIC_STORMS_LAYER_ID,
       kind: 'events',
-      axisLabel: 'Peak wind',
+      axisLabel: 'Wind speed',
       unit: 'mph',
       unitScale: MPH_PER_MS,
       ...SAFFIR_SIMPSON,
