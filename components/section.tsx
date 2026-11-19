@@ -10,10 +10,11 @@ import AnimateHeight from 'react-animate-height'
 interface Props {
   label: string
   children: ReactNode
+  defaultExpanded?: boolean
 }
 
-const Section = ({ label, children }: Props) => {
-  const [expanded, setExpanded] = useState(false)
+const Section = ({ label, children, defaultExpanded = false }: Props) => {
+  const [expanded, setExpanded] = useState(defaultExpanded)
   return (
     <Box sx={{ pt: 3 }}>
       <Flex
