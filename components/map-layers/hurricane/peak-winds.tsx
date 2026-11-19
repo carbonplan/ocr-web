@@ -90,6 +90,7 @@ const PeakWinds = () => {
         }
         size='xs'
         sx={{ mb: ['-5px'] }}
+        sxSelect={{ variant: 'description', pr: [3, 3, 3, 4] }}
       >
         {returnPeriods.map((rp) => (
           <option key={rp} value={rp}>
