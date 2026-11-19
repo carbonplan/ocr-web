@@ -6,7 +6,7 @@ const customVariants = {
   label: {
     fontFamily: 'mono',
     letterSpacing: 'mono',
-    fontSize: [2, 2, 2, 3],
+    fontSize: [1, 1, 1, 2],
     color: 'primary',
     textTransform: 'uppercase' as const,
   },
