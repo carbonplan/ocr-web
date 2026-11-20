@@ -37,51 +37,88 @@ const BinBadges = ({
   layer: HazardMapLayer
   ramp: string[]
 }) => {
-  const { binBoundaries, binLabels = [], minorBins = [] } = layer
+  const {
+    binBoundaries,
+    binLabels = [],
+    binShortLabels,
+    minorBins = [],
+  } = layer
   const colormap = ramp.slice(1)
   const categorical = !!layer.categorical
   const zeroCell = !categorical && binBoundaries[0] === 0
   const lastEdge = binBoundaries.length - 1
   const binCount = binBoundaries.length
   const cellCount = binCount + (zeroCell ? 1 : 0)
+  const majorCount = binCount - minorBins.length
 
   const gridRef = useRef<HTMLDivElement>(null)
-  const measureRef = useRef<HTMLDivElement>(null)
-  const [compact, setCompact] = useState(false)
-  const longestLabel = binLabels.reduce(
-    (longest, label) => (label.length > longest.length ? label : longest),
-    '',
-  )
+  const fullRef = useRef<HTMLDivElement>(null)
+  const majorRef = useRef<HTMLDivElement>(null)
+  const shortRef = useRef<HTMLDivElement>(null)
+  // 'full': every name; 'compact': minor names dropped and their badges
+  // narrowed; 'short': compact, with the remaining names abbreviated
+  const [fit, setFit] = useState<'full' | 'compact' | 'short'>('full')
 
-  // compares the widest name's badge against a bin's share of the full
-  // layout, whichever layout is showing, so the choice doesn't oscillate
+  const longest = (labels: string[]) =>
+    labels.reduce((a, b) => (b.length > a.length ? b : a), '')
+  const isMajor = (_: unknown, i: number) => !minorBins.includes(i)
+  const longestLabel = longest(binLabels)
+  const longestMajor = longest(binLabels.filter(isMajor))
+  const longestShort = longest((binShortLabels ?? []).filter(isMajor))
+
+  // compares the widest names' badges against a bin's share of each layout in
+  // turn, independent of the layout showing, so the choice doesn't oscillate
   useEffect(() => {
     const grid = gridRef.current
-    const measure = measureRef.current
-    if (!grid || !measure || minorBins.length === 0) return
+    if (!grid) return
+    const canCompact = minorBins.length > 0 && majorCount > 0
+    const canShorten = canCompact && !!binShortLabels
+    if (!canCompact) return
     const update = () => {
       const width = grid.clientWidth
-      const zeroWidth = zeroCell ? narrowCellWidth(width) : 0
-      const perBin = (width - zeroWidth - 2 * (cellCount - 1)) / binCount
-      setCompact(measure.offsetWidth > perBin)
+      const narrow = narrowCellWidth(width)
+      const gaps = 2 * (cellCount - 1)
+      const zeroWidth = zeroCell ? narrow : 0
+      const perBin = (width - zeroWidth - gaps) / binCount
+      const perMajor =
+        (width - zeroWidth - minorBins.length * narrow - gaps) / majorCount
+      const fits = (ref: React.RefObject<HTMLDivElement>, space: number) =>
+        (ref.current?.offsetWidth ?? 0) <= space
+      if (fits(fullRef, perBin)) setFit('full')
+      else if (!canShorten || fits(majorRef, perMajor)) setFit('compact')
+      else setFit('short')
     }
     update()
     // the badge's font size changes at breakpoints as well as the bar's width
     const observer = new ResizeObserver(update)
     observer.observe(grid)
-    observer.observe(measure)
+    for (const ref of [fullRef, majorRef, shortRef]) {
+      if (ref.current) observer.observe(ref.current)
+    }
     return () => observer.disconnect()
-  }, [minorBins.length, zeroCell, cellCount, binCount, longestLabel])
+  }, [
+    minorBins.length,
+    binShortLabels,
+    majorCount,
+    zeroCell,
+    cellCount,
+    binCount,
+    longestLabel,
+    longestMajor,
+    longestShort,
+  ])
 
   const cells = [
     ...(zeroCell
       ? [{ color: ramp[0], label: '0', edge: null, muted: true, narrow: true }]
       : []),
     ...binBoundaries.map((boundary, i) => {
-      const dropped = compact && minorBins.includes(i)
+      const dropped = fit !== 'full' && minorBins.includes(i)
+      const label =
+        fit === 'short' ? (binShortLabels?.[i] ?? binLabels[i]) : binLabels[i]
       return {
         color: colormap[i],
-        label: dropped ? '' : (binLabels[i] ?? ''),
+        label: dropped ? '' : (label ?? ''),
         edge:
           categorical || (zeroCell && i === 0)
             ? null
@@ -98,21 +135,27 @@ const BinBadges = ({
   return (
     <>
       <Box sx={{ position: 'relative' }}>
-        {/* the widest name's badge at its natural width, for the fit check */}
-        <Box
-          ref={measureRef}
-          aria-hidden='true'
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            visibility: 'hidden',
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <ValueBadge value={longestLabel} unit='#' whitespace={false} />
-        </Box>
+        {[
+          [fullRef, longestLabel],
+          [majorRef, longestMajor],
+          [shortRef, longestShort],
+        ].map(([ref, label], i) => (
+          <Box
+            key={i}
+            ref={ref as React.RefObject<HTMLDivElement>}
+            aria-hidden='true'
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              visibility: 'hidden',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <ValueBadge value={label as string} unit='#' whitespace={false} />
+          </Box>
+        ))}
         <Grid
           ref={gridRef}
           role='img'
@@ -162,7 +205,12 @@ const BinBadges = ({
                 unit='#'
                 color={color}
                 whitespace={false}
-                sx={{ width: '100%', ...(muted && { color: 'secondary' }) }}
+                sx={{
+                  width: '100%',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  ...(muted && { color: 'secondary' }),
+                }}
               />
             </Flex>
           ))}

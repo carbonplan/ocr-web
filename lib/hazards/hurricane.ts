@@ -6,6 +6,7 @@ import { HISTORIC_STORMS_LAYER_ID } from '@/lib/historic-events'
 const SAFFIR_SIMPSON = {
   binBoundaries: [0, 39, 74, 96, 111, 130, 157],
   binLabels: ['TD', 'TS', 'CAT 1', 'CAT 2', 'CAT 3', 'CAT 4', 'CAT 5'],
+  binShortLabels: ['TD', 'TS', '1', '2', '3', '4', '5'],
   binBadges: true,
   minorBins: [0, 1],
 }

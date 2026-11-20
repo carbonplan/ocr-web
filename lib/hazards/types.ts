@@ -79,6 +79,9 @@ export type HazardMapLayer = {
   // with binBadges, bins (by index) whose names drop, and whose badges
   // narrow, when the names don't all fit
   minorBins?: number[]
+  // with minorBins, abbreviated names (by index) for the remaining bins when
+  // even those don't fit at full length
+  binShortLabels?: string[]
   // in place of the hazard's colormap
   colormap?: string
   // bins are classes (value k in bin k): zero is a class rather than no data,
