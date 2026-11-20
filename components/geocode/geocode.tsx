@@ -17,6 +17,12 @@ import Menu from './menu'
 
 const MIN_QUERY_LENGTH = 3
 
+const ICON_SIZE = [12, 12, 12, 16]
+// Inline svgs sit with their bottom edge on the text baseline. Pull them down
+// so the X's bottom-left corner and the magnifier handle end land exactly
+// on the label baseline.
+const ICON_MB = ICON_SIZE.map((s) => `-${(3.81 / 24) * s}px`)
+
 const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
@@ -286,7 +292,7 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
         )}
         <Row columns={[6, 8, 4, 4]}>
           <Column start={1} width={[6, 8, 4, 4]}>
-            <Flex>
+            <Flex sx={{ alignItems: 'baseline' }}>
               <Flex sx={{ alignItems: 'baseline', flex: 1, minWidth: 0 }}>
                 <Box
                   as='label'
@@ -363,20 +369,32 @@ const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
                     id='close'
                     sx={{
                       transition: 'color 0.2s',
-                      width: [12, 12, 12, 16],
-                      height: [12, 12, 12, 16],
-                      mb: ['-3px', '-3px', '-3px', '-4px'],
+                      width: ICON_SIZE,
+                      height: ICON_SIZE,
+                      mb: ICON_MB,
                       color: 'primary',
                     }}
                   />
                 </Button>
               ) : (
-                <Search
+                <Box
+                  as='span'
                   sx={{
-                    width: [12, 12, 12, 16],
-                    mb: ['-6px', '-6px', '-6px', '-6px'],
+                    display: 'block',
+                    lineHeight: 1.05,
+                    fontSize: [2, 2, 2, 3],
                   }}
-                />
+                >
+                  <Search
+                    sx={{
+                      width: ICON_SIZE,
+                      height: ICON_SIZE,
+                      mb: ICON_MB,
+                      // Handle end (0.7, 23.3) -> X corner (3.81, 20.19): +3.11 / -3.11
+                      transform: `translate(calc(100% * 3.11 / 24), calc(-100% * 3.11 / 24))`,
+                    }}
+                  />
+                </Box>
               )}
             </Flex>
           </Column>
