@@ -144,7 +144,7 @@ const TimeHorizons = () => {
         />
       </Box>
 
-      <Box sx={{ mt: 4, variant: 'description' }}>
+      <Box sx={{ mt: 4 }}>
         Over longer time horizons, the annual burn probability, and thus risk of
         loss, compounds.
       </Box>

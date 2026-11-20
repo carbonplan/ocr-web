@@ -83,12 +83,12 @@ const HistoricStorms = () => {
       {TROPICAL_STORM_MPH}+ mph) reached this location by NOAA&apos;s best
       track, and how near each passed.
       {!hasSelection && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           Select a location to see its storm history.
         </Box>
       )}
       {status === 'error' && hasSelection && (
-        <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+        <Box sx={{ mt: 2, color: 'secondary' }}>
           No storm data is available for this location.
         </Box>
       )}

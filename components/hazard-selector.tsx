@@ -40,7 +40,9 @@ const HazardSelector = () => {
             }
           }}
         />
-        <Box sx={{ my: 1, fontSize: [1, 1, 1, 2] }}>{description}</Box>
+        <Box variant='description' sx={{ my: 1 }}>
+          {description}
+        </Box>
       </Column>
     </Row>
   )

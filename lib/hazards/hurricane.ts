@@ -5,7 +5,10 @@ import { HISTORIC_STORMS_LAYER_ID } from '@/lib/historic-events'
 // Saffir-Simpson category edges (1-min sustained wind, mph)
 const SAFFIR_SIMPSON = {
   binBoundaries: [0, 39, 74, 96, 111, 130, 157],
-  binLabels: ['', 'TS', 'Cat 1', 'Cat 2', 'Cat 3', 'Cat 4', 'Cat 5'],
+  binLabels: ['TD', 'TS', 'CAT 1', 'CAT 2', 'CAT 3', 'CAT 4', 'CAT 5'],
+  binShortLabels: ['TD', 'TS', '1', '2', '3', '4', '5'],
+  binBadges: true,
+  minorBins: [0, 1],
 }
 // m/s -> mph
 const MPH_PER_MS = 2.23694
@@ -93,7 +96,7 @@ const hurricane: HazardConfig = {
     {
       id: HISTORIC_STORMS_LAYER_ID,
       kind: 'events',
-      axisLabel: 'Peak wind',
+      axisLabel: 'Wind speed',
       unit: 'mph',
       unitScale: MPH_PER_MS,
       ...SAFFIR_SIMPSON,

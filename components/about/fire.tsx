@@ -4,9 +4,9 @@ import { Link } from '@carbonplan/components'
 import OtherFactors from './other-factors'
 
 const FireAbout = () => (
-  <Box variant='description'>
+  <Box>
     <OtherFactors />
-    <Box>
+    <Box sx={{ mt: 2 }}>
       The development of this project by CarbonPlan was funded, in part, through
       a grant from the Patrick J. McGovern Foundation.
     </Box>

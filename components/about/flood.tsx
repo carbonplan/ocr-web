@@ -3,7 +3,7 @@ import { Box } from 'theme-ui'
 import { Link } from '@carbonplan/components'
 
 const FloodAbout = () => (
-  <Box variant='description'>
+  <Box>
     <Box>
       Flood damage probability comes from the random forest model of{' '}
       <Link href='https://doi.org/10.1088/1748-9326/ac4f0f'>

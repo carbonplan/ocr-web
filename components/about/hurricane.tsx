@@ -3,7 +3,7 @@ import { Box } from 'theme-ui'
 import { Link } from '@carbonplan/components'
 
 const HurricaneAbout = () => (
-  <Box variant='description'>
+  <Box>
     <Box>
       Hurricane hazard estimates are derived from the Columbia HAZard model (
       <Link href='https://doi.org/10.1002/2017MS001186'>

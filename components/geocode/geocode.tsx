@@ -17,7 +17,13 @@ import Menu from './menu'
 
 const MIN_QUERY_LENGTH = 3
 
-const Geocode = () => {
+const ICON_SIZE = [12, 12, 12, 16]
+// Inline svgs sit with their bottom edge on the text baseline. Pull them down
+// so the X's bottom-left corner and the magnifier handle end land exactly
+// on the label baseline.
+const ICON_MB = ICON_SIZE.map((s) => `-${(3.81 / 24) * s}px`)
+
+const Geocode = ({ topDivider = true }: { topDivider?: boolean }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
@@ -65,7 +71,7 @@ const Geocode = () => {
       setSearchQuery(
         selectedArea
           ? formatRegionName(selectedLocation.address)
-          : formatAddress(selectedLocation.address, { abbreviate: true }),
+          : formatAddress(selectedLocation.address),
       )
     } else {
       setSearchQuery('')
@@ -256,6 +262,12 @@ const Geocode = () => {
     setSelectedIndex(-1)
   }
 
+  const showLabel = !selectedLocation && !isEditing && !searchQuery
+  const labelAsPlaceholder = isEditing && !reverseGeocodeLoading
+  let placeholder = 'search or select on map'
+  if (reverseGeocodeLoading) placeholder = 'loading...'
+  else if (labelAsPlaceholder) placeholder = 'location'
+
   return (
     <Box ref={setWrapperNode} sx={{ width: '100%' }}>
       <Box
@@ -265,83 +277,124 @@ const Geocode = () => {
           cursor: 'pointer',
           transition: 'background-color 0.15s',
           zIndex: 2,
-          '&:hover #close': {
-            color: 'primary',
+          '&:hover svg': {
+            stroke: 'secondary',
           },
-          '&:hover input::placeholder': {
-            color: 'primary',
+          '&:hover label': {
+            color: 'secondary',
           },
         }}
       >
-        <SidebarDivider sx={{ mb: 3 }} />
+        {topDivider ? (
+          <SidebarDivider sx={{ mb: 3 }} />
+        ) : (
+          <Box sx={{ pt: 3 }} />
+        )}
         <Row columns={[6, 8, 4, 4]}>
-          <Column start={[1]} width={1}>
-            <Box variant='label'>Address</Box>
-          </Column>
-          <Column start={[3, 2, 2, 2]} width={[4, 7, 3, 3]}>
-            <Flex>
-              <Input
-                ref={inputRef}
-                id={'address-search'}
-                role='combobox'
-                aria-expanded={isEditing && suggestions.length > 0}
-                aria-haspopup='listbox'
-                aria-controls={listboxId}
-                aria-activedescendant={
-                  selectedIndex >= 0 ? `suggestion-${selectedIndex}` : undefined
-                }
-                aria-describedby={errorMessage ? errorId : undefined}
-                aria-label='Search for an address'
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setSearchQuery(e.target.value)
-                }
-                onKeyDown={handleKeyDown}
-                onFocus={() => setIsEditing(true)}
-                placeholder={
-                  reverseGeocodeLoading ? 'loading...' : 'enter search term'
-                }
-                sx={{
-                  mt: '1px',
-                  flexGrow: 1,
-                  fontFamily: 'mono',
-                  fontSize: [2, 2, 2, 3],
-                  color: 'primary',
-                  border: 'none',
-                  py: 0,
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                  '&::placeholder': {
-                    transition: 'color 0.15s',
-                  },
-                }}
-              />
+          <Column start={1} width={[6, 8, 4, 4]}>
+            <Flex sx={{ alignItems: 'baseline' }}>
+              <Flex sx={{ alignItems: 'baseline', flex: 1, minWidth: 0 }}>
+                <Box
+                  as='label'
+                  variant='label'
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'color 0.2s',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    ...(showLabel
+                      ? { mr: 2 }
+                      : { width: 0, mr: 0, visibility: 'hidden' }),
+                  }}
+                >
+                  Location
+                </Box>
+                <Input
+                  ref={inputRef}
+                  id={'address-search'}
+                  role='combobox'
+                  aria-expanded={isEditing && suggestions.length > 0}
+                  aria-haspopup='listbox'
+                  aria-controls={listboxId}
+                  aria-activedescendant={
+                    selectedIndex >= 0
+                      ? `suggestion-${selectedIndex}`
+                      : undefined
+                  }
+                  aria-describedby={errorMessage ? errorId : undefined}
+                  aria-label='Search for a location'
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchQuery(e.target.value)
+                  }
+                  onKeyDown={handleKeyDown}
+                  onFocus={() => setIsEditing(true)}
+                  placeholder={placeholder}
+                  sx={{
+                    flexGrow: 1,
+                    minWidth: 0,
+                    fontFamily: 'faux',
+                    letterSpacing: 'faux',
+                    fontSize: [1, 1, 1, 2],
+                    color: 'primary',
+                    border: 'none',
+                    py: 0,
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    '&::placeholder': {
+                      transition: 'color 0.15s',
+                      ...(labelAsPlaceholder
+                        ? {
+                            color: 'secondary',
+                            fontFamily: 'mono',
+                            letterSpacing: 'mono',
+                            textTransform: 'uppercase',
+                          }
+                        : { variant: 'description' }),
+                    },
+                  }}
+                />
+              </Flex>
               {selectedLocation || searchQuery.length > 0 ? (
                 <Button
                   size='xs'
                   onClick={handleDeselect}
                   inverted
-                  aria-label='Clear address'
+                  aria-label='Clear location'
                 >
                   <X
                     id='close'
                     sx={{
                       transition: 'color 0.2s',
-                      width: [12, 12, 12, 16],
-                      height: [12, 12, 12, 16],
-                      mb: ['-3px', '-3px', '-3px', '-4px'],
+                      width: ICON_SIZE,
+                      height: ICON_SIZE,
+                      mb: ICON_MB,
+                      color: 'primary',
                     }}
                   />
                 </Button>
               ) : (
-                <Search
+                <Box
+                  as='span'
                   sx={{
-                    width: [12, 12, 12, 16],
-                    mb: ['-6px', '-6px', '-6px', '-6px'],
+                    display: 'block',
+                    lineHeight: 1.05,
+                    fontSize: [2, 2, 2, 3],
                   }}
-                />
+                >
+                  <Search
+                    sx={{
+                      width: ICON_SIZE,
+                      height: ICON_SIZE,
+                      mb: ICON_MB,
+                      // Handle end (0.7, 23.3) -> X corner (3.81, 20.19): +3.11 / -3.11
+                      transform: `translate(calc(100% * 3.11 / 24), calc(-100% * 3.11 / 24))`,
+                    }}
+                  />
+                </Box>
               )}
             </Flex>
           </Column>

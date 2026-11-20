@@ -90,6 +90,7 @@ const PeakWinds = () => {
         }
         size='xs'
         sx={{ mb: ['-5px'] }}
+        sxSelect={{ variant: 'description', pr: [3, 3, 3, 4] }}
       >
         {returnPeriods.map((rp) => (
           <option key={rp} value={rp}>
@@ -113,7 +114,7 @@ const PeakWinds = () => {
       />
       {buildingQuery.status === 'error' &&
         (selectedBuilding || selectedArea) && (
-          <Box variant='description' sx={{ mt: 2, color: 'secondary' }}>
+          <Box sx={{ mt: 2, color: 'secondary' }}>
             No hurricane data is available for this location.
           </Box>
         )}

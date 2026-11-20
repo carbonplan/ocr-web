@@ -10,16 +10,18 @@ import AnimateHeight from 'react-animate-height'
 interface Props {
   label: string
   children: ReactNode
+  defaultExpanded?: boolean
 }
 
-const Section = ({ label, children }: Props) => {
-  const [expanded, setExpanded] = useState(false)
+const Section = ({ label, children, defaultExpanded = false }: Props) => {
+  const [expanded, setExpanded] = useState(defaultExpanded)
   return (
     <Box sx={{ pt: 3 }}>
       <Flex
         sx={{
           width: '100%',
           justifyContent: 'space-between',
+          alignItems: 'baseline',
           cursor: 'pointer',
           transition: '.2s color',
           userSelect: 'none',
@@ -34,7 +36,14 @@ const Section = ({ label, children }: Props) => {
         <Expander
           onClick={() => setExpanded(!expanded)}
           value={expanded}
-          sx={{ stroke: 'primary', width: [12, 12, 12, 16], p: 0 }}
+          sx={{
+            stroke: 'primary',
+            width: [12, 12, 12, 16],
+            height: [12, 12, 12, 16],
+            p: 0,
+            flexShrink: 0,
+            '& svg': { display: 'block', width: '100%', height: '100%' },
+          }}
         />
       </Flex>
 
@@ -43,7 +52,9 @@ const Section = ({ label, children }: Props) => {
         height={expanded ? 'auto' : 0}
         easing={'linear'}
       >
-        <Box sx={{ pt: 2 }}>{children}</Box>
+        <Box variant='description' sx={{ pt: 2 }}>
+          {children}
+        </Box>
       </AnimateHeight>
       <SidebarDivider sx={{ mt: 3, mb: 0 }} />
     </Box>

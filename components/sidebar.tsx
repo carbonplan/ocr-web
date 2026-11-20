@@ -14,6 +14,8 @@ import {
   Geocode,
   MapLayers,
 } from '@/components'
+//@ts-expect-error - carbonplan layouts types not available
+import { SidebarDivider } from '@carbonplan/layouts'
 import { StickyStack } from './sticky-stack'
 
 const SidebarComponent = () => {
@@ -66,6 +68,8 @@ const SidebarComponent = () => {
             <HazardSelector />
             <ClimateSelector />
             <TimePeriodSelector />
+            <SidebarDivider sx={{ my: 0 }} />
+            <Colorbar sx={{ my: 0 }} />
           </StickyStack>
           <Flex
             sx={{
@@ -76,8 +80,7 @@ const SidebarComponent = () => {
             }}
           >
             <Box>
-              <Colorbar />
-              <Geocode />
+              <Geocode topDivider={false} />
               <MapLayers />
               <RegionalInfo />
               <About />
